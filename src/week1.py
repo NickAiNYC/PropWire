@@ -53,11 +53,18 @@ def project(season: int, week: int) -> tuple[pd.DataFrame, ReceivingModel]:
     r = 1.0 / model.alpha
     pp = r / (r + slate.mu_rec.values)
     from scipy import stats as st
-    med = st.nbinom.ppf(0.5, r, pp)
-    slate["fair_line_rec"] = np.where(st.nbinom.cdf(med, r, pp) >= 0.5,
-                                      med + 0.5, med - 0.5)
+    n = st.nbinom.ppf(0.5, r, pp).astype(int)
+    lo = np.maximum(n - 1, 0)
+    sf_lo = st.nbinom.sf(lo, r, pp)
+    sf_hi = st.nbinom.sf(n, r, pp)
+    slate["fair_line_rec"] = np.where(np.abs(sf_lo - 0.5) < np.abs(sf_hi - 0.5), lo + 0.5, n + 0.5)
     slate["fair_line_yards"] = np.round(
         model.yards_quantile_vec(slate.mu_rec.values, slate.mu_ypr.values, 0.5) * 2) / 2
+
+    # Regression assertion: mean P(over) at fair lines must average ~50%, not ~43%
+    p_rec_over_mean = model.p_rec_over_vec(slate.mu_rec.values, slate.fair_line_rec.values).mean()
+    assert 0.48 <= p_rec_over_mean <= 0.54, f"Reception fair lines miscalibrated: mean P(over) = {p_rec_over_mean:.3f}"
+
     return slate, model
 
 
@@ -128,8 +135,11 @@ def score_settled_games(season: int, week: int, model: ReceivingModel) -> pd.Dat
         from scipy import stats as st
         r = 1.0 / model.alpha
         pp = r / (r + eligible.proj_rec.values)
-        med = st.nbinom.ppf(0.5, r, pp)
-        eligible["fair_line_rec"] = np.where(st.nbinom.cdf(med, r, pp) >= 0.5, med + 0.5, med - 0.5)
+        n = st.nbinom.ppf(0.5, r, pp).astype(int)
+        lo = np.maximum(n - 1, 0)
+        sf_lo = st.nbinom.sf(lo, r, pp)
+        sf_hi = st.nbinom.sf(n, r, pp)
+        eligible["fair_line_rec"] = np.where(np.abs(sf_lo - 0.5) < np.abs(sf_hi - 0.5), lo + 0.5, n + 0.5)
         eligible["fair_line_yards"] = np.round(model.yards_quantile_vec(p.mu_rec.values, p.mu_ypr.values, 0.5) * 2) / 2
 
         stats_path = f"data/stats_{season}.parquet"

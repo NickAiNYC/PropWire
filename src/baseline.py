@@ -42,9 +42,12 @@ class BaselineLineSetter:
         r = 1.0 / self.m.alpha
         pp = r / (r + mu_r)
         # Median of the NB, placed on the hook so there is no push.
-        med_n = stats.nbinom.ppf(0.5, r, pp)
-        cdf = stats.nbinom.cdf(med_n, r, pp)
-        rec_line = np.where(cdf >= 0.5, med_n + 0.5, med_n - 0.5)
+        # Pick the half-point L with P(X > L) closest to 0.50.
+        n = stats.nbinom.ppf(0.5, r, pp).astype(int)
+        lo = np.maximum(n - 1, 0)
+        sf_lo = stats.nbinom.sf(lo, r, pp)
+        sf_hi = stats.nbinom.sf(n, r, pp)
+        rec_line = np.where(np.abs(sf_lo - 0.5) < np.abs(sf_hi - 0.5), lo + 0.5, n + 0.5)
         yd_line = np.round(self.m.yards_quantile_vec(mu_r, mu_y, 0.5) * 2) / 2
         rec_line = np.maximum(rec_line, 0.5)
         yd_line = np.maximum(yd_line, 5.5)

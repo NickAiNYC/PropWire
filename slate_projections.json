@@ -57,7 +57,7 @@
     "mu_ypr": 13.042441245639393,
     "proj_rec": 8.024195534971993,
     "proj_yards": 104.65509880839417,
-    "fair_line_rec": 8.5,
+    "fair_line_rec": 7.5,
     "fair_line_yards": 96.0
   },
   {
@@ -301,7 +301,7 @@
     "mu_ypr": 13.77142748472531,
     "proj_rec": 5.305435429314092,
     "proj_yards": 73.06341928969151,
-    "fair_line_rec": 5.5,
+    "fair_line_rec": 4.5,
     "fair_line_yards": 65.5
   },
   {
@@ -362,7 +362,7 @@
     "mu_ypr": 11.799985700815975,
     "proj_rec": 6.122272637009528,
     "proj_yards": 72.24272957320935,
-    "fair_line_rec": 6.5,
+    "fair_line_rec": 5.5,
     "fair_line_yards": 65.5
   },
   {
@@ -423,7 +423,7 @@
     "mu_ypr": 13.430731265295856,
     "proj_rec": 5.145668694180495,
     "proj_yards": 69.11009341178408,
-    "fair_line_rec": 5.5,
+    "fair_line_rec": 4.5,
     "fair_line_yards": 61.5
   },
   {
@@ -484,7 +484,7 @@
     "mu_ypr": 13.57741979152132,
     "proj_rec": 4.847449022524826,
     "proj_yards": 65.81585029681925,
-    "fair_line_rec": 5.5,
+    "fair_line_rec": 4.5,
     "fair_line_yards": 58.5
   },
   {
@@ -667,7 +667,7 @@
     "mu_ypr": 13.509965653491577,
     "proj_rec": 4.229218762614989,
     "proj_yards": 57.13660022403065,
-    "fair_line_rec": 4.5,
+    "fair_line_rec": 3.5,
     "fair_line_yards": 50.0
   },
   {
@@ -728,7 +728,7 @@
     "mu_ypr": 14.40626390250468,
     "proj_rec": 3.8595034399967667,
     "proj_yards": 55.601025089218055,
-    "fair_line_rec": 4.5,
+    "fair_line_rec": 3.5,
     "fair_line_yards": 48.0
   },
   {
@@ -789,7 +789,7 @@
     "mu_ypr": 13.692966469920242,
     "proj_rec": 4.044083356848791,
     "proj_yards": 55.375497806892994,
-    "fair_line_rec": 4.5,
+    "fair_line_rec": 3.5,
     "fair_line_yards": 48.5
   },
   {
@@ -850,7 +850,7 @@
     "mu_ypr": 13.781640137009196,
     "proj_rec": 4.002451507190543,
     "proj_yards": 55.160346337930136,
-    "fair_line_rec": 4.5,
+    "fair_line_rec": 3.5,
     "fair_line_yards": 48.0
   },
   {
@@ -911,7 +911,7 @@
     "mu_ypr": 12.56529962273783,
     "proj_rec": 4.270434856178058,
     "proj_yards": 53.65929348726063,
-    "fair_line_rec": 4.5,
+    "fair_line_rec": 3.5,
     "fair_line_yards": 47.0
   },
   {
@@ -972,7 +972,7 @@
     "mu_ypr": 13.549959578846268,
     "proj_rec": 3.931899659006359,
     "proj_yards": 53.277081447615586,
-    "fair_line_rec": 4.5,
+    "fair_line_rec": 3.5,
     "fair_line_yards": 46.5
   },
   {
@@ -1521,7 +1521,7 @@
     "mu_ypr": 12.2733769586859,
     "proj_rec": 3.8195509447877036,
     "proj_yards": 46.87878855828436,
-    "fair_line_rec": 4.5,
+    "fair_line_rec": 3.5,
     "fair_line_yards": 40.5
   },
   {
@@ -1582,7 +1582,7 @@
     "mu_ypr": 14.388178123780406,
     "proj_rec": 3.2523408756130934,
     "proj_yards": 46.79525983757312,
-    "fair_line_rec": 3.5,
+    "fair_line_rec": 2.5,
     "fair_line_yards": 39.5
   },
   {
@@ -1643,7 +1643,7 @@
     "mu_ypr": 11.714277894813321,
     "proj_rec": 3.9369016583649543,
     "proj_yards": 46.11796007063849,
-    "fair_line_rec": 4.5,
+    "fair_line_rec": 3.5,
     "fair_line_yards": 40.0
   },
   {
@@ -1765,7 +1765,7 @@
     "mu_ypr": 14.504580483404295,
     "proj_rec": 3.0789716390621584,
     "proj_yards": 44.659191944896314,
-    "fair_line_rec": 3.5,
+    "fair_line_rec": 2.5,
     "fair_line_yards": 37.5
   },
   {
@@ -1826,7 +1826,7 @@
     "mu_ypr": 14.332088260503355,
     "proj_rec": 2.99378433307411,
     "proj_yards": 42.90718129453032,
-    "fair_line_rec": 3.5,
+    "fair_line_rec": 2.5,
     "fair_line_yards": 36.0
   },
   {
@@ -1887,7 +1887,7 @@
     "mu_ypr": 13.619862910906345,
     "proj_rec": 3.1278041846274456,
     "proj_yards": 42.600264206785006,
-    "fair_line_rec": 3.5,
+    "fair_line_rec": 2.5,
     "fair_line_yards": 36.0
   },
   {
@@ -1948,7 +1948,7 @@
     "mu_ypr": 11.084300883645763,
     "proj_rec": 3.839973817673772,
     "proj_yards": 42.56342518041799,
-    "fair_line_rec": 4.5,
+    "fair_line_rec": 3.5,
     "fair_line_yards": 37.0
   },
   {
@@ -2009,7 +2009,7 @@
     "mu_ypr": 10.73824459910348,
     "proj_rec": 3.9554702182607024,
     "proj_yards": 42.47480670815265,
-    "fair_line_rec": 4.5,
+    "fair_line_rec": 3.5,
     "fair_line_yards": 37.0
   },
   {
@@ -2070,7 +2070,7 @@
     "mu_ypr": 14.997685702882618,
     "proj_rec": 2.797271902889952,
     "proj_yards": 41.95260482504789,
-    "fair_line_rec": 3.5,
+    "fair_line_rec": 2.5,
     "fair_line_yards": 34.5
   },
   {
@@ -2131,7 +2131,7 @@
     "mu_ypr": 10.25248555051654,
     "proj_rec": 3.9777183107524876,
     "proj_yards": 40.78149950501494,
-    "fair_line_rec": 4.5,
+    "fair_line_rec": 3.5,
     "fair_line_yards": 35.5
   },
   {
@@ -2253,7 +2253,7 @@
     "mu_ypr": 13.377350579013289,
     "proj_rec": 3.028016028460209,
     "proj_yards": 40.50683197158369,
-    "fair_line_rec": 3.5,
+    "fair_line_rec": 2.5,
     "fair_line_yards": 34.0
   },
   {
@@ -2314,7 +2314,7 @@
     "mu_ypr": 10.347210639761387,
     "proj_rec": 3.8801416606176433,
     "proj_yards": 40.148643074524294,
-    "fair_line_rec": 4.5,
+    "fair_line_rec": 3.5,
     "fair_line_yards": 35.0
   },
   {
@@ -2375,7 +2375,7 @@
     "mu_ypr": 13.176712856747573,
     "proj_rec": 3.0412469631466696,
     "proj_yards": 40.07363795983923,
-    "fair_line_rec": 3.5,
+    "fair_line_rec": 2.5,
     "fair_line_yards": 33.5
   },
   {
@@ -2497,7 +2497,7 @@
     "mu_ypr": 12.375114040548148,
     "proj_rec": 3.1463958029181156,
     "proj_yards": 38.93700687781374,
-    "fair_line_rec": 3.5,
+    "fair_line_rec": 2.5,
     "fair_line_yards": 33.0
   },
   {
@@ -2619,7 +2619,7 @@
     "mu_ypr": 12.654852372439931,
     "proj_rec": 3.0190269448453475,
     "proj_yards": 38.20534029543622,
-    "fair_line_rec": 3.5,
+    "fair_line_rec": 2.5,
     "fair_line_yards": 32.0
   },
   {
@@ -2680,7 +2680,7 @@
     "mu_ypr": 12.435039065739593,
     "proj_rec": 3.046490455178638,
     "proj_yards": 37.883227823549156,
-    "fair_line_rec": 3.5,
+    "fair_line_rec": 2.5,
     "fair_line_yards": 32.0
   },
   {
@@ -2741,7 +2741,7 @@
     "mu_ypr": 12.051084567929479,
     "proj_rec": 3.128351600603759,
     "proj_yards": 37.70002969709345,
-    "fair_line_rec": 3.5,
+    "fair_line_rec": 2.5,
     "fair_line_yards": 32.0
   },
   {
@@ -2802,7 +2802,7 @@
     "mu_ypr": 12.28274288698005,
     "proj_rec": 3.0087538984159283,
     "proj_yards": 36.955750544441734,
-    "fair_line_rec": 3.5,
+    "fair_line_rec": 2.5,
     "fair_line_yards": 31.0
   },
   {
@@ -2924,7 +2924,7 @@
     "mu_ypr": 11.877564844374492,
     "proj_rec": 2.9418723890388616,
     "proj_yards": 34.94228006468398,
-    "fair_line_rec": 3.5,
+    "fair_line_rec": 2.5,
     "fair_line_yards": 29.0
   },
   {
@@ -3107,7 +3107,7 @@
     "mu_ypr": 11.801957818700169,
     "proj_rec": 2.9119820715877505,
     "proj_yards": 34.36708957768977,
-    "fair_line_rec": 3.5,
+    "fair_line_rec": 2.5,
     "fair_line_yards": 28.5
   },
   {
@@ -3229,7 +3229,7 @@
     "mu_ypr": 11.314157565249035,
     "proj_rec": 2.986408274296313,
     "proj_yards": 33.78869376955195,
-    "fair_line_rec": 3.5,
+    "fair_line_rec": 2.5,
     "fair_line_yards": 28.5
   },
   {
@@ -3351,7 +3351,7 @@
     "mu_ypr": 11.570435508098912,
     "proj_rec": 2.887018309246081,
     "proj_yards": 33.40405915783254,
-    "fair_line_rec": 3.5,
+    "fair_line_rec": 2.5,
     "fair_line_yards": 28.0
   },
   {
@@ -3473,7 +3473,7 @@
     "mu_ypr": 10.31026136246376,
     "proj_rec": 3.21208356676547,
     "proj_yards": 33.117421091426806,
-    "fair_line_rec": 3.5,
+    "fair_line_rec": 2.5,
     "fair_line_yards": 28.0
   },
   {
@@ -3656,7 +3656,7 @@
     "mu_ypr": 11.323408150220486,
     "proj_rec": 2.84201239902138,
     "proj_yards": 32.18126636210637,
-    "fair_line_rec": 3.5,
+    "fair_line_rec": 2.5,
     "fair_line_yards": 26.5
   },
   {
@@ -3839,7 +3839,7 @@
     "mu_ypr": 7.514918517206272,
     "proj_rec": 4.118416721220196,
     "proj_yards": 30.949566079869594,
-    "fair_line_rec": 4.5,
+    "fair_line_rec": 3.5,
     "fair_line_yards": 27.0
   },
   {
@@ -3900,7 +3900,7 @@
     "mu_ypr": 10.04890613630271,
     "proj_rec": 3.0760721450386517,
     "proj_yards": 30.911160253988747,
-    "fair_line_rec": 3.5,
+    "fair_line_rec": 2.5,
     "fair_line_yards": 26.0
   },
   {
@@ -3961,7 +3961,7 @@
     "mu_ypr": 10.894616450434068,
     "proj_rec": 2.824504890969942,
     "proj_yards": 30.771897449492613,
-    "fair_line_rec": 3.5,
+    "fair_line_rec": 2.5,
     "fair_line_yards": 25.5
   },
   {
@@ -4022,7 +4022,7 @@
     "mu_ypr": 9.904754475418942,
     "proj_rec": 3.0909815803147342,
     "proj_yards": 30.615413641059877,
-    "fair_line_rec": 3.5,
+    "fair_line_rec": 2.5,
     "fair_line_yards": 26.0
   },
   {
@@ -4083,7 +4083,7 @@
     "mu_ypr": 10.145623147058588,
     "proj_rec": 2.9894416045790426,
     "proj_yards": 30.3297479401971,
-    "fair_line_rec": 3.5,
+    "fair_line_rec": 2.5,
     "fair_line_yards": 25.5
   },
   {
@@ -4144,7 +4144,7 @@
     "mu_ypr": 10.186459999760723,
     "proj_rec": 2.9743246464927386,
     "proj_yards": 30.297839037800735,
-    "fair_line_rec": 3.5,
+    "fair_line_rec": 2.5,
     "fair_line_yards": 25.5
   },
   {
@@ -4205,7 +4205,7 @@
     "mu_ypr": 13.246239808690337,
     "proj_rec": 2.17244722261678,
     "proj_yards": 28.77675688250515,
-    "fair_line_rec": 2.5,
+    "fair_line_rec": 1.5,
     "fair_line_yards": 22.5
   },
   {
@@ -4327,7 +4327,7 @@
     "mu_ypr": 10.201627856237229,
     "proj_rec": 2.7855335036239777,
     "proj_yards": 28.416976185052455,
-    "fair_line_rec": 3.5,
+    "fair_line_rec": 2.5,
     "fair_line_yards": 23.5
   },
   {
@@ -4754,7 +4754,7 @@
     "mu_ypr": 12.997630094478565,
     "proj_rec": 2.0474443550690777,
     "proj_yards": 26.6119243662161,
-    "fair_line_rec": 2.5,
+    "fair_line_rec": 1.5,
     "fair_line_yards": 20.5
   },
   {
@@ -4876,7 +4876,7 @@
     "mu_ypr": 9.198677583302826,
     "proj_rec": 2.8641137506949708,
     "proj_yards": 26.346058954547207,
-    "fair_line_rec": 3.5,
+    "fair_line_rec": 2.5,
     "fair_line_yards": 22.0
   },
   {
@@ -4937,7 +4937,7 @@
     "mu_ypr": 13.245580824349142,
     "proj_rec": 1.9845414889247193,
     "proj_yards": 26.286404690826558,
-    "fair_line_rec": 2.5,
+    "fair_line_rec": 1.5,
     "fair_line_yards": 20.0
   },
   {
@@ -4998,7 +4998,7 @@
     "mu_ypr": 12.544468972115842,
     "proj_rec": 2.090058398679461,
     "proj_yards": 26.218672732144622,
-    "fair_line_rec": 2.5,
+    "fair_line_rec": 1.5,
     "fair_line_yards": 20.5
   },
   {
@@ -5120,7 +5120,7 @@
     "mu_ypr": 12.245849307937636,
     "proj_rec": 2.1276069645032303,
     "proj_yards": 26.054354273825176,
-    "fair_line_rec": 2.5,
+    "fair_line_rec": 1.5,
     "fair_line_yards": 20.5
   },
   {
@@ -5181,7 +5181,7 @@
     "mu_ypr": 12.127084738282035,
     "proj_rec": 2.130088230158926,
     "proj_yards": 25.8317604671545,
-    "fair_line_rec": 2.5,
+    "fair_line_rec": 1.5,
     "fair_line_yards": 20.0
   },
   {
@@ -5303,7 +5303,7 @@
     "mu_ypr": 12.946407289472104,
     "proj_rec": 1.9226669860540502,
     "proj_yards": 24.891629883477513,
-    "fair_line_rec": 2.5,
+    "fair_line_rec": 1.5,
     "fair_line_yards": 19.0
   },
   {
@@ -5364,7 +5364,7 @@
     "mu_ypr": 13.453470484357808,
     "proj_rec": 1.839532795138077,
     "proj_yards": 24.748100164398338,
-    "fair_line_rec": 2.5,
+    "fair_line_rec": 1.5,
     "fair_line_yards": 18.5
   },
   {
@@ -5425,7 +5425,7 @@
     "mu_ypr": 13.113564570852343,
     "proj_rec": 1.880548032651289,
     "proj_yards": 24.66068805476202,
-    "fair_line_rec": 2.5,
+    "fair_line_rec": 1.5,
     "fair_line_yards": 18.5
   },
   {
@@ -5486,7 +5486,7 @@
     "mu_ypr": 13.835188943662612,
     "proj_rec": 1.7484334320629351,
     "proj_yards": 24.189906888007194,
-    "fair_line_rec": 2.5,
+    "fair_line_rec": 1.5,
     "fair_line_yards": 18.0
   },
   {
@@ -5547,7 +5547,7 @@
     "mu_ypr": 12.38180481149024,
     "proj_rec": 1.9421420343560878,
     "proj_yards": 24.04722358558765,
-    "fair_line_rec": 2.5,
+    "fair_line_rec": 1.5,
     "fair_line_yards": 18.5
   },
   {
@@ -5608,7 +5608,7 @@
     "mu_ypr": 11.20988438986408,
     "proj_rec": 2.1121480618327313,
     "proj_yards": 23.676935587420406,
-    "fair_line_rec": 2.5,
+    "fair_line_rec": 1.5,
     "fair_line_yards": 18.5
   },
   {
@@ -5669,7 +5669,7 @@
     "mu_ypr": 7.881599629977506,
     "proj_rec": 2.9982387905231627,
     "proj_yards": 23.630917741971565,
-    "fair_line_rec": 3.5,
+    "fair_line_rec": 2.5,
     "fair_line_yards": 20.0
   },
   {
@@ -5730,7 +5730,7 @@
     "mu_ypr": 11.1813919400508,
     "proj_rec": 2.1021088198375697,
     "proj_yards": 23.5045026152415,
-    "fair_line_rec": 2.5,
+    "fair_line_rec": 1.5,
     "fair_line_yards": 18.5
   },
   {
@@ -5791,7 +5791,7 @@
     "mu_ypr": 11.876149687629958,
     "proj_rec": 1.97437354636303,
     "proj_yards": 23.447955775904152,
-    "fair_line_rec": 2.5,
+    "fair_line_rec": 1.5,
     "fair_line_yards": 18.0
   },
   {
@@ -5852,7 +5852,7 @@
     "mu_ypr": 10.837002934868433,
     "proj_rec": 2.1529334502536948,
     "proj_yards": 23.331346118975713,
-    "fair_line_rec": 2.5,
+    "fair_line_rec": 1.5,
     "fair_line_yards": 18.5
   },
   {
@@ -5913,7 +5913,7 @@
     "mu_ypr": 11.93619710640013,
     "proj_rec": 1.927944239052413,
     "proj_yards": 23.012322447478212,
-    "fair_line_rec": 2.5,
+    "fair_line_rec": 1.5,
     "fair_line_yards": 17.5
   },
   {
@@ -6035,7 +6035,7 @@
     "mu_ypr": 10.448950393626113,
     "proj_rec": 2.168593975152955,
     "proj_yards": 22.659530870289686,
-    "fair_line_rec": 2.5,
+    "fair_line_rec": 1.5,
     "fair_line_yards": 18.0
   },
   {
@@ -6096,7 +6096,7 @@
     "mu_ypr": 7.868504621896558,
     "proj_rec": 2.856899901075989,
     "proj_yards": 22.479530075912237,
-    "fair_line_rec": 3.5,
+    "fair_line_rec": 2.5,
     "fair_line_yards": 18.5
   },
   {
@@ -6157,7 +6157,7 @@
     "mu_ypr": 7.25273872564294,
     "proj_rec": 3.0944754257287532,
     "proj_yards": 22.443421755733354,
-    "fair_line_rec": 3.5,
+    "fair_line_rec": 2.5,
     "fair_line_yards": 19.0
   },
   {
@@ -6279,7 +6279,7 @@
     "mu_ypr": 7.690845360977509,
     "proj_rec": 2.83935040061339,
     "proj_yards": 21.83700485674712,
-    "fair_line_rec": 3.5,
+    "fair_line_rec": 2.5,
     "fair_line_yards": 18.0
   },
   {
@@ -6401,7 +6401,7 @@
     "mu_ypr": 11.789279980207548,
     "proj_rec": 1.8464225460508052,
     "proj_yards": 21.767992357160608,
-    "fair_line_rec": 2.5,
+    "fair_line_rec": 1.5,
     "fair_line_yards": 16.5
   },
   {
@@ -6462,7 +6462,7 @@
     "mu_ypr": 9.851459515698457,
     "proj_rec": 2.1356142270281038,
     "proj_yards": 21.038917098717018,
-    "fair_line_rec": 2.5,
+    "fair_line_rec": 1.5,
     "fair_line_yards": 16.5
   },
   {
@@ -6523,7 +6523,7 @@
     "mu_ypr": 9.994199246088165,
     "proj_rec": 2.100490597386639,
     "proj_yards": 20.992721544816828,
-    "fair_line_rec": 2.5,
+    "fair_line_rec": 1.5,
     "fair_line_yards": 16.5
   },
   {
@@ -6645,7 +6645,7 @@
     "mu_ypr": 10.361352463900134,
     "proj_rec": 1.9047334471011823,
     "proj_yards": 19.735614595194832,
-    "fair_line_rec": 2.5,
+    "fair_line_rec": 1.5,
     "fair_line_yards": 15.0
   },
   {
@@ -6706,7 +6706,7 @@
     "mu_ypr": 9.792460215923986,
     "proj_rec": 1.9591486300569472,
     "proj_yards": 19.184885016914635,
-    "fair_line_rec": 2.5,
+    "fair_line_rec": 1.5,
     "fair_line_yards": 14.5
   },
   {
@@ -6828,7 +6828,7 @@
     "mu_ypr": 9.825994340377052,
     "proj_rec": 1.8917979850835895,
     "proj_yards": 18.588796294568063,
-    "fair_line_rec": 2.5,
+    "fair_line_rec": 1.5,
     "fair_line_yards": 14.0
   },
   {
@@ -7072,7 +7072,7 @@
     "mu_ypr": 9.549229371012805,
     "proj_rec": 1.804726086901911,
     "proj_yards": 17.233743355676737,
-    "fair_line_rec": 2.5,
+    "fair_line_rec": 1.5,
     "fair_line_yards": 13.0
   },
   {
@@ -7194,7 +7194,7 @@
     "mu_ypr": 7.477488876297805,
     "proj_rec": 2.218967623875253,
     "proj_yards": 16.592305724392176,
-    "fair_line_rec": 2.5,
+    "fair_line_rec": 1.5,
     "fair_line_yards": 13.0
   },
   {
@@ -7255,7 +7255,7 @@
     "mu_ypr": 7.470893401774954,
     "proj_rec": 2.1760617153843524,
     "proj_yards": 16.257125111320047,
-    "fair_line_rec": 2.5,
+    "fair_line_rec": 1.5,
     "fair_line_yards": 13.0
   },
   {
@@ -7316,7 +7316,7 @@
     "mu_ypr": 7.466299491020305,
     "proj_rec": 2.155901967955867,
     "proj_yards": 16.096609766038565,
-    "fair_line_rec": 2.5,
+    "fair_line_rec": 1.5,
     "fair_line_yards": 12.5
   },
   {
@@ -7377,7 +7377,7 @@
     "mu_ypr": 8.030061916731679,
     "proj_rec": 1.9810427423445391,
     "proj_yards": 15.907895880718572,
-    "fair_line_rec": 2.5,
+    "fair_line_rec": 1.5,
     "fair_line_yards": 12.0
   },
   {
@@ -7438,7 +7438,7 @@
     "mu_ypr": 7.4852834431059385,
     "proj_rec": 2.1035717461728725,
     "proj_yards": 15.74583076301325,
-    "fair_line_rec": 2.5,
+    "fair_line_rec": 1.5,
     "fair_line_yards": 12.5
   },
   {
@@ -7499,7 +7499,7 @@
     "mu_ypr": 7.827892973918835,
     "proj_rec": 1.8346360985231516,
     "proj_yards": 14.361335025327241,
-    "fair_line_rec": 2.5,
+    "fair_line_rec": 1.5,
     "fair_line_yards": 10.5
   },
   {
@@ -7560,7 +7560,7 @@
     "mu_ypr": 7.388775224277713,
     "proj_rec": 1.8880919566045953,
     "proj_yards": 13.950687070118065,
-    "fair_line_rec": 2.5,
+    "fair_line_rec": 1.5,
     "fair_line_yards": 10.5
   }
 ]
