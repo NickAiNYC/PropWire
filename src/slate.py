@@ -126,8 +126,8 @@ def questionable_flags(inj: pd.DataFrame) -> set[str]:
 # Slate construction
 # ---------------------------------------------------------------------------
 
-def build_slate(season: int, week: int, apply_week1_adjustments: bool = True
-                ) -> pd.DataFrame:
+def build_slate(season: int, week: int, apply_week1_adjustments: bool = True,
+                settled_only: bool = False) -> pd.DataFrame:
     """Produce one feature row per (player, upcoming game).
 
     Carries every player's form forward from their last observed game, then
@@ -210,23 +210,29 @@ def build_slate(season: int, week: int, apply_week1_adjustments: bool = True
 
     g = games[(games.season == season) & (games.week == week)]
 
-    # Exclude games that have already kicked off. A completed or in-progress
-    # game is unbettable, and a settled one silently poisons the board with
-    # props that cannot be taken. away_score is populated once a game is final.
-    if "away_score" in g.columns:
-        g = g[g.away_score.isna()].copy()
-    if "gameday" in g.columns and "gametime" in g.columns:
-        from datetime import datetime
-        import zoneinfo
-        try:
-            eastern = zoneinfo.ZoneInfo("America/New_York")
-            now = datetime.now(eastern)
-            has_dt = g["gameday"].notna() & g["gametime"].notna()
-            if has_dt.any():
-                k_times = pd.to_datetime(g.loc[has_dt, "gameday"] + " " + g.loc[has_dt, "gametime"]).dt.tz_localize(eastern)
-                g = g.loc[~has_dt | (k_times > now)].copy()
-        except Exception:
-            pass
+    if settled_only:
+        if "away_score" in g.columns:
+            g = g[g.away_score.notna()].copy()
+        else:
+            return pd.DataFrame()
+    else:
+        # Exclude games that have already kicked off. A completed or in-progress
+        # game is unbettable, and a settled one silently poisons the board with
+        # props that cannot be taken. away_score is populated once a game is final.
+        if "away_score" in g.columns:
+            g = g[g.away_score.isna()].copy()
+        if "gameday" in g.columns and "gametime" in g.columns:
+            from datetime import datetime
+            import zoneinfo
+            try:
+                eastern = zoneinfo.ZoneInfo("America/New_York")
+                now = datetime.now(eastern)
+                has_dt = g["gameday"].notna() & g["gametime"].notna()
+                if has_dt.any():
+                    k_times = pd.to_datetime(g.loc[has_dt, "gameday"] + " " + g.loc[has_dt, "gametime"]).dt.tz_localize(eastern)
+                    g = g.loc[~has_dt | (k_times > now)].copy()
+            except Exception:
+                pass
 
     pairs = pd.concat([
         g.rename(columns={"home_team": "team", "away_team": "opponent_team"}),

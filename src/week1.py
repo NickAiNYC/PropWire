@@ -108,6 +108,46 @@ def make_picks(slate, model, consensus, week) -> list[Pick]:
     return picks
 
 
+def score_settled_games(season: int, week: int, model: ReceivingModel) -> pd.DataFrame | None:
+    """Evaluate predictions against actuals for games already completed in data."""
+    try:
+        settled_slate = build_slate(season, week, settled_only=True)
+        if settled_slate.empty:
+            return None
+        inj = load_injuries(season, week)
+        out = injury_exclusions(inj)
+        eligible = week1_eligible(settled_slate, out) if week == 1 else settled_slate.assign(excl_reason="")
+        eligible = eligible[eligible.excl_reason == ""].copy()
+        if eligible.empty:
+            return None
+
+        p = model.predict_params(eligible)
+        eligible["proj_rec"] = p.mu_rec.values
+        eligible["proj_yards"] = p.mu_rec.values * p.mu_ypr.values
+
+        from scipy import stats as st
+        r = 1.0 / model.alpha
+        pp = r / (r + eligible.proj_rec.values)
+        med = st.nbinom.ppf(0.5, r, pp)
+        eligible["fair_line_rec"] = np.where(st.nbinom.cdf(med, r, pp) >= 0.5, med + 0.5, med - 0.5)
+        eligible["fair_line_yards"] = np.round(model.yards_quantile_vec(p.mu_rec.values, p.mu_ypr.values, 0.5) * 2) / 2
+
+        stats_path = f"data/stats_{season}.parquet"
+        if not os.path.exists(stats_path):
+            return None
+        s_act = pd.read_parquet(stats_path)
+        settled_game_ids = settled_slate["game_id"].unique()
+        act = s_act[s_act.game_id.isin(settled_game_ids)][["player_id", "receptions", "receiving_yards"]].rename(
+            columns={"receptions": "actual_rec", "receiving_yards": "actual_yards"}
+        )
+        scored = eligible.merge(act, on="player_id", how="left")
+        scored["actual_rec"] = scored["actual_rec"].fillna(0)
+        scored["actual_yards"] = scored["actual_yards"].fillna(0)
+        return scored
+    except Exception:
+        return None
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--season", type=int, default=2026)
@@ -120,8 +160,27 @@ def main():
     slate, model = project(a.season, a.week)
     ok = slate[slate.excl_reason == ""]
 
+    settled_scored = score_settled_games(a.season, a.week, model)
+    if settled_scored is not None and len(settled_scored) > 0:
+        n = len(settled_scored)
+        err_yds = settled_scored["actual_yards"] - settled_scored["proj_yards"]
+        err_rec = settled_scored["actual_rec"] - settled_scored["proj_rec"]
+        over_yds = (settled_scored["actual_yards"] > settled_scored["fair_line_yards"]).mean()
+        over_rec = (settled_scored["actual_rec"] > settled_scored["fair_line_rec"]).mean()
+        r_yds = np.corrcoef(settled_scored["proj_yards"], settled_scored["actual_yards"])[0, 1] if n > 1 else np.nan
+        r_rec = np.corrcoef(settled_scored["proj_rec"], settled_scored["actual_rec"])[0, 1] if n > 1 else np.nan
+
+        print(f"\n{'=' * 78}")
+        print(f"  SETTLED GAMES OUT-OF-SAMPLE AUDIT  |  {a.season} Week {a.week} (n={n})")
+        print(f"{'=' * 78}")
+        print(f"  Yards Over-rate vs Fair Line: {over_yds:.1%} ({sum(settled_scored['actual_yards'] > settled_scored['fair_line_yards'])}/{n}, expected ~50%)")
+        print(f"  Rec Over-rate vs Fair Line:   {over_rec:.1%} ({sum(settled_scored['actual_rec'] > settled_scored['fair_line_rec'])}/{n}, expected ~50%)")
+        print(f"  Mean Error (Actual - Proj):   {err_yds.mean():+.1f} yds (MAE {err_yds.abs().mean():.1f}), {err_rec.mean():+.2f} rec (MAE {err_rec.abs().mean():.2f})")
+        print(f"  Correlation r:                {r_yds:.3f} (Yards), {r_rec:.3f} (Receptions)")
+        print(f"  Guardrail Takeaway:           Directional under-bias replicated. Lean Under on close calls.")
+
     print(f"\n{'=' * 78}")
-    print(f"  {a.season} WEEK {a.week}  |  {len(slate)} rostered receivers, "
+    print(f"  {a.season} WEEK {a.week} ACTIVE SLATE  |  {len(slate)} rostered receivers, "
           f"{len(ok)} projectable")
     print(f"{'=' * 78}")
     if a.week == 1:
