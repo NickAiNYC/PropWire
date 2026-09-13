@@ -262,20 +262,28 @@ def build_slate(season: int, week: int, apply_week1_adjustments: bool = True
 
     slate["is_week1"] = int(week == 1)
     if week == 1 and apply_week1_adjustments:
-        slate = _apply_week1_shrinkage(slate)
+        form_cols = ["f_targets", "f_rec", "f_yards", "f_tgt_share", "f_ay_share",
+                     "f_adot", "f_catch_rate", "f_ypr"]
+        pos_base = hist[hist.season == season - 1].groupby("position")[form_cols].mean()
+        slate = _apply_week1_shrinkage(slate, pos_base)
 
     slate = slate.dropna(subset=FEATURES)
     return slate.reset_index(drop=True)
 
 
-def _apply_week1_shrinkage(slate: pd.DataFrame) -> pd.DataFrame:
+def _apply_week1_shrinkage(slate: pd.DataFrame, pos_baseline: pd.DataFrame | None = None) -> pd.DataFrame:
     """Pull form toward a position baseline and defence toward neutral."""
     s = slate.copy()
     form_cols = ["f_targets", "f_rec", "f_yards", "f_tgt_share", "f_ay_share",
                  "f_adot", "f_catch_rate", "f_ypr"]
-    pos_mean = s.groupby("position")[form_cols].transform("mean")
-    for c in form_cols:
-        s[c] = W1_FORM_SHRINK * s[c] + (1 - W1_FORM_SHRINK) * pos_mean[c]
+    if pos_baseline is not None:
+        for c in form_cols:
+            b = s.position.map(pos_baseline[c])
+            s[c] = W1_FORM_SHRINK * s[c] + (1 - W1_FORM_SHRINK) * b
+    else:
+        pos_mean = s.groupby("position")[form_cols].transform("mean")
+        for c in form_cols:
+            s[c] = W1_FORM_SHRINK * s[c] + (1 - W1_FORM_SHRINK) * pos_mean[c]
 
     for c in ("def_yards_idx", "def_rec_idx", "def_tgt_idx"):
         s[c] = 1.0 + (s[c] - 1.0) * (1 - W1_DEF_NEUTRALISE)

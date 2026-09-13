@@ -1,10 +1,9 @@
 {
   "season": 2026,
   "week": 1,
-  "title": "Top 25 Model Projections & Fair Lines (Active Games Only)",
-  "status": "projections_ready",
-  "total_projections": 118,
-  "total_top": 25,
+  "title": "Top 25 Model Projections & Fair Lines",
+  "status": "top_picks_loaded",
+  "total_picks": 25,
   "picks": [
     {
       "player": "Ja'Marr Chase",
@@ -14,21 +13,69 @@
       "is_home": true,
       "market_yards": {
         "market": "receiving_yards",
-        "proj": 102.4,
+        "proj": 102.7,
         "fair_line": 94.0,
-        "mu_ypr": 13.06
+        "mu_ypr": 13.07
       },
       "market_rec": {
         "market": "receptions",
-        "proj": 7.8,
+        "proj": 7.9,
         "fair_line": 7.5,
-        "mu_rec": 7.84
+        "mu_rec": 7.86
       },
       "implied_team_total": 27.0,
       "team_spread": 3.5,
       "total_line": 50.5,
       "questionable": false,
       "benchmark_note": "Compare book line to fair line (94.0 yds / 7.5 rec). Book below fair line favours OVER; book above favours UNDER."
+    },
+    {
+      "player": "Puka Nacua",
+      "position": "WR",
+      "team": "LA",
+      "opponent": "SF",
+      "is_home": true,
+      "market_yards": {
+        "market": "receiving_yards",
+        "proj": 100.8,
+        "fair_line": 92.0,
+        "mu_ypr": 13.8
+      },
+      "market_rec": {
+        "market": "receptions",
+        "proj": 7.3,
+        "fair_line": 7.5,
+        "mu_rec": 7.3
+      },
+      "implied_team_total": 25.5,
+      "team_spread": 3.5,
+      "total_line": 47.5,
+      "questionable": false,
+      "benchmark_note": "Compare book line to fair line (92.0 yds / 7.5 rec). Book below fair line favours OVER; book above favours UNDER."
+    },
+    {
+      "player": "Jaxon Smith-Njigba",
+      "position": "WR",
+      "team": "SEA",
+      "opponent": "NE",
+      "is_home": true,
+      "market_yards": {
+        "market": "receiving_yards",
+        "proj": 86.3,
+        "fair_line": 78.5,
+        "mu_ypr": 13.4
+      },
+      "market_rec": {
+        "market": "receptions",
+        "proj": 6.4,
+        "fair_line": 6.5,
+        "mu_rec": 6.44
+      },
+      "implied_team_total": 23.8,
+      "team_spread": 3.0,
+      "total_line": 44.5,
+      "questionable": false,
+      "benchmark_note": "Compare book line to fair line (78.5 yds / 6.5 rec). Book below fair line favours OVER; book above favours UNDER."
     },
     {
       "player": "Amon-Ra St. Brown",
@@ -38,15 +85,15 @@
       "is_home": true,
       "market_yards": {
         "market": "receiving_yards",
-        "proj": 85.6,
+        "proj": 85.8,
         "fair_line": 78.0,
-        "mu_ypr": 12.7
+        "mu_ypr": 12.71
       },
       "market_rec": {
         "market": "receptions",
-        "proj": 6.7,
+        "proj": 6.8,
         "fair_line": 6.5,
-        "mu_rec": 6.74
+        "mu_rec": 6.75
       },
       "implied_team_total": 28.2,
       "team_spread": 7.0,
@@ -62,15 +109,15 @@
       "is_home": false,
       "market_yards": {
         "market": "receiving_yards",
-        "proj": 75.9,
+        "proj": 76.0,
         "fair_line": 68.5,
-        "mu_ypr": 13.26
+        "mu_ypr": 13.27
       },
       "market_rec": {
         "market": "receptions",
         "proj": 5.7,
         "fair_line": 5.5,
-        "mu_rec": 5.72
+        "mu_rec": 5.73
       },
       "implied_team_total": 21.2,
       "team_spread": -7.0,
@@ -86,21 +133,21 @@
       "is_home": true,
       "market_yards": {
         "market": "receiving_yards",
-        "proj": 74.4,
-        "fair_line": 66.5,
-        "mu_ypr": 13.69
+        "proj": 74.5,
+        "fair_line": 67.0,
+        "mu_ypr": 13.7
       },
       "market_rec": {
         "market": "receptions",
         "proj": 5.4,
         "fair_line": 5.5,
-        "mu_rec": 5.43
+        "mu_rec": 5.44
       },
       "implied_team_total": 24.0,
       "team_spread": 1.5,
       "total_line": 46.5,
       "questionable": false,
-      "benchmark_note": "Compare book line to fair line (66.5 yds / 5.5 rec). Book below fair line favours OVER; book above favours UNDER."
+      "benchmark_note": "Compare book line to fair line (67.0 yds / 5.5 rec). Book below fair line favours OVER; book above favours UNDER."
     },
     {
       "player": "Malik Nabers",
@@ -110,15 +157,15 @@
       "is_home": true,
       "market_yards": {
         "market": "receiving_yards",
-        "proj": 71.5,
+        "proj": 71.7,
         "fair_line": 64.0,
-        "mu_ypr": 13.79
+        "mu_ypr": 13.8
       },
       "market_rec": {
         "market": "receptions",
         "proj": 5.2,
         "fair_line": 5.5,
-        "mu_rec": 5.18
+        "mu_rec": 5.2
       },
       "implied_team_total": 22.2,
       "team_spread": -3.0,
@@ -134,7 +181,7 @@
       "is_home": true,
       "market_yards": {
         "market": "receiving_yards",
-        "proj": 70.7,
+        "proj": 70.9,
         "fair_line": 64.0,
         "mu_ypr": 11.82
       },
@@ -142,7 +189,7 @@
         "market": "receptions",
         "proj": 6.0,
         "fair_line": 6.5,
-        "mu_rec": 5.98
+        "mu_rec": 6.0
       },
       "implied_team_total": 23.0,
       "team_spread": 2.5,
@@ -158,15 +205,15 @@
       "is_home": false,
       "market_yards": {
         "market": "receiving_yards",
-        "proj": 67.6,
+        "proj": 67.8,
         "fair_line": 60.5,
-        "mu_ypr": 13.45
+        "mu_ypr": 13.46
       },
       "market_rec": {
         "market": "receptions",
         "proj": 5.0,
         "fair_line": 5.5,
-        "mu_rec": 5.03
+        "mu_rec": 5.04
       },
       "implied_team_total": 25.2,
       "team_spread": 3.0,
@@ -182,21 +229,21 @@
       "is_home": false,
       "market_yards": {
         "market": "receiving_yards",
-        "proj": 64.4,
-        "fair_line": 57.0,
+        "proj": 64.6,
+        "fair_line": 57.5,
         "mu_ypr": 13.6
       },
       "market_rec": {
         "market": "receptions",
         "proj": 4.7,
         "fair_line": 4.5,
-        "mu_rec": 4.74
+        "mu_rec": 4.75
       },
       "implied_team_total": 26.0,
       "team_spread": 3.5,
       "total_line": 48.5,
       "questionable": false,
-      "benchmark_note": "Compare book line to fair line (57.0 yds / 4.5 rec). Book below fair line favours OVER; book above favours UNDER."
+      "benchmark_note": "Compare book line to fair line (57.5 yds / 4.5 rec). Book below fair line favours OVER; book above favours UNDER."
     },
     {
       "player": "Garrett Wilson",
@@ -206,7 +253,7 @@
       "is_home": false,
       "market_yards": {
         "market": "receiving_yards",
-        "proj": 58.9,
+        "proj": 59.1,
         "fair_line": 52.0,
         "mu_ypr": 13.08
       },
@@ -214,7 +261,7 @@
         "market": "receptions",
         "proj": 4.5,
         "fair_line": 4.5,
-        "mu_rec": 4.51
+        "mu_rec": 4.52
       },
       "implied_team_total": 18.5,
       "team_spread": -1.5,
@@ -247,6 +294,30 @@
       "benchmark_note": "Compare book line to fair line (51.5 yds / 5.5 rec). Book below fair line favours OVER; book above favours UNDER."
     },
     {
+      "player": "Davante Adams",
+      "position": "WR",
+      "team": "LA",
+      "opponent": "SF",
+      "is_home": true,
+      "market_yards": {
+        "market": "receiving_yards",
+        "proj": 56.5,
+        "fair_line": 49.5,
+        "mu_ypr": 13.08
+      },
+      "market_rec": {
+        "market": "receptions",
+        "proj": 4.3,
+        "fair_line": 4.5,
+        "mu_rec": 4.32
+      },
+      "implied_team_total": 25.5,
+      "team_spread": 3.5,
+      "total_line": 47.5,
+      "questionable": false,
+      "benchmark_note": "Compare book line to fair line (49.5 yds / 4.5 rec). Book below fair line favours OVER; book above favours UNDER."
+    },
+    {
       "player": "George Pickens",
       "position": "WR",
       "team": "DAL",
@@ -254,15 +325,15 @@
       "is_home": false,
       "market_yards": {
         "market": "receiving_yards",
-        "proj": 55.9,
+        "proj": 56.1,
         "fair_line": 49.0,
-        "mu_ypr": 13.53
+        "mu_ypr": 13.54
       },
       "market_rec": {
         "market": "receptions",
         "proj": 4.1,
         "fair_line": 4.5,
-        "mu_rec": 4.13
+        "mu_rec": 4.14
       },
       "implied_team_total": 25.2,
       "team_spread": 3.0,
@@ -278,7 +349,7 @@
       "is_home": true,
       "market_yards": {
         "market": "receiving_yards",
-        "proj": 54.4,
+        "proj": 54.6,
         "fair_line": 47.0,
         "mu_ypr": 14.43
       },
@@ -286,7 +357,7 @@
         "market": "receptions",
         "proj": 3.8,
         "fair_line": 3.5,
-        "mu_rec": 3.77
+        "mu_rec": 3.78
       },
       "implied_team_total": 22.2,
       "team_spread": -3.0,
@@ -302,21 +373,21 @@
       "is_home": true,
       "market_yards": {
         "market": "receiving_yards",
-        "proj": 54.2,
-        "fair_line": 47.0,
-        "mu_ypr": 13.71
+        "proj": 54.3,
+        "fair_line": 47.5,
+        "mu_ypr": 13.72
       },
       "market_rec": {
         "market": "receptions",
         "proj": 4.0,
         "fair_line": 4.5,
-        "mu_rec": 3.95
+        "mu_rec": 3.96
       },
       "implied_team_total": 25.2,
       "team_spread": 6.0,
       "total_line": 44.5,
       "questionable": false,
-      "benchmark_note": "Compare book line to fair line (47.0 yds / 4.5 rec). Book below fair line favours OVER; book above favours UNDER."
+      "benchmark_note": "Compare book line to fair line (47.5 yds / 4.5 rec). Book below fair line favours OVER; book above favours UNDER."
     },
     {
       "player": "Nico Collins",
@@ -326,15 +397,15 @@
       "is_home": true,
       "market_yards": {
         "market": "receiving_yards",
-        "proj": 54.0,
+        "proj": 54.1,
         "fair_line": 47.0,
-        "mu_ypr": 13.8
+        "mu_ypr": 13.81
       },
       "market_rec": {
         "market": "receptions",
         "proj": 3.9,
         "fair_line": 4.5,
-        "mu_rec": 3.91
+        "mu_rec": 3.92
       },
       "implied_team_total": 21.5,
       "team_spread": -1.5,
@@ -350,7 +421,7 @@
       "is_home": false,
       "market_yards": {
         "market": "receiving_yards",
-        "proj": 52.5,
+        "proj": 52.6,
         "fair_line": 46.0,
         "mu_ypr": 12.59
       },
@@ -358,7 +429,7 @@
         "market": "receptions",
         "proj": 4.2,
         "fair_line": 4.5,
-        "mu_rec": 4.17
+        "mu_rec": 4.18
       },
       "implied_team_total": 17.0,
       "team_spread": -6.5,
@@ -374,21 +445,21 @@
       "is_home": false,
       "market_yards": {
         "market": "receiving_yards",
-        "proj": 52.1,
-        "fair_line": 45.0,
-        "mu_ypr": 13.57
+        "proj": 52.3,
+        "fair_line": 45.5,
+        "mu_ypr": 13.58
       },
       "market_rec": {
         "market": "receptions",
-        "proj": 3.8,
+        "proj": 3.9,
         "fair_line": 4.5,
-        "mu_rec": 3.84
+        "mu_rec": 3.85
       },
       "implied_team_total": 19.2,
       "team_spread": -6.0,
       "total_line": 44.5,
       "questionable": false,
-      "benchmark_note": "Compare book line to fair line (45.0 yds / 4.5 rec). Book below fair line favours OVER; book above favours UNDER."
+      "benchmark_note": "Compare book line to fair line (45.5 yds / 4.5 rec). Book below fair line favours OVER; book above favours UNDER."
     },
     {
       "player": "Emeka Egbuka",
@@ -398,7 +469,7 @@
       "is_home": false,
       "market_yards": {
         "market": "receiving_yards",
-        "proj": 52.1,
+        "proj": 52.3,
         "fair_line": 45.0,
         "mu_ypr": 14.19
       },
@@ -406,7 +477,7 @@
         "market": "receptions",
         "proj": 3.7,
         "fair_line": 3.5,
-        "mu_rec": 3.67
+        "mu_rec": 3.68
       },
       "implied_team_total": 23.5,
       "team_spread": -3.5,
@@ -422,15 +493,15 @@
       "is_home": true,
       "market_yards": {
         "market": "receiving_yards",
-        "proj": 51.2,
+        "proj": 51.3,
         "fair_line": 44.0,
-        "mu_ypr": 14.26
+        "mu_ypr": 14.27
       },
       "market_rec": {
         "market": "receptions",
         "proj": 3.6,
         "fair_line": 3.5,
-        "mu_rec": 3.59
+        "mu_rec": 3.6
       },
       "implied_team_total": 27.0,
       "team_spread": 3.5,
@@ -446,15 +517,15 @@
       "is_home": false,
       "market_yards": {
         "market": "receiving_yards",
-        "proj": 48.4,
+        "proj": 48.5,
         "fair_line": 41.5,
-        "mu_ypr": 14.03
+        "mu_ypr": 14.04
       },
       "market_rec": {
         "market": "receptions",
-        "proj": 3.4,
+        "proj": 3.5,
         "fair_line": 3.5,
-        "mu_rec": 3.45
+        "mu_rec": 3.46
       },
       "implied_team_total": 25.2,
       "team_spread": 3.0,
@@ -470,21 +541,21 @@
       "is_home": true,
       "market_yards": {
         "market": "receiving_yards",
-        "proj": 48.2,
-        "fair_line": 41.0,
+        "proj": 48.3,
+        "fair_line": 41.5,
         "mu_ypr": 13.97
       },
       "market_rec": {
         "market": "receptions",
         "proj": 3.5,
         "fair_line": 3.5,
-        "mu_rec": 3.45
+        "mu_rec": 3.46
       },
       "implied_team_total": 28.5,
       "team_spread": 9.5,
       "total_line": 47.5,
       "questionable": false,
-      "benchmark_note": "Compare book line to fair line (41.0 yds / 3.5 rec). Book below fair line favours OVER; book above favours UNDER."
+      "benchmark_note": "Compare book line to fair line (41.5 yds / 3.5 rec). Book below fair line favours OVER; book above favours UNDER."
     },
     {
       "player": "DK Metcalf",
@@ -494,15 +565,15 @@
       "is_home": true,
       "market_yards": {
         "market": "receiving_yards",
-        "proj": 48.1,
+        "proj": 48.2,
         "fair_line": 41.5,
-        "mu_ypr": 13.02
+        "mu_ypr": 13.03
       },
       "market_rec": {
         "market": "receptions",
         "proj": 3.7,
         "fair_line": 3.5,
-        "mu_rec": 3.69
+        "mu_rec": 3.7
       },
       "implied_team_total": 23.5,
       "team_spread": 6.5,
@@ -511,100 +582,28 @@
       "benchmark_note": "Compare book line to fair line (41.5 yds / 3.5 rec). Book below fair line favours OVER; book above favours UNDER."
     },
     {
-      "player": "Courtland Sutton",
-      "position": "WR",
-      "team": "DEN",
-      "opponent": "KC",
+      "player": "George Kittle",
+      "position": "TE",
+      "team": "SF",
+      "opponent": "LA",
       "is_home": false,
       "market_yards": {
         "market": "receiving_yards",
-        "proj": 47.1,
-        "fair_line": 40.5,
-        "mu_ypr": 12.67
+        "proj": 48.0,
+        "fair_line": 42.5,
+        "mu_ypr": 10.84
       },
       "market_rec": {
         "market": "receptions",
-        "proj": 3.7,
-        "fair_line": 3.5,
-        "mu_rec": 3.72
+        "proj": 4.4,
+        "fair_line": 4.5,
+        "mu_rec": 4.43
       },
-      "implied_team_total": 20.5,
-      "team_spread": -2.5,
-      "total_line": 43.5,
-      "questionable": false,
-      "benchmark_note": "Compare book line to fair line (40.5 yds / 3.5 rec). Book below fair line favours OVER; book above favours UNDER."
-    },
-    {
-      "player": "Michael Wilson",
-      "position": "WR",
-      "team": "ARI",
-      "opponent": "LAC",
-      "is_home": false,
-      "market_yards": {
-        "market": "receiving_yards",
-        "proj": 46.6,
-        "fair_line": 40.0,
-        "mu_ypr": 12.65
-      },
-      "market_rec": {
-        "market": "receptions",
-        "proj": 3.7,
-        "fair_line": 3.5,
-        "mu_rec": 3.69
-      },
-      "implied_team_total": 19.0,
-      "team_spread": -9.5,
+      "implied_team_total": 22.0,
+      "team_spread": -3.5,
       "total_line": 47.5,
       "questionable": false,
-      "benchmark_note": "Compare book line to fair line (40.0 yds / 3.5 rec). Book below fair line favours OVER; book above favours UNDER."
-    },
-    {
-      "player": "Brian Thomas Jr.",
-      "position": "WR",
-      "team": "JAX",
-      "opponent": "CLE",
-      "is_home": true,
-      "market_yards": {
-        "market": "receiving_yards",
-        "proj": 46.4,
-        "fair_line": 39.5,
-        "mu_ypr": 14.34
-      },
-      "market_rec": {
-        "market": "receptions",
-        "proj": 3.2,
-        "fair_line": 3.5,
-        "mu_rec": 3.24
-      },
-      "implied_team_total": 24.5,
-      "team_spread": 8.5,
-      "total_line": 40.5,
-      "questionable": false,
-      "benchmark_note": "Compare book line to fair line (39.5 yds / 3.5 rec). Book below fair line favours OVER; book above favours UNDER."
-    },
-    {
-      "player": "Jakobi Meyers",
-      "position": "WR",
-      "team": "JAX",
-      "opponent": "CLE",
-      "is_home": true,
-      "market_yards": {
-        "market": "receiving_yards",
-        "proj": 45.9,
-        "fair_line": 39.5,
-        "mu_ypr": 12.29
-      },
-      "market_rec": {
-        "market": "receptions",
-        "proj": 3.7,
-        "fair_line": 3.5,
-        "mu_rec": 3.73
-      },
-      "implied_team_total": 24.5,
-      "team_spread": 8.5,
-      "total_line": 40.5,
-      "questionable": false,
-      "benchmark_note": "Compare book line to fair line (39.5 yds / 3.5 rec). Book below fair line favours OVER; book above favours UNDER."
+      "benchmark_note": "Compare book line to fair line (42.5 yds / 4.5 rec). Book below fair line favours OVER; book above favours UNDER."
     }
   ]
 }

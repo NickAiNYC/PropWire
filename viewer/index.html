@@ -17,7 +17,7 @@
         <div class="header-left">
           <div class="badge-tag">NFL PROPS AGENT</div>
           <h1>2026 Week 1 Slate</h1>
-          <p class="subtitle">Compound NegBin / Gamma Distributional Core &bull; 137 Projectable Receivers</p>
+          <p class="subtitle">Compound NegBin / Gamma Distributional Core &bull; 124 Projectable Receivers (14 Active Games)</p>
         </div>
         <div class="header-right">
           <div class="stat-pill">
@@ -63,8 +63,8 @@
             <p>Out-of-sample validated bias constants applied: <code>W1_BIAS_REC = 0.057</code>, <code>W1_BIAS_YDS = 0.088</code>. Week 18 rest game dropped, form blended 50/50 with season mean.</p>
           </div>
           <div class="rule-card">
-            <div class="rule-label">EXCLUSIONS (136 PLAYERS)</div>
-            <p><strong>136 receivers</strong> who changed teams in the offseason are excluded (target shares don't carry to new teams). Plus 8 injuries, 103 low usage.</p>
+            <div class="rule-label">EXCLUSIONS (122 PLAYERS)</div>
+            <p><strong>122 receivers</strong> who changed teams in the offseason are excluded (target shares don't carry to new teams). Plus 7 injuries, 85 low usage, 33 inactive, 8 &lt; 8 career games.</p>
           </div>
           <div class="rule-card">
             <div class="rule-label">STAKE CAP &amp; VERDICT</div>
@@ -77,7 +77,7 @@
     <!-- Navigation / Mode Tabs -->
     <div class="mode-tabs">
       <button class="tab-btn active" id="tabPicks" onclick="setTab('picks')">Top Projections &amp; Fair Lines (<span id="picksCountBadge">25</span>)</button>
-      <button class="tab-btn" id="tabSlate" onclick="setTab('slate')">Full Active Slate (<span id="slateCountBadge">118</span>)</button>
+      <button class="tab-btn" id="tabSlate" onclick="setTab('slate')">Full Active Slate (<span id="slateCountBadge">124</span>)</button>
       <button class="tab-btn" id="tabCalc" onclick="setTab('calc')">Prop Pricing Calculator</button>
     </div>
 
@@ -109,11 +109,11 @@
         </div>
 
         <div class="pos-filters" id="posFilters">
-          <button class="pos-btn active" data-pos="ALL" onclick="setPosFilter('ALL')">All (118)</button>
+          <button class="pos-btn active" data-pos="ALL" onclick="setPosFilter('ALL')">All (124)</button>
           <button class="pos-btn top25-btn" data-pos="TOP25" onclick="setPosFilter('TOP25')">Top 25</button>
-          <button class="pos-btn" data-pos="WR" onclick="setPosFilter('WR')">WR (80)</button>
-          <button class="pos-btn" data-pos="TE" onclick="setPosFilter('TE')">TE (25)</button>
-          <button class="pos-btn" data-pos="RB" onclick="setPosFilter('RB')">RB (13)</button>
+          <button class="pos-btn" data-pos="WR" onclick="setPosFilter('WR')">WR (70)</button>
+          <button class="pos-btn" data-pos="TE" onclick="setPosFilter('TE')">TE (34)</button>
+          <button class="pos-btn" data-pos="RB" onclick="setPosFilter('RB')">RB (20)</button>
         </div>
       </div>
 
@@ -121,19 +121,19 @@
       <div class="summary-stats-bar">
         <div class="stat-item">
           <span class="stat-name">Active Receivers</span>
-          <span class="stat-num" id="showingCount">118</span>
+          <span class="stat-num" id="showingCount">124</span>
         </div>
         <div class="stat-item">
           <span class="stat-name">Top Projected Yards</span>
-          <span class="stat-num" id="topProjYards">102.4 (Ja'Marr Chase)</span>
+          <span class="stat-num" id="topProjYards">104.7 (Ja'Marr Chase)</span>
         </div>
         <div class="stat-item">
           <span class="stat-name">Top Projected Rec</span>
-          <span class="stat-num" id="topProjRec">7.8 (Ja'Marr Chase)</span>
+          <span class="stat-num" id="topProjRec">8.0 (Ja'Marr Chase)</span>
         </div>
         <div class="stat-item">
           <span class="stat-name">Questionable Flagged</span>
-          <span class="stat-num" id="qCount">5</span>
+          <span class="stat-num" id="qCount">3</span>
         </div>
       </div>
 
