@@ -63,7 +63,7 @@ function renderSpotlightCards() {
           </div>
           <div class="card-stat-box">
             <span class="card-stat-label">REC (FAIR / PROJ)</span>
-            <span class="card-stat-val"><span class="card-fair">${p.fair_line_rec.toFixed(1)}</span> / ${p.proj_rec.toFixed(1)}</span>
+            <span class="card-stat-val"><span class="card-fair">${p.fair_line_rec.toFixed(1)} <small style="font-size:10px; color:var(--text-muted); font-weight:normal;">(${Math.round((p.p_rec_at_fair_line !== undefined ? p.p_rec_at_fair_line : 0.5) * 100)}%)</small></span> / ${p.proj_rec.toFixed(1)}</span>
           </div>
         </div>
         <div class="card-footer">
@@ -244,7 +244,7 @@ function renderSlateTable() {
         <td>${posTag}</td>
         <td>${matchup}</td>
         <td class="num-col highlight-val">${row.proj_rec.toFixed(1)}</td>
-        <td class="num-col fair-val">${row.fair_line_rec.toFixed(1)}</td>
+        <td class="num-col fair-val">${row.fair_line_rec.toFixed(1)} <span style="font-size:11px; font-weight:normal; color:var(--text-dim);">(${Math.round((row.p_rec_at_fair_line !== undefined ? row.p_rec_at_fair_line : 0.5) * 100)}%)</span></td>
         <td class="num-col highlight-val">${row.proj_yards.toFixed(1)}</td>
         <td class="num-col fair-val">${row.fair_line_yards.toFixed(1)}</td>
         <td class="game-context-cell">${context}</td>
@@ -271,10 +271,10 @@ function renderPicksSection() {
 
   container.innerHTML = `
     <div style="margin-bottom:16px; background:rgba(18,24,36,0.6); padding:14px; border-radius:8px; border:1px solid var(--border-color); font-size:12px; color:var(--text-muted); line-height:1.6;">
-      <strong>Week 1 Strategy:</strong> Compare your sportsbook's posted line directly against the <strong>Model Fair Line</strong> (the model's median projection).<br>
-      &bull; <strong>Lean Over:</strong> Sportsbook line is <em>lower</em> than the model fair line.<br>
-      &bull; <strong>Lean Under:</strong> Sportsbook line is <em>higher</em> than the model fair line.<br>
-      &bull; Tap <strong>"Price Prop"</strong> to test any line with the exact Compound NegBin/Gamma distribution + Week 1 bias correction.
+      <strong>Week 1 Market Discipline:</strong><br>
+      &bull; <strong>Receiving Yards (Continuous):</strong> The Model Fair Line is an exact 50/50 median. Book line <em>below</em> fair line leans <strong>Over</strong>; book line <em>above</em> leans <strong>Under</strong>.<br>
+      &bull; <strong>Receptions (Discrete Count):</strong> Due to whole-catch increments, nearest half-point lines range from 40% to 62% P(Over). Reference the exact <strong>P(Over)</strong> in parentheses or use the <strong>Prop Pricing Calculator</strong>.<br>
+      &bull; <strong>Questionable Flags (Q):</strong> Kamara, Nabers, Odunze carry injury tags. The model cannot price in-game reinjury or snap-count truncation — discount manually or reduce stake.
     </div>
 
     <div class="table-container">
@@ -287,7 +287,7 @@ function renderPicksSection() {
             <th>Matchup</th>
             <th class="num-col">Fair Line Yds</th>
             <th class="num-col">Proj Yds</th>
-            <th class="num-col">Fair Line Rec</th>
+            <th class="num-col">Fair Line Rec <span style="font-size:10px; font-weight:normal; opacity:0.8;">[P(Over)]</span></th>
             <th class="num-col">Proj Rec</th>
             <th>Implied Total</th>
             <th class="action-col">Action</th>
@@ -296,6 +296,7 @@ function renderPicksSection() {
         <tbody>
           ${top25.map((p, idx) => {
             const homeStr = p.is_home === 1 ? 'vs' : '@';
+            const recProb = p.p_rec_at_fair_line !== undefined ? ` <span style="font-size:11px; font-weight:normal; color:var(--text-dim);">(${Math.round(p.p_rec_at_fair_line * 100)}%)</span>` : '';
             return `
               <tr>
                 <td style="font-family:var(--font-mono); color:var(--text-dim); font-weight:700;">#${idx + 1}</td>
@@ -307,7 +308,7 @@ function renderPicksSection() {
                 <td><span class="matchup-tag">${p.team} <span class="home-indicator">${homeStr}</span> ${p.opponent_team}</span></td>
                 <td class="num-col fair-val">${p.fair_line_yards.toFixed(1)}</td>
                 <td class="num-col highlight-val">${p.proj_yards.toFixed(1)}</td>
-                <td class="num-col fair-val">${p.fair_line_rec.toFixed(1)}</td>
+                <td class="num-col fair-val">${p.fair_line_rec.toFixed(1)}${recProb}</td>
                 <td class="num-col highlight-val">${p.proj_rec.toFixed(1)}</td>
                 <td class="game-context-cell">${p.implied_team_total.toFixed(1)} pts (${p.team_spread > 0 ? '+' : ''}${p.team_spread.toFixed(1)})</td>
                 <td class="action-col">
@@ -385,12 +386,19 @@ function updatePlayerContext() {
   const ctxBox = document.getElementById('calcPlayerContext');
   if (!ctxBox || !selectedPlayer) return;
 
+  const qWarning = selectedPlayer.questionable ? `
+    <div style="margin-top:8px; padding:6px 10px; background:rgba(245,158,11,0.15); border:1px solid rgba(245,158,11,0.4); border-radius:6px; color:#f59e0b; font-size:11px; font-weight:600;">
+      ⚠️ QUESTIONABLE INJURY STATUS: In-game reinjury or snap truncation risk cannot be priced by the model. Apply manual discount or reduce stake.
+    </div>
+  ` : '';
+
   ctxBox.innerHTML = `
     <strong>${selectedPlayer.player_display_name}</strong> &bull; ${selectedPlayer.position} &bull; ${selectedPlayer.team} vs ${selectedPlayer.opponent_team}<br>
     Model Mu (Rec): <strong>${selectedPlayer.mu_rec.toFixed(2)}</strong> &bull; Mu (YPR): <strong>${selectedPlayer.mu_ypr.toFixed(2)}</strong><br>
     Projection: <strong>${selectedPlayer.proj_rec.toFixed(1)} rec</strong> / <strong>${selectedPlayer.proj_yards.toFixed(1)} yds</strong><br>
-    Model Median (Fair Line): <strong>${selectedPlayer.fair_line_rec.toFixed(1)} rec</strong> / <strong>${selectedPlayer.fair_line_yards.toFixed(1)} yds</strong><br>
+    Model Median (Fair Line): <strong>${selectedPlayer.fair_line_rec.toFixed(1)} rec</strong> (${Math.round((selectedPlayer.p_rec_at_fair_line || 0.5) * 100)}% P(Over)) / <strong>${selectedPlayer.fair_line_yards.toFixed(1)} yds</strong><br>
     Implied Team Total: <strong>${selectedPlayer.implied_team_total.toFixed(1)}</strong> &bull; Wind: <strong>${selectedPlayer.wind} mph</strong>
+    ${qWarning}
   `;
 }
 

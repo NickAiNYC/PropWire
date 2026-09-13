@@ -60,9 +60,10 @@ def project(season: int, week: int) -> tuple[pd.DataFrame, ReceivingModel]:
     slate["fair_line_rec"] = np.where(np.abs(sf_lo - 0.5) < np.abs(sf_hi - 0.5), lo + 0.5, n + 0.5)
     slate["fair_line_yards"] = np.round(
         model.yards_quantile_vec(slate.mu_rec.values, slate.mu_ypr.values, 0.5) * 2) / 2
+    slate["p_rec_at_fair_line"] = np.round(model.p_rec_over_vec(slate.mu_rec.values, slate.fair_line_rec.values), 4)
 
     # Regression assertion: mean P(over) at fair lines must average ~50%, not ~43%
-    p_rec_over_mean = model.p_rec_over_vec(slate.mu_rec.values, slate.fair_line_rec.values).mean()
+    p_rec_over_mean = slate["p_rec_at_fair_line"].mean()
     assert 0.48 <= p_rec_over_mean <= 0.54, f"Reception fair lines miscalibrated: mean P(over) = {p_rec_over_mean:.3f}"
 
     return slate, model
@@ -141,6 +142,7 @@ def score_settled_games(season: int, week: int, model: ReceivingModel) -> pd.Dat
         sf_hi = st.nbinom.sf(n, r, pp)
         eligible["fair_line_rec"] = np.where(np.abs(sf_lo - 0.5) < np.abs(sf_hi - 0.5), lo + 0.5, n + 0.5)
         eligible["fair_line_yards"] = np.round(model.yards_quantile_vec(p.mu_rec.values, p.mu_ypr.values, 0.5) * 2) / 2
+        eligible["p_rec_at_fair_line"] = np.round(model.p_rec_over_vec(eligible.mu_rec.values, eligible.fair_line_rec.values), 4)
 
         stats_path = f"data/stats_{season}.parquet"
         if not os.path.exists(stats_path):
@@ -232,6 +234,38 @@ def main():
             json.dump(clean_records, f, indent=2, allow_nan=False)
         sorted_slate.to_csv(os.path.join("viewer", a.out), index=False)
     print(f"  full slate JSON -> {json_out} (and synced to viewer/)")
+
+    # Generate current_picks.json with p_rec_at_fair_line
+    top25 = sorted_slate.head(25)
+    picks_list = []
+    for idx, r in enumerate(top25.to_dict(orient="records")):
+        picks_list.append({
+            "rank": idx + 1,
+            "player": r["player_display_name"],
+            "team": r["team"],
+            "opponent": r["opponent_team"],
+            "position": r["position"],
+            "proj_rec": round(float(r["proj_rec"]), 1),
+            "fair_line_rec": round(float(r["fair_line_rec"]), 1),
+            "p_rec_at_fair_line": round(float(r.get("p_rec_at_fair_line", 0.5)), 3),
+            "proj_yards": round(float(r["proj_yards"]), 1),
+            "fair_line_yards": round(float(r["fair_line_yards"]), 1),
+            "implied_total": round(float(r["implied_team_total"]), 1),
+            "spread": round(float(r["team_spread"]), 1),
+            "questionable": int(r["questionable"])
+        })
+    picks_payload = {
+        "season": a.season,
+        "week": a.week,
+        "note": "Top 25 Projections & Fair Lines (Active Games Only)",
+        "picks": picks_list
+    }
+    with open("current_picks.json", "w") as f:
+        json.dump(picks_payload, f, indent=2)
+    if os.path.exists("viewer"):
+        with open("viewer/current_picks.json", "w") as f:
+            json.dump(picks_payload, f, indent=2)
+    print("  current_picks.json -> generated and synced to viewer/")
 
     if not a.odds:
         print("\n  No odds pulled. Compare the fair lines above to your book:")
