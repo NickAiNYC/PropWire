@@ -201,8 +201,27 @@ def main():
     print(top[cols].to_string(index=False,
                               float_format=lambda x: f"{x:.1f}"))
 
-    ok.sort_values("proj_yards", ascending=False).to_csv(a.out, index=False)
+    sorted_slate = ok.sort_values("proj_yards", ascending=False)
+    sorted_slate.to_csv(a.out, index=False)
     print(f"\n  full slate -> {a.out}")
+
+    # Export sanitized JSON (convert NaN to None for standard JSON compliance)
+    import math
+    records = sorted_slate.to_dict(orient="records")
+    clean_records = []
+    for r in records:
+        clean_records.append({
+            k: (None if (v is None or (isinstance(v, float) and math.isnan(v))) else v)
+            for k, v in r.items()
+        })
+    json_out = a.out.replace(".csv", ".json")
+    with open(json_out, "w") as f:
+        json.dump(clean_records, f, indent=2, allow_nan=False)
+    if os.path.exists("viewer"):
+        with open(os.path.join("viewer", json_out), "w") as f:
+            json.dump(clean_records, f, indent=2, allow_nan=False)
+        sorted_slate.to_csv(os.path.join("viewer", a.out), index=False)
+    print(f"  full slate JSON -> {json_out} (and synced to viewer/)")
 
     if not a.odds:
         print("\n  No odds pulled. Compare the fair lines above to your book:")
