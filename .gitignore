@@ -3,3 +3,7 @@ data/games.csv
 *.jsonl
 __pycache__/
 .env
+
+.venv/
+.vercel/
+
