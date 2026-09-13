@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NFL Receiving Props Agent — 2026 Week 1 Slate</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <header class="header">
+      <div class="header-content">
+        <div class="header-left">
+          <div class="badge-tag">NFL PROPS AGENT</div>
+          <h1>2026 Week 1 Slate</h1>
+          <p class="subtitle">Compound NegBin / Gamma Distributional Core &bull; 137 Projectable Receivers</p>
+        </div>
+        <div class="header-right">
+          <div class="stat-pill">
+            <span class="pill-label">TRAINING SAMPLE</span>
+            <span class="pill-val">33,588 player-weeks</span>
+          </div>
+          <div class="stat-pill">
+            <span class="pill-label">STATUS</span>
+            <span class="pill-val live-val"><span class="dot"></span>Live for 1:00 PM Games</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- PROMINENT WEEK 1 WARNING BANNER (docs/WEEK1.md) -->
+    <section class="warning-banner" id="warningBanner">
+      <div class="warning-header">
+        <div class="warning-icon-wrapper">
+          <svg class="warning-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
+            <line x1="12" y1="9" x2="12" y2="13"/>
+            <line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+        </div>
+        <div class="warning-title-block">
+          <div class="warning-tag">CRITICAL GUARDRAIL &bull; DOCS/WEEK1.MD</div>
+          <h2>Week 1 Calibration Degradation: High-Edge Gate Active</h2>
+          <p class="warning-lead">
+            Week 1 calibration error is <strong>3&ndash;5%</strong> even after correction (versus <strong>0.4&ndash;0.8%</strong> late-season). The edge threshold is raised to <strong>10%</strong> and stake cap to <strong>0.5%</strong>.
+          </p>
+        </div>
+        <button class="toggle-details-btn" id="toggleDetailsBtn" onclick="toggleDetails()">Details</button>
+      </div>
+
+      <div class="warning-body" id="warningDetails">
+        <div class="grid-rules">
+          <div class="rule-card">
+            <div class="rule-label">MEASURED BIAS DIRECTION</div>
+            <p>Receivers underperform carried-forward form by <strong>+5.7pp</strong> in receptions and <strong>+8.8pp</strong> in yards. Rust and conservative game plans push Week 1 under.</p>
+          </div>
+          <div class="rule-card">
+            <div class="rule-label">CORRECTIONS APPLIED</div>
+            <p>Out-of-sample validated bias constants applied: <code>W1_BIAS_REC = 0.057</code>, <code>W1_BIAS_YDS = 0.088</code>. Week 18 rest game dropped, form blended 50/50 with season mean.</p>
+          </div>
+          <div class="rule-card">
+            <div class="rule-label">EXCLUSIONS (136 PLAYERS)</div>
+            <p><strong>136 receivers</strong> who changed teams in the offseason are excluded (target shares don't carry to new teams). Plus 8 injuries, 103 low usage.</p>
+          </div>
+          <div class="rule-card">
+            <div class="rule-label">STAKE CAP &amp; VERDICT</div>
+            <p>An edge &lt; 10% is smaller than the model's own error bar. If zero picks clear 10%, report zero. <strong>Singles until CLV validates; log lines, do not oversize.</strong></p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Navigation / Mode Tabs -->
+    <div class="mode-tabs">
+      <button class="tab-btn active" id="tabSlate" onclick="setTab('slate')">Full Slate Projections (137)</button>
+      <button class="tab-btn" id="tabPicks" onclick="setTab('picks')">Current Scored Picks (<span id="picksCountBadge">0</span>)</button>
+      <button class="tab-btn" id="tabCalc" onclick="setTab('calc')">Prop Pricing Calculator</button>
+    </div>
+
+    <!-- TAB 1: SLATE PROJECTIONS -->
+    <main id="slateSection" class="content-section active">
+      <!-- Toolbar & Filters -->
+      <div class="toolbar-card">
+        <div class="search-box">
+          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <input type="text" id="searchInput" placeholder="Search player, team, or opponent..." oninput="filterData()">
+          <button class="clear-search" id="clearSearchBtn" onclick="clearSearch()" style="display:none;">&times;</button>
+        </div>
+
+        <div class="pos-filters" id="posFilters">
+          <button class="pos-btn active" data-pos="ALL" onclick="setPosFilter('ALL')">All (137)</button>
+          <button class="pos-btn" data-pos="WR" onclick="setPosFilter('WR')">WR (92)</button>
+          <button class="pos-btn" data-pos="TE" onclick="setPosFilter('TE')">TE (30)</button>
+          <button class="pos-btn" data-pos="RB" onclick="setPosFilter('RB')">RB (15)</button>
+        </div>
+      </div>
+
+      <!-- Quick Summary Stats Bar -->
+      <div class="summary-stats-bar">
+        <div class="stat-item">
+          <span class="stat-name">Showing</span>
+          <span class="stat-num" id="showingCount">137</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-name">Top Projected Yards</span>
+          <span class="stat-num" id="topProjYards">102.7 (Ja'Marr Chase)</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-name">Top Projected Rec</span>
+          <span class="stat-num" id="topProjRec">7.9 (Ja'Marr Chase)</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-name">Questionable Flagged</span>
+          <span class="stat-num" id="qCount">5</span>
+        </div>
+      </div>
+
+      <!-- Main Slate Table -->
+      <div class="table-container">
+        <table class="slate-table" id="slateTable">
+          <thead>
+            <tr>
+              <th class="sortable" onclick="sortBy('player_display_name')">
+                Player <span class="sort-arrow" id="sort-player_display_name"></span>
+              </th>
+              <th>Pos</th>
+              <th>Matchup</th>
+              <th class="num-col sortable" onclick="sortBy('proj_rec')">
+                Proj Rec <span class="sort-arrow" id="sort-proj_rec"></span>
+              </th>
+              <th class="num-col sortable" onclick="sortBy('fair_line_rec')">
+                Fair Line Rec <span class="sort-arrow" id="sort-fair_line_rec"></span>
+              </th>
+              <th class="num-col sortable" onclick="sortBy('proj_yards')">
+                Proj Yards <span class="sort-arrow" id="sort-proj_yards">▼</span>
+              </th>
+              <th class="num-col sortable" onclick="sortBy('fair_line_yards')">
+                Fair Line Yards <span class="sort-arrow" id="sort-fair_line_yards"></span>
+              </th>
+              <th>Game Context</th>
+              <th class="action-col">Action</th>
+            </tr>
+          </thead>
+          <tbody id="slateTbody">
+            <!-- Populated dynamically via app.js -->
+          </tbody>
+        </table>
+      </div>
+    </main>
+
+    <!-- TAB 2: CURRENT PICKS -->
+    <section id="picksSection" class="content-section">
+      <div class="picks-status-card">
+        <div class="picks-status-header">
+          <div>
+            <div class="status-chip chip-neutral" id="picksStatusChip">0 Picks Cleared 10% Gate</div>
+            <h3 id="picksTitle">Official Scored Picks</h3>
+            <p class="text-muted" id="picksSubtitle">
+              Picks require an active paid <code>ODDS_API_KEY</code> and must clear <code>W1_MIN_EDGE = 0.10</code>.
+            </p>
+          </div>
+          <div class="picks-meta" id="picksMeta">
+            <span class="meta-label">GATE: 10.0% &bull; KELLY CAP: 0.50%</span>
+          </div>
+        </div>
+
+        <div id="picksContainer">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: PROP PRICING CALCULATOR -->
+    <section id="calcSection" class="content-section">
+      <div class="calc-card">
+        <div class="calc-header">
+          <h3>Interactive Prop Line &amp; Edge Evaluator</h3>
+          <p class="text-muted">Enter any sportsbook line (DraftKings, FanDuel, etc.) for a player to price it with the compound model + Week 1 bias correction.</p>
+        </div>
+
+        <div class="calc-grid">
+          <div class="calc-inputs">
+            <div class="form-group">
+              <label for="calcPlayerSelect">Select Player</label>
+              <select id="calcPlayerSelect" onchange="onPlayerSelectChange()">
+                <!-- Populated dynamically -->
+              </select>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="calcMarket">Market</label>
+                <select id="calcMarket" onchange="calculateEdge()">
+                  <option value="receiving_yards">Receiving Yards</option>
+                  <option value="receptions">Receptions</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="calcLine">Book Line</label>
+                <input type="number" id="calcLine" step="0.5" value="64.5" oninput="calculateEdge()">
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="calcOverOdds">Over American Odds</label>
+                <input type="number" id="calcOverOdds" step="5" value="-115" oninput="calculateEdge()">
+              </div>
+
+              <div class="form-group">
+                <label for="calcUnderOdds">Under American Odds</label>
+                <input type="number" id="calcUnderOdds" step="5" value="-115" oninput="calculateEdge()">
+              </div>
+            </div>
+
+            <div class="player-context-box" id="calcPlayerContext">
+              <!-- Context filled dynamically -->
+            </div>
+          </div>
+
+          <div class="calc-results" id="calcResults">
+            <!-- Results filled dynamically -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <p>
+        <strong>Legal &amp; Model Disclaimer:</strong> Statistical estimates for entertainment and research only. Not financial advice. No outcome is guaranteed. Past performance does not predict future results. 21+ where legal. If gambling is causing harm, call 1-800-GAMBLER.
+      </p>
+      <p class="footer-sub">
+        Compound NegBin / Gamma Model &bull; Evaluated walk-forward against 33,588 player-weeks.
+      </p>
+    </footer>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
