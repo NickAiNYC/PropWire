@@ -17,8 +17,9 @@ let selectedPlayer = null;
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', async () => {
   await loadData();
-  renderSlateTable();
+  renderSpotlightCards();
   renderPicksSection();
+  renderSlateTable();
   populateCalculator();
 });
 
@@ -38,6 +39,40 @@ async function loadData() {
   }
 
   updateSummaryStats();
+}
+
+function renderSpotlightCards() {
+  const container = document.getElementById('spotlightCards');
+  if (!container || slateData.length === 0) return;
+  const top4 = [...slateData].sort((a, b) => b.proj_yards - a.proj_yards).slice(0, 4);
+  container.innerHTML = top4.map(p => {
+    const homeStr = p.is_home === 1 ? 'vs' : '@';
+    return `
+      <div class="spotlight-card" onclick="openCalculatorFor('${escape(p.player_id)}')">
+        <div class="spotlight-card-top">
+          <div>
+            <div class="card-player-name">${p.player_display_name}</div>
+            <div class="card-matchup">${p.team} ${homeStr} ${p.opponent_team} &bull; Impl ${p.implied_team_total.toFixed(1)}</div>
+          </div>
+          <span class="pos-tag pos-${p.position}">${p.position}</span>
+        </div>
+        <div class="card-stats-grid">
+          <div class="card-stat-box">
+            <span class="card-stat-label">YARDS (FAIR / PROJ)</span>
+            <span class="card-stat-val"><span class="card-fair">${p.fair_line_yards.toFixed(1)}</span> / ${p.proj_yards.toFixed(1)}</span>
+          </div>
+          <div class="card-stat-box">
+            <span class="card-stat-label">REC (FAIR / PROJ)</span>
+            <span class="card-stat-val"><span class="card-fair">${p.fair_line_rec.toFixed(1)}</span> / ${p.proj_rec.toFixed(1)}</span>
+          </div>
+        </div>
+        <div class="card-footer">
+          <span>Model Median Baseline</span>
+          <span style="color:var(--accent-blue); font-weight:600;">Price Prop &rarr;</span>
+        </div>
+      </div>
+    `;
+  }).join('');
 }
 
 function updateSummaryStats() {
@@ -151,7 +186,12 @@ function renderSlateTable() {
   const q = document.getElementById('searchInput').value.toLowerCase().trim();
 
   let filtered = slateData.filter(row => {
-    if (currentPosFilter !== 'ALL' && row.position !== currentPosFilter) return false;
+    if (currentPosFilter === 'TOP25') {
+      const top25Ids = new Set([...slateData].sort((a, b) => b.proj_yards - a.proj_yards).slice(0, 25).map(x => x.player_id));
+      if (!top25Ids.has(row.player_id)) return false;
+    } else if (currentPosFilter !== 'ALL' && row.position !== currentPosFilter) {
+      return false;
+    }
     if (q) {
       const p = row.player_display_name.toLowerCase();
       const t = (row.team || '').toLowerCase();
@@ -213,73 +253,66 @@ function renderSlateTable() {
   }).join('');
 }
 
-// Render Scored Picks Section
+// Render Scored Picks Section (Top 25 Model Target Board)
 function renderPicksSection() {
   const container = document.getElementById('picksContainer');
   const chip = document.getElementById('picksStatusChip');
-  if (!container) return;
+  if (!container || slateData.length === 0) return;
 
-  const picks = picksData.picks || [];
-  if (picks.length === 0) {
-    if (chip) {
-      chip.className = 'status-chip chip-neutral';
-      chip.textContent = '0 Picks Cleared 10% Gate';
-    }
-    container.innerHTML = `
-      <div class="empty-picks-box">
-        <h4>No Picks Cleared the Week 1 Guardrail</h4>
-        <p>
-          ${picksData.note || 'Zero picks currently clear the 10% edge gate.'}
-          In Week 1, model error is 3&ndash;5%, so any claimed edge below 10% is within measurement noise.
-        </p>
-        <p style="font-size:12px; color:var(--text-dim); margin-top:8px;">
-          Use the <strong>Prop Pricing Calculator</strong> tab or the <strong>Price Prop</strong> buttons in the slate table to evaluate specific sportsbook lines against the model's predictive distribution.
-        </p>
-        <button class="action-btn" style="padding:8px 16px; font-size:13px;" onclick="setTab('slate')">View All Fair Lines</button>
-      </div>
-    `;
-    return;
-  }
+  const top25 = [...slateData].sort((a, b) => b.proj_yards - a.proj_yards).slice(0, 25);
 
   if (chip) {
     chip.className = 'status-chip chip-active';
-    chip.textContent = `${picks.length} Picks Active`;
+    chip.textContent = 'Top 25 Model Targets Ready';
   }
 
   container.innerHTML = `
+    <div style="margin-bottom:16px; background:rgba(18,24,36,0.6); padding:14px; border-radius:8px; border:1px solid var(--border-color); font-size:12px; color:var(--text-muted); line-height:1.6;">
+      <strong>Week 1 Strategy:</strong> Compare your sportsbook's posted line directly against the <strong>Model Fair Line</strong> (the model's median projection).<br>
+      &bull; <strong>Lean Over:</strong> Sportsbook line is <em>lower</em> than the model fair line.<br>
+      &bull; <strong>Lean Under:</strong> Sportsbook line is <em>higher</em> than the model fair line.<br>
+      &bull; Tap <strong>"Price Prop"</strong> to test any line with the exact Compound NegBin/Gamma distribution + Week 1 bias correction.
+    </div>
+
     <div class="table-container">
       <table class="slate-table">
         <thead>
           <tr>
+            <th>#</th>
             <th>Player</th>
-            <th>Market</th>
-            <th>Side</th>
-            <th class="num-col">Line</th>
-            <th>Book</th>
-            <th class="num-col">Odds</th>
-            <th class="num-col">Model P</th>
-            <th class="num-col">Mkt P</th>
-            <th class="num-col">Edge</th>
-            <th class="num-col">EV</th>
-            <th class="num-col">Kelly Stake</th>
+            <th>Pos</th>
+            <th>Matchup</th>
+            <th class="num-col">Fair Line Yds</th>
+            <th class="num-col">Proj Yds</th>
+            <th class="num-col">Fair Line Rec</th>
+            <th class="num-col">Proj Rec</th>
+            <th>Implied Total</th>
+            <th class="action-col">Action</th>
           </tr>
         </thead>
         <tbody>
-          ${picks.map(p => `
-            <tr>
-              <td class="player-name-cell">${p.player}</td>
-              <td>${p.market.replace('_', ' ')}</td>
-              <td><strong>${p.side.toUpperCase()}</strong></td>
-              <td class="num-col">${p.line.toFixed(1)}</td>
-              <td>${p.book}</td>
-              <td class="num-col">${p.odds > 0 ? '+' : ''}${p.odds}</td>
-              <td class="num-col">${(p.model_prob * 100).toFixed(1)}%</td>
-              <td class="num-col">${(p.market_prob * 100).toFixed(1)}%</td>
-              <td class="num-col val-green">+${(p.edge * 100).toFixed(1)}%</td>
-              <td class="num-col val-green">+${(p.ev_per_unit * 100).toFixed(1)}%</td>
-              <td class="num-col val-green">${(p.kelly_stake * 100).toFixed(2)}%</td>
-            </tr>
-          `).join('')}
+          ${top25.map((p, idx) => {
+            const homeStr = p.is_home === 1 ? 'vs' : '@';
+            return `
+              <tr>
+                <td style="font-family:var(--font-mono); color:var(--text-dim); font-weight:700;">#${idx + 1}</td>
+                <td class="player-name-cell">
+                  <span>${p.player_display_name}</span>
+                  ${p.questionable ? '<span class="q-badge">Q</span>' : ''}
+                </td>
+                <td><span class="pos-tag pos-${p.position}">${p.position}</span></td>
+                <td><span class="matchup-tag">${p.team} <span class="home-indicator">${homeStr}</span> ${p.opponent_team}</span></td>
+                <td class="num-col fair-val">${p.fair_line_yards.toFixed(1)}</td>
+                <td class="num-col highlight-val">${p.proj_yards.toFixed(1)}</td>
+                <td class="num-col fair-val">${p.fair_line_rec.toFixed(1)}</td>
+                <td class="num-col highlight-val">${p.proj_rec.toFixed(1)}</td>
+                <td class="game-context-cell">${p.implied_team_total.toFixed(1)} pts (${p.team_spread > 0 ? '+' : ''}${p.team_spread.toFixed(1)})</td>
+                <td class="action-col">
+                  <button class="action-btn" onclick="openCalculatorFor('${escape(p.player_id)}')">Price Prop</button>
+                </td>
+              </tr>
+            `;
+          }).join('')}
         </tbody>
       </table>
     </div>

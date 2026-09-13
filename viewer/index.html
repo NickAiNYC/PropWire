@@ -76,13 +76,27 @@
 
     <!-- Navigation / Mode Tabs -->
     <div class="mode-tabs">
-      <button class="tab-btn active" id="tabSlate" onclick="setTab('slate')">Full Slate Projections (137)</button>
-      <button class="tab-btn" id="tabPicks" onclick="setTab('picks')">Current Scored Picks (<span id="picksCountBadge">0</span>)</button>
+      <button class="tab-btn active" id="tabPicks" onclick="setTab('picks')">⭐ Top Model Picks (<span id="picksCountBadge">25</span>)</button>
+      <button class="tab-btn" id="tabSlate" onclick="setTab('slate')">Full Slate Board (137)</button>
       <button class="tab-btn" id="tabCalc" onclick="setTab('calc')">Prop Pricing Calculator</button>
     </div>
 
+    <!-- Spotlight Cards: Top 4 Model Targets -->
+    <section class="spotlight-section">
+      <div class="spotlight-header">
+        <div class="spotlight-title">
+          <span class="spotlight-badge">FEATURED</span>
+          <h3>Top Week 1 Model Targets</h3>
+        </div>
+        <span class="spotlight-hint">Tap any player to price against your book</span>
+      </div>
+      <div class="spotlight-grid" id="spotlightCards">
+        <!-- Filled dynamically in app.js -->
+      </div>
+    </section>
+
     <!-- TAB 1: SLATE PROJECTIONS -->
-    <main id="slateSection" class="content-section active">
+    <main id="slateSection" class="content-section">
       <!-- Toolbar & Filters -->
       <div class="toolbar-card">
         <div class="search-box">
@@ -96,6 +110,7 @@
 
         <div class="pos-filters" id="posFilters">
           <button class="pos-btn active" data-pos="ALL" onclick="setPosFilter('ALL')">All (137)</button>
+          <button class="pos-btn top25-btn" data-pos="TOP25" onclick="setPosFilter('TOP25')">⭐ Top 25</button>
           <button class="pos-btn" data-pos="WR" onclick="setPosFilter('WR')">WR (92)</button>
           <button class="pos-btn" data-pos="TE" onclick="setPosFilter('TE')">TE (30)</button>
           <button class="pos-btn" data-pos="RB" onclick="setPosFilter('RB')">RB (15)</button>
@@ -155,24 +170,24 @@
       </div>
     </main>
 
-    <!-- TAB 2: CURRENT PICKS -->
-    <section id="picksSection" class="content-section">
+    <!-- TAB 1: TOP MODEL PICKS (DEFAULT) -->
+    <section id="picksSection" class="content-section active">
       <div class="picks-status-card">
         <div class="picks-status-header">
           <div>
-            <div class="status-chip chip-neutral" id="picksStatusChip">0 Picks Cleared 10% Gate</div>
-            <h3 id="picksTitle">Official Scored Picks</h3>
+            <div class="status-chip chip-active" id="picksStatusChip">Top 25 Model Target Board Loaded</div>
+            <h3 id="picksTitle">Top Model Picks &amp; Fair Line Benchmarks</h3>
             <p class="text-muted" id="picksSubtitle">
-              Picks require an active paid <code>ODDS_API_KEY</code> and must clear <code>W1_MIN_EDGE = 0.10</code>.
+              Top targets ranked by projected volume. <strong>Strategy:</strong> Compare against your sportsbook line. A book line <em>below</em> the fair line favours the <strong>Over</strong>; a line <em>above</em> favours the <strong>Under</strong>.
             </p>
           </div>
           <div class="picks-meta" id="picksMeta">
-            <span class="meta-label">GATE: 10.0% &bull; KELLY CAP: 0.50%</span>
+            <span class="meta-label">WEEK 1 GATE: 10.0% &bull; KELLY CAP: 0.50%</span>
           </div>
         </div>
 
         <div id="picksContainer">
-          <!-- Populated dynamically -->
+          <!-- Populated dynamically via app.js -->
         </div>
       </div>
     </section>
