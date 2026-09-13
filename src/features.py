@@ -72,8 +72,8 @@ def load_player_weeks(seasons: tuple[int, ...] | None = None) -> pd.DataFrame:
 def load_games() -> pd.DataFrame:
     g = pd.read_csv(os.path.join(DATA_DIR, "games.csv"))
     g = g[g.game_type == "REG"].copy()
-    keep = ["game_id", "season", "week", "away_team", "home_team",
-            "spread_line", "total_line", "roof", "temp", "wind"]
+    keep = ["game_id", "season", "week", "gameday", "gametime", "away_team", "home_team",
+            "away_score", "spread_line", "total_line", "roof", "temp", "wind"]
     return g[keep]
 
 

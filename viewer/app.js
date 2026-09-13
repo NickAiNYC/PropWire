@@ -77,7 +77,10 @@ function renderSpotlightCards() {
 
 function updateSummaryStats() {
   const badge = document.getElementById('picksCountBadge');
-  if (badge) badge.textContent = picksData.picks ? picksData.picks.length : 0;
+  if (badge) badge.textContent = picksData.picks ? picksData.picks.length : 25;
+
+  const slateBadge = document.getElementById('slateCountBadge');
+  if (slateBadge) slateBadge.textContent = slateData.length;
 
   const showing = document.getElementById('showingCount');
   if (showing) showing.textContent = slateData.length;

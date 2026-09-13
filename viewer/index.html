@@ -76,19 +76,19 @@
 
     <!-- Navigation / Mode Tabs -->
     <div class="mode-tabs">
-      <button class="tab-btn active" id="tabPicks" onclick="setTab('picks')">⭐ Top Model Picks (<span id="picksCountBadge">25</span>)</button>
-      <button class="tab-btn" id="tabSlate" onclick="setTab('slate')">Full Slate Board (137)</button>
+      <button class="tab-btn active" id="tabPicks" onclick="setTab('picks')">Top Projections &amp; Fair Lines (<span id="picksCountBadge">25</span>)</button>
+      <button class="tab-btn" id="tabSlate" onclick="setTab('slate')">Full Active Slate (<span id="slateCountBadge">118</span>)</button>
       <button class="tab-btn" id="tabCalc" onclick="setTab('calc')">Prop Pricing Calculator</button>
     </div>
 
-    <!-- Spotlight Cards: Top 4 Model Targets -->
+    <!-- Spotlight Cards: Top 4 Active Projections -->
     <section class="spotlight-section">
       <div class="spotlight-header">
         <div class="spotlight-title">
           <span class="spotlight-badge">FEATURED</span>
-          <h3>Top Week 1 Model Targets</h3>
+          <h3>Top Week 1 Projections (Active Games)</h3>
         </div>
-        <span class="spotlight-hint">Tap any player to price against your book</span>
+        <span class="spotlight-hint">Ranked by volume (talent/usage). Tap any player to price against your book.</span>
       </div>
       <div class="spotlight-grid" id="spotlightCards">
         <!-- Filled dynamically in app.js -->
@@ -109,27 +109,27 @@
         </div>
 
         <div class="pos-filters" id="posFilters">
-          <button class="pos-btn active" data-pos="ALL" onclick="setPosFilter('ALL')">All (137)</button>
-          <button class="pos-btn top25-btn" data-pos="TOP25" onclick="setPosFilter('TOP25')">⭐ Top 25</button>
-          <button class="pos-btn" data-pos="WR" onclick="setPosFilter('WR')">WR (92)</button>
-          <button class="pos-btn" data-pos="TE" onclick="setPosFilter('TE')">TE (30)</button>
-          <button class="pos-btn" data-pos="RB" onclick="setPosFilter('RB')">RB (15)</button>
+          <button class="pos-btn active" data-pos="ALL" onclick="setPosFilter('ALL')">All (118)</button>
+          <button class="pos-btn top25-btn" data-pos="TOP25" onclick="setPosFilter('TOP25')">Top 25</button>
+          <button class="pos-btn" data-pos="WR" onclick="setPosFilter('WR')">WR (80)</button>
+          <button class="pos-btn" data-pos="TE" onclick="setPosFilter('TE')">TE (25)</button>
+          <button class="pos-btn" data-pos="RB" onclick="setPosFilter('RB')">RB (13)</button>
         </div>
       </div>
 
       <!-- Quick Summary Stats Bar -->
       <div class="summary-stats-bar">
         <div class="stat-item">
-          <span class="stat-name">Showing</span>
-          <span class="stat-num" id="showingCount">137</span>
+          <span class="stat-name">Active Receivers</span>
+          <span class="stat-num" id="showingCount">118</span>
         </div>
         <div class="stat-item">
           <span class="stat-name">Top Projected Yards</span>
-          <span class="stat-num" id="topProjYards">102.7 (Ja'Marr Chase)</span>
+          <span class="stat-num" id="topProjYards">102.4 (Ja'Marr Chase)</span>
         </div>
         <div class="stat-item">
           <span class="stat-name">Top Projected Rec</span>
-          <span class="stat-num" id="topProjRec">7.9 (Ja'Marr Chase)</span>
+          <span class="stat-num" id="topProjRec">7.8 (Ja'Marr Chase)</span>
         </div>
         <div class="stat-item">
           <span class="stat-name">Questionable Flagged</span>
@@ -170,15 +170,15 @@
       </div>
     </main>
 
-    <!-- TAB 1: TOP MODEL PICKS (DEFAULT) -->
+    <!-- TAB 1: TOP MODEL PROJECTIONS (DEFAULT) -->
     <section id="picksSection" class="content-section active">
       <div class="picks-status-card">
         <div class="picks-status-header">
           <div>
-            <div class="status-chip chip-active" id="picksStatusChip">Top 25 Model Target Board Loaded</div>
-            <h3 id="picksTitle">Top Model Picks &amp; Fair Line Benchmarks</h3>
+            <div class="status-chip chip-active" id="picksStatusChip">Top 25 Projections Active (Settled Games Excluded)</div>
+            <h3 id="picksTitle">Top Projections &amp; Fair Lines</h3>
             <p class="text-muted" id="picksSubtitle">
-              Top targets ranked by projected volume. <strong>Strategy:</strong> Compare against your sportsbook line. A book line <em>below</em> the fair line favours the <strong>Over</strong>; a line <em>above</em> favours the <strong>Under</strong>.
+              Top receivers ranked by projected volume (talent &amp; usage, not edge). <strong>Picks require market disagreement:</strong> compare your book's line to the model fair line. A book line <em>below</em> fair line leans <strong>Over</strong>; a line <em>above</em> leans <strong>Under</strong>. Tap <strong>Price Prop</strong> to compute true edge.
             </p>
           </div>
           <div class="picks-meta" id="picksMeta">
