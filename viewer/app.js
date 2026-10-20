@@ -43,6 +43,21 @@
     } catch (_) {}
   }
 
+  function loadWatchlist() {
+    try {
+      const raw = localStorage.getItem('propwire_watchlist');
+      return raw ? JSON.parse(raw) : [];
+    } catch (_) {
+      return [];
+    }
+  }
+
+  function saveWatchlist(watchlist) {
+    try {
+      localStorage.setItem('propwire_watchlist', JSON.stringify(watchlist));
+    } catch (_) {}
+  }
+
   const state = {
     slateKey: '2026_w7',
     slate: [],
@@ -58,7 +73,10 @@
     scenarioTargetShare: null,
     bankroll: 5000,
     clvReport: null,
-    portfolio: loadPortfolio()
+    portfolio: loadPortfolio(),
+    watchlist: loadWatchlist(),
+    bottomTab: 'slate',
+    slateScrollY: 0
   };
   try {
     const savedBankroll = localStorage.getItem('propwire-bankroll');
@@ -282,7 +300,7 @@
     }
 
     const bottomNavSlate = $('#bottomNavSlate');
-    const bottomNavClv = $('#bottomNavClv');
+    const bottomNavWatchlist = $('#bottomNavWatchlist');
     const bottomNavLedger = $('#bottomNavLedger');
 
     if (bottomNavSlate) {
@@ -293,17 +311,32 @@
         if (portfolioDialog && portfolioDialog.open) portfolioDialog.close();
         const clvReportModal = $('#clvReportModal');
         if (clvReportModal && clvReportModal.open) clvReportModal.close();
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+
+        state.bottomTab = 'slate';
         $$('.bottom-nav-item').forEach((b) => b.classList.remove('active'));
         bottomNavSlate.classList.add('active');
+        renderBoard();
+        window.scrollTo({ top: state.slateScrollY || 0, behavior: 'smooth' });
       });
     }
 
-    if (bottomNavClv) {
-      bottomNavClv.addEventListener('click', () => {
-        openClvReport();
+    if (bottomNavWatchlist) {
+      bottomNavWatchlist.addEventListener('click', () => {
+        const detailDialog = $('#detailDialog');
+        if (detailDialog && detailDialog.open) detailDialog.close();
+        const portfolioDialog = $('#portfolioDialog');
+        if (portfolioDialog && portfolioDialog.open) portfolioDialog.close();
+        const clvReportModal = $('#clvReportModal');
+        if (clvReportModal && clvReportModal.open) clvReportModal.close();
+
+        if (state.bottomTab === 'slate') {
+          state.slateScrollY = window.scrollY;
+        }
+        state.bottomTab = 'watchlist';
         $$('.bottom-nav-item').forEach((b) => b.classList.remove('active'));
-        bottomNavClv.classList.add('active');
+        bottomNavWatchlist.classList.add('active');
+        renderBoard();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       });
     }
 
@@ -319,7 +352,11 @@
     if (portfolioDialogEl) {
       portfolioDialogEl.addEventListener('close', () => {
         $$('.bottom-nav-item').forEach((b) => b.classList.remove('active'));
-        if (bottomNavSlate) bottomNavSlate.classList.add('active');
+        if (state.bottomTab === 'watchlist' && bottomNavWatchlist) {
+          bottomNavWatchlist.classList.add('active');
+        } else if (bottomNavSlate) {
+          bottomNavSlate.classList.add('active');
+        }
       });
     }
 
@@ -327,12 +364,17 @@
     if (clvReportModalEl) {
       clvReportModalEl.addEventListener('close', () => {
         $$('.bottom-nav-item').forEach((b) => b.classList.remove('active'));
-        if (bottomNavSlate) bottomNavSlate.classList.add('active');
+        if (state.bottomTab === 'watchlist' && bottomNavWatchlist) {
+          bottomNavWatchlist.classList.add('active');
+        } else if (bottomNavSlate) {
+          bottomNavSlate.classList.add('active');
+        }
       });
     }
 
     initKeyboardNav();
     updatePortfolioBadge();
+    updateWatchlistBadge();
     updateActiveFilterBadge();
   }
 
@@ -690,6 +732,7 @@
   function filteredRows() {
     const { search, position, team, gameId, playMode, intent } = state.filters;
     let rows = state.slate.filter((row) => {
+      if (state.bottomTab === 'watchlist' && !state.watchlist.includes(row.player_id)) return false;
       if (playMode === 'actionable' && state.filters.market !== 'anytime_td' && !findQuote(row, state.filters.market)) return false;
       if (position !== 'ALL' && row.position !== position) return false;
       if (team && row.team !== team) return false;
@@ -729,7 +772,13 @@
     const quotedCount = state.slate.filter((row) => Boolean(findQuote(row, state.filters.market))).length;
     if ($('#allCount')) $('#allCount').textContent = totalCount;
     if ($('#actionableCount')) $('#actionableCount').textContent = quotedCount;
-    $('#resultCount').textContent = `${rows.length} of ${state.slate.length} player records`;
+    if (state.bottomTab === 'watchlist') {
+      $('#resultCount').textContent = `${rows.length} watched ${rows.length === 1 ? 'player' : 'players'} of ${state.slate.length} modeled`;
+      $('#emptyState').textContent = 'Your Watchlist is empty. Tap the star icon on any player to track their line movements and edge shifts.';
+    } else {
+      $('#resultCount').textContent = `${rows.length} of ${state.slate.length} player records`;
+      $('#emptyState').textContent = 'No player records match these filters.';
+    }
     $('#slateHead').innerHTML = tableHead(hasPrices);
     $('#slateRows').innerHTML = rows.map((row, idx) => tableRow(row, hasPrices, idx)).join('');
     $('#cardView').innerHTML = rows.map((row, idx) => propCard(row, idx)).join('');
@@ -779,6 +828,39 @@
     }
   }
 
+  function updateWatchlistBadge() {
+    const count = (state.watchlist || []).length;
+    const badge = $('#bottomNavWatchlistBadge');
+    if (badge) {
+      badge.textContent = count;
+      badge.hidden = count === 0;
+    }
+  }
+
+  function toggleWatchlist(playerId) {
+    if (!playerId) return;
+    const idx = (state.watchlist || []).indexOf(playerId);
+    if (idx >= 0) {
+      state.watchlist.splice(idx, 1);
+      showToast('Removed from Watchlist');
+    } else {
+      state.watchlist.push(playerId);
+      showToast('Added to Watchlist');
+    }
+    saveWatchlist(state.watchlist);
+    updateWatchlistBadge();
+    renderBoard();
+    updateModalWatchlistBtn(playerId);
+  }
+
+  function updateModalWatchlistBtn(playerId) {
+    const btn = $('#modalWatchlistBtn');
+    if (!btn) return;
+    const isWatched = (state.watchlist || []).includes(playerId);
+    btn.className = `star-modal-btn ${isWatched ? 'starred' : ''}`;
+    btn.innerHTML = isWatched ? '★ On Watchlist' : '☆ Add to Watchlist';
+  }
+
   function venueBadge(row) {
     const game = state.games.find((item) => item.game_id === row.game_id);
     if (!game) return '';
@@ -809,6 +891,8 @@
     const projection = projectionValue(row);
     const dist = distributionRange(row);
     const isTopEdge = evaluation.edge >= 0.15;
+    const isWatched = (state.watchlist || []).includes(row.player_id);
+    const starBtn = `<button class="star-btn ${isWatched ? 'starred' : ''}" type="button" data-watch-player="${esc(row.player_id)}" title="${isWatched ? 'Remove from Watchlist' : 'Add to Watchlist'}" aria-label="Watch">${isWatched ? '★' : '☆'}</button>`;
     const logoImg = `<img class="team-logo-badge" src="${esc(teamLogoUrl(row.team))}" alt="${esc(row.team)}" width="24" height="24" loading="lazy" onerror="this.style.display='none'">`;
     const sparklineSvg = distSparklineSvg(dist, evaluation.state !== 'none' ? evaluation.line : null, 64, 18);
 
@@ -818,7 +902,7 @@
           ${logoImg}
           <span class="position-box">${esc(row.position)}</span>
           <div class="player-info">
-            <div class="player-name">${esc(row.player_display_name)}${injury ? `<span class="injury-tag">${esc(injury.report_status)}</span>` : ''}</div>
+            <div class="player-name">${starBtn} ${esc(row.player_display_name)}${injury ? `<span class="injury-tag">${esc(injury.report_status)}</span>` : ''}</div>
             <div class="player-meta-line">
               <span class="cell-sub">${esc(row.team)} · ${esc(roleLabel(row))}</span>
               ${keyDriverTag(row, beneficiary)}
@@ -854,7 +938,9 @@
     const projection = projectionValue(row);
     const dist = distributionRange(row);
     const isLogged = (state.portfolio || []).some((b) => b.player_id === row.player_id && b.market === state.filters.market);
+    const isWatched = (state.watchlist || []).includes(row.player_id);
     const isTopEdge = evaluation.edge >= 0.15;
+    const starBtn = `<button class="star-btn ${isWatched ? 'starred' : ''}" type="button" data-watch-player="${esc(row.player_id)}" title="${isWatched ? 'Remove from Watchlist' : 'Add to Watchlist'}" aria-label="Watch">${isWatched ? '★' : '☆'}</button>`;
     const logoImg = `<img class="team-logo-badge" src="${esc(teamLogoUrl(row.team))}" alt="${esc(row.team)}" width="22" height="22" loading="lazy" onerror="this.style.display='none'">`;
     const sparklineSvg = distSparklineSvg(dist, evaluation.state !== 'none' ? evaluation.line : null, 68, 20);
 
@@ -863,7 +949,7 @@
       <div class="card-row-lead">
         <div class="card-name-group">
           ${logoImg}
-          <h2 class="card-player-name">${esc(row.player_display_name)}${injury ? `<span class="injury-tag" title="Injury Status">${esc(injury.report_status)}</span>` : ''}</h2>
+          <h2 class="card-player-name">${starBtn} ${esc(row.player_display_name)}${injury ? `<span class="injury-tag" title="Injury Status">${esc(injury.report_status)}</span>` : ''}</h2>
         </div>
         <div class="card-edge-badge-wrap">
           ${statePill(row, evaluation)}
@@ -1103,6 +1189,12 @@
 
   function inspectFromEvent(event) {
     if (event.target.closest('.info-trigger') || event.target.closest('.help-bubble')) return;
+    const watchBtn = event.target.closest('[data-watch-player]');
+    if (watchBtn) {
+      event.stopPropagation();
+      toggleWatchlist(watchBtn.dataset.watchPlayer);
+      return;
+    }
     const logBtn = event.target.closest('[data-log-bet]');
     if (logBtn) {
       event.stopPropagation();
@@ -1521,6 +1613,12 @@
         logBet(row.player_id);
       });
     }
+    const modalWatchBtn = $('#modalWatchlistBtn');
+    if (modalWatchBtn) {
+      modalWatchBtn.addEventListener('click', () => {
+        toggleWatchlist(row.player_id);
+      });
+    }
 
     const bankrollInput = $('#kellyBankrollInput');
     if (bankrollInput) {
@@ -1583,6 +1681,8 @@
     const surgeSection = beneficiary ? `<div class="detail-section"><h3>${SVG_ICONS.surge} Role Surge Breakdown</h3><div class="warning-box" style="border-color: color-mix(in srgb, var(--accent) 55%, var(--line)); background: color-mix(in srgb, var(--accent) 12%, transparent); color: var(--text);"><strong>${esc(beneficiary.role_label || 'Role surge')}</strong><div style="margin-top:4px; font-size:12px; line-height:1.4;"><strong>Catalyst:</strong> ${esc(beneficiary.catalyst_injury || 'Injury Vacancy')}<br><strong>Redistribution:</strong> +${num(beneficiary.added_targets).toFixed(1)} targets, +${num(beneficiary.added_air_yards).toFixed(1)} air yards (${pct(beneficiary.absorption_share)} absorption)<br><span style="color:var(--muted)"><strong>Risk factor:</strong> ${esc(beneficiary.invalidation_risk || 'None')}</span></div></div></div>` : '';
 
     const isLogged = (state.portfolio || []).some((b) => b.player_id === row.player_id && b.market === state.filters.market);
+    const isWatched = (state.watchlist || []).includes(row.player_id);
+    const watchButton = `<button class="star-modal-btn ${isWatched ? 'starred' : ''}" type="button" id="modalWatchlistBtn" data-watch-player="${esc(row.player_id)}">${isWatched ? '★ On Watchlist' : '☆ Add to Watchlist'}</button>`;
     const logButton = `<button class="log-bet-btn ${isLogged ? 'logged' : ''}" type="button" id="modalLogBetBtn" data-log-bet="${esc(row.player_id)}">${isLogged ? `${SVG_ICONS.check} In Portfolio Ledger` : '+ Log Bet to CLV Ledger'}</button>`;
 
     const baseShare = num(row.f_tgt_share || row.target_share, 0.20);
@@ -1650,11 +1750,14 @@
       <div class="detail-stat"><span>Model fair</span><strong>${fair.toFixed(1)}</strong><small class="cell-sub">${fairProbabilityText(row)}</small></div>
       ${actionStat}
     </div>
-    <div style="margin-top:12px; display:flex; justify-content:space-between; align-items:center;">
-      <div class="detail-insight-banner" style="margin:0; flex:1; margin-right:10px;">
+    <div style="margin-top:12px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+      <div class="detail-insight-banner" style="margin:0; flex:1; min-width:200px;">
         <strong>Quant Summary:</strong> ${esc(naturalInsight(row, evaluation))}
       </div>
-      ${logButton}
+      <div style="display:flex; gap:8px; align-items:center; flex-shrink:0;">
+        ${watchButton}
+        ${logButton}
+      </div>
     </div>
     ${surgeSection}
     ${scenarioSection}

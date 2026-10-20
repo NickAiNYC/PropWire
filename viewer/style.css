@@ -1012,7 +1012,54 @@ button { color: inherit; }
 .trust-line strong { color: var(--muted); margin-right: 5px; }
 .status-dot { width: 7px; height: 7px; display: inline-block; margin-right: 6px; border-radius: 50%; background: var(--faint); }
 
-/* ─── MODAL DETAIL ─── */
+/* ─── MODAL DETAIL & CONTEXT-AWARE RESEARCH SHEET ─── */
+.star-btn {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1;
+  padding: 2px 4px;
+  cursor: pointer;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+.star-btn:hover {
+  color: var(--amber);
+  transform: scale(1.15);
+}
+.star-btn.starred {
+  color: var(--amber);
+  text-shadow: 0 0 8px rgba(245, 158, 11, 0.4);
+}
+.star-modal-btn {
+  min-height: 44px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0 14px;
+  background: var(--surface-2);
+  color: var(--text);
+  font: 650 12px/1 var(--sans);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.star-modal-btn:hover {
+  border-color: var(--amber);
+  color: var(--amber);
+}
+.star-modal-btn.starred {
+  border-color: rgba(245, 158, 11, 0.4);
+  background: rgba(245, 158, 11, 0.12);
+  color: var(--amber);
+}
+
 .detail-dialog {
   width: min(680px, calc(100% - 24px));
   max-height: min(820px, calc(100vh - 24px));
@@ -1022,8 +1069,14 @@ button { color: inherit; }
   background: var(--surface);
   color: var(--text);
   box-shadow: var(--shadow);
+  z-index: 120;
 }
-.detail-dialog::backdrop { background: rgba(3, 7, 12, .75); backdrop-filter: blur(4px); }
+.detail-dialog::backdrop {
+  background: rgba(3, 7, 12, .8);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 115;
+}
 .dialog-header {
   position: sticky;
   top: 0;
@@ -1434,7 +1487,7 @@ tr.terminal-focused, article.terminal-focused {
     bottom: 0;
     left: 0;
     right: 0;
-    z-index: 100;
+    z-index: 90;
     height: calc(56px + env(safe-area-inset-bottom, 0px));
     padding-bottom: env(safe-area-inset-bottom, 0px);
     background: rgba(15, 23, 42, 0.94);
@@ -1516,6 +1569,25 @@ tr.terminal-focused, article.terminal-focused {
   .prop-card { padding: 10px 12px; }
   .inspect-button { min-height: 44px; min-width: 72px; padding: 10px 14px; font-size: 13px; }
   .log-bet-btn { min-height: 44px; padding: 10px 14px; font-size: 13px; }
+
+  /* Context-Aware Mobile Bottom Research Sheet */
+  .detail-dialog {
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: 88vh !important;
+    margin-bottom: 0 !important;
+    border-bottom: none !important;
+    border-bottom-left-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    z-index: 120 !important;
+  }
+  .detail-dialog::backdrop {
+    z-index: 115 !important;
+  }
 
   .detail-hero { grid-template-columns: 1fr; }
   .detail-list { grid-template-columns: 1fr; }

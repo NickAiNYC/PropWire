@@ -1,7 +1,7 @@
 {
-  "name": "PROP·WIRE Terminal",
-  "short_name": "PROP·WIRE",
-  "description": "Quantitative Sports Betting Research Terminal",
+  "name": "PropWire",
+  "short_name": "PropWire",
+  "description": "Quantitative NFL Receiving Props & Market Terminal",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0D1117",
