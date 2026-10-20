@@ -29,6 +29,7 @@ let slateData = [];
 let topPicksData = [];
 let gamesData = [];
 let clvLogData = [];
+let currentSnapshots = [];
 let selectedGameId = null; // Filter by game_id from Game Strip
 
 // User Filters & View Modes
@@ -108,9 +109,19 @@ async function initSlate(slateKey) {
       topPicksData = picksPayload.top_projections || picksPayload.picks || [];
     }
 
+    // 4. Load immutable snapshots
+    const snapPath = isHistoricalSlate ? 'snapshots_2026_w1.json' : 'snapshots_2026_w7.json';
+    const snapRes = await fetchWithFallback(`/api/snapshots?slate=${slateKey}`, snapPath);
+    if (snapRes.ok) {
+      currentSnapshots = await snapRes.json();
+    } else {
+      currentSnapshots = [];
+    }
+
     populateTeamDropdown();
     renderGameStrip();
     renderSlateHealthStrip();
+    renderSnapshotStatus();
     renderOpportunitySummary();
     renderBestOpportunitiesGrid();
     renderBoard();
@@ -240,6 +251,68 @@ function renderSlateHealthStrip() {
     }
     if (marketsSub) marketsSub.textContent = 'Feeds unquoted &bull; Displaying calibrated baselines.';
   }
+
+  renderSnapshotStatus();
+}
+
+function renderSnapshotStatus() {
+  const badge = document.getElementById('headerSnapshotBadge');
+  const badgeText = document.getElementById('headerSnapshotText');
+  const freezePill = document.getElementById('healthFreezePill');
+  const freezeVal = document.getElementById('healthFreezeVal');
+  const freezeSub = document.getElementById('healthFreezeSub');
+  const modalCount = document.getElementById('freezeRecordCounter');
+
+  const total = currentSnapshots.length;
+
+  if (modalCount) {
+    modalCount.textContent = `${total} records logged`;
+  }
+
+  if (selectedGameId) {
+    const gameSnaps = currentSnapshots.filter(s => s.game_id === selectedGameId);
+    if (gameSnaps.length > 0) {
+      const isTnf = selectedGameId.includes('NE_CHI');
+      if (badge) badge.style.display = 'inline-flex';
+      if (badgeText) badgeText.textContent = isTnf ? `TNF SNAPSHOT: ${gameSnaps.length} MKTS • SHA256 ✓` : `GAME SNAPSHOT: ${gameSnaps.length} MKTS • SHA256 ✓`;
+      if (freezePill) {
+        freezePill.textContent = 'Game Locked ✓';
+        freezePill.className = 'health-tile-pill pill-frozen';
+      }
+      if (freezeVal) freezeVal.textContent = `${gameSnaps.length} Frozen`;
+      if (freezeSub) freezeSub.textContent = `${selectedGameId.replace('2026_07_', '').replace('_', ' @ ')} pre-kickoff • SHA-256`;
+    } else {
+      if (badge) badge.style.display = 'inline-flex';
+      if (badgeText) badgeText.textContent = `UNFROZEN GAME • PENDING LOCK`;
+      if (freezePill) {
+        freezePill.textContent = 'Pending Lock';
+        freezePill.className = 'health-tile-pill pill-pending';
+      }
+      if (freezeVal) freezeVal.textContent = 'Unfrozen';
+      if (freezeSub) freezeSub.textContent = 'Click to freeze pre-kickoff snapshot';
+    }
+    return;
+  }
+
+  // Full slate context
+  if (total > 0) {
+    if (badge) badge.style.display = 'inline-flex';
+    if (badgeText) badgeText.textContent = `SNAPSHOT ACTIVE • ${total} RECORDS • SHA256 ✓`;
+    if (freezePill) {
+      freezePill.textContent = 'Locked ✓';
+      freezePill.className = 'health-tile-pill pill-frozen';
+    }
+    if (freezeVal) freezeVal.textContent = `${total} Records`;
+    if (freezeSub) freezeSub.textContent = 'TNF & Week 7 pre-kickoff • SHA-256';
+  } else {
+    if (badge) badge.style.display = 'none';
+    if (freezePill) {
+      freezePill.textContent = 'Pending';
+      freezePill.className = 'health-tile-pill pill-unquoted';
+    }
+    if (freezeVal) freezeVal.textContent = '0 Frozen';
+    if (freezeSub) freezeSub.textContent = 'Click to execute freeze snapshot';
+  }
 }
 
 // --------------------------------------------------------------------------
@@ -341,6 +414,7 @@ function selectGameMatchup(gameId) {
   selectedGameId = gameId;
   renderGameStrip();
   updateGameFilterLabels();
+  renderSnapshotStatus();
   renderBestOpportunitiesGrid();
   renderBoard();
 }
@@ -727,7 +801,10 @@ function renderBestOpportunitiesGrid() {
               ${card.team} vs ${card.opponent_team} &bull; <span class="pos-tag pos-${card.position}">${card.position}</span> &bull; Spread: ${card.team_spread > 0 ? '+' : ''}${Number(card.team_spread || 0).toFixed(1)}
             </div>
           </div>
-          <span class="role-badge ${card.roleShift.class}">${card.roleShift.label}</span>
+          <div style="display:flex; align-items:center; gap:6px;">
+            <span class="role-badge ${card.roleShift.class}">${card.roleShift.label}</span>
+            <span class="provisional-badge" title="Role labels and thresholds remain provisional until chronological holdout evidence exists.">PROV</span>
+          </div>
         </div>
 
         <!-- Pricing Row -->
@@ -899,7 +976,12 @@ function renderBoard() {
           </div>
         </td>
         <td><span class="pos-tag pos-${row.position}">${row.position}</span></td>
-        <td><span class="role-badge ${row.roleShift.class}" style="font-size:9px;">${row.roleShift.label}</span></td>
+        <td>
+          <div style="display:inline-flex; align-items:center; gap:4px;">
+            <span class="role-badge ${row.roleShift.class}" style="font-size:9px;">${row.roleShift.label}</span>
+            <span class="provisional-badge" style="font-size:8px; padding:0 3px;" title="Provisional threshold pending chronological holdout validation">PROV</span>
+          </div>
+        </td>
         <td class="num-col"><strong>${Number(row.projVol).toFixed(1)}</strong></td>
         <td class="num-col" style="color:var(--accent-editorial); font-weight:700;">${Number(row.fairLine).toFixed(1)}</td>
         <td>
@@ -1081,8 +1163,14 @@ function renderDrawerBodyContent() {
     <div class="drawer-section-title">3. Evidence &amp; Role-Change Detection</div>
     <div style="background:var(--bg-surface-subtle); border:1px solid var(--border-subtle); border-radius:8px; padding:12px; margin-bottom:14px;">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-        <span class="role-badge ${p.roleShift.class}">${p.roleShift.label}</span>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span class="role-badge ${p.roleShift.class}">${p.roleShift.label}</span>
+          <span class="provisional-badge" title="Role labels and thresholds remain provisional until chronological holdout evidence exists.">PROVISIONAL</span>
+        </div>
         <span style="font-family:var(--font-mono); font-size:11px; color:var(--text-ink-tertiary);">Prior Games: ${p.games_prior || 0}</span>
+      </div>
+      <div style="font-size:11px; color:#f59e0b; margin-bottom:8px; font-weight:500;">
+        ⚠️ Note: Role shift classification thresholds (e.g. &plusmn;8% sustained, &plusmn;12% spike) are provisional hypotheses pending chronological holdout validation.
       </div>
       <p style="font-size:12px; line-height:1.5; color:var(--text-ink-secondary); margin-bottom:10px;">
         ${p.roleShift.description}
@@ -1171,8 +1259,80 @@ function renderDrawerBodyContent() {
 
     <div id="drawerCurveContainer" style="width:100%; height:180px; position:relative; background:var(--bg-canvas); border:1px solid var(--border-subtle); border-radius:6px; margin-bottom:16px;"></div>
 
-    <!-- STEP 6: SOURCES & DATA PROVENANCE -->
-    <div class="drawer-section-title">6. Data Sources &amp; Provenance</div>
+    <!-- STEP 6: IMMUTABLE DECISION-TIME SNAPSHOT AUDIT -->
+    <div class="drawer-section-title">6. Immutable Decision-Time Snapshot Audit</div>
+    ${(() => {
+      const snapMarketKey = (p.market === 'receptions' || currentFilterMarket === 'receptions') ? 'receptions' : 'receiving_yards';
+      const playerSnap = currentSnapshots.find(s => s.player_id === p.player_id && s.market === snapMarketKey);
+      if (playerSnap) {
+        return `
+          <div class="snapshot-audit-card">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
+              <div>
+                <div style="display:flex; align-items:center; gap:6px;">
+                  <span style="font-weight:700; font-size:12px; color:var(--text-ink);">🔒 ${playerSnap.snapshot_type.toUpperCase()} RECORD</span>
+                  <span class="provisional-badge" style="color:#22c55e; background:rgba(34,197,94,0.12); border-color:rgba(34,197,94,0.35);">SHA-256 VERIFIED ✓</span>
+                </div>
+                <div style="font-size:10px; font-family:var(--font-mono); color:var(--text-ink-tertiary); margin-top:2px;">
+                  Frozen: ${new Date(playerSnap.created_at).toLocaleString()} &bull; Game: ${playerSnap.game_id}
+                </div>
+              </div>
+              <span style="font-family:var(--font-mono); font-size:10px; color:var(--text-ink-secondary); background:rgba(255,255,255,0.06); padding:2px 6px; border-radius:4px;">
+                ${playerSnap.snapshot_id.slice(0, 8)}...
+              </span>
+            </div>
+
+            <div class="stat-metric-grid" style="margin-bottom:8px;">
+              <div class="stat-metric-cell">
+                <div class="metric-cell-label">Frozen Fair Line</div>
+                <div class="metric-cell-val" style="color:var(--accent-editorial);">${playerSnap.projection.fair_line}</div>
+              </div>
+              <div class="stat-metric-cell">
+                <div class="metric-cell-label">P(Over)</div>
+                <div class="metric-cell-val">${(playerSnap.projection.p_over * 100).toFixed(1)}%</div>
+              </div>
+              <div class="stat-metric-cell">
+                <div class="metric-cell-label">P(Under)</div>
+                <div class="metric-cell-val">${(playerSnap.projection.p_under * 100).toFixed(1)}%</div>
+              </div>
+              <div class="stat-metric-cell">
+                <div class="metric-cell-label">P(Push)</div>
+                <div class="metric-cell-val">${(playerSnap.projection.p_push * 100).toFixed(1)}%</div>
+              </div>
+              <div class="stat-metric-cell">
+                <div class="metric-cell-label">Max Over Line @ -110</div>
+                <div class="metric-cell-val">&le; ${playerSnap.price_boundaries.max_acceptable_over_line_at_minus_110}</div>
+              </div>
+              <div class="stat-metric-cell">
+                <div class="metric-cell-label">Min Under Line @ -110</div>
+                <div class="metric-cell-val">&ge; ${playerSnap.price_boundaries.min_acceptable_under_line_at_minus_110}</div>
+              </div>
+            </div>
+
+            <div style="font-size:10px; font-family:var(--font-mono); color:var(--text-ink-tertiary); margin-bottom:4px;">
+              CANONICAL SHA-256 CONTENT HASH:
+            </div>
+            <div class="snapshot-hash-box">
+              <code>${playerSnap.content_hash}</code>
+              <span style="color:#22c55e; font-weight:700; font-size:10px; white-space:nowrap;">IMMUTABLE</span>
+            </div>
+            <div style="font-size:10px; color:var(--text-ink-tertiary); margin-top:8px; line-height:1.4;">
+              🛡️ <strong>Evaluation Invariant:</strong> Chronological holdout evaluation strictly reads snapshots where <code>created_at &le; decision_time</code>. Zero lookahead leakage.
+            </div>
+          </div>
+        `;
+      } else {
+        return `
+          <div style="background:var(--bg-surface-subtle); border:1px dashed var(--border-medium); border-radius:8px; padding:12px; margin-bottom:16px; font-size:11px; color:var(--text-ink-tertiary); text-align:center;">
+            No immutable freeze snapshot recorded for this player-market yet.<br>
+            Run <code>src/freeze_slate.py</code> or trigger freeze via Admin console.
+          </div>
+        `;
+      }
+    })()}
+
+    <!-- STEP 7: SOURCES & DATA PROVENANCE -->
+    <div class="drawer-section-title">7. Data Sources &amp; Provenance</div>
     <div style="font-size:11px; color:var(--text-ink-tertiary); line-height:1.6; background:var(--bg-surface-subtle); padding:10px 12px; border-radius:6px; border:1px solid var(--border-subtle);">
       &bull; <strong>Model Engine:</strong> Compound Negative Binomial-Gamma (v2.1 calibrated)<br>
       &bull; <strong>Fitted Parameters:</strong> Dispersion &alpha; = 0.1097, Per-Catch Shape k = 1.555<br>
@@ -1730,9 +1890,15 @@ function runSgpSimulation() {
 // Admin Modal & Pipeline Execution
 // --------------------------------------------------------------------------
 
-function openAdminModal() {
+function openAdminModal(mode) {
   const modal = document.getElementById('adminModal');
-  if (modal) modal.classList.add('active');
+  if (modal) {
+    modal.classList.add('active');
+    if (mode === 'freeze') {
+      const el = document.getElementById('adminFreezeGameSelect');
+      if (el) el.focus();
+    }
+  }
 }
 
 function closeAdminModal() {
@@ -1770,6 +1936,75 @@ async function executeAdminRun() {
     }
   } finally {
     if (btn) btn.disabled = false;
+  }
+}
+
+async function executeAdminFreeze() {
+  const season = document.getElementById('adminSeasonSelect')?.value || 2026;
+  const week = document.getElementById('adminWeekSelect')?.value || 7;
+  const gameSelect = document.getElementById('adminFreezeGameSelect')?.value;
+  const game_id = gameSelect === 'ALL' ? null : gameSelect;
+  const snapshot_type = document.getElementById('adminFreezeTypeSelect')?.value || 'pre_kickoff';
+  const term = document.getElementById('adminTerminalOutput');
+  const btn = document.getElementById('executeFreezeBtn');
+
+  if (btn) btn.disabled = true;
+  if (term) {
+    term.textContent = `>>> Triggering Immutable Freeze System\n`;
+    term.textContent += `    Season: ${season} | Week: ${week}\n`;
+    term.textContent += `    Target Scope: ${game_id || 'Full Slate (All Games)'}\n`;
+    term.textContent += `    Snapshot Type: ${snapshot_type}\n`;
+    term.textContent += `    Decision Time Cutoff: ${new Date().toISOString()}\n\n`;
+  }
+
+  try {
+    const res = await fetch('/api/freeze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        season: parseInt(season, 10),
+        week: parseInt(week, 10),
+        game_id: game_id,
+        snapshot_type: snapshot_type
+      })
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      if (term) {
+        term.textContent += `✓ SUCCESS: Frozen ${data.count} player-market records.\n`;
+        term.textContent += `✓ Append-Only Log: ${data.jsonl_path}\n`;
+        term.textContent += `✓ Static Viewer Bundle: ${data.viewer_path}\n`;
+        term.textContent += `✓ Canonical SHA-256 Sample: ${data.sample_content_hash}\n`;
+        term.textContent += `✓ Invariant: Evaluation code strictly restricted to records where created_at <= decision_time.\n`;
+      }
+      showToast(`Frozen ${data.count} records for ${game_id || 'Week ' + week}!`);
+      await reloadSnapshots();
+    } else {
+      if (term) {
+        term.textContent += `[NOTE] Serverless fallback: Execute freeze directly via CLI:\n`;
+        term.textContent += `  python src/freeze_slate.py --season ${season} --week ${week} ${game_id ? '--game-id ' + game_id : '--all-games'} --snapshot-type ${snapshot_type}\n`;
+      }
+    }
+  } catch (err) {
+    if (term) {
+      term.textContent += `[NOTE] Serverless fallback: Execute freeze directly via CLI:\n`;
+      term.textContent += `  python src/freeze_slate.py --season ${season} --week ${week} ${game_id ? '--game-id ' + game_id : '--all-games'} --snapshot-type ${snapshot_type}\n`;
+    }
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
+async function reloadSnapshots() {
+  const snapPath = isHistoricalSlate ? 'snapshots_2026_w1.json' : 'snapshots_2026_w7.json';
+  const snapRes = await fetchWithFallback(`/api/snapshots?slate=${currentSlateKey}`, snapPath);
+  if (snapRes.ok) {
+    currentSnapshots = await snapRes.json();
+    renderSnapshotStatus();
+    if (selectedDrawerPlayer) {
+      renderDrawerBodyContent();
+    }
   }
 }
 

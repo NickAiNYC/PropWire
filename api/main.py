@@ -262,6 +262,79 @@ async def post_record_closing(request: Request):
 
 
 # ---------------------------------------------------------------------------
+# Immutable Slate Snapshot Endpoints (Pre-Kickoff & Material Revisions)
+# ---------------------------------------------------------------------------
+
+@app.get("/api/snapshots")
+def get_snapshots(
+    slate: str = Query("2026_w7", description="Slate key (e.g. 2026_w7)"),
+    game_id: str | None = Query(None, description="Filter by game_id (e.g. 2026_07_NE_CHI)"),
+    player_id: str | None = Query(None, description="Filter by player_id"),
+    max_created_at: str | None = Query(None, description="Evaluation filter: created_at <= decision_time")
+):
+    """
+    Returns immutable snapshots for a slate.
+    Strict evaluation rule: Only returns snapshots whose created_at <= max_created_at if provided.
+    """
+    filename = f"snapshots_{slate}.json"
+    p = os.path.join(VIEWER_DIR, filename)
+    if not os.path.exists(p):
+        p_jsonl = os.path.join(BASE_DIR, "snapshots", f"snapshots_{slate}.jsonl")
+        if os.path.exists(p_jsonl):
+            with open(p_jsonl, "r", encoding="utf-8") as f:
+                snaps = [json.loads(line) for line in f if line.strip()]
+        else:
+            return JSONResponse([])
+    else:
+        with open(p, "r", encoding="utf-8") as f:
+            snaps = json.load(f)
+
+    if game_id:
+        snaps = [s for s in snaps if s.get("game_id") == game_id]
+    if player_id:
+        snaps = [s for s in snaps if s.get("player_id") == player_id]
+    if max_created_at:
+        snaps = [s for s in snaps if s.get("created_at") <= max_created_at]
+
+    return snaps
+
+
+@app.post("/api/freeze")
+async def post_freeze(request: Request):
+    """
+    Triggers an immutable pre-kickoff or decision-time snapshot.
+    """
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    season = int(body.get("season", 2026))
+    week = int(body.get("week", 7))
+    game_id = body.get("game_id")
+    snapshot_type = body.get("snapshot_type", "pre_kickoff")
+
+    try:
+        from freeze_slate import freeze_slate
+        snaps, jsonl_path, viewer_path = freeze_slate(
+            season=season,
+            week=week,
+            game_id=game_id,
+            snapshot_type=snapshot_type
+        )
+        return {
+            "status": "ok",
+            "count": len(snaps),
+            "game_id": game_id or "full_slate",
+            "snapshot_type": snapshot_type,
+            "jsonl_path": str(jsonl_path),
+            "viewer_path": str(viewer_path),
+            "sample_content_hash": snaps[0]["content_hash"] if snaps else None
+        }
+    except Exception as exc:
+        raise HTTPException(500, f"Freeze failed: {str(exc)}")
+
+
+# ---------------------------------------------------------------------------
 # Weekly Run Action (Shells out to week1.py and streams live progress)
 # ---------------------------------------------------------------------------
 

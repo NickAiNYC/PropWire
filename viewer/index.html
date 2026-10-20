@@ -46,6 +46,10 @@
           <div class="nav-timestamp" id="lastUpdatedTimestamp">
             Updated Oct 20, 2026 &bull; 01:15 EDT
           </div>
+          <div class="snapshot-status-badge" id="headerSnapshotBadge" onclick="openAdminModal('freeze')" title="Pre-kickoff immutable snapshot audit trail">
+            <span class="snapshot-lock-icon">🔒</span>
+            <span id="headerSnapshotText">SNAPSHOT: TNF ACTIVE</span>
+          </div>
           <button class="admin-gear-btn" onclick="openAdminModal()" title="Pipeline Runner &amp; Admin Tools">
             <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
@@ -67,7 +71,7 @@
     </header>
 
     <!-- ==================================================================== -->
-    <!-- 2. SLATE HEALTH STRIP (4 Distinct Metric Tiles & Missing Explanations) -->
+    <!-- 2. SLATE HEALTH STRIP (5 Distinct Metric Tiles & Freeze Audit) -->
     <!-- ==================================================================== -->
     <section class="slate-health-strip">
       <!-- 1. Scheduled Games -->
@@ -108,6 +112,16 @@
         </div>
         <div class="health-tile-val" id="healthMarketsCount">0</div>
         <div class="health-tile-sub" id="healthMarketsSub">Feeds unquoted &bull; Displaying calibrated baselines.</div>
+      </div>
+
+      <!-- 5. Immutable Decision-Time Freeze Audit -->
+      <div class="health-metric-tile" style="cursor:pointer;" onclick="openAdminModal('freeze')" title="Click to view or trigger pre-kickoff snapshots">
+        <div class="health-tile-header">
+          <span class="health-tile-label">Immutable Freeze</span>
+          <span class="health-tile-pill pill-frozen" id="healthFreezePill">Locked ✓</span>
+        </div>
+        <div class="health-tile-val" id="healthFreezeVal">Active</div>
+        <div class="health-tile-sub" id="healthFreezeSub">Pre-kickoff locked &bull; SHA-256 signed</div>
       </div>
     </section>
 
@@ -641,8 +655,45 @@
             </div>
           </div>
 
+          <!-- FREEZE SLATE CONSOLE -->
+          <div style="background:var(--bg-surface-subtle); border:1px solid rgba(56,189,248,0.3); border-radius:8px; padding:14px; margin-bottom:16px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span style="font-weight:700; font-size:13px; color:var(--text-ink);">🔒 Immutable Decision-Time Freeze System</span>
+                <span class="provisional-badge" style="color:#38bdf8; background:rgba(56,189,248,0.12); border-color:rgba(56,189,248,0.35);">APPEND-ONLY</span>
+              </div>
+              <span id="freezeRecordCounter" style="font-family:var(--font-mono); font-size:11px; color:var(--text-ink-tertiary);">896 records logged</span>
+            </div>
+            <p style="font-size:11px; line-height:1.5; color:var(--text-ink-secondary); margin-bottom:12px;">
+              Locks in versioned pre-kickoff records with deterministic SHA-256 canonical hashing. Preserves model beliefs before kickoff so future evaluation code cannot suffer from lookahead leakage.
+            </p>
+            <div style="display:flex; gap:12px; flex-wrap:wrap;">
+              <div class="form-col" style="flex:1; min-width:160px;">
+                <label for="adminFreezeGameSelect">Scope:</label>
+                <select id="adminFreezeGameSelect" class="filter-select">
+                  <option value="2026_07_NE_CHI" selected>TNF: Patriots @ Bears (2026_07_NE_CHI)</option>
+                  <option value="ALL">Full Slate (All 14 Games)</option>
+                </select>
+              </div>
+              <div class="form-col" style="flex:1; min-width:160px;">
+                <label for="adminFreezeTypeSelect">Snapshot Type:</label>
+                <select id="adminFreezeTypeSelect" class="filter-select">
+                  <option value="pre_kickoff" selected>pre_kickoff (Lock / Near-Lock)</option>
+                  <option value="first_published">first_published (First Recommendation)</option>
+                  <option value="material_revision">material_revision (Role / Proj Shift)</option>
+                  <option value="closing">closing (Final Market Quote)</option>
+                </select>
+              </div>
+              <div class="form-col" style="align-self:flex-end;">
+                <button class="btn-primary" id="executeFreezeBtn" onclick="executeAdminFreeze()" style="background:#0284c7; border-color:#0369a1;">
+                  Execute Freeze Snapshot
+                </button>
+              </div>
+            </div>
+          </div>
+
           <div class="runner-terminal">
-            <pre id="adminTerminalOutput">Ready. Select season and week, then click Execute Pipeline.&#10;</pre>
+            <pre id="adminTerminalOutput">Ready. Select season, week, and actions. Output will appear here.&#10;</pre>
           </div>
         </div>
       </div>

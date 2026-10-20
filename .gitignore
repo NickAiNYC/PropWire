@@ -1,9 +1,11 @@
 data/*.parquet
 data/games.csv
 *.jsonl
+!snapshots/*.jsonl
 __pycache__/
 .env
 
 .venv/
 .vercel/
+
 
