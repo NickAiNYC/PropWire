@@ -7,8 +7,8 @@
 // Global State & Model Constants
 // --------------------------------------------------------------------------
 
-const MODEL_ALPHA = 0.177; // Rec dispersion (1/alpha = 5.65 shape)
-const MODEL_K = 1.05;      // Gamma shape per reception
+const MODEL_ALPHA = 0.1097; // Calibrated NB dispersion (Var = mu + alpha*mu^2)
+const MODEL_K = 1.555;      // Calibrated Gamma shape per reception (k = 1.555)
 
 // Empirical out-of-sample calibration error hurdles
 const W1_BIAS_REC = 0.057; // Week 1 empirical bias
@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   loadStoredWatchlist();
   loadStoredLines();
   
-  // Set up keyboard shortcuts (Escape to close drawer/modal)
+  // Keyboard shortcut: Escape to close drawer/modal
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       closeDrawer();
@@ -132,25 +132,26 @@ function updateSlateHeaderContext() {
   const noticeBtn = document.getElementById('slateNoticeActionBtn');
   const navTitle = document.getElementById('navTitle');
   const selector = document.getElementById('slateSelector');
+  const boardBadge = document.getElementById('boardTotalBadge');
 
   if (selector) selector.value = currentSlateKey;
 
   if (isHistoricalSlate) {
-    navTitle.textContent = '2026 Week 1 Slate & Historical Audit';
+    if (navTitle) navTitle.textContent = '2026 Week 1 Slate & Historical Audit';
     if (badge) badge.className = 'data-status-badge badge-prelim';
     if (badgeText) badgeText.textContent = 'HISTORICAL AUDIT • SETTLED';
     if (noticeBanner) noticeBanner.style.background = 'rgba(245,158,11,0.08)';
-    if (noticeText) noticeText.innerHTML = 'Viewing <strong>2026 Week 1 Historical Audit</strong> (Settled games from Sept 10–14). Week 1 calibration error (3–5%) applied.';
+    if (noticeText) noticeText.innerHTML = 'Showing <strong>2026 Week 1 Historical Audit</strong> (Settled games from Sept 10–14). Schedule: 16 Games (32 Teams). Week 1 calibration error (3–5%) applied.';
     if (noticeBtn) {
       noticeBtn.textContent = 'Switch to Upcoming Slate (Week 7)';
       noticeBtn.onclick = () => onSlateSelectChange('2026_w7');
     }
   } else {
-    navTitle.textContent = '2026 Week 7 Slate & Prop Intelligence';
+    if (navTitle) navTitle.textContent = '2026 Week 7 Slate & Prop Intelligence';
     if (badge) badge.className = 'data-status-badge status-live';
     if (badgeText) badgeText.textContent = 'UPCOMING SLATE • CALIBRATED';
     if (noticeBanner) noticeBanner.style.background = 'rgba(56,189,248,0.06)';
-    if (noticeText) noticeText.innerHTML = 'Showing <strong>2026 Week 7 Upcoming Slate</strong> (14 Matchups • Oct 22–26). Mid-season form calibration active.';
+    if (noticeText) noticeText.innerHTML = '<strong>Schedule Coverage:</strong> 14 Games (28 Teams) &bull; <strong>Projections:</strong> 28 of 28 Teams (390 Receivers) &bull; <strong>Market Totals:</strong> 10 games posted, 4 games pending Vegas totals (NE@CHI, SF@ATL, LA@LV, KC@SEA).';
     if (noticeBtn) {
       noticeBtn.textContent = 'Switch to Historical Audit (Week 1)';
       noticeBtn.onclick = () => onSlateSelectChange('2026_w1');
@@ -208,14 +209,15 @@ function renderGameStrip() {
     <div class="matchup-tile ${allActive}" onclick="selectMatchup(null)">
       <div class="tile-teams">ALL GAMES</div>
       <div class="tile-time">${gamesData.length} Matchups</div>
-      <div class="tile-lines">Full Slate</div>
+      <div class="tile-lines">Full Slate (28 Teams)</div>
     </div>
   `;
 
   gamesData.forEach(g => {
     const isAct = selectedGameId === g.game_id ? 'active' : '';
-    const spreadStr = g.spread_line !== null ? (g.spread_line > 0 ? `+${g.spread_line}` : `${g.spread_line}`) : 'PK';
-    const totalStr = g.total_line !== null ? `O/U ${g.total_line}` : 'Total TBD';
+    const isUnposted = (g.spread_line === null || g.spread_line === undefined);
+    const spreadStr = !isUnposted ? (g.spread_line > 0 ? `+${g.spread_line}` : `${g.spread_line}`) : 'PK*';
+    const totalStr = !isUnposted ? `O/U ${g.total_line}` : 'Total Pending*';
     const timeStr = formatGameTime(g.gameday, g.gametime);
 
     html += `
@@ -225,7 +227,7 @@ function renderGameStrip() {
           <span style="color:var(--text-dim); font-weight:400;">@</span>
           <span>${g.home_team}</span>
         </div>
-        <div class="tile-time">${timeStr}</div>
+        <div class="tile-time">${timeStr} ${isUnposted ? '<small style="color:var(--status-amber);">(Line Pending)</small>' : ''}</div>
         <div class="tile-lines">${g.home_team} ${spreadStr} &bull; ${totalStr}</div>
       </div>
     `;
@@ -312,6 +314,158 @@ function copyTopPicksText() {
 }
 
 // --------------------------------------------------------------------------
+// Mathematical & Pricing Evaluation Engine (3 Distinct Quant Metrics)
+// --------------------------------------------------------------------------
+
+function evaluateLineAndOdds(muRec, muYpr, market, line, offeredOdds, bias = 0.0) {
+  const isWhole = Math.abs(line - Math.round(line)) < 1e-4;
+  let pOver = 0;
+  let pUnder = 0;
+  let pPush = 0;
+
+  if (market === 'receptions') {
+    const r = 1.0 / MODEL_ALPHA;
+    const p = r / (r + muRec);
+    if (isWhole) {
+      const k = Math.round(line);
+      pPush = nbPmf(k, r, p);
+      pOver = Math.max(0.001, Math.min(0.999, pRecOver(muRec, k) - bias));
+      pUnder = Math.max(0.001, Math.min(0.999, 1.0 - pOver - pPush));
+    } else {
+      pPush = 0.0;
+      pOver = Math.max(0.001, Math.min(0.999, pRecOver(muRec, line) - bias));
+      pUnder = Math.max(0.001, Math.min(0.999, 1.0 - pOver));
+    }
+  } else {
+    // Receiving yards
+    if (isWhole) {
+      const L = Math.round(line);
+      // Discrete integer grading: box scores report integer yards; pushes occur on exact integers
+      const cdfLo = compoundYardsCdf(muRec, muYpr, L - 0.5);
+      const cdfHi = compoundYardsCdf(muRec, muYpr, L + 0.5);
+      pPush = Math.max(0.0, cdfHi - cdfLo);
+      pOver = Math.max(0.001, Math.min(0.999, (1.0 - cdfHi) - bias));
+      pUnder = Math.max(0.001, Math.min(0.999, cdfLo));
+      const s = pOver + pUnder + pPush;
+      if (s > 0) {
+        pOver /= s;
+        pUnder /= s;
+        pPush /= s;
+      }
+    } else {
+      pPush = 0.0;
+      pOver = Math.max(0.001, Math.min(0.999, pYardsOver(muRec, muYpr, line) - bias));
+      pUnder = Math.max(0.001, Math.min(0.999, 1.0 - pOver));
+    }
+  }
+
+  const decOdds = americanToDecimal(offeredOdds);
+  const breakEvenProb = 1.0 / decOdds;
+  const deviggedMktProb = 0.50; // Reference 50/50 fair market price
+
+  // Expected returns per dollar staked
+  const evOver = pOver * (decOdds - 1.0) - (1.0 - pOver - pPush);
+  const evUnder = pUnder * (decOdds - 1.0) - (1.0 - pUnder - pPush);
+
+  const bestSide = evOver >= evUnder ? 'OVER' : 'UNDER';
+  const winProb = bestSide === 'OVER' ? pOver : pUnder;
+  const lossProb = 1.0 - winProb - pPush;
+  const expectedReturn = winProb * (decOdds - 1.0) - lossProb;
+
+  // 1. Probability edge: Model probability minus devigged market probability
+  const probEdge = winProb - deviggedMktProb;
+
+  // 2. Break-even advantage: Model probability minus offered price's break-even probability
+  const breakEvenAdvantage = winProb - breakEvenProb;
+
+  return {
+    line,
+    pOver,
+    pUnder,
+    pPush,
+    bestSide,
+    winProb,
+    lossProb,
+    breakEvenProb,
+    deviggedMktProb,
+    probEdge,
+    breakEvenAdvantage,
+    expectedReturn,
+    decOdds,
+    offeredOdds
+  };
+}
+
+function getEvaluatedPlayerRow(p) {
+  const market = currentFilterMarket;
+  const biasRec = isHistoricalSlate ? W1_BIAS_REC : 0.0;
+  const biasYds = isHistoricalSlate ? W1_BIAS_YDS : 0.0;
+  const bias = market === 'receptions' ? biasRec : biasYds;
+  const minEdge = isHistoricalSlate ? W1_MIN_EDGE : STD_MIN_EDGE;
+  const maxKelly = isHistoricalSlate ? W1_KELLY_CAP : STD_KELLY_CAP;
+
+  const fairLine = market === 'receptions' ? p.fair_line_rec : p.fair_line_yards;
+  const projVol = market === 'receptions' ? p.proj_rec : p.proj_yards;
+
+  // Check stored user scenario or default
+  const stored = inlinePlayerLines[p.player_id] || {};
+  const isHypothetical = stored.line !== undefined;
+  const bookLine = stored.line !== undefined ? stored.line : fairLine;
+  const odds = stored.odds !== undefined ? stored.odds : -110;
+
+  // Evaluate exact 3 quant metrics with explicit push probability
+  const metrics = evaluateLineAndOdds(p.mu_rec, p.mu_ypr, market, bookLine, odds, bias);
+
+  // STRICT STAKE GATING:
+  // Must have: Expected Return > 0 AND Prob Edge >= minEdge AND healthy AND projectable
+  const clearsEdgeHurdle = metrics.probEdge >= minEdge;
+  const clearsEvHurdle = metrics.expectedReturn > 0;
+  const isHealthy = !p.questionable;
+  const isQualified = clearsEdgeHurdle && clearsEvHurdle && isHealthy && !p.excl_reason;
+
+  let actionableStake = 0.0;
+  if (isQualified) {
+    const b = metrics.decOdds - 1.0;
+    const rawKelly = (b * metrics.winProb - metrics.lossProb) / b;
+    actionableStake = Math.max(0.0, Math.min(maxKelly, rawKelly));
+  }
+
+  let status = 'PASS';
+  if (p.questionable) {
+    status = 'QUESTIONABLE';
+  } else if (isQualified) {
+    status = 'QUALIFIED';
+  } else if (metrics.expectedReturn > 0 && metrics.probEdge >= 0.04) {
+    status = 'LEAN';
+  } else {
+    status = 'PASS';
+  }
+
+  // Quote source provenance description
+  let quoteSource = 'Model Fair Baseline (Unquoted)';
+  if (isHypothetical) {
+    quoteSource = 'Hypothetical User Scenario (Simulated)';
+  } else if (p.unposted_lines === 1) {
+    quoteSource = 'Vegas Lines Pending (Default 44.5 Total)';
+  }
+
+  return {
+    ...p,
+    market,
+    bookLine,
+    odds,
+    fairLine,
+    projVol,
+    isHypothetical,
+    quoteSource,
+    ...metrics,
+    actionableStake,
+    isQualified,
+    status
+  };
+}
+
+// --------------------------------------------------------------------------
 // Main Board & Filtering Logic
 // --------------------------------------------------------------------------
 
@@ -341,108 +495,16 @@ function onFilterChange() {
   renderBoard();
 }
 
-function getEvaluatedPlayerRow(p) {
-  const market = currentFilterMarket;
-  const biasRec = isHistoricalSlate ? W1_BIAS_REC : 0.0;
-  const biasYds = isHistoricalSlate ? W1_BIAS_YDS : 0.0;
-  const minEdge = isHistoricalSlate ? W1_MIN_EDGE : STD_MIN_EDGE;
-  const maxKelly = isHistoricalSlate ? W1_KELLY_CAP : STD_KELLY_CAP;
-
-  const fairLine = market === 'receptions' ? p.fair_line_rec : p.fair_line_yards;
-  const projVol = market === 'receptions' ? p.proj_rec : p.proj_yards;
-
-  // Stored user line or consensus default
-  const stored = inlinePlayerLines[p.player_id] || {};
-  const bookLine = stored.line !== undefined ? stored.line : fairLine;
-  const odds = stored.odds !== undefined ? stored.odds : -110;
-
-  // Exact compound model probability
-  let rawPOver = 0;
-  let bias = 0;
-  if (market === 'receptions') {
-    rawPOver = pRecOver(p.mu_rec, bookLine);
-    bias = biasRec;
-  } else {
-    rawPOver = pYardsOver(p.mu_rec, p.mu_ypr, bookLine);
-    bias = biasYds;
-  }
-
-  const modelPOver = Math.max(0.01, Math.min(0.99, rawPOver - bias));
-  const modelPUnder = 1.0 - modelPOver;
-
-  // Devigged market price (-110 / -110 is 50.0%)
-  const decOdds = americanToDecimal(odds);
-  const rawMktOver = 1 / decOdds;
-  // Assume symmetric standard vig (-110 both sides = 52.38% raw, 50.0% devigged)
-  const devigMktOver = 0.50; 
-  const devigMktUnder = 0.50;
-
-  const edgeOver = modelPOver - devigMktOver;
-  const edgeUnder = modelPUnder - devigMktUnder;
-
-  const side = edgeOver >= edgeUnder ? 'OVER' : 'UNDER';
-  const bestEdge = side === 'OVER' ? edgeOver : edgeUnder;
-  const bestModelP = side === 'OVER' ? modelPOver : modelPUnder;
-  const bestMktP = side === 'OVER' ? devigMktOver : devigMktUnder;
-
-  // Expected value per unit staked
-  const ev = bestModelP * (decOdds - 1) - (1 - bestModelP);
-
-  // CRITICAL STAKE GATING RULE:
-  // If edge is below threshold, EV <= 0, or player is questionable: ACTIONABLE STAKE IS STRICTLY 0.00%
-  const clearsEdgeGate = bestEdge >= minEdge && ev > 0;
-  const isHealthy = !p.questionable;
-  const isQualified = clearsEdgeGate && isHealthy && !p.excl_reason;
-
-  let actionableStake = 0.0;
-  if (isQualified) {
-    const b = decOdds - 1;
-    const rawKelly = (b * bestModelP - (1 - bestModelP)) / b;
-    actionableStake = Math.max(0.0, Math.min(maxKelly, rawKelly));
-  }
-
-  // Status classification
-  let status = 'PASS';
-  if (p.questionable) {
-    status = 'QUESTIONABLE';
-  } else if (isQualified) {
-    status = 'QUALIFIED';
-  } else if (bestEdge >= 0.05 && ev > 0) {
-    status = 'LEAN';
-  } else {
-    status = 'PASS';
-  }
-
-  return {
-    ...p,
-    market,
-    bookLine,
-    odds,
-    fairLine,
-    projVol,
-    side,
-    modelPOver,
-    modelPUnder,
-    bestModelP,
-    bestMktP,
-    bestEdge,
-    ev,
-    actionableStake,
-    isQualified,
-    status
-  };
-}
-
 function renderBoard() {
   const tbody = document.getElementById('slateTableTbody');
   const countLabel = document.getElementById('visibleRowCount');
   const totalLabel = document.getElementById('totalRowCount');
   const qualCountPill = document.getElementById('qualCountPill');
   const qualContainer = document.getElementById('qualifiedOpportunitiesContainer');
+  const boardBadge = document.getElementById('boardTotalBadge');
 
   if (!tbody || slateData.length === 0) return;
 
-  // Evaluate all players with consistent calibrated model
   const evaluatedAll = slateData.map(getEvaluatedPlayerRow);
 
   // Filter pipeline
@@ -471,19 +533,20 @@ function renderBoard() {
     return 0;
   });
 
-  // Update counts
   const qualifiedList = evaluatedAll.filter(r => r.isQualified);
   if (qualCountPill) qualCountPill.textContent = qualifiedList.length;
   if (countLabel) countLabel.textContent = filtered.length;
   if (totalLabel) totalLabel.textContent = slateData.length;
+  if (boardBadge) boardBadge.textContent = slateData.length;
 
   // Render Qualified Opportunities Card
   if (qualContainer) {
     if (qualifiedList.length === 0) {
       qualContainer.innerHTML = `
         <div class="qual-empty-state">
-          <strong>Market is Currently Efficient:</strong> No posted lines offer &ge; 10% expected edge against the calibrated model. 
-          Use the Slate Table below to inspect individual player projections or adjust book lines to find shaded prices.
+          <strong>No Verified Sportsbook Quotes Available:</strong> Live Vegas / sportsbook prop feeds have not been ingested for this slate. 
+          The board is displaying unquoted model fair-line baselines. No betting edge can be claimed until real bookmaker quotes are verified.
+          Use the in-row scenario chips below to simulate hypothetical bookmaker lines.
         </div>
       `;
     } else {
@@ -492,13 +555,13 @@ function renderBoard() {
           ${qualifiedList.map(q => `
             <div class="top-pick-card-item" onclick="openDrawerForPlayer('${q.player_display_name}')" style="border-color:var(--status-green-border); background:rgba(16,185,129,0.04);">
               <div class="pick-card-top">
-                <span class="status-pill status-qualified">${q.side} ${q.bookLine}</span>
+                <span class="status-pill status-qualified">${q.bestSide} ${q.bookLine}</span>
                 <span class="pos-tag pos-${q.position}">${q.position}</span>
               </div>
               <div class="pick-player-name">${q.player_display_name}</div>
               <div class="pick-matchup-meta">${q.team} vs ${q.opponent_team} &bull; ${q.odds > 0 ? '+' : ''}${q.odds}</div>
               <div class="pick-stat-row">
-                <span>Edge: <strong style="color:var(--status-green);">+${(q.bestEdge * 100).toFixed(1)}%</strong></span>
+                <span>Exp Return: <strong style="color:var(--status-green);">+${(q.expectedReturn * 100).toFixed(1)}%</strong></span>
                 <span>Stake: <strong>${(q.actionableStake * 100).toFixed(2)}%</strong></span>
               </div>
             </div>
@@ -512,7 +575,7 @@ function renderBoard() {
   if (filtered.length === 0) {
     tbody.innerHTML = `
       <tr>
-        <td colspan="12" style="text-align:center; padding:36px; color:var(--text-dim);">
+        <td colspan="14" style="text-align:center; padding:36px; color:var(--text-dim);">
           No receivers found matching the active filters.
         </td>
       </tr>
@@ -524,7 +587,6 @@ function renderBoard() {
     const isStarred = userWatchlist.some(w => w.player_id === row.player_id);
     const starClass = isStarred ? 'star-btn starred' : 'star-btn';
 
-    // Status pill
     let statusPill = `<span class="status-pill status-pass">PASS</span>`;
     if (row.status === 'QUALIFIED') {
       statusPill = `<span class="status-pill status-qualified">QUALIFIED</span>`;
@@ -534,16 +596,31 @@ function renderBoard() {
       statusPill = `<span class="status-pill status-injury">QUESTIONABLE</span>`;
     }
 
-    // Actionable stake formatted strictly: 0.0% if PASS
+    // Actionable stake: Strictly 0.0% if PASS / Negative EV
     const stakeFormatted = row.actionableStake > 0
       ? `<strong style="color:var(--status-green);">${(row.actionableStake * 100).toFixed(2)}%</strong>`
       : `<span style="color:var(--text-dim);">0.0%</span>`;
 
-    const edgeFormatted = row.bestEdge >= 0.05
-      ? `<strong style="color:var(--status-green);">+${(row.bestEdge * 100).toFixed(1)}%</strong>`
-      : `<span style="color:var(--text-dim);">${row.bestEdge > 0 ? '+' : ''}${(row.bestEdge * 100).toFixed(1)}%</span>`;
+    // 1. Prob Edge vs 50%
+    const probEdgeFormatted = row.probEdge > 0
+      ? `<span style="color:var(--status-green);">+${(row.probEdge * 100).toFixed(1)}%</span>`
+      : `<span style="color:var(--text-dim);">${(row.probEdge * 100).toFixed(1)}%</span>`;
 
-    const sideClass = row.side === 'OVER' ? 'val-blue' : 'val-amber';
+    // 2. Break-Even Advantage vs Odds
+    const beAdvFormatted = row.breakEvenAdvantage > 0
+      ? `<span style="color:var(--status-green); font-weight:700;">+${(row.breakEvenAdvantage * 100).toFixed(1)}%</span>`
+      : `<span style="color:var(--status-red);">${(row.breakEvenAdvantage * 100).toFixed(1)}%</span>`;
+
+    // 3. Expected Return (EV %)
+    const evFormatted = row.expectedReturn > 0
+      ? `<strong style="color:var(--status-green);">+${(row.expectedReturn * 100).toFixed(1)}%</strong>`
+      : `<span style="color:var(--text-dim);">${(row.expectedReturn * 100).toFixed(1)}%</span>`;
+
+    const sideClass = row.bestSide === 'OVER' ? 'val-blue' : 'val-amber';
+
+    const pushBadge = row.pPush > 0.005 
+      ? `<small style="color:var(--status-amber); font-size:10px;">(P(Push) ${(row.pPush * 100).toFixed(1)}%)</small>` 
+      : '';
 
     return `
       <tr>
@@ -557,7 +634,7 @@ function renderBoard() {
             ${row.player_display_name}
           </div>
           <div style="font-size:11px; color:var(--text-dim);">
-            ${row.team} vs ${row.opponent_team}
+            ${row.team} vs ${row.opponent_team} ${row.unposted_lines === 1 ? '<span style="color:var(--status-amber);">(Line Pending)</span>' : ''}
           </div>
         </td>
         <td><span class="pos-tag pos-${row.position}">${row.position}</span></td>
@@ -566,7 +643,7 @@ function renderBoard() {
         <td class="num-col" style="color:var(--accent-blue); font-weight:700;">${Number(row.fairLine).toFixed(1)}</td>
         <td>
           <div class="inline-line-ctrl">
-            <span class="${sideClass}" style="font-weight:700; font-family:var(--font-mono); font-size:11px;">${row.side}</span>
+            <span class="${sideClass}" style="font-weight:700; font-family:var(--font-mono); font-size:11px;">${row.bestSide}</span>
             <input type="number" step="0.5" class="comp-line-input" value="${row.bookLine}"
                    oninput="onInlineLineChange('${row.player_id}', this.value)">
             <span style="font-family:var(--font-mono); font-size:10px; color:var(--text-dim);">${row.odds > 0 ? '+' : ''}${row.odds}</span>
@@ -578,9 +655,12 @@ function renderBoard() {
             <button class="quick-chip" onclick="applyQuickOffset('${row.player_id}', 2.5)">+2.5</button>
             <button class="quick-chip" onclick="applyQuickOffset('${row.player_id}', 5)">+5</button>
           </div>
+          <div style="font-size:9px; color:var(--text-dim); margin-top:3px; font-family:var(--font-mono);">${row.quoteSource}</div>
         </td>
-        <td class="num-col">${(row.bestModelP * 100).toFixed(1)}%</td>
-        <td class="num-col">${edgeFormatted}</td>
+        <td class="num-col">${(row.winProb * 100).toFixed(1)}% ${pushBadge}</td>
+        <td class="num-col">${probEdgeFormatted}</td>
+        <td class="num-col">${beAdvFormatted}</td>
+        <td class="num-col">${evFormatted}</td>
         <td class="num-col">${stakeFormatted}</td>
         <td>${statusPill}</td>
         <td style="text-align:right;">
@@ -648,16 +728,15 @@ function openDrawerForPlayer(playerName) {
     posTag.className = `pos-tag pos-${p.position}`;
   }
   if (matchupText) {
-    matchupText.innerHTML = `${p.team} vs ${p.opponent_team} &bull; Spread: ${p.team_spread > 0 ? '+' : ''}${Number(p.team_spread || 0).toFixed(1)} &bull; Implied: ${Number(p.implied_team_total || 22).toFixed(1)} pts`;
+    matchupText.innerHTML = `${p.team} vs ${p.opponent_team} &bull; Spread: ${p.team_spread > 0 ? '+' : ''}${Number(p.team_spread || 0).toFixed(1)} &bull; Implied: ${Number(p.implied_team_total || 22).toFixed(1)} pts ${p.unposted_lines === 1 ? '<span style="color:var(--status-amber);">(Vegas Total Pending)</span>' : ''}`;
   }
 
-  // Header action summary
   const evRow = selectedDrawerPlayer;
   if (actionSummary) {
     if (evRow.isQualified) {
-      actionSummary.innerHTML = `<span style="color:var(--status-green);">BET ${evRow.side} ${evRow.bookLine} (${evRow.odds > 0 ? '+' : ''}${evRow.odds}) &bull; +${(evRow.bestEdge * 100).toFixed(1)}% Edge &bull; Actionable Stake: ${(evRow.actionableStake * 100).toFixed(2)}%</span>`;
+      actionSummary.innerHTML = `<span style="color:var(--status-green);">BET ${evRow.bestSide} ${evRow.bookLine} (${evRow.odds > 0 ? '+' : ''}${evRow.odds}) &bull; EV: +${(evRow.expectedReturn * 100).toFixed(1)}% &bull; Actionable Stake: ${(evRow.actionableStake * 100).toFixed(2)}%</span>`;
     } else {
-      actionSummary.innerHTML = `<span style="color:var(--text-dim);">PASS &bull; Model Edge (+${(evRow.bestEdge * 100).toFixed(1)}%) does not clear hurdle &bull; Actionable Stake: 0.00%</span>`;
+      actionSummary.innerHTML = `<span style="color:var(--text-dim);">PASS &bull; ${evRow.expectedReturn <= 0 ? `Negative EV (${(evRow.expectedReturn * 100).toFixed(1)}%)` : `Edge +${(evRow.probEdge * 100).toFixed(1)}% below hurdle`} &bull; Actionable Stake: 0.00%</span>`;
     }
   }
 
@@ -671,9 +750,8 @@ function openDrawerForPlayer(playerName) {
     watchBtn.textContent = isWatched ? '★ Remove from Watchlist' : '★ Add to Watchlist';
   }
 
-  // Render comprehensive drawer body answering all 5 questions
   body.innerHTML = `
-    <!-- 1. The Verdict & Price Gate -->
+    <!-- Opportunity Status Banner -->
     <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:8px; padding:14px; margin-bottom:16px;">
       <div style="display:flex; justify-content:space-between; align-items:center;">
         <div>
@@ -681,18 +759,30 @@ function openDrawerForPlayer(playerName) {
           <div style="font-size:20px; font-weight:800; color:var(--accent-blue);">${Number(evRow.fairLine).toFixed(1)} ${evRow.market === 'receptions' ? 'Rec' : 'Yards'}</div>
         </div>
         <div style="text-align:right;">
-          <span style="font-family:var(--font-mono); font-size:11px; color:var(--text-dim);">CURRENT BOOK LINE</span>
+          <span style="font-family:var(--font-mono); font-size:11px; color:var(--text-dim);">ACTIVE SCENARIO LINE</span>
           <div style="font-size:20px; font-weight:800; color:#fff;">${evRow.bookLine} (${evRow.odds > 0 ? '+' : ''}${evRow.odds})</div>
+          <small style="font-size:10px; color:var(--text-dim);">${evRow.quoteSource}</small>
         </div>
       </div>
-      <div style="margin-top:10px; font-size:12px; color:var(--text-muted); line-height:1.5;">
-        ${evRow.isQualified 
-          ? `The model projects <strong>${(evRow.bestModelP * 100).toFixed(1)}%</strong> probability on the <strong>${evRow.side}</strong>. Compared to the devigged market price (50.0%), this creates a <strong>+${(evRow.bestEdge * 100).toFixed(1)}%</strong> edge clearing our hurdle.`
-          : `At ${evRow.bookLine}, the model probability is <strong>${(evRow.bestModelP * 100).toFixed(1)}%</strong> on the ${evRow.side}. The +${(evRow.bestEdge * 100).toFixed(1)}% edge does not exceed model error margin. Recommended stake is strictly <strong>0.00%</strong>.`}
+
+      <!-- 3 Quant Metrics Breakdown -->
+      <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; margin-top:12px; padding-top:12px; border-top:1px solid var(--border-color); font-family:var(--font-mono); font-size:11px;">
+        <div style="background:var(--bg-main); padding:8px; border-radius:4px;">
+          <div style="color:var(--text-dim); font-size:9px;">1. PROB EDGE (vs 50%)</div>
+          <div style="font-size:14px; font-weight:700; color:${evRow.probEdge > 0 ? 'var(--status-green)' : 'var(--text-dim)'};">${evRow.probEdge > 0 ? '+' : ''}${(evRow.probEdge * 100).toFixed(1)}%</div>
+        </div>
+        <div style="background:var(--bg-main); padding:8px; border-radius:4px;">
+          <div style="color:var(--text-dim); font-size:9px;">2. BE ADV (vs Odds)</div>
+          <div style="font-size:14px; font-weight:700; color:${evRow.breakEvenAdvantage > 0 ? 'var(--status-green)' : 'var(--status-red)'};">${evRow.breakEvenAdvantage > 0 ? '+' : ''}${(evRow.breakEvenAdvantage * 100).toFixed(1)}%</div>
+        </div>
+        <div style="background:var(--bg-main); padding:8px; border-radius:4px;">
+          <div style="color:var(--text-dim); font-size:9px;">3. EXP RETURN (EV)</div>
+          <div style="font-size:14px; font-weight:700; color:${evRow.expectedReturn > 0 ? 'var(--status-green)' : 'var(--status-red)'};">${evRow.expectedReturn > 0 ? '+' : ''}${(evRow.expectedReturn * 100).toFixed(1)}%</div>
+        </div>
       </div>
     </div>
 
-    <!-- 2. Why this projection? (The Core Rationale) -->
+    <!-- 1. Why this projection? -->
     <div class="drawer-section-title">1. Why this projection? (Offensive Usage & Role)</div>
     <div class="stat-metric-grid">
       <div class="stat-metric-cell">
@@ -721,28 +811,34 @@ function openDrawerForPlayer(playerName) {
       </div>
     </div>
 
-    <!-- 3. What could invalidate it? (Risk Factors) -->
+    <!-- 2. What could invalidate it? -->
     <div class="drawer-section-title">2. What could invalidate it? (Risk Factors)</div>
     <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:8px; padding:12px; margin-bottom:16px; font-size:12px; line-height:1.6; color:var(--text-muted);">
       ${p.questionable ? `
         <div style="color:var(--status-amber); font-weight:700; margin-bottom:6px;">
           ⚠️ QUESTIONABLE STATUS: Listed on official injury report. The statistical model cannot price in-game reinjury risk or sudden snap count truncation.
         </div>
-      ` : `<div style="color:var(--status-green); margin-bottom:6px;">✓ Clean health status. No injury report designation.</div>`}
+      ` : `<div style="color:var(--status-green); margin-bottom:6px;">✓ Clean health status. No official injury report designation.</div>`}
       &bull; <strong>Defensive Matchup:</strong> Opponent allows <strong>${((Number(p.def_yards_idx || 1.0) - 1.0) * 100).toFixed(1)}%</strong> ${p.def_yards_idx >= 1.0 ? 'more' : 'fewer'} yards to ${p.position}s than NFL average.<br>
       &bull; <strong>Game Script &amp; Spread:</strong> ${p.team} is ${p.team_spread > 0 ? '+' : ''}${Number(p.team_spread || 0).toFixed(1)}. Positive game scripts reduce pass volume; trailing scripts inflate targets.<br>
       &bull; <strong>Venue &amp; Environment:</strong> ${p.is_dome ? 'Indoor Dome (ideal passing conditions)' : `Outdoor stadium &bull; Wind: ${p.wind || 0} mph`}.
     </div>
 
-    <!-- 4. What price is required? (Sensitivity Matrix) -->
-    <div class="drawer-section-title">3. What price is required? (Line Sensitivity Matrix)</div>
+    <!-- 3. What price is required? (Line Sensitivity Matrix with Explicit Push) -->
+    <div class="drawer-section-title">3. What price is required? (Sensitivity &amp; Push Analysis)</div>
+    <div style="font-size:11px; color:var(--text-dim); margin-bottom:6px;">
+      Explicitly displays P(Over), P(Under), and P(Push) across surrounding lines:
+    </div>
     <table class="sensitivity-table">
       <thead>
         <tr>
           <th>Line</th>
-          <th>Model Prob</th>
+          <th>P(Over)</th>
+          <th>P(Under)</th>
+          <th>P(Push)</th>
           <th>Break-Even Odds</th>
-          <th>Edge vs -110</th>
+          <th>BE Adv</th>
+          <th>Exp Return</th>
           <th>Verdict</th>
         </tr>
       </thead>
@@ -751,7 +847,7 @@ function openDrawerForPlayer(playerName) {
       </tbody>
     </table>
 
-    <!-- 5. How uncertain is it? (Outcome Ranges) -->
+    <!-- 4. How uncertain is it? (Outcome Ranges) -->
     <div class="drawer-section-title">4. How uncertain is it? (Predictive Outcome Ranges)</div>
     <div class="outcome-range-bar-wrap">
       <div class="range-steps-row">
@@ -769,7 +865,7 @@ function openDrawerForPlayer(playerName) {
       </div>
     </div>
 
-    <!-- 6. Predictive Probability Density Curve (SVG) -->
+    <!-- 5. Calibrated Density Curve -->
     <div class="drawer-section-title">5. Calibrated Probability Density Curve</div>
     <div id="drawerCurveContainer" style="width:100%; height:180px; position:relative; background:var(--bg-main); border:1px solid var(--border-color); border-radius:6px;">
       <!-- SVG chart rendered below -->
@@ -790,22 +886,28 @@ function renderSensitivityRows(p, market) {
   const offsets = [-2 * step, -1 * step, 0, 1 * step, 2 * step];
   return offsets.map(off => {
     const testLine = Math.max(0.5, baseFair + off);
-    const rawP = market === 'receptions' ? pRecOver(p.mu_rec, testLine) : pYardsOver(p.mu_rec, p.mu_ypr, testLine);
-    const modelP = Math.max(0.01, Math.min(0.99, rawP - bias));
-    const breakEvenOdds = probToAmerican(modelP);
-    const edgeVs110 = modelP - 0.50; // against standard -110 devigged
+    const m = evaluateLineAndOdds(p.mu_rec, p.mu_ypr, market, testLine, -110, bias);
 
-    let verdict = 'PASS';
-    if (edgeVs110 >= 0.10) verdict = '<span style="color:var(--status-green); font-weight:700;">BET OVER</span>';
-    else if (edgeVs110 <= -0.10) verdict = '<span style="color:var(--status-green); font-weight:700;">BET UNDER</span>';
-    else if (Math.abs(edgeVs110) >= 0.05) verdict = '<span style="color:var(--status-amber);">LEAN</span>';
+    let verdict = '<span style="color:var(--text-dim);">PASS</span>';
+    if (m.expectedReturn > 0 && m.probEdge >= 0.10) {
+      verdict = `<span style="color:var(--status-green); font-weight:700;">BET ${m.bestSide}</span>`;
+    } else if (m.expectedReturn > 0 && m.probEdge >= 0.04) {
+      verdict = `<span style="color:var(--status-amber);">LEAN ${m.bestSide}</span>`;
+    } else if (m.expectedReturn <= 0) {
+      verdict = `<span style="color:var(--status-red); font-size:10px;">-EV (${(m.expectedReturn * 100).toFixed(1)}%)</span>`;
+    }
+
+    const pushStr = m.pPush > 0.001 ? `${(m.pPush * 100).toFixed(1)}%` : '0.0%';
 
     return `
       <tr style="${off === 0 ? 'background:rgba(56,189,248,0.06);' : ''}">
         <td><strong>${testLine.toFixed(1)}</strong> ${off === 0 ? '<small style="color:var(--accent-blue);">(Fair)</small>' : ''}</td>
-        <td>${(modelP * 100).toFixed(1)}%</td>
-        <td>${breakEvenOdds > 0 ? '+' : ''}${breakEvenOdds}</td>
-        <td>${edgeVs110 > 0 ? '+' : ''}${(edgeVs110 * 100).toFixed(1)}%</td>
+        <td>${(m.pOver * 100).toFixed(1)}%</td>
+        <td>${(m.pUnder * 100).toFixed(1)}%</td>
+        <td style="color:${m.pPush > 0.005 ? 'var(--status-amber)' : 'var(--text-dim)'};">${pushStr}</td>
+        <td>${probToAmerican(m.winProb) > 0 ? '+' : ''}${probToAmerican(m.winProb)}</td>
+        <td style="color:${m.breakEvenAdvantage > 0 ? 'var(--status-green)' : 'var(--status-red)'};">${m.breakEvenAdvantage > 0 ? '+' : ''}${(m.breakEvenAdvantage * 100).toFixed(1)}%</td>
+        <td style="color:${m.expectedReturn > 0 ? 'var(--status-green)' : 'var(--text-dim)'};">${m.expectedReturn > 0 ? '+' : ''}${(m.expectedReturn * 100).toFixed(1)}%</td>
         <td>${verdict}</td>
       </tr>
     `;
@@ -879,7 +981,6 @@ function renderDrawerDensityCurve(p, market, bookLine) {
           <stop offset="100%" stop-color="#38bdf8" stop-opacity="0.05"/>
         </linearGradient>
       </defs>
-      <!-- Base Axis -->
       <line x1="${pad.left}" y1="${h - pad.bottom}" x2="${w - pad.right}" y2="${h - pad.bottom}" stroke="#222d42" stroke-width="1"/>
       ${tailPathD ? `<path d="${tailPathD}" fill="url(#curveTailGrad)"/>` : ''}
       <path d="${pathD}" fill="none" stroke="#38bdf8" stroke-width="2.2" stroke-linecap="round"/>
@@ -916,10 +1017,10 @@ function toggleDrawerWatchlist() {
 function copyDrawerSlip() {
   if (!selectedDrawerPlayer) return;
   const p = selectedDrawerPlayer;
-  const text = `PROPS SLIP: ${p.player_display_name} ${p.side} ${p.bookLine} (${p.odds > 0 ? '+' : ''}${p.odds})\n` +
+  const text = `PROPS SLIP: ${p.player_display_name} ${p.bestSide} ${p.bookLine} (${p.odds > 0 ? '+' : ''}${p.odds})\n` +
                `Market: ${p.market === 'receptions' ? 'Receptions' : 'Receiving Yards'} vs ${p.opponent_team}\n` +
-               `Model Prob: ${(p.bestModelP * 100).toFixed(1)}% | Fair Line: ${p.fairLine}\n` +
-               `Edge: +${(p.bestEdge * 100).toFixed(1)}% | Stake: ${(p.actionableStake * 100).toFixed(2)}%`;
+               `Win Prob: ${(p.winProb * 100).toFixed(1)}% | Fair Line: ${p.fairLine}\n` +
+               `Prob Edge: +${(p.probEdge * 100).toFixed(1)}% | Exp Return (EV): ${(p.expectedReturn * 100).toFixed(1)}% | Stake: ${(p.actionableStake * 100).toFixed(2)}%`;
   
   navigator.clipboard.writeText(text).then(() => {
     showToast(`✓ Copied bet slip for ${p.player_display_name}!`);
@@ -932,13 +1033,13 @@ async function logDrawerPick() {
   await logPickToLedger({
     player: p.player_display_name,
     market: p.market === 'receptions' ? 'receptions' : 'receiving_yards',
-    side: p.side.toLowerCase(),
+    side: p.bestSide.toLowerCase(),
     line: p.bookLine,
     odds: p.odds,
-    model_prob: p.bestModelP,
-    market_prob: p.bestMktP,
-    edge: p.bestEdge,
-    ev_per_unit: p.ev,
+    model_prob: p.winProb,
+    market_prob: p.deviggedMktProb,
+    edge: p.probEdge,
+    ev_per_unit: p.expectedReturn,
     kelly_stake: p.actionableStake,
     projection: p.projVol,
     is_demo: false,
@@ -1009,9 +1110,6 @@ function renderWatchlistPage() {
   if (userWatchlist.length === 0) {
     container.innerHTML = `
       <div style="background:var(--bg-card); border:1px dashed var(--border-color); border-radius:8px; padding:40px; text-align:center; color:var(--text-dim);">
-        <svg style="width:36px; height:36px; stroke:var(--text-dim); margin-bottom:10px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-          <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
-        </svg>
         <p style="font-size:14px; font-weight:600; color:#fff;">Your Watchlist is Empty</p>
         <p style="font-size:12px; margin-top:4px;">Star any player on the Main Board to track price moves and receive line alert notifications.</p>
       </div>
@@ -1141,7 +1239,6 @@ function renderTrackerPage() {
   if (clvFilterType === 'verified') activeRows = clvLogData.filter(r => !r.is_demo);
   if (clvFilterType === 'demo') activeRows = clvLogData.filter(r => r.is_demo);
 
-  // Compute audited CLV metrics
   const settled = activeRows.filter(r => r.clv !== undefined);
   if (totalEl) totalEl.textContent = activeRows.length;
 
@@ -1165,8 +1262,8 @@ function renderTrackerPage() {
     if (beatEl) beatEl.textContent = `${(beatRate * 100).toFixed(1)}%`;
     
     if (verdictEl) {
-      if (settled.length < 15) {
-        verdictEl.textContent = 'Preliminary sample (N < 15) — do not scale';
+      if (settled.length < 30) {
+        verdictEl.textContent = `Preliminary sample (N=${settled.length}) — requires N ≥ 100+ to separate signal from noise`;
         verdictEl.style.color = 'var(--status-amber)';
       } else if (mean - 1.96 * se > 0) {
         verdictEl.textContent = 'Positive CLV — edge is statistically plausible';
@@ -1252,7 +1349,6 @@ function updateClosingFromOdds() {
   const odds = parseFloat(oddsInput.value);
   if (isNaN(odds)) return;
   const dec = americanToDecimal(odds);
-  // Symmetric devig
   const prob = (1 / dec);
   probInput.value = prob.toFixed(3);
 }
@@ -1294,7 +1390,6 @@ async function submitClosingPrice() {
     if (target) {
       target.closing_prob = closingProb;
       const entryMkt = target.market_prob || 0.5;
-      // TRUE CLV: (Closing Market - Entry Market) for Over
       target.clv = target.side === 'over' ? (closingProb - entryMkt) : (entryMkt - closingProb);
       localStorage.setItem('clv_local_picks', JSON.stringify(clvLogData));
       showToast(`✓ Recorded closing price locally for ${pickKey.player}!`);
@@ -1309,7 +1404,6 @@ async function submitClosingPrice() {
 async function logPickToLedger(payload) {
   payload.logged_at = new Date().toISOString();
 
-  // Try API
   try {
     const res = await fetch('/api/clv/log', {
       method: 'POST',
@@ -1323,7 +1417,6 @@ async function logPickToLedger(payload) {
     }
   } catch (_) {}
 
-  // Local-first storage fallback
   try {
     const local = JSON.parse(localStorage.getItem('clv_local_picks') || '[]');
     local.push(payload);
@@ -1336,7 +1429,7 @@ async function logPickToLedger(payload) {
 }
 
 // --------------------------------------------------------------------------
-// Research & SGP Bivariate Simulator
+// Research & SGP Bivariate Simulator (Modeled Dependence)
 // --------------------------------------------------------------------------
 
 function populateSgpSelect() {
@@ -1352,10 +1445,15 @@ function populateSgpSelect() {
 function runSgpSimulation() {
   const sel = document.getElementById('sgpPlayerSelect');
   const container = document.getElementById('sgpSimulationResultsContainer');
+  const oddsInput = document.getElementById('sgpOfferedOdds');
   if (!sel || !container || slateData.length === 0) return;
 
   const player = slateData.find(p => p.player_id === sel.value) || slateData[0];
   if (!player) return;
+
+  const offeredOdds = oddsInput ? (parseFloat(oddsInput.value) || 180) : 180;
+  const decOffered = americanToDecimal(offeredOdds);
+  const breakEvenOffered = 1.0 / decOffered;
 
   const muRec = player.mu_rec;
   const muYpr = player.mu_ypr;
@@ -1392,12 +1490,16 @@ function runSgpSimulation() {
   const correlationLift = pIndep > 0 ? (pJoint / pIndep - 1.0) : 0;
   const fairOdds = probToAmerican(pJoint);
 
+  // True edge against offered sportsbook odds
+  const trueEdge = pJoint - breakEvenOffered;
+  const trueEv = pJoint * (decOffered - 1.0) - (1.0 - pJoint);
+
   container.innerHTML = `
     <div style="background:var(--bg-main); border:1px solid var(--border-color); border-radius:6px; padding:16px;">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
         <h5 style="color:#fff; font-size:14px;">${player.player_display_name} SGP: Over ${fairRec} Rec + Over ${fairYds} Yds</h5>
         <span class="status-pill status-qualified" style="background:rgba(192,132,252,0.15); color:var(--accent-purple); border-color:rgba(192,132,252,0.35);">
-          +${(correlationLift * 100).toFixed(1)}% CORRELATION LIFT
+          +${(correlationLift * 100).toFixed(1)}% MODELED DEPENDENCE LIFT
         </span>
       </div>
       <table class="sensitivity-table" style="font-size:12px;">
@@ -1406,8 +1508,12 @@ function runSgpSimulation() {
             <th>Leg 1 P(Over)</th>
             <th>Leg 2 P(Over)</th>
             <th>Naive Independent Prob</th>
-            <th style="color:var(--accent-purple);">True Joint Model Prob</th>
-            <th>Fair SGP Odds</th>
+            <th style="color:var(--accent-purple);">Modeled Joint Prob</th>
+            <th>Fair No-Vig Odds</th>
+            <th>Offered Odds</th>
+            <th>Break-Even Prob</th>
+            <th style="color:var(--status-green);">True Edge vs Offered</th>
+            <th>Exp Return (EV)</th>
           </tr>
         </thead>
         <tbody>
@@ -1417,11 +1523,16 @@ function runSgpSimulation() {
             <td style="color:var(--text-dim);">${(pIndep * 100).toFixed(1)}%</td>
             <td style="color:var(--accent-purple); font-weight:700;">${(pJoint * 100).toFixed(1)}%</td>
             <td style="color:var(--accent-blue); font-weight:700;">${fairOdds > 0 ? '+' : ''}${fairOdds}</td>
+            <td style="font-weight:700;">${offeredOdds > 0 ? '+' : ''}${offeredOdds}</td>
+            <td style="color:var(--text-dim);">${(breakEvenOffered * 100).toFixed(1)}%</td>
+            <td style="color:${trueEdge > 0 ? 'var(--status-green)' : 'var(--status-red)'}; font-weight:700;">${trueEdge > 0 ? '+' : ''}${(trueEdge * 100).toFixed(1)}%</td>
+            <td style="color:${trueEv > 0 ? 'var(--status-green)' : 'var(--text-dim)'}; font-weight:700;">${trueEv > 0 ? '+' : ''}${(trueEv * 100).toFixed(1)}%</td>
           </tr>
         </tbody>
       </table>
       <div style="margin-top:12px; font-size:11px; color:var(--text-muted); line-height:1.5;">
-        <strong>SGP Modeling Takeaway:</strong> Because receiving yards require receptions (&phi; &approx; 0.65), clearing receptions substantially lifts the conditional probability of clearing yards. Sportsbooks multiplying unadjusted product odds (~${(pIndep * 100).toFixed(1)}%) underprice this parlay by <strong>+${(correlationLift * 100).toFixed(1)}%</strong>.
+        <strong>Quant Takeaway:</strong> Positive volume correlation lifts joint probability from ${(pIndep * 100).toFixed(1)}% (independent product) to ${(pJoint * 100).toFixed(1)}% (bivariate model). 
+        At your offered sportsbook odds of ${offeredOdds > 0 ? '+' : ''}${offeredOdds} (break-even requirement ${(breakEvenOffered * 100).toFixed(1)}%), the expected edge is <strong>${trueEdge > 0 ? '+' : ''}${(trueEdge * 100).toFixed(1)}%</strong> and expected return is <strong>${trueEv > 0 ? '+' : ''}${(trueEv * 100).toFixed(1)}%</strong>.
       </div>
     </div>
   `;
@@ -1497,7 +1608,7 @@ async function executeAdminRun() {
 }
 
 // --------------------------------------------------------------------------
-// Mathematical & Distributional Helpers
+// Mathematical & Distributional Helpers (n_max = 36)
 // --------------------------------------------------------------------------
 
 function americanToDecimal(odds) {
@@ -1506,7 +1617,7 @@ function americanToDecimal(odds) {
 }
 
 function probToAmerican(prob) {
-  const p = Math.max(0.01, Math.min(0.99, Number(prob)));
+  const p = Math.max(0.001, Math.min(0.999, Number(prob)));
   if (p >= 0.5) {
     return Math.round(-(p / (1 - p)) * 100);
   } else {
@@ -1561,7 +1672,18 @@ function regularizedGammaP(s, x) {
   }
 }
 
-// NegBin(mu, alpha) P(over)
+// NegBin discrete PMF: P(N == k)
+function nbPmf(k, r, p) {
+  if (k < 0) return 0;
+  if (k === 0) return Math.pow(p, r);
+  let prob = Math.pow(p, r);
+  for (let i = 1; i <= k; i++) {
+    prob *= ((i - 1 + r) / i) * (1 - p);
+  }
+  return prob;
+}
+
+// NegBin(mu, alpha) P(N > line)
 function pRecOver(mu, line) {
   const r = 1.0 / MODEL_ALPHA;
   const p = r / (r + mu);
@@ -1576,24 +1698,29 @@ function pRecOver(mu, line) {
   return Math.max(0, Math.min(1, 1 - cdf));
 }
 
-// Compound NegBin-Gamma P(over)
-function pYardsOver(muRec, muYpr, line) {
-  if (line <= 0) return 1.0;
+// Compound NegBin-Gamma Cumulative Distribution Function: F(line) = P(Y <= line)
+function compoundYardsCdf(muRec, muYpr, line) {
+  if (line <= 0) return 0.0;
   const r = 1.0 / MODEL_ALPHA;
   const p = r / (r + muRec);
   const scale = muYpr / MODEL_K;
 
-  let pOver = 0;
+  let cdf = Math.pow(p, r); // P(N = 0)
   let nbProb = Math.pow(p, r);
 
-  for (let n = 1; n <= 24; n++) {
+  for (let n = 1; n <= 36; n++) {
     nbProb *= ((n - 1 + r) / n) * (1 - p);
     const shape = n * MODEL_K;
     const x = line / scale;
     const gammaCdf = regularizedGammaP(shape, x);
-    pOver += nbProb * (1 - gammaCdf);
+    cdf += nbProb * gammaCdf;
   }
-  return Math.max(0, Math.min(1, pOver));
+  return Math.max(0, Math.min(1, cdf));
+}
+
+// Compound NegBin-Gamma Survival Function: P(Y > line)
+function pYardsOver(muRec, muYpr, line) {
+  return Math.max(0, Math.min(1, 1.0 - compoundYardsCdf(muRec, muYpr, line)));
 }
 
 function gammaRatio(a, b) {

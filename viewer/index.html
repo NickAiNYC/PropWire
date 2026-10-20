@@ -260,10 +260,12 @@
                 <th>Market</th>
                 <th class="num-col" onclick="sortTable('proj_yards')">Proj Vol</th>
                 <th class="num-col" onclick="sortTable('fair_line_yards')">Calibrated Fair Line</th>
-                <th style="min-width:180px;">Book Price &amp; Quick Adjust</th>
-                <th class="num-col" onclick="sortTable('model_prob')">Model Prob</th>
-                <th class="num-col" onclick="sortTable('edge')">Edge / EV</th>
-                <th class="num-col">Stake</th>
+                <th style="min-width:180px;">Book Price &amp; Scenario</th>
+                <th class="num-col" onclick="sortTable('winProb')">Win Prob / Push</th>
+                <th class="num-col" onclick="sortTable('probEdge')">Prob Edge (vs Fair)</th>
+                <th class="num-col" onclick="sortTable('breakEvenAdvantage')">BE Adv (vs Odds)</th>
+                <th class="num-col" onclick="sortTable('expectedReturn')">Exp Return (EV)</th>
+                <th class="num-col">Actionable Stake</th>
                 <th>Status</th>
                 <th style="text-align:right;">Action</th>
               </tr>
@@ -420,15 +422,14 @@
           </div>
         </div>
 
-        <!-- SGP Monte Carlo Simulator -->
+        <!-- SGP Bivariate Simulator -->
         <div class="research-card">
           <div class="research-card-header">
             <div>
               <span class="badge-tag">SRC/PARLAY.PY</span>
-              <h3 style="color:#fff; margin-top:4px;">Correlation-Aware Same-Game Parlay (SGP) Simulator</h3>
-              <p class="text-muted" style="font-size:12px;">
-                Sportsbooks frequently price same-game parlays using unadjusted multiplication, assuming receptions and yards are independent. 
-                Our bivariate Marsaglia-Tsang Gamma + Poisson Monte Carlo simulation (&phi; &approx; 0.65) measures the positive correlation lift.
+              <h3 style="color:#fff; margin-top:4px;">Bivariate Receiver Volume Simulator (Modeled Dependence)</h3>
+              <p class="text-muted" style="font-size:12px; line-height:1.6;">
+                Evaluates the joint distribution of receptions and receiving yards using Marsaglia-Tsang bivariate sampling. Demonstrates how positive volume correlation affects joint probability relative to an unadjusted independent product. <em>Note: Sportsbooks use proprietary correlation copulas and do NOT use naive multiplication. To evaluate real betting value, compare against your sportsbook's actual offered SGP odds below.</em>
               </p>
             </div>
           </div>
@@ -441,16 +442,24 @@
               </select>
             </div>
             <div class="form-col">
-              <label>Simulations (Monte Carlo Draws):</label>
-              <input type="text" value="50,000 Draws" disabled class="comp-line-input" style="opacity:0.7;">
+              <label>Sportsbook Offered SGP Odds:</label>
+              <input type="number" id="sgpOfferedOdds" value="180" class="comp-line-input" style="width:100%;" oninput="runSgpSimulation()" placeholder="+180">
+            </div>
+            <div class="form-col">
+              <label>Simulations (Monte Carlo):</label>
+              <input type="text" value="40,000 Draws" disabled class="comp-line-input" style="opacity:0.7;">
             </div>
             <div class="form-col" style="align-self:flex-end;">
-              <button class="btn-primary" onclick="runSgpSimulation()">Run 50k Simulation</button>
+              <button class="btn-primary" onclick="runSgpSimulation()">Re-run Simulation</button>
             </div>
           </div>
 
           <div id="sgpSimulationResultsContainer" style="margin-top:16px;">
             <!-- Rendered by app.js -->
+          </div>
+
+          <div style="margin-top:14px; background:rgba(255,255,255,0.03); border:1px solid var(--border-color); border-radius:6px; padding:12px; font-size:11px; color:var(--text-dim); line-height:1.6;">
+            <strong>Dependence Assumption Caveat:</strong> The correlation between receptions and yards varies substantially across player archetypes. Deep threats with high aDOT (e.g. Alec Pierce) have significantly lower correlation with receptions than slot possession receivers (e.g. Amon-Ra St. Brown). A uniform correlation parameter must not be assumed universally across markets.
           </div>
         </div>
 
