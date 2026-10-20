@@ -24,7 +24,7 @@
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,400;1,6..72,600&family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,400;1,6..72,600&family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -41,18 +41,26 @@
             <div class="brand-logo-unit" onclick="window.scrollTo({top:0, behavior:'smooth'})" title="PROP·WIRE Terminal">
               <svg class="brand-logo-mark" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="PROP·WIRE Logo">
                 <defs>
-                  <filter id="logoSquircleShadow" x="0" y="0" width="100" height="100" filterUnits="userSpaceOnUse">
-                    <feDropShadow dx="0" dy="3" stdDeviation="5" flood-color="#000000" flood-opacity="0.12"/>
+                  <linearGradient id="logoSqGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0" class="logo-sq-stop-top"/>
+                    <stop offset="1" class="logo-sq-stop-bot"/>
+                  </linearGradient>
+                  <linearGradient id="logoSqEdge" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0" class="logo-edge-stop-top"/>
+                    <stop offset="1" class="logo-edge-stop-bot"/>
+                  </linearGradient>
+                  <filter id="logoSquircleShadow" x="-10" y="-10" width="120" height="130" filterUnits="userSpaceOnUse">
+                    <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#000000" class="logo-shadow-flood"/>
                   </filter>
                 </defs>
                 <!-- Squircle app icon container -->
-                <rect x="6" y="6" width="88" height="88" rx="22" class="logo-squircle-rect" filter="url(#logoSquircleShadow)"/>
-                <!-- Stem: vertical hollow rectangle on left with rounded corners -->
-                <path d="M 38 48 L 38 72 L 28 72 L 28 26 L 56 26 C 64 26 69 32 72 38" class="logo-p-stroke" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round"/>
-                <!-- Arrow shaft forming belly of P and shooting up-right -->
-                <path d="M 38 48 C 46 48 50 58 62 56 C 70 54 73 42 78 22" class="logo-p-stroke" stroke-width="4.2" stroke-linecap="round"/>
-                <!-- Arrow head pointing ↗ -->
-                <path d="M 68 21 L 78 22 L 77 32" class="logo-p-stroke" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round"/>
+                <rect x="8" y="8" width="84" height="84" rx="22" fill="url(#logoSqGrad)" stroke="url(#logoSqEdge)" stroke-width="1.2" filter="url(#logoSquircleShadow)"/>
+                <!-- Stem: hollow P outline -->
+                <path d="M 41 54 L 41 73 L 29 73 L 29 27 L 56 27 C 68 27 73 33 73 40 C 73 48 67 54 58 54 L 41 54" class="logo-p-stroke" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+                <!-- Bowl sweeping into arrow shaft shooting up-right -->
+                <path d="M 60 45 L 80 24" class="logo-p-stroke" stroke-width="3.2" stroke-linecap="round"/>
+                <!-- Arrow head pointing up-right -->
+                <path d="M 70 23 L 80 24 L 79 34" class="logo-p-stroke" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
               <div class="brand-logo-text">
                 <div class="logo-title-row">

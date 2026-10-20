@@ -73,11 +73,18 @@
   --shadow-drawer: -4px 0 28px rgba(0, 0, 0, 0.14);
 
   /* Brand Logo Tokens (Light Mode) */
-  --logo-squircle-bg: #ffffff;
-  --logo-squircle-border: #e2e8f0;
+  --logo-squircle-bg: #f1f1f1;
+  --logo-squircle-border: #ffffff;
   --logo-squircle-shadow: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.08));
-  --logo-prop-color: #141416;
-  --logo-green: #4D7C0F;
+  --logo-prop-color: #23262b;
+  --logo-green: #B6F36B;
+  --logo-sq-top: #fbfbfb;
+  --logo-sq-bot: #dcdcdc;
+  --logo-edge-top: rgba(255, 255, 255, 1);
+  --logo-edge-bot: rgba(0, 0, 0, 0.06);
+  --logo-shadow-opacity: 0.16;
+  --logo-prop-fill: linear-gradient(#23262b, #23262b);
+  --logo-wire-fill: linear-gradient(#B6F36B, #B6F36B);
 }
 
 /* ==========================================================================
@@ -146,11 +153,18 @@
   --shadow-drawer: -4px 0 32px rgba(0, 0, 0, 0.7);
 
   /* Brand Logo Tokens (Dark Mode) */
-  --logo-squircle-bg: #21242a;
-  --logo-squircle-border: rgba(255, 255, 255, 0.12);
+  --logo-squircle-bg: #222225;
+  --logo-squircle-border: rgba(255, 255, 255, 0.14);
   --logo-squircle-shadow: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.5));
   --logo-prop-color: #f3f4f6;
   --logo-green: #B6F36B;
+  --logo-sq-top: #333337;
+  --logo-sq-bot: #17171a;
+  --logo-edge-top: rgba(255, 255, 255, 0.22);
+  --logo-edge-bot: rgba(255, 255, 255, 0.04);
+  --logo-shadow-opacity: 0.55;
+  --logo-prop-fill: linear-gradient(90deg, #ffffff 0%, #c9c9cc 100%);
+  --logo-wire-fill: linear-gradient(90deg, #B6F36B 0%, #7fbf3a 100%);
 }
 
 /* Base Reset & Setup */
@@ -230,18 +244,18 @@ body {
 }
 
 .brand-logo-mark {
-  width: 44px;
-  height: 44px;
+  width: 56px;
+  height: 56px;
   flex-shrink: 0;
   display: block;
+  overflow: visible;
 }
 
-.logo-squircle-rect {
-  fill: var(--logo-squircle-bg);
-  stroke: var(--logo-squircle-border);
-  stroke-width: 1.5;
-  transition: fill 0.2s ease, stroke 0.2s ease;
-}
+.logo-sq-stop-top { stop-color: var(--logo-sq-top); }
+.logo-sq-stop-bot { stop-color: var(--logo-sq-bot); }
+.logo-edge-stop-top { stop-color: var(--logo-edge-top); }
+.logo-edge-stop-bot { stop-color: var(--logo-edge-bot); }
+.logo-shadow-flood { flood-opacity: var(--logo-shadow-opacity); }
 
 .logo-p-stroke {
   stroke: var(--logo-green);
@@ -251,47 +265,47 @@ body {
 .brand-logo-text {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 5px;
 }
 
 .logo-title-row {
   display: flex;
   align-items: baseline;
-  font-size: 22px;
+  font-family: 'Montserrat', var(--font-sans);
+  font-size: 27px;
   line-height: 1;
 }
 
-.logo-prop {
-  font-family: var(--font-sans);
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  color: var(--logo-prop-color);
-  transition: color 0.2s ease;
+.logo-prop,
+.logo-wire {
+  font-family: 'Montserrat', var(--font-sans);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
 }
+
+.logo-prop { background-image: var(--logo-prop-fill); }
+.logo-wire { background-image: var(--logo-wire-fill); }
 
 .logo-dot {
   color: var(--logo-green);
-  font-weight: 800;
-  margin: 0 1px;
-  font-size: 22px;
-  transition: color 0.2s ease;
-}
-
-.logo-wire {
-  font-family: var(--font-sans);
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  color: var(--logo-green);
+  font-weight: 700;
+  margin: 0 3px 0 0;
+  font-size: 27px;
   transition: color 0.2s ease;
 }
 
 .logo-subtitle {
   font-family: var(--font-mono);
-  font-size: 8px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
+  font-size: 8.5px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
   color: var(--text-ink-tertiary);
   text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .theme-toggle-btn {
@@ -3332,4 +3346,11 @@ body {
   font-weight: 700;
   font-family: var(--font-mono);
   margin-top: 2px;
+}
+
+/* Light-mode legibility: lime (#B6F36B) is for fills/borders; text on light surfaces uses a darker lime */
+[data-theme="light"] .snapshot-status-badge,
+[data-theme="light"] .verified-quote-badge,
+[data-theme="light"] .btn-copied-active {
+  color: #3F6212 !important;
 }
