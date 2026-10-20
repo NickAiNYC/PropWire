@@ -143,9 +143,12 @@ button { color: inherit; }
 .slate-table tr:last-child td { border-bottom: 0; }
 .slate-table tbody tr:hover { background: color-mix(in srgb, var(--surface-2) 68%, transparent); }
 .player-cell { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.team-logo-badge { width: 24px; height: 24px; object-fit: contain; flex: 0 0 24px; filter: drop-shadow(0 1px 2px rgba(0, 0, 0, .45)); }
+.player-info { min-width: 0; }
 .position-box { width: 32px; height: 32px; flex: 0 0 auto; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 8px; background: var(--surface-2); color: var(--muted); font: 800 10px/1 var(--mono); }
 .player-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 780; }
 .cell-sub { display: block; margin-top: 2px; color: var(--faint); font: 650 10px/1.2 var(--mono); }
+.insight-sub { font-family: var(--sans); font-size: 11px; line-height: 1.35; color: var(--muted); max-width: 290px; white-space: normal; }
 .number-main { font: 800 14px/1.2 var(--mono); }
 .split-cell { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .split-cell .number-main { white-space: nowrap; font: 800 13px/1.2 var(--mono); }
@@ -159,9 +162,14 @@ button { color: inherit; }
 .caution { color: var(--amber); }
 .closed { color: var(--faint); }
 
-.meta-pill { max-width: 100%; display: inline-flex; align-items: center; min-height: 25px; padding: 0 8px; border: 1px solid var(--line); border-radius: 999px; color: var(--muted); font: 700 10px/1 var(--mono); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.state-cell-wrap { display: flex; flex-direction: column; gap: 3px; }
+.meta-pill { max-width: 100%; display: inline-flex; align-items: center; min-height: 25px; padding: 0 9px; border: 1px solid var(--line); border-radius: 999px; color: var(--muted); font: 700 10px/1 var(--mono); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .meta-pill.verified { border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); }
+.meta-pill.actionable { border-color: color-mix(in srgb, var(--accent) 65%, transparent); background: color-mix(in srgb, var(--accent) 15%, transparent); color: var(--accent); box-shadow: 0 0 8px color-mix(in srgb, var(--accent) 25%, transparent); font-weight: 800; }
+.meta-pill.unverified { border-color: var(--line); background: var(--surface-2); color: var(--muted); }
+.meta-pill.model-only { border-color: var(--line); background: var(--surface-2); color: var(--faint); font-weight: 700; }
 .meta-pill.caution { border-color: color-mix(in srgb, var(--amber) 55%, var(--line)); color: var(--amber); }
+.meta-pill.closed { border-color: var(--line); background: transparent; color: var(--faint); }
 .injury-tag { display: inline-flex; min-height: 22px; align-items: center; margin-left: 5px; padding: 0 7px; border: 1px solid color-mix(in srgb, var(--amber) 52%, var(--line)); border-radius: 999px; color: var(--amber); font: 800 9px/1 var(--mono); vertical-align: middle; }
 .surge-tag { display: inline-flex; min-height: 22px; align-items: center; margin-left: 6px; padding: 0 8px; border: 1px solid color-mix(in srgb, var(--accent) 65%, transparent); border-radius: 999px; background: color-mix(in srgb, var(--accent) 15%, transparent); color: var(--accent); font: 800 9px/1 var(--mono); letter-spacing: .04em; vertical-align: middle; box-shadow: 0 0 8px color-mix(in srgb, var(--accent) 25%, transparent); animation: surge-glow 2.4s ease-in-out infinite alternate; }
 @keyframes surge-glow {
@@ -182,6 +190,8 @@ button { color: inherit; }
 .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: 10px; }
 .prop-card { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); padding: 13px; }
 .card-top { display: flex; align-items: start; justify-content: space-between; gap: 10px; }
+.card-player-lead { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.card-player-lead .team-logo-badge { width: 28px; height: 28px; flex: 0 0 28px; }
 .card-top h2 { margin: 0; font-size: 16px; line-height: 1.2; letter-spacing: -.02em; }
 .card-top p { margin: 3px 0 0; color: var(--muted); font-size: 12px; }
 .card-numbers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; margin: 13px 0 10px; }
@@ -189,6 +199,7 @@ button { color: inherit; }
 .card-number span { display: block; color: var(--faint); font: 750 9px/1.2 var(--mono); text-transform: uppercase; }
 .card-number strong { display: block; margin-top: 6px; font: 800 14px/1.1 var(--mono); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .card-bottom { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.card-insight { font-size: 11px; line-height: 1.35; color: var(--muted); flex: 1; min-width: 0; margin-right: 8px; }
 .empty-state { padding: 48px 20px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); color: var(--muted); text-align: center; }
 
 .trust-line { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 12px; color: var(--faint); font-size: 11px; }
@@ -201,8 +212,12 @@ button { color: inherit; }
 .dialog-shell { min-width: 0; }
 .dialog-header { position: sticky; top: 0; z-index: 2; display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 16px; border-bottom: 1px solid var(--line); background: var(--surface); }
 .dialog-header h2 { margin: 4px 0 0; font-size: 22px; letter-spacing: -.03em; }
+.detail-title-row { display: inline-flex; align-items: center; gap: 10px; }
+.detail-title-row .team-logo-badge { width: 30px; height: 30px; flex: 0 0 30px; }
 #detailContent { padding: 16px; }
 .detail-hero { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.detail-insight-banner { margin-top: 10px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 9px; background: var(--surface-2); font-size: 12px; line-height: 1.4; color: var(--text); }
+.detail-insight-banner strong { color: var(--accent); margin-right: 5px; }
 .detail-stat { padding: 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface-2); }
 .detail-stat span { color: var(--faint); font: 750 9px/1.2 var(--mono); text-transform: uppercase; }
 .detail-stat strong { display: block; margin-top: 7px; font: 850 18px/1.1 var(--mono); }

@@ -35,7 +35,7 @@
     picks: {},
     injuries: { injuries: [], impacted_beneficiaries: {} },
     odds: { quotes: [] },
-    filters: { search: '', market: 'receiving_yards', position: 'ALL', team: '', gameId: '', playMode: 'all' },
+    filters: { search: '', market: 'receiving_yards', position: 'ALL', team: '', gameId: '', playMode: 'actionable' },
     view: matchMedia('(max-width: 680px)').matches ? 'cards' : 'table',
     deferredInstall: null,
     selectedPlayerId: null
@@ -50,6 +50,39 @@
   const oddsText = (value) => `${num(value) > 0 ? '+' : ''}${num(value)}`;
   const esc = (value) => String(value ?? '').replace(/[&<>'"]/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[character]);
   const bookShort = (book) => ({ DraftKings: 'DK', FanDuel: 'FD', BetMGM: 'MGM', Caesars: 'CZR', Pinnacle: 'PIN' })[book] || book || 'Book';
+
+  const TEAM_LOGO_MAP = {
+    LA: 'lar',
+    WSH: 'wsh'
+  };
+
+  function teamLogoUrl(team) {
+    if (!team) return '';
+    const code = TEAM_LOGO_MAP[team] || team.toLowerCase();
+    return `https://a.espncdn.com/i/teamlogos/nfl/500/${code}.png`;
+  }
+
+  function naturalInsight(row, evaluation) {
+    const fair = fairValue(row);
+    const proj = projectionValue(row);
+    const unit = state.filters.market === 'receptions' ? 'rec' : 'yds';
+    if (evaluation.state === 'none') {
+      if (proj >= (state.filters.market === 'receptions' ? 5.5 : 75.0)) {
+        return `Model projects strong ceiling at ${proj.toFixed(1)} ${unit} (Waiting for sportsbook quotes).`;
+      }
+      return `Model baseline sits at ${fair.toFixed(1)} ${unit} (Waiting for sportsbook quotes).`;
+    }
+    if (evaluation.closed) {
+      return `Market closed for kickoff (Model fair ${fair.toFixed(1)} ${unit}).`;
+    }
+    if (evaluation.dataCheck) {
+      return `Model fair sits at ${fair.toFixed(1)} ${unit} (${signedPct(evaluation.ev)} EV vs ${evaluation.line.toFixed(1)} line · Verify before acting).`;
+    }
+    if (evaluation.state === 'ingested') {
+      return `Model fair sits at ${fair.toFixed(1)} ${unit} (${signedPct(evaluation.ev)} EV vs ${evaluation.line.toFixed(1)} ${bookShort(evaluation.book)} quote · Unverified).`;
+    }
+    return `Model fair price sits at ${fair.toFixed(1)} ${unit} (${signedPct(evaluation.ev)} EV edge vs ${evaluation.line.toFixed(1)} ${bookShort(evaluation.book)} quote).`;
+  }
 
   document.addEventListener('DOMContentLoaded', init);
 
@@ -294,12 +327,12 @@
   }
 
   function clearFilters() {
-    state.filters = { search: '', market: state.filters.market, position: 'ALL', team: '', gameId: '', playMode: 'all' };
+    state.filters = { search: '', market: state.filters.market, position: 'ALL', team: '', gameId: '', playMode: 'actionable' };
     $('#searchInput').value = '';
     $('#positionFilter').value = 'ALL';
     $('#teamFilter').value = '';
     $$('.slate-mode-toggle button').forEach((btn) => {
-      const active = btn.dataset.mode === 'all';
+      const active = btn.dataset.mode === 'actionable';
       btn.classList.toggle('active', active);
       btn.setAttribute('aria-selected', String(active));
     });
@@ -358,10 +391,10 @@
       <th style="width:24%">Player</th>
       <th style="width:10%">Matchup</th>
       <th style="width:14%">Book line</th>
-      <th style="width:18%">Model (Fair | Proj)</th>
-      ${hasPrices ? '<th style="width:14%">Price check</th><th style="width:12%">Hurdle / Target</th>' : ''}
-      <th style="width:12%">State</th>
-      <th style="width:6%"><span class="sr-only">Inspect</span></th>
+      <th style="width:22%">Model (Fair | Proj)</th>
+      ${hasPrices ? '<th style="width:13%">Price check</th><th style="width:11%">Hurdle / Target</th>' : ''}
+      <th style="width:11%">State</th>
+      <th style="width:5%"><span class="sr-only">Inspect</span></th>
     </tr>`;
   }
 
@@ -371,16 +404,25 @@
     const beneficiary = beneficiaryFor(row);
     const fair = fairValue(row);
     const projection = projectionValue(row);
-    const fairProbability = fairProbabilityText(row);
     const surgeBadge = beneficiary ? `<span class="surge-tag" title="${esc(beneficiary.role_label || 'Role surge')} · Catalyst: ${esc(beneficiary.catalyst_injury || 'Injury Vacancy')}">⚡ ROLE SURGE</span>` : '';
+    const logoImg = `<img class="team-logo-badge" src="${esc(teamLogoUrl(row.team))}" alt="${esc(row.team)}" width="24" height="24" loading="lazy" onerror="this.style.display='none'">`;
     return `<tr data-testid="slate-row" data-player-id="${esc(row.player_id)}">
-      <td><div class="player-cell"><span class="position-box">${esc(row.position)}</span><div><div class="player-name">${esc(row.player_display_name)}${injury ? `<span class="injury-tag">${esc(injury.report_status)}</span>` : ''}${surgeBadge}</div><span class="cell-sub">${esc(roleLabel(row))}</span></div></div></td>
+      <td>
+        <div class="player-cell">
+          ${logoImg}
+          <span class="position-box">${esc(row.position)}</span>
+          <div class="player-info">
+            <div class="player-name">${esc(row.player_display_name)}${injury ? `<span class="injury-tag">${esc(injury.report_status)}</span>` : ''}${surgeBadge}</div>
+            <span class="cell-sub">${esc(row.team)} · ${esc(roleLabel(row))}</span>
+          </div>
+        </div>
+      </td>
       <td><span class="number-main">${esc(row.team)}</span><span class="cell-sub">${row.is_home ? 'vs' : '@'} ${esc(row.opponent_team)}</span></td>
       <td>${bookCell(evaluation)}</td>
       <td>
         <div class="split-cell">
           <span class="number-main"><span class="label-dim">Fair</span> ${fair.toFixed(1)} <span class="split-divider">|</span> <span class="label-dim">Proj</span> ${projection.toFixed(1)}</span>
-          <span class="cell-sub">${fairProbability}</span>
+          <span class="cell-sub insight-sub">${esc(naturalInsight(row, evaluation))}</span>
         </div>
       </td>
       ${hasPrices ? `<td>${priceCheckCell(evaluation)}</td><td>${gaugeCell(row, evaluation)}</td>` : ''}
@@ -399,14 +441,27 @@
     const thirdValue = evaluation.state === 'none' ? projection.toFixed(1) : evaluation.state === 'ingested' ? `🔒 ${signedPct(evaluation.edge)}` : signedPct(evaluation.edge);
     const thirdClass = evaluation.state === 'verified' ? evaluation.tone : evaluation.state === 'ingested' ? 'price-lock' : '';
     const surgeBadge = beneficiary ? `<span class="surge-tag" title="${esc(beneficiary.role_label || 'Role surge')} · Catalyst: ${esc(beneficiary.catalyst_injury || 'Injury Vacancy')}">⚡ ROLE SURGE</span>` : '';
+    const logoImg = `<img class="team-logo-badge" src="${esc(teamLogoUrl(row.team))}" alt="${esc(row.team)}" width="28" height="28" loading="lazy" onerror="this.style.display='none'">`;
     return `<article class="prop-card" data-testid="slate-card" data-player-id="${esc(row.player_id)}">
-      <div class="card-top"><div><h2>${esc(row.player_display_name)}${injury ? `<span class="injury-tag">${esc(injury.report_status)}</span>` : ''}${surgeBadge}</h2><p>${esc(row.position)} · ${esc(row.team)} ${row.is_home ? 'vs' : '@'} ${esc(row.opponent_team)}</p></div>${statePill(row, evaluation)}</div>
+      <div class="card-top">
+        <div class="card-player-lead">
+          ${logoImg}
+          <div>
+            <h2>${esc(row.player_display_name)}${injury ? `<span class="injury-tag">${esc(injury.report_status)}</span>` : ''}${surgeBadge}</h2>
+            <p>${esc(row.position)} · ${esc(row.team)} ${row.is_home ? 'vs' : '@'} ${esc(row.opponent_team)}</p>
+          </div>
+        </div>
+        ${statePill(row, evaluation)}
+      </div>
       <div class="card-numbers">
         <div class="card-number"><span>Book line</span><strong>${evaluation.state === 'none' ? 'No quote' : `${evaluation.line.toFixed(1)} ${oddsText(evaluation.odds)}`}</strong></div>
-        <div class="card-number"><span>Model Fair | Proj</span><strong>${fair.toFixed(1)} <span class="split-divider">|</span> ${projection.toFixed(1)}</strong><small class="cell-sub">${fairProbabilityText(row)}</small></div>
+        <div class="card-number"><span>Model Fair | Proj</span><strong>${fair.toFixed(1)} <span class="split-divider">|</span> ${projection.toFixed(1)}</strong></div>
         <div class="card-number ${thirdClass}"><span>${thirdLabel}</span><strong>${thirdValue}</strong>${evaluation.state === 'ingested' ? '<small class="cell-sub">Stake 0.00%</small>' : evaluation.state === 'verified' ? `<small class="cell-sub">Return ${signedPct(evaluation.ev)}</small>` : ''}</div>
       </div>
-      <div class="card-bottom"><span class="meta-pill ${evaluation.tone}">${esc(metaText(row, evaluation))}</span><button class="inspect-button" type="button" data-inspect="${esc(row.player_id)}">Inspect</button></div>
+      <div class="card-bottom">
+        <span class="card-insight">${esc(naturalInsight(row, evaluation))}</span>
+        <button class="inspect-button" type="button" data-inspect="${esc(row.player_id)}">Inspect</button>
+      </div>
     </article>`;
   }
 
@@ -516,22 +571,26 @@
   }
 
   function stateCell(row, evaluation, injury) {
-    return `${statePill(row, evaluation)}${injury ? `<span class="cell-sub caution">Snap risk unpriced</span>` : ''}`;
+    return `<div class="state-cell-wrap">${statePill(row, evaluation)}${injury ? `<span class="cell-sub caution">Snap risk unpriced</span>` : ''}</div>`;
   }
 
   function statePill(row, evaluation) {
-    let text = metaText(row, evaluation);
-    let className = evaluation.tone;
-    if (row.excl_reason) { text = `Excluded · ${row.excl_reason}`; className = 'closed'; }
-    return `<span class="meta-pill ${className}">${esc(text)}</span>`;
+    if (row.excl_reason) return `<span class="meta-pill closed">Excluded</span>`;
+    if (evaluation.closed) return `<span class="meta-pill closed">Closed</span>`;
+    if (evaluation.state === 'none') return `<span class="meta-pill model-only">Model Only</span>`;
+    if (evaluation.dataCheck) return `<span class="meta-pill caution" title="Verify before acting: large edge">⚠️ Verify (${signedPct(evaluation.edge)})</span>`;
+    if (evaluation.actionable) return `<span class="meta-pill actionable">⚡ ${signedPct(evaluation.ev)} EV</span>`;
+    if (evaluation.state === 'ingested') return `<span class="meta-pill unverified" title="Ingested price quote pending receipt verification">🔒 Unverified (${signedPct(evaluation.edge)})</span>`;
+    return `<span class="meta-pill">${signedPct(evaluation.ev)} EV</span>`;
   }
 
   function metaText(row, evaluation) {
-    if (evaluation.state === 'none') return `${roleLabel(row)} · No quote`;
-    if (evaluation.state === 'ingested') return `${bookShort(evaluation.book)} · ${roleLabel(row)} · Unverified`;
-    if (evaluation.closed) return `${bookShort(evaluation.book)} · Closed`;
-    if (evaluation.dataCheck) return `${bookShort(evaluation.book)} · Verify before acting`;
-    return `${bookShort(evaluation.book)} · ${roleLabel(row)} · Verified`;
+    if (evaluation.state === 'none') return 'Model Only';
+    if (evaluation.closed) return 'Closed';
+    if (evaluation.dataCheck) return `Verify · ${signedPct(evaluation.edge)}`;
+    if (evaluation.actionable) return `${bookShort(evaluation.book)} · ${signedPct(evaluation.ev)} EV`;
+    if (evaluation.state === 'ingested') return `${bookShort(evaluation.book)} · Unverified`;
+    return `${bookShort(evaluation.book)} · Active`;
   }
 
   function roleLabel(row) {
@@ -576,7 +635,7 @@
     const beneficiary = beneficiaryFor(row);
     const fair = fairValue(row);
     const projection = projectionValue(row);
-    $('#detailTitle').innerHTML = `${esc(row.player_display_name)}${beneficiary ? ' <span class="surge-tag">⚡ ROLE SURGE</span>' : ''}`;
+    $('#detailTitle').innerHTML = `<div class="detail-title-row"><img class="team-logo-badge" src="${esc(teamLogoUrl(row.team))}" alt="${esc(row.team)}" width="30" height="30" loading="lazy" onerror="this.style.display='none'"><span>${esc(row.player_display_name)}</span>${beneficiary ? ' <span class="surge-tag">⚡ ROLE SURGE</span>' : ''}</div>`;
     $('#detailMeta').textContent = `${row.position} · ${row.team} ${row.is_home ? 'vs' : '@'} ${row.opponent_team} · ${state.filters.market === 'receptions' ? 'Receptions' : 'Receiving yards'}`;
     $('#detailContent').innerHTML = detailMarkup(row, evaluation, injury, beneficiary, fair, projection);
     $('#detailDialog').showModal();
@@ -600,6 +659,9 @@
       ${priceStat}
       <div class="detail-stat"><span>Model fair</span><strong>${fair.toFixed(1)}</strong><small class="cell-sub">${fairProbabilityText(row)}</small></div>
       ${actionStat}
+    </div>
+    <div class="detail-insight-banner">
+      <strong>Quant Summary:</strong> ${esc(naturalInsight(row, evaluation))}
     </div>
     ${surgeSection}
     ${evaluation.state !== 'none' ? `<div class="detail-section"><h3>Hurdle / Target</h3>${gaugeCell(row, evaluation)}<p>Target is the nearest model line that clears the JSON gate at the displayed price. The sportsbook offer remains ${evaluation.state === 'verified' ? 'receipt-verified' : 'unverified'}.</p></div>` : ''}
