@@ -28,6 +28,11 @@ from slate import (build_slate, load_injuries, injury_exclusions,
                    W1_BIAS_REC, W1_BIAS_YDS, W1_MIN_EDGE, W1_KELLY_CAP)
 from agent import MIN_EDGE, KELLY_CAP, MIN_BOOKS, Pick, log_picks
 
+# Viewer qualification policy mirrors the verified-quote adapter. These values
+# are exported so the browser never invents or hardcodes an action threshold.
+VIEWER_GATE_EDGE = 0.10
+VIEWER_KELLY_CAP = 0.03
+
 
 def project(season: int, week: int, include_all: bool = False) -> tuple[pd.DataFrame, ReceivingModel]:
     panel = build_panel()
@@ -267,8 +272,8 @@ def main():
     picks_payload = {
         "season": a.season,
         "week": a.week,
-        "gate_edge": W1_MIN_EDGE if a.week == 1 else MIN_EDGE,
-        "kelly_cap": W1_KELLY_CAP if a.week == 1 else KELLY_CAP,
+        "gate_edge": W1_MIN_EDGE if a.week == 1 else VIEWER_GATE_EDGE,
+        "kelly_cap": W1_KELLY_CAP if a.week == 1 else VIEWER_KELLY_CAP,
         "rostered_player_records": len(slate),
         "projectable_player_records": len(ok),
         "note": "Top 25 Projections & Fair Lines (Active Games Only)",

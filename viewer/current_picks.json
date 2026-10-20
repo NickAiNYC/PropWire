@@ -1,8 +1,8 @@
 {
   "season": 2026,
   "week": 7,
-  "gate_edge": 0.03,
-  "kelly_cap": 0.015,
+  "gate_edge": 0.1,
+  "kelly_cap": 0.03,
   "dates": "Oct 22 - Oct 26, 2026",
   "schedule_games": 14,
   "schedule_teams": 28,
