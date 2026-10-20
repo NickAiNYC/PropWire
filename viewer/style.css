@@ -71,6 +71,86 @@
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.03);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.07), 0 4px 6px -4px rgba(0, 0, 0, 0.03);
   --shadow-drawer: -4px 0 28px rgba(0, 0, 0, 0.14);
+
+  /* Brand Logo Tokens (Light Mode) */
+  --logo-squircle-bg: #ffffff;
+  --logo-squircle-border: #e2e8f0;
+  --logo-squircle-shadow: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.08));
+  --logo-prop-color: #141416;
+  --logo-green: #15803d;
+}
+
+/* ==========================================================================
+   DARK THEME (Bloomberg / Raycast Terminal Aesthetics)
+   ========================================================================== */
+[data-theme="dark"] {
+  /* Canvas & Surfaces */
+  --bg-canvas: #0c0e12;
+  --bg-surface: #14171d;
+  --bg-surface-subtle: #1a1e26;
+  --bg-surface-elevated: #202530;
+  --bg-surface-hover: #262c39;
+  --bg-surface-active: #2f3645;
+
+  /* Borders */
+  --border-subtle: #242936;
+  --border-medium: #333a4d;
+  --border-strong: #4a546e;
+  --border-focus: #60a5fa;
+
+  /* Typography */
+  --text-ink: #f8fafc;
+  --text-ink-secondary: #cbd5e1;
+  --text-ink-tertiary: #94a3b8;
+  --text-ink-muted: #64748b;
+  --text-ink-dim: #475569;
+
+  /* Status Tokens */
+  --status-green: #22c55e;
+  --status-green-bg: rgba(34, 197, 94, 0.14);
+  --status-green-border: rgba(34, 197, 94, 0.32);
+
+  --status-amber: #f59e0b;
+  --status-amber-bg: rgba(245, 158, 11, 0.14);
+  --status-amber-border: rgba(245, 158, 11, 0.32);
+
+  --status-gray: #94a3b8;
+  --status-gray-bg: rgba(148, 163, 184, 0.14);
+  --status-gray-border: rgba(148, 163, 184, 0.28);
+
+  --status-red: #ef4444;
+  --status-red-bg: rgba(239, 68, 68, 0.14);
+  --status-red-border: rgba(239, 68, 68, 0.32);
+
+  /* Editorial Accents */
+  --accent-editorial: #60a5fa;
+  --accent-editorial-bg: rgba(96, 165, 250, 0.14);
+  --accent-editorial-border: rgba(96, 165, 250, 0.3);
+
+  --pos-wr-color: #38bdf8;
+  --pos-wr-bg: rgba(56, 189, 248, 0.14);
+  --pos-wr-border: rgba(56, 189, 248, 0.3);
+
+  --pos-te-color: #c084fc;
+  --pos-te-bg: rgba(192, 132, 252, 0.14);
+  --pos-te-border: rgba(192, 132, 252, 0.3);
+
+  --pos-rb-color: #fb923c;
+  --pos-rb-bg: rgba(251, 146, 60, 0.14);
+  --pos-rb-border: rgba(251, 146, 60, 0.3);
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -2px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.6), 0 4px 6px -4px rgba(0, 0, 0, 0.5);
+  --shadow-drawer: -4px 0 32px rgba(0, 0, 0, 0.7);
+
+  /* Brand Logo Tokens (Dark Mode) */
+  --logo-squircle-bg: #21242a;
+  --logo-squircle-border: rgba(255, 255, 255, 0.12);
+  --logo-squircle-shadow: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.5));
+  --logo-prop-color: #f3f4f6;
+  --logo-green: #22c55e;
 }
 
 /* Base Reset & Setup */
@@ -138,7 +218,7 @@ body {
 .brand-logo-unit {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   text-decoration: none;
   cursor: pointer;
   user-select: none;
@@ -146,43 +226,115 @@ body {
 }
 
 .brand-logo-unit:hover {
-  opacity: 0.85;
+  opacity: 0.9;
 }
 
 .brand-logo-mark {
   width: 44px;
-  height: 22px;
+  height: 44px;
   flex-shrink: 0;
   display: block;
-  color: var(--text-ink);
+}
+
+.logo-squircle-rect {
+  fill: var(--logo-squircle-bg);
+  stroke: var(--logo-squircle-border);
+  stroke-width: 1.5;
+  transition: fill 0.2s ease, stroke 0.2s ease;
+}
+
+.logo-p-stroke {
+  stroke: var(--logo-green);
+  transition: stroke 0.2s ease;
 }
 
 .brand-logo-text {
-  display: inline-flex;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.logo-title-row {
+  display: flex;
   align-items: baseline;
-  font-size: 20px;
+  font-size: 22px;
   line-height: 1;
 }
 
 .logo-prop {
   font-family: var(--font-sans);
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  color: var(--text-ink);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--logo-prop-color);
+  transition: color 0.2s ease;
 }
 
 .logo-dot {
-  color: var(--status-green);
+  color: var(--logo-green);
   font-weight: 800;
-  margin: 0 2px;
-  font-size: 20px;
+  margin: 0 1px;
+  font-size: 22px;
+  transition: color 0.2s ease;
 }
 
 .logo-wire {
-  font-family: var(--font-mono);
-  font-weight: 700;
+  font-family: var(--font-sans);
+  font-weight: 800;
   letter-spacing: 0.04em;
+  color: var(--logo-green);
+  transition: color 0.2s ease;
+}
+
+.logo-subtitle {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--text-ink-tertiary);
+  text-transform: uppercase;
+}
+
+.theme-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-surface-subtle);
+  border: 1px solid var(--border-medium);
   color: var(--text-ink);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 6px 11px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.theme-toggle-btn:hover {
+  background: var(--bg-surface-hover);
+  border-color: var(--border-strong);
+}
+
+.theme-icon-sun {
+  display: none;
+  width: 13px;
+  height: 13px;
+}
+
+.theme-icon-moon {
+  display: inline-block;
+  width: 13px;
+  height: 13px;
+  color: var(--text-ink-secondary);
+}
+
+[data-theme="dark"] .theme-icon-sun {
+  display: inline-block;
+  color: #f59e0b;
+}
+
+[data-theme="dark"] .theme-icon-moon {
+  display: none;
 }
 
 .brand-badge-row {

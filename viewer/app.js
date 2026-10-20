@@ -72,10 +72,44 @@ function getTeamLogoUrl(team) {
 }
 
 // --------------------------------------------------------------------------
-// Initialization & Slate Loading
+// Theme Management (Light / Dark Mode)
 // --------------------------------------------------------------------------
 
+function initTheme() {
+  const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+  updateThemeToggleUI(currentTheme);
+}
+
+function toggleTheme() {
+  const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+  const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+  setTheme(newTheme);
+}
+
+function setTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  try {
+    localStorage.setItem('propwire_theme', theme);
+  } catch (_) {}
+  updateThemeToggleUI(theme);
+  if (selectedDrawerPlayer) {
+    renderDrawerBodyContent();
+  }
+}
+
+function updateThemeToggleUI(theme) {
+  const label = document.getElementById('themeToggleText');
+  const btn = document.getElementById('themeToggleBtn');
+  if (label) {
+    label.textContent = theme === 'dark' ? 'Light' : 'Dark';
+  }
+  if (btn) {
+    btn.setAttribute('title', `Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`);
+  }
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
+  initTheme();
   loadStoredConditions();
   loadStoredLines();
   

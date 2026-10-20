@@ -3,8 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PROP·WIRE — NFL Role-Change Intelligence &amp; Prop Research</title>
+  <title>PROP·WIRE — Quantitative Sports Betting Terminal</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <script>
+    (function() {
+      try {
+        const saved = localStorage.getItem('propwire_theme');
+        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const theme = saved || (prefersDark ? 'dark' : 'light');
+        document.documentElement.setAttribute('data-theme', theme);
+      } catch (e) {}
+    })();
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,400;1,6..72,600&family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -22,16 +32,26 @@
         <div class="nav-brand">
           <div class="brand-header-lockup">
             <div class="brand-logo-unit" onclick="window.scrollTo({top:0, behavior:'smooth'})" title="PROP·WIRE Terminal">
-              <svg class="brand-logo-mark" viewBox="0 0 54 26" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="PROP·WIRE Logo Mark">
-                <!-- Top Boundary Rail -->
-                <rect x="0" y="4" width="54" height="3" fill="var(--text-ink)" rx="1.5"/>
-                <!-- Bottom Boundary Rail -->
-                <rect x="0" y="19" width="54" height="3" fill="var(--text-ink)" rx="1.5"/>
-                <!-- Emerald Edge Node -->
-                <circle cx="27" cy="13" r="4.5" fill="#15803d"/>
+              <svg class="brand-logo-mark" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="PROP·WIRE Logo">
+                <defs>
+                  <filter id="logoSquircleShadow" x="0" y="0" width="100" height="100" filterUnits="userSpaceOnUse">
+                    <feDropShadow dx="0" dy="3" stdDeviation="5" flood-color="#000000" flood-opacity="0.12"/>
+                  </filter>
+                </defs>
+                <!-- Squircle app icon container -->
+                <rect x="6" y="6" width="88" height="88" rx="22" class="logo-squircle-rect" filter="url(#logoSquircleShadow)"/>
+                <!-- Stem: vertical hollow rectangle on left with rounded corners -->
+                <path d="M 38 48 L 38 72 L 28 72 L 28 26 L 56 26 C 64 26 69 32 72 38" class="logo-p-stroke" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round"/>
+                <!-- Arrow shaft forming belly of P and shooting up-right -->
+                <path d="M 38 48 C 46 48 50 58 62 56 C 70 54 73 42 78 22" class="logo-p-stroke" stroke-width="4.2" stroke-linecap="round"/>
+                <!-- Arrow head pointing ↗ -->
+                <path d="M 68 21 L 78 22 L 77 32" class="logo-p-stroke" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
               <div class="brand-logo-text">
-                <span class="logo-prop">PROP</span><span class="logo-dot">·</span><span class="logo-wire">WIRE</span>
+                <div class="logo-title-row">
+                  <span class="logo-prop">PROP</span><span class="logo-dot">·</span><span class="logo-wire">WIRE</span>
+                </div>
+                <div class="logo-subtitle">QUANTITATIVE SPORTS BETTING TERMINAL</div>
               </div>
             </div>
             <div class="brand-badge-row">
@@ -66,6 +86,16 @@
             <span class="snapshot-lock-icon">🔒</span>
             <span id="headerSnapshotText">SNAPSHOT: TNF ACTIVE</span>
           </div>
+          <button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Switch Light/Dark Mode">
+            <svg class="icon-svg theme-icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="5"/>
+              <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+            </svg>
+            <svg class="icon-svg theme-icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+            </svg>
+            <span id="themeToggleText">Theme</span>
+          </button>
           <button class="admin-gear-btn" onclick="openAdminModal()" title="Pipeline Runner &amp; Admin Tools">
             <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
