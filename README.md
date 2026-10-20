@@ -138,7 +138,24 @@ Railway provides a persistent process and non-ephemeral filesystem required for 
    - Once games lock or settle, open the **CLV Tracking Log** tab.
    - Select your logged picks and input the closing devigged probability or closing odds.
    - The app computes `clv = model_prob - closing_prob` and updates the running 95% Confidence Interval.
-   - If mean CLV is not positive after ~8 weeks, do not scale bet size.
+---
+
+### 4. Vercel Deployment (Edge Web App)
+
+The viewer frontend and pre-computed slate data are deployed to Vercel at global edge:
+
+- **Live Production URL**: [https://receiving-props-agent.vercel.app](https://receiving-props-agent.vercel.app)
+- **Vercel Project**: [`receiving-props-agent`](https://vercel.com/nicks-projects-ec56abd4/receiving-props-agent)
+- **Configuration**: Configured via [`viewer/vercel.json`](viewer/vercel.json) with `cleanUrls` and edge caching (`s-maxage=60`).
+
+#### Deploying Slate Updates to Vercel
+Whenever the weekly pipeline runs (`python src/week1.py`), updated projections and picks are automatically synced to `viewer/slate_projections.json` and `viewer/current_picks.json`. To push the new slate to Vercel production:
+
+```bash
+cd viewer
+vercel --prod
+```
+The edge deployment builds and propagates globally in ~4 seconds.
 
 ---
 
