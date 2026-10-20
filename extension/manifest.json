@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "PROP·WIRE Terminal",
+  "name": "PropWire",
   "version": "1.2.0",
   "description": "Institutional quantitative receiving props terminal and CLV ledger.",
   "permissions": [
@@ -19,7 +19,7 @@
     "default_path": "index.html"
   },
   "action": {
-    "default_title": "Open PROP·WIRE"
+    "default_title": "Open PropWire"
   },
   "icons": {
     "16": "icons/icon16.png",

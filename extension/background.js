@@ -9,7 +9,7 @@ chrome.runtime.onInstalled.addListener(() => {
   // Create right-click context menu item for selected player text
   chrome.contextMenus.create({
     id: "propwire-check-edge",
-    title: "Check PROP·WIRE Edge for '%s'",
+    title: "Check PropWire Edge for '%s'",
     contexts: ["selection"]
   });
 });

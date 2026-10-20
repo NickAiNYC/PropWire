@@ -5,7 +5,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 DIST_DIR="$ROOT_DIR/dist"
 EXT_DIR="$DIST_DIR/extension"
 
-echo "==> Packaging PROP·WIRE Manifest V3 Chrome Extension Side Panel..."
+echo "==> Packaging PropWire Manifest V3 Chrome Extension Side Panel..."
 
 rm -rf "$EXT_DIR" "$DIST_DIR/propwire-extension-v1.2.0.zip"
 mkdir -p "$EXT_DIR/icons"
@@ -20,8 +20,8 @@ cp "$ROOT_DIR/extension/background.js" "$EXT_DIR/"
 # 3. Copy icons
 cp -R "$ROOT_DIR/extension/icons/"* "$EXT_DIR/icons/"
 
-# 4. Create ZIP bundle
-(cd "$DIST_DIR" && zip -q -r "propwire-extension-v1.2.0.zip" "extension")
+# 4. Create ZIP bundle (rooted at EXT_DIR for Chrome Web Store compliance)
+(cd "$EXT_DIR" && zip -q -r "$DIST_DIR/propwire-extension-v1.2.0.zip" .)
 
 echo "==> Build complete:"
 echo "    - Unpacked directory : $EXT_DIR"
