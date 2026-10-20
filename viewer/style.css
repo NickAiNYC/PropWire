@@ -749,11 +749,41 @@ body {
   cursor: pointer;
   letter-spacing: -0.01em;
   line-height: 1.25;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .opp-player-name:hover {
   color: var(--accent-editorial);
+}
+
+.opp-player-name:hover span {
   text-decoration: underline;
+}
+
+.team-logo-inline {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  vertical-align: middle;
+  flex-shrink: 0;
+  border-radius: 2px;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.08));
+}
+
+.team-logo-inline.table-logo {
+  width: 18px;
+  height: 18px;
+}
+
+.drawer-team-logo {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  vertical-align: middle;
+  flex-shrink: 0;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.12));
 }
 
 .opp-matchup-sub {
@@ -1651,10 +1681,13 @@ body {
 }
 
 .drawer-name {
-  font-size: 20px;
+  font-size: 22px;
   font-weight: 800;
   color: var(--text-ink);
   letter-spacing: -0.02em;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .drawer-odds-summary {

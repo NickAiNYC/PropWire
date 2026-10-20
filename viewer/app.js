@@ -55,6 +55,22 @@ let selectedDrawerPlayer = null;
 let clvFilterType = 'all'; // 'all', 'verified', 'demo'
 let activeDrawerConditionalScenario = 'BASELINE'; // 'BASELINE', 'TEAMMATE_OUT', 'LIMITED_WORKLOAD', 'TRAILING_SCRIPT'
 
+function getTeamLogoUrl(team) {
+  if (!team) return '';
+  const clean = String(team).trim().toUpperCase();
+  const map = {
+    'LA': 'lar',
+    'LAR': 'lar',
+    'LAC': 'lac',
+    'WSH': 'was',
+    'WAS': 'was',
+    'OAK': 'lv',
+    'SD': 'lac'
+  };
+  const slug = map[clean] || clean.toLowerCase();
+  return `https://a.espncdn.com/i/teamlogos/nfl/500/${slug}.png`;
+}
+
 // --------------------------------------------------------------------------
 // Initialization & Slate Loading
 // --------------------------------------------------------------------------
@@ -1302,7 +1318,8 @@ function renderBestOpportunitiesGrid() {
         <div class="opp-card-header">
           <div class="opp-player-meta">
             <div class="opp-player-name" onclick="openDrawerForPlayer('${card.player_display_name}')">
-              ${card.player_display_name}
+              <img src="${getTeamLogoUrl(card.team)}" alt="${card.team}" class="team-logo-inline" loading="lazy" onerror="this.style.display='none'">
+              <span>${card.player_display_name}</span>
             </div>
             <div class="opp-matchup-sub">
               <span>${card.team} vs ${card.opponent_team}</span>
@@ -1492,11 +1509,16 @@ function renderBoard() {
           </button>
         </td>
         <td>
-          <div style="font-weight:700; color:var(--text-ink); cursor:pointer;" onclick="openDrawerForPlayer('${row.player_display_name}')">
-            ${row.player_display_name}
-          </div>
-          <div style="font-size:11px; color:var(--text-ink-tertiary);">
-            ${row.team} vs ${row.opponent_team} ${row.unposted_lines === 1 ? '<span style="color:var(--status-amber);">(Line Pending)</span>' : ''}
+          <div style="display:flex; align-items:center; gap:8px;">
+            <img src="${getTeamLogoUrl(row.team)}" alt="${row.team}" class="team-logo-inline table-logo" loading="lazy" onerror="this.style.display='none'">
+            <div>
+              <div style="font-weight:700; color:var(--text-ink); cursor:pointer;" onclick="openDrawerForPlayer('${row.player_display_name}')">
+                ${row.player_display_name}
+              </div>
+              <div style="font-size:11px; color:var(--text-ink-tertiary);">
+                ${row.team} vs ${row.opponent_team} ${row.unposted_lines === 1 ? '<span style="color:var(--status-amber);">(Line Pending)</span>' : ''}
+              </div>
+            </div>
           </div>
           ${verifiedTag}
         </td>
@@ -1610,7 +1632,12 @@ function openDrawerForPlayer(playerName) {
   const statusChip = document.getElementById('drawerStatusChip');
   const watchBtn = document.getElementById('drawerWatchlistBtn');
 
-  if (nameEl) nameEl.textContent = p.player_display_name;
+  if (nameEl) {
+    nameEl.innerHTML = `
+      <img src="${getTeamLogoUrl(p.team)}" alt="${p.team}" class="drawer-team-logo" onerror="this.style.display='none'">
+      <span>${p.player_display_name}</span>
+    `;
+  }
   if (posTag) {
     posTag.textContent = p.position;
     posTag.className = `pos-tag pos-${p.position}`;
@@ -2299,7 +2326,10 @@ function renderWatchlistPage() {
         <div class="opp-card ${isHurdleMet ? 'verified-opp' : ''}">
           <div class="opp-card-header">
             <div>
-              <div class="opp-player-name" onclick="openDrawerForPlayer('${c.playerName}')">${c.playerName}</div>
+              <div class="opp-player-name" onclick="openDrawerForPlayer('${c.playerName}')">
+                <img src="${getTeamLogoUrl(c.team)}" alt="${c.team}" class="team-logo-inline" loading="lazy" onerror="this.style.display='none'">
+                <span>${c.playerName}</span>
+              </div>
               <div class="opp-matchup-sub">${c.team} vs ${c.opponent} &bull; ${c.market === 'receptions' ? 'Receptions' : 'Yards'} (${c.side})</div>
             </div>
             <span class="role-badge ${isHurdleMet ? 'role-primary-shift' : 'role-surge'}">
