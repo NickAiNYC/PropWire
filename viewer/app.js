@@ -30,6 +30,7 @@ let topPicksData = [];
 let gamesData = [];
 let clvLogData = [];
 let currentSnapshots = [];
+let holdoutEvalData = null;
 let selectedGameId = null; // Filter by game_id from Game Strip
 
 // User Filters & View Modes
@@ -118,7 +119,20 @@ async function initSlate(slateKey) {
       currentSnapshots = [];
     }
 
+    // 5. Load chronological holdout evaluation report if available
+    try {
+      const evalRes = await fetchWithFallback(`/api/holdout-eval?season=${currentSeason}&week=${isHistoricalSlate ? 1 : currentWeek}`, 'holdout_eval_2026_w1.json');
+      if (evalRes.ok) {
+        holdoutEvalData = await evalRes.json();
+      } else {
+        holdoutEvalData = null;
+      }
+    } catch (_) {
+      holdoutEvalData = null;
+    }
+
     populateTeamDropdown();
+    populateAdminGameSelect();
     renderGameStrip();
     renderSlateHealthStrip();
     renderSnapshotStatus();
@@ -447,6 +461,19 @@ function populateTeamDropdown() {
   const teams = [...new Set(slateData.map(p => p.team))].sort();
   select.innerHTML = '<option value="ALL">All Teams</option>' +
     teams.map(t => `<option value="${t}">${t}</option>`).join('');
+}
+
+function populateAdminGameSelect() {
+  const sel = document.getElementById('adminFreezeGameSelect');
+  if (!sel || !gamesData || gamesData.length === 0) return;
+
+  let html = `<option value="ALL">Full Slate (All ${gamesData.length} Games)</option>`;
+  gamesData.forEach(g => {
+    const isTnf = g.game_id && g.game_id.includes('NE_CHI');
+    const label = isTnf ? `TNF: ${g.away_team} @ ${g.home_team} (${g.game_id})` : `${g.away_team} @ ${g.home_team} (${g.game_id})`;
+    html += `<option value="${g.game_id}" ${isTnf ? 'selected' : ''}>${label}</option>`;
+  });
+  sel.innerHTML = html;
 }
 
 // --------------------------------------------------------------------------
@@ -1316,6 +1343,12 @@ function renderDrawerBodyContent() {
               <code>${playerSnap.content_hash}</code>
               <span style="color:#22c55e; font-weight:700; font-size:10px; white-space:nowrap;">IMMUTABLE</span>
             </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
+              <button class="btn-secondary" style="font-size:11px; padding:4px 10px; font-weight:600;" onclick="copySnapshotJson('${playerSnap.snapshot_id}')">
+                📋 Copy Canonical Snapshot JSON
+              </button>
+              <span style="font-size:10px; font-family:var(--font-mono); color:var(--text-ink-tertiary);">RFC-8785 Canonical JSON</span>
+            </div>
             <div style="font-size:10px; color:var(--text-ink-tertiary); margin-top:8px; line-height:1.4;">
               🛡️ <strong>Evaluation Invariant:</strong> Chronological holdout evaluation strictly reads snapshots where <code>created_at &le; decision_time</code>. Zero lookahead leakage.
             </div>
@@ -1686,6 +1719,69 @@ function renderTrackerPage() {
     }
   }
 
+  // Populate Chronological Holdout Evaluation Panel
+  const evalContainer = document.getElementById('holdoutEvalContent');
+  if (evalContainer) {
+    if (holdoutEvalData && holdoutEvalData.metrics) {
+      const m = holdoutEvalData.metrics;
+      const roles = holdoutEvalData.role_hypothesis_holdout_evidence || {};
+
+      let roleRows = '';
+      for (const [k, v] of Object.entries(roles)) {
+        roleRows += `
+          <div style="background:var(--bg-canvas); border:1px solid var(--border-subtle); border-radius:6px; padding:10px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+              <span style="font-weight:700; font-family:var(--font-mono); font-size:11px; text-transform:uppercase;">${k}</span>
+              <span class="provisional-badge">PROV (N=${v.sample_size})</span>
+            </div>
+            <div style="font-size:11px; color:var(--text-ink-secondary); line-height:1.5;">
+              Over: <strong>${(v.over_rate * 100).toFixed(1)}%</strong> &bull; Under: <strong>${(v.under_rate * 100).toFixed(1)}%</strong><br>
+              Mean Error: <strong>${v.mean_projection_error > 0 ? '+' : ''}${v.mean_projection_error}</strong>
+            </div>
+          </div>
+        `;
+      }
+
+      evalContainer.innerHTML = `
+        <div class="stat-metric-grid" style="margin-bottom:14px;">
+          <div class="stat-metric-cell">
+            <div class="metric-cell-label">Evaluated Snapshots</div>
+            <div class="metric-cell-val" style="color:var(--accent-editorial);">${holdoutEvalData.total_snapshots_evaluated}</div>
+          </div>
+          <div class="stat-metric-cell">
+            <div class="metric-cell-label">Model Brier Score</div>
+            <div class="metric-cell-val">${m.brier_score_model}</div>
+          </div>
+          <div class="stat-metric-cell">
+            <div class="metric-cell-label">50/50 Coin Flip Brier</div>
+            <div class="metric-cell-val">${m.brier_score_naive_baseline}</div>
+          </div>
+          <div class="stat-metric-cell">
+            <div class="metric-cell-label">Model Log-Loss</div>
+            <div class="metric-cell-val">${m.log_loss_model}</div>
+          </div>
+        </div>
+
+        <div style="font-weight:700; font-size:12px; margin-bottom:6px; color:var(--text-ink);">
+          Role Hypothesis Holdout Performance (Provisional Threshold Validation):
+        </div>
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:10px; margin-bottom:12px;">
+          ${roleRows}
+        </div>
+
+        <div style="background:var(--bg-canvas); border-left:3px solid var(--accent-amber); padding:10px 14px; border-radius:4px; font-size:11px; line-height:1.5; color:var(--text-ink-secondary);">
+          <strong>Holdout Invariant &amp; Verdict:</strong> ${holdoutEvalData.provisional_threshold_verdict?.recommendation || 'Evaluation strictly restricted to snapshots where created_at <= decision_time.'}
+        </div>
+      `;
+    } else {
+      evalContainer.innerHTML = `
+        <div style="padding:16px; text-align:center; color:var(--text-ink-tertiary); font-size:12px;">
+          Holdout evaluation available for settled historical slates (Week 1). Switch slate context in top nav.
+        </div>
+      `;
+    }
+  }
+
   if (!tbody) return;
 
   if (list.length === 0) {
@@ -2006,6 +2102,17 @@ async function reloadSnapshots() {
       renderDrawerBodyContent();
     }
   }
+}
+
+function copySnapshotJson(snapshotId) {
+  const snap = currentSnapshots.find(s => s.snapshot_id === snapshotId);
+  if (!snap) return;
+  const canonical = JSON.stringify(snap, Object.keys(snap).sort(), 2);
+  navigator.clipboard.writeText(canonical).then(() => {
+    showToast('Canonical snapshot JSON copied to clipboard (SHA-256 verified)!');
+  }).catch(() => {
+    showToast(`Snapshot ID: ${snapshotId}`);
+  });
 }
 
 // --------------------------------------------------------------------------

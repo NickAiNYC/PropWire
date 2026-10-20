@@ -334,6 +334,26 @@ async def post_freeze(request: Request):
         raise HTTPException(500, f"Freeze failed: {str(exc)}")
 
 
+@app.get("/api/holdout-eval")
+def get_holdout_eval(
+    season: int = Query(2026, description="NFL Season"),
+    week: int = Query(1, description="NFL Week")
+):
+    """
+    Returns chronological holdout evaluation report for a given slate.
+    """
+    filename = f"holdout_eval_{season}_w{week}.json"
+    p = os.path.join(VIEWER_DIR, filename)
+    if os.path.exists(p):
+        with open(p, "r", encoding="utf-8") as f:
+            return json.load(f)
+    p_eval = os.path.join(BASE_DIR, "evaluation", filename)
+    if os.path.exists(p_eval):
+        with open(p_eval, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return JSONResponse({"status": "no_eval"})
+
+
 # ---------------------------------------------------------------------------
 # Weekly Run Action (Shells out to week1.py and streams live progress)
 # ---------------------------------------------------------------------------
