@@ -4,13 +4,13 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#0d1117">
-  <meta name="build-hash" content="eb345df">
+  <meta name="build-hash" content="a81f3b2">
   <meta name="description" content="PROP·WIRE NFL receiving-props research terminal.">
   <title>PROP·WIRE — NFL receiving props</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="manifest" href="manifest.json">
-  <link rel="stylesheet" href="style.css?v=eb345df">
-  <script src="app.js?v=eb345df" defer></script>
+  <link rel="stylesheet" href="style.css?v=a81f3b2">
+  <script src="app.js?v=a81f3b2" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#slateBoard">Skip to slate</a>
@@ -76,18 +76,18 @@
       <div class="filter-top-bar">
         <div class="slate-mode-toggle" role="tablist" aria-label="Filter play status">
           <button type="button" class="mode-pill active" data-mode="actionable" role="tab" aria-selected="true" id="modeActionableBtn">
-            <span class="mode-icon">⚡</span> Active Opportunities <span class="mode-count" id="actionableCount">0</span>
+            <span class="mode-icon"><svg class="prop-icon icon-edge" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 1.5L2.5 9h5l-1 5.5L13.5 7h-5l1-5.5z"/></svg></span> Active Opportunities <span class="mode-count" id="actionableCount">0</span>
           </button>
           <button type="button" class="mode-pill" data-mode="all" role="tab" aria-selected="false" id="modeAllBtn">
-            <span class="mode-icon">📐</span> All Projections (Reference) <span class="mode-count" id="allCount">0</span>
+            <span class="mode-icon"><svg class="prop-icon icon-depth" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 5l6-3 6 3-6 3-6-3zM2 9.5l6 3 6-3M2 13l6 3 6-3"/></svg></span> All Projections (Reference) <span class="mode-count" id="allCount">0</span>
           </button>
         </div>
         <div class="intent-chips" role="group" aria-label="Quick intent filters">
           <button type="button" class="intent-chip active" data-intent="all">All Intent</button>
-          <button type="button" class="intent-chip" data-intent="edge">🔥 Highest Edge</button>
-          <button type="button" class="intent-chip" data-intent="surge">⚡ Role Surges</button>
-          <button type="button" class="intent-chip" data-intent="volume">🛡️ High Floor (7+ Tgt)</button>
-          <button type="button" class="intent-chip" data-intent="deep">🏹 Deep Threats (12+ aDOT)</button>
+          <button type="button" class="intent-chip" data-intent="edge"><svg class="prop-icon icon-edge" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 1.5L2.5 9h5l-1 5.5L13.5 7h-5l1-5.5z"/></svg> Highest Edge</button>
+          <button type="button" class="intent-chip" data-intent="surge"><svg class="prop-icon icon-surge" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1.5 8h3l2-5 3.5 10 2.5-6 1.5 2.5 2-.5"/></svg> Role Surges</button>
+          <button type="button" class="intent-chip" data-intent="volume"><svg class="prop-icon icon-volume" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 13.5v-4M6.5 13.5v-7M10.5 13.5v-10M14.5 13.5v-6"/></svg> High Floor (7+ Tgt)</button>
+          <button type="button" class="intent-chip" data-intent="deep"><svg class="prop-icon icon-deep" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 1v14M1 8h14"/><circle cx="8" cy="8" r="5.5"/></svg> Deep Threats (12+ aDOT)</button>
         </div>
       </div>
       <div class="prime-chips" id="primeChips" aria-label="Prime-time games"></div>

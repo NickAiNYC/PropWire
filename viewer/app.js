@@ -62,9 +62,22 @@
     return `https://a.espncdn.com/i/teamlogos/nfl/500/${code}.png`;
   }
 
+  const SVG_ICONS = {
+    edge: '<svg class="prop-icon icon-edge" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 1.5L2.5 9h5l-1 5.5L13.5 7h-5l1-5.5z"/></svg>',
+    surge: '<svg class="prop-icon icon-surge" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1.5 8h3l2-5 3.5 10 2.5-6 1.5 2.5 2-.5"/></svg>',
+    alpha: '<svg class="prop-icon icon-alpha" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="8" r="6.5"/><circle cx="8" cy="8" r="2.5"/></svg>',
+    air: '<svg class="prop-icon icon-air" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 13L13 3M13 3H7M13 3V9"/></svg>',
+    adot: '<svg class="prop-icon icon-deep" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 1v14M1 8h14"/><circle cx="8" cy="8" r="5.5"/></svg>',
+    volume: '<svg class="prop-icon icon-volume" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 13.5v-4M6.5 13.5v-7M10.5 13.5v-10M14.5 13.5v-6"/></svg>',
+    starter: '<svg class="prop-icon icon-starter" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="8" r="2.5"/><path d="M8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2"/></svg>',
+    depth: '<svg class="prop-icon icon-depth" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 5l6-3 6 3-6 3-6-3zM2 9.5l6 3 6-3M2 13l6 3 6-3"/></svg>',
+    lock: '<svg class="prop-icon icon-lock" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="6.5" width="9" height="8" rx="1.5"/><path d="M5.5 6.5V4.5a2.5 2.5 0 015 0v2"/></svg>',
+    warn: '<svg class="prop-icon icon-warn" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2.5L1.5 13.5h13L8 2.5zM8 6.5v3.5M8 11.5v.5"/></svg>'
+  };
+
   function keyDriverTag(row, beneficiary) {
     if (beneficiary) {
-      return `<span class="driver-badge surge" title="Role surge catalyst: ${esc(beneficiary.catalyst_injury || 'Vacancy')}">⚡ Surge (+${num(beneficiary.added_targets).toFixed(1)} tgt)</span>`;
+      return `<span class="driver-badge surge" title="Role surge catalyst: ${esc(beneficiary.catalyst_injury || 'Vacancy')}">${SVG_ICONS.surge} Surge (+${num(beneficiary.added_targets).toFixed(1)} tgt)</span>`;
     }
     const share = num(row.f_tgt_share || row.target_share);
     const ayShare = num(row.f_ay_share || row.air_yards_share);
@@ -72,21 +85,21 @@
     const tgts = num(row.c_targets);
 
     if (share >= 0.25) {
-      return `<span class="driver-badge alpha" title="Target share alpha: ${pct(share)}">🎯 Alpha (${pct(share, 0)})</span>`;
+      return `<span class="driver-badge alpha" title="Target share alpha: ${pct(share)}">${SVG_ICONS.alpha} Alpha (${pct(share, 0)})</span>`;
     }
     if (ayShare >= 0.35) {
-      return `<span class="driver-badge air" title="Air yards share: ${pct(ayShare)}">🚀 Air Lead (${pct(ayShare, 0)})</span>`;
+      return `<span class="driver-badge air" title="Air yards share: ${pct(ayShare)}">${SVG_ICONS.air} Air Lead (${pct(ayShare, 0)})</span>`;
     }
     if (adot >= 12.5) {
-      return `<span class="driver-badge adot" title="Average depth of target: ${adot.toFixed(1)} yds">🏹 Deep (${adot.toFixed(1)} aDOT)</span>`;
+      return `<span class="driver-badge adot" title="Average depth of target: ${adot.toFixed(1)} yds">${SVG_ICONS.adot} Deep (${adot.toFixed(1)} aDOT)</span>`;
     }
     if (tgts >= 6.5) {
-      return `<span class="driver-badge volume" title="Target volume: ${tgts.toFixed(1)} tgt/gm">📊 Volume (${tgts.toFixed(1)} tgt)</span>`;
+      return `<span class="driver-badge volume" title="Target volume: ${tgts.toFixed(1)} tgt/gm">${SVG_ICONS.volume} Volume (${tgts.toFixed(1)} tgt)</span>`;
     }
     if (share >= 0.16) {
-      return `<span class="driver-badge starter" title="Starting share: ${pct(share)}">⚡ Starter (${pct(share, 0)})</span>`;
+      return `<span class="driver-badge starter" title="Starting share: ${pct(share)}">${SVG_ICONS.starter} Starter (${pct(share, 0)})</span>`;
     }
-    return `<span class="driver-badge depth" title="Rotational depth target">⚙️ Depth</span>`;
+    return `<span class="driver-badge depth" title="Rotational depth target">${SVG_ICONS.depth} Depth</span>`;
   }
 
   function predictionInterval(row) {
@@ -525,7 +538,7 @@
     const fair = fairValue(row);
     const projection = projectionValue(row);
     const thirdLabel = evaluation.state === 'none' ? 'Projection' : 'Price check';
-    const thirdValue = evaluation.state === 'none' ? projection.toFixed(1) : evaluation.state === 'ingested' ? `🔒 ${signedPct(evaluation.edge)}` : signedPct(evaluation.edge);
+    const thirdValue = evaluation.state === 'none' ? projection.toFixed(1) : evaluation.state === 'ingested' ? `${SVG_ICONS.lock} ${signedPct(evaluation.edge)}` : signedPct(evaluation.edge);
     const thirdClass = evaluation.state === 'verified' ? evaluation.tone : evaluation.state === 'ingested' ? 'price-lock' : '';
     const logoImg = `<img class="team-logo-badge" src="${esc(teamLogoUrl(row.team))}" alt="${esc(row.team)}" width="28" height="28" loading="lazy" onerror="this.style.display='none'">`;
     return `<article class="prop-card" data-testid="slate-card" data-player-id="${esc(row.player_id)}" tabindex="0" role="button">
@@ -626,16 +639,16 @@
 
   function bookCell(evaluation, injury) {
     if (evaluation.state === 'none') {
-      return `<div class="book-cell"><span class="number-main">No quote</span><div class="book-meta"><span class="meta-pill model-only">Model only</span>${injury ? `<span class="injury-warning-tag" title="Snap risk unpriced">⚠️ ${esc(injury.report_status)}</span>` : ''}</div></div>`;
+      return `<div class="book-cell"><span class="number-main">No quote</span><div class="book-meta"><span class="meta-pill model-only">Model only</span>${injury ? `<span class="injury-warning-tag" title="Snap risk unpriced">${SVG_ICONS.warn} ${esc(injury.report_status)}</span>` : ''}</div></div>`;
     }
     const statusPill = evaluation.closed
       ? '<span class="meta-pill closed">Closed</span>'
       : evaluation.dataCheck
-        ? '<span class="meta-pill caution" title="Verify before acting: edge > 12%">⚠️ Verify</span>'
+        ? `<span class="meta-pill caution" title="Verify before acting: edge > 12%">${SVG_ICONS.warn} Verify</span>`
         : evaluation.actionable
-          ? '<span class="meta-pill actionable">⚡ Active</span>'
+          ? `<span class="meta-pill actionable">${SVG_ICONS.edge} Active</span>`
           : evaluation.state === 'ingested'
-            ? '<span class="meta-pill unverified" title="Ingested quote pending receipt verification">🔒 Unverified</span>'
+            ? `<span class="meta-pill unverified" title="Ingested quote pending receipt verification">${SVG_ICONS.lock} Unverified</span>`
             : '<span class="meta-pill">Active</span>';
 
     return `<div class="book-cell">
@@ -643,7 +656,7 @@
       <div class="book-meta">
         <span class="book-tag">${esc(bookShort(evaluation.book))}</span>
         ${statusPill}
-        ${injury ? `<span class="injury-warning-tag" title="Snap risk unpriced">⚠️ ${esc(injury.report_status)}</span>` : ''}
+        ${injury ? `<span class="injury-warning-tag" title="Snap risk unpriced">${SVG_ICONS.warn} ${esc(injury.report_status)}</span>` : ''}
       </div>
     </div>`;
   }
@@ -652,7 +665,7 @@
     if (evaluation.state === 'none') return '<span class="cell-sub">No price comparison</span>';
     if (evaluation.state === 'ingested') {
       return `<div class="edge-box unverified" data-quote-state="ingested">
-        <span class="edge-badge-unverified" title="Ingested price quote pending receipt verification">🔒 ${signedPct(evaluation.edge)} Edge</span>
+        <span class="edge-badge-unverified" title="Ingested price quote pending receipt verification">${SVG_ICONS.lock} ${signedPct(evaluation.edge)} Edge</span>
         <span class="edge-sub-meta">Return ${signedPct(evaluation.ev)} · Stake 0.00%</span>
       </div>`;
     }
@@ -664,12 +677,12 @@
     }
     if (evaluation.dataCheck) {
       return `<div class="edge-box caution" data-quote-state="verified">
-        <span class="edge-badge-caution" title="Verify before acting: edge > 12%">⚠️ ${signedPct(evaluation.edge)} Edge</span>
+        <span class="edge-badge-caution" title="Verify before acting: edge > 12%">${SVG_ICONS.warn} ${signedPct(evaluation.edge)} Edge</span>
         <span class="edge-sub-meta hover-help" title="Likely causes: stale price, name mismatch, unmodeled injury, or role change.">Verify before acting</span>
       </div>`;
     }
     return `<div class="edge-box actionable" data-quote-state="verified">
-      <span class="edge-badge-pop" title="Verified edge: ${signedPct(evaluation.edge)}">⚡ ${signedPct(evaluation.edge)} Edge</span>
+      <span class="edge-badge-pop" title="Verified edge: ${signedPct(evaluation.edge)}">${SVG_ICONS.edge} ${signedPct(evaluation.edge)} Edge</span>
       <span class="edge-sub-meta">Return ${signedPct(evaluation.ev)} · Stake ${pct(evaluation.stake, 2)}</span>
     </div>`;
   }
@@ -700,9 +713,9 @@
     if (row.excl_reason) return `<span class="meta-pill closed">Excluded</span>`;
     if (evaluation.closed) return `<span class="meta-pill closed">Closed</span>`;
     if (evaluation.state === 'none') return `<span class="meta-pill model-only">Model Only</span>`;
-    if (evaluation.dataCheck) return `<span class="meta-pill caution" title="Verify before acting: large edge">⚠️ Verify (${signedPct(evaluation.edge)})</span>`;
-    if (evaluation.actionable) return `<span class="meta-pill actionable">⚡ ${signedPct(evaluation.ev)} EV</span>`;
-    if (evaluation.state === 'ingested') return `<span class="meta-pill unverified" title="Ingested price quote pending receipt verification">🔒 Unverified (${signedPct(evaluation.edge)})</span>`;
+    if (evaluation.dataCheck) return `<span class="meta-pill caution" title="Verify before acting: large edge">${SVG_ICONS.warn} Verify (${signedPct(evaluation.edge)})</span>`;
+    if (evaluation.actionable) return `<span class="meta-pill actionable">${SVG_ICONS.edge} ${signedPct(evaluation.ev)} EV</span>`;
+    if (evaluation.state === 'ingested') return `<span class="meta-pill unverified" title="Ingested price quote pending receipt verification">${SVG_ICONS.lock} Unverified (${signedPct(evaluation.edge)})</span>`;
     return `<span class="meta-pill">${signedPct(evaluation.ev)} EV</span>`;
   }
 
@@ -769,7 +782,7 @@
     const beneficiary = beneficiaryFor(row);
     const fair = fairValue(row);
     const projection = projectionValue(row);
-    $('#detailTitle').innerHTML = `<div class="detail-title-row"><img class="team-logo-badge" src="${esc(teamLogoUrl(row.team))}" alt="${esc(row.team)}" width="30" height="30" loading="lazy" onerror="this.style.display='none'"><span>${esc(row.player_display_name)}</span>${beneficiary ? ' <span class="surge-tag">⚡ ROLE SURGE</span>' : ''}</div>`;
+    $('#detailTitle').innerHTML = `<div class="detail-title-row"><img class="team-logo-badge" src="${esc(teamLogoUrl(row.team))}" alt="${esc(row.team)}" width="30" height="30" loading="lazy" onerror="this.style.display='none'"><span>${esc(row.player_display_name)}</span>${beneficiary ? ` <span class="surge-tag">${SVG_ICONS.surge} ROLE SURGE</span>` : ''}</div>`;
     $('#detailMeta').textContent = `${row.position} · ${row.team} ${row.is_home ? 'vs' : '@'} ${row.opponent_team} · ${state.filters.market === 'receptions' ? 'Receptions' : 'Receiving yards'}`;
     $('#detailContent').innerHTML = detailMarkup(row, evaluation, injury, beneficiary, fair, projection);
     $('#detailDialog').showModal();
@@ -785,10 +798,10 @@
     const actionStat = evaluation.state === 'none'
       ? `<div class="detail-stat"><span>Projection</span><strong>${projection.toFixed(1)}</strong></div>`
       : evaluation.state === 'ingested'
-        ? `<div class="detail-stat metric-lock"><span>Price check</span><strong>🔒 ${signedPct(evaluation.edge)}</strong><small class="cell-sub">Stake 0.00%</small></div>`
+        ? `<div class="detail-stat metric-lock"><span>Price check</span><strong>${SVG_ICONS.lock} ${signedPct(evaluation.edge)}</strong><small class="cell-sub">Stake 0.00%</small></div>`
         : `<div class="detail-stat ${evaluation.tone}"><span>Price check</span><strong>${signedPct(evaluation.edge)}</strong><small class="cell-sub">Return ${signedPct(evaluation.ev)} · Stake ${pct(evaluation.stake, 2)}</small></div>`;
     const receipt = evaluation.quote ? evaluation.quote.receipt_id || evaluation.quote.provider_quote_id || evaluation.quote.source_url || 'No receipt' : 'No quote';
-    const surgeSection = beneficiary ? `<div class="detail-section"><h3>⚡ Role Surge Breakdown</h3><div class="warning-box" style="border-color: color-mix(in srgb, var(--accent) 55%, var(--line)); background: color-mix(in srgb, var(--accent) 12%, transparent); color: var(--text);"><strong>${esc(beneficiary.role_label || 'Role surge')}</strong><div style="margin-top:4px; font-size:12px; line-height:1.4;"><strong>Catalyst:</strong> ${esc(beneficiary.catalyst_injury || 'Injury Vacancy')}<br><strong>Redistribution:</strong> +${num(beneficiary.added_targets).toFixed(1)} targets, +${num(beneficiary.added_air_yards).toFixed(1)} air yards (${pct(beneficiary.absorption_share)} absorption)<br><span style="color:var(--muted)"><strong>Risk factor:</strong> ${esc(beneficiary.invalidation_risk || 'None')}</span></div></div></div>` : '';
+    const surgeSection = beneficiary ? `<div class="detail-section"><h3>${SVG_ICONS.surge} Role Surge Breakdown</h3><div class="warning-box" style="border-color: color-mix(in srgb, var(--accent) 55%, var(--line)); background: color-mix(in srgb, var(--accent) 12%, transparent); color: var(--text);"><strong>${esc(beneficiary.role_label || 'Role surge')}</strong><div style="margin-top:4px; font-size:12px; line-height:1.4;"><strong>Catalyst:</strong> ${esc(beneficiary.catalyst_injury || 'Injury Vacancy')}<br><strong>Redistribution:</strong> +${num(beneficiary.added_targets).toFixed(1)} targets, +${num(beneficiary.added_air_yards).toFixed(1)} air yards (${pct(beneficiary.absorption_share)} absorption)<br><span style="color:var(--muted)"><strong>Risk factor:</strong> ${esc(beneficiary.invalidation_risk || 'None')}</span></div></div></div>` : '';
     return `<div class="detail-hero">
       ${priceStat}
       <div class="detail-stat"><span>Model fair</span><strong>${fair.toFixed(1)}</strong><small class="cell-sub">${fairProbabilityText(row)}</small></div>
