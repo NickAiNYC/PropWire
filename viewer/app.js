@@ -35,7 +35,7 @@
     picks: {},
     injuries: { injuries: [], impacted_beneficiaries: {} },
     odds: { quotes: [] },
-    filters: { search: '', market: 'receiving_yards', position: 'ALL', team: '', gameId: '' },
+    filters: { search: '', market: 'receiving_yards', position: 'ALL', team: '', gameId: '', playMode: 'all' },
     view: matchMedia('(max-width: 680px)').matches ? 'cards' : 'table',
     deferredInstall: null,
     selectedPlayerId: null
@@ -72,6 +72,7 @@
     $('#positionFilter').addEventListener('change', syncFilters);
     $('#teamFilter').addEventListener('input', syncFilters);
     $('#clearFilters').addEventListener('click', clearFilters);
+    $$('.slate-mode-toggle button').forEach((button) => button.addEventListener('click', () => setPlayMode(button.dataset.mode)));
     $$('.view-switch button').forEach((button) => button.addEventListener('click', () => setView(button.dataset.view)));
     $('#slateRows').addEventListener('click', inspectFromEvent);
     $('#cardView').addEventListener('click', inspectFromEvent);
@@ -293,17 +294,38 @@
   }
 
   function clearFilters() {
-    state.filters = { search: '', market: state.filters.market, position: 'ALL', team: '', gameId: '' };
+    state.filters = { search: '', market: state.filters.market, position: 'ALL', team: '', gameId: '', playMode: 'all' };
     $('#searchInput').value = '';
     $('#positionFilter').value = 'ALL';
     $('#teamFilter').value = '';
+    $$('.slate-mode-toggle button').forEach((btn) => {
+      const active = btn.dataset.mode === 'all';
+      btn.classList.toggle('active', active);
+      btn.setAttribute('aria-selected', String(active));
+    });
     renderGameChips();
     renderBoard();
   }
 
+  function setPlayMode(mode) {
+    state.filters.playMode = mode;
+    $$('.slate-mode-toggle button').forEach((btn) => {
+      const active = btn.dataset.mode === mode;
+      btn.classList.toggle('active', active);
+      btn.setAttribute('aria-selected', String(active));
+    });
+    renderBoard();
+  }
+
+  function beneficiaryFor(row) {
+    const map = (state.injuries && state.injuries.impacted_beneficiaries) || {};
+    return map[row.player_id] || null;
+  }
+
   function filteredRows() {
-    const { search, position, team, gameId } = state.filters;
+    const { search, position, team, gameId, playMode } = state.filters;
     return state.slate.filter((row) => {
+      if (playMode === 'actionable' && !findQuote(row, state.filters.market)) return false;
       if (position !== 'ALL' && row.position !== position) return false;
       if (team && row.team !== team) return false;
       if (gameId && row.game_id !== gameId) return false;
@@ -318,6 +340,10 @@
   function renderBoard() {
     const rows = filteredRows();
     const hasPrices = rows.some((row) => Boolean(findQuote(row, state.filters.market)));
+    const totalCount = state.slate.length;
+    const quotedCount = state.slate.filter((row) => Boolean(findQuote(row, state.filters.market))).length;
+    if ($('#allCount')) $('#allCount').textContent = totalCount;
+    if ($('#actionableCount')) $('#actionableCount').textContent = quotedCount;
     $('#resultCount').textContent = `${rows.length} of ${state.slate.length} player records`;
     $('#slateHead').innerHTML = tableHead(hasPrices);
     $('#slateRows').innerHTML = rows.map((row) => tableRow(row, hasPrices)).join('');
@@ -329,27 +355,34 @@
 
   function tableHead(hasPrices) {
     return `<tr>
-      <th style="width:22%">Player</th>
+      <th style="width:24%">Player</th>
       <th style="width:10%">Matchup</th>
       <th style="width:14%">Book line</th>
-      <th style="width:15%">Model fair</th>
-      ${hasPrices ? '<th style="width:15%">Price check</th><th style="width:14%">Hurdle / Target</th>' : ''}
+      <th style="width:18%">Model (Fair | Proj)</th>
+      ${hasPrices ? '<th style="width:14%">Price check</th><th style="width:12%">Hurdle / Target</th>' : ''}
       <th style="width:12%">State</th>
-      <th style="width:8%"><span class="sr-only">Inspect</span></th>
+      <th style="width:6%"><span class="sr-only">Inspect</span></th>
     </tr>`;
   }
 
   function tableRow(row, hasPrices) {
     const evaluation = evaluateRow(row);
     const injury = injuryFor(row);
+    const beneficiary = beneficiaryFor(row);
     const fair = fairValue(row);
     const projection = projectionValue(row);
     const fairProbability = fairProbabilityText(row);
+    const surgeBadge = beneficiary ? `<span class="surge-tag" title="${esc(beneficiary.role_label || 'Role surge')} · Catalyst: ${esc(beneficiary.catalyst_injury || 'Injury Vacancy')}">⚡ ROLE SURGE</span>` : '';
     return `<tr data-testid="slate-row" data-player-id="${esc(row.player_id)}">
-      <td><div class="player-cell"><span class="position-box">${esc(row.position)}</span><div><div class="player-name">${esc(row.player_display_name)}${injury ? `<span class="injury-tag">${esc(injury.report_status)}</span>` : ''}</div><span class="cell-sub">${esc(roleLabel(row))}</span></div></div></td>
+      <td><div class="player-cell"><span class="position-box">${esc(row.position)}</span><div><div class="player-name">${esc(row.player_display_name)}${injury ? `<span class="injury-tag">${esc(injury.report_status)}</span>` : ''}${surgeBadge}</div><span class="cell-sub">${esc(roleLabel(row))}</span></div></div></td>
       <td><span class="number-main">${esc(row.team)}</span><span class="cell-sub">${row.is_home ? 'vs' : '@'} ${esc(row.opponent_team)}</span></td>
       <td>${bookCell(evaluation)}</td>
-      <td><span class="number-main">${fair.toFixed(1)}</span><span class="cell-sub">Proj ${projection.toFixed(1)} · ${fairProbability}</span></td>
+      <td>
+        <div class="split-cell">
+          <span class="number-main"><span class="label-dim">Fair</span> ${fair.toFixed(1)} <span class="split-divider">|</span> <span class="label-dim">Proj</span> ${projection.toFixed(1)}</span>
+          <span class="cell-sub">${fairProbability}</span>
+        </div>
+      </td>
       ${hasPrices ? `<td>${priceCheckCell(evaluation)}</td><td>${gaugeCell(row, evaluation)}</td>` : ''}
       <td>${stateCell(row, evaluation, injury)}</td>
       <td><button class="inspect-button" type="button" data-inspect="${esc(row.player_id)}" aria-label="Inspect ${esc(row.player_display_name)}">Inspect</button></td>
@@ -359,16 +392,18 @@
   function propCard(row) {
     const evaluation = evaluateRow(row);
     const injury = injuryFor(row);
+    const beneficiary = beneficiaryFor(row);
     const fair = fairValue(row);
     const projection = projectionValue(row);
     const thirdLabel = evaluation.state === 'none' ? 'Projection' : 'Price check';
     const thirdValue = evaluation.state === 'none' ? projection.toFixed(1) : evaluation.state === 'ingested' ? `🔒 ${signedPct(evaluation.edge)}` : signedPct(evaluation.edge);
     const thirdClass = evaluation.state === 'verified' ? evaluation.tone : evaluation.state === 'ingested' ? 'price-lock' : '';
+    const surgeBadge = beneficiary ? `<span class="surge-tag" title="${esc(beneficiary.role_label || 'Role surge')} · Catalyst: ${esc(beneficiary.catalyst_injury || 'Injury Vacancy')}">⚡ ROLE SURGE</span>` : '';
     return `<article class="prop-card" data-testid="slate-card" data-player-id="${esc(row.player_id)}">
-      <div class="card-top"><div><h2>${esc(row.player_display_name)}${injury ? `<span class="injury-tag">${esc(injury.report_status)}</span>` : ''}</h2><p>${esc(row.position)} · ${esc(row.team)} ${row.is_home ? 'vs' : '@'} ${esc(row.opponent_team)}</p></div>${statePill(row, evaluation)}</div>
+      <div class="card-top"><div><h2>${esc(row.player_display_name)}${injury ? `<span class="injury-tag">${esc(injury.report_status)}</span>` : ''}${surgeBadge}</h2><p>${esc(row.position)} · ${esc(row.team)} ${row.is_home ? 'vs' : '@'} ${esc(row.opponent_team)}</p></div>${statePill(row, evaluation)}</div>
       <div class="card-numbers">
         <div class="card-number"><span>Book line</span><strong>${evaluation.state === 'none' ? 'No quote' : `${evaluation.line.toFixed(1)} ${oddsText(evaluation.odds)}`}</strong></div>
-        <div class="card-number"><span>Model fair</span><strong>${fair.toFixed(1)}</strong><small class="cell-sub">${fairProbabilityText(row)}</small></div>
+        <div class="card-number"><span>Model Fair | Proj</span><strong>${fair.toFixed(1)} <span class="split-divider">|</span> ${projection.toFixed(1)}</strong><small class="cell-sub">${fairProbabilityText(row)}</small></div>
         <div class="card-number ${thirdClass}"><span>${thirdLabel}</span><strong>${thirdValue}</strong>${evaluation.state === 'ingested' ? '<small class="cell-sub">Stake 0.00%</small>' : evaluation.state === 'verified' ? `<small class="cell-sub">Return ${signedPct(evaluation.ev)}</small>` : ''}</div>
       </div>
       <div class="card-bottom"><span class="meta-pill ${evaluation.tone}">${esc(metaText(row, evaluation))}</span><button class="inspect-button" type="button" data-inspect="${esc(row.player_id)}">Inspect</button></div>
@@ -538,15 +573,16 @@
     state.selectedPlayerId = playerId;
     const evaluation = evaluateRow(row);
     const injury = injuryFor(row);
+    const beneficiary = beneficiaryFor(row);
     const fair = fairValue(row);
     const projection = projectionValue(row);
-    $('#detailTitle').textContent = row.player_display_name;
+    $('#detailTitle').innerHTML = `${esc(row.player_display_name)}${beneficiary ? ' <span class="surge-tag">⚡ ROLE SURGE</span>' : ''}`;
     $('#detailMeta').textContent = `${row.position} · ${row.team} ${row.is_home ? 'vs' : '@'} ${row.opponent_team} · ${state.filters.market === 'receptions' ? 'Receptions' : 'Receiving yards'}`;
-    $('#detailContent').innerHTML = detailMarkup(row, evaluation, injury, fair, projection);
+    $('#detailContent').innerHTML = detailMarkup(row, evaluation, injury, beneficiary, fair, projection);
     $('#detailDialog').showModal();
   }
 
-  function detailMarkup(row, evaluation, injury, fair, projection) {
+  function detailMarkup(row, evaluation, injury, beneficiary, fair, projection) {
     const probabilities = evaluation.quote ? devig(evaluation.quote.over_odds, evaluation.quote.under_odds) : null;
     const marketProbability = probabilities ? (evaluation.side === 'UNDER' ? probabilities.under : probabilities.over) : null;
     const breakEven = evaluation.state !== 'none' ? 1 / americanToDecimal(evaluation.odds) : null;
@@ -559,11 +595,13 @@
         ? `<div class="detail-stat metric-lock"><span>Price check</span><strong>🔒 ${signedPct(evaluation.edge)}</strong><small class="cell-sub">Stake 0.00%</small></div>`
         : `<div class="detail-stat ${evaluation.tone}"><span>Price check</span><strong>${signedPct(evaluation.edge)}</strong><small class="cell-sub">Return ${signedPct(evaluation.ev)} · Stake ${pct(evaluation.stake, 2)}</small></div>`;
     const receipt = evaluation.quote ? evaluation.quote.receipt_id || evaluation.quote.provider_quote_id || evaluation.quote.source_url || 'No receipt' : 'No quote';
+    const surgeSection = beneficiary ? `<div class="detail-section"><h3>⚡ Role Surge Breakdown</h3><div class="warning-box" style="border-color: color-mix(in srgb, var(--accent) 55%, var(--line)); background: color-mix(in srgb, var(--accent) 12%, transparent); color: var(--text);"><strong>${esc(beneficiary.role_label || 'Role surge')}</strong><div style="margin-top:4px; font-size:12px; line-height:1.4;"><strong>Catalyst:</strong> ${esc(beneficiary.catalyst_injury || 'Injury Vacancy')}<br><strong>Redistribution:</strong> +${num(beneficiary.added_targets).toFixed(1)} targets, +${num(beneficiary.added_air_yards).toFixed(1)} air yards (${pct(beneficiary.absorption_share)} absorption)<br><span style="color:var(--muted)"><strong>Risk factor:</strong> ${esc(beneficiary.invalidation_risk || 'None')}</span></div></div></div>` : '';
     return `<div class="detail-hero">
       ${priceStat}
       <div class="detail-stat"><span>Model fair</span><strong>${fair.toFixed(1)}</strong><small class="cell-sub">${fairProbabilityText(row)}</small></div>
       ${actionStat}
     </div>
+    ${surgeSection}
     ${evaluation.state !== 'none' ? `<div class="detail-section"><h3>Hurdle / Target</h3>${gaugeCell(row, evaluation)}<p>Target is the nearest model line that clears the JSON gate at the displayed price. The sportsbook offer remains ${evaluation.state === 'verified' ? 'receipt-verified' : 'unverified'}.</p></div>` : ''}
     <div class="detail-section"><h3>Why this projection</h3><dl class="detail-list">
       <div><dt>Target share</dt><dd>${pct(row.f_tgt_share || row.target_share)}</dd></div>

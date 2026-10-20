@@ -119,6 +119,13 @@ button { color: inherit; }
 .view-switch button.active { background: var(--surface-3); color: var(--text); }
 
 .filter-panel { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); padding: 12px; }
+.slate-mode-toggle { display: inline-flex; gap: 6px; padding: 4px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface-2); margin-bottom: 12px; }
+.mode-pill { display: inline-flex; align-items: center; gap: 8px; min-height: 34px; padding: 0 14px; border: 1px solid transparent; border-radius: 7px; background: transparent; color: var(--muted); font: 750 12px/1 var(--sans); cursor: pointer; transition: all .15s ease; }
+.mode-pill:hover { color: var(--text); background: color-mix(in srgb, var(--surface-3) 70%, transparent); }
+.mode-pill.active { background: var(--surface); color: var(--text); border-color: var(--line-strong); box-shadow: 0 2px 6px rgba(0, 0, 0, .25); }
+.mode-icon { font-size: 13px; }
+.mode-count { display: inline-flex; align-items: center; padding: 2px 7px; border-radius: 999px; background: var(--surface-3); color: var(--muted); font: 700 10px/1 var(--mono); }
+.mode-pill.active .mode-count { background: color-mix(in srgb, var(--accent) 20%, var(--surface-2)); color: var(--accent); border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent); }
 .prime-chips { display: flex; gap: 7px; padding-bottom: 10px; overflow-x: auto; scrollbar-width: none; }
 .prime-chips::-webkit-scrollbar { display: none; }
 .game-chip { flex: 0 0 auto; min-height: 36px; border: 1px solid var(--line); border-radius: 999px; padding: 0 13px; background: transparent; color: var(--muted); font: 750 11px/1 var(--mono); cursor: pointer; }
@@ -140,6 +147,10 @@ button { color: inherit; }
 .player-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 780; }
 .cell-sub { display: block; margin-top: 2px; color: var(--faint); font: 650 10px/1.2 var(--mono); }
 .number-main { font: 800 14px/1.2 var(--mono); }
+.split-cell { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.split-cell .number-main { white-space: nowrap; font: 800 13px/1.2 var(--mono); }
+.label-dim { color: var(--faint); font: 700 9px/1 var(--mono); text-transform: uppercase; letter-spacing: .05em; margin-right: 2px; }
+.split-divider { display: inline-block; margin: 0 4px; color: var(--line-strong); font-weight: 400; }
 .price-lock { color: var(--faint); }
 .metric-lock { color: var(--faint); }
 .metric-lock .number-main { text-decoration: line-through; text-decoration-thickness: 1px; }
@@ -152,6 +163,11 @@ button { color: inherit; }
 .meta-pill.verified { border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); }
 .meta-pill.caution { border-color: color-mix(in srgb, var(--amber) 55%, var(--line)); color: var(--amber); }
 .injury-tag { display: inline-flex; min-height: 22px; align-items: center; margin-left: 5px; padding: 0 7px; border: 1px solid color-mix(in srgb, var(--amber) 52%, var(--line)); border-radius: 999px; color: var(--amber); font: 800 9px/1 var(--mono); vertical-align: middle; }
+.surge-tag { display: inline-flex; min-height: 22px; align-items: center; margin-left: 6px; padding: 0 8px; border: 1px solid color-mix(in srgb, var(--accent) 65%, transparent); border-radius: 999px; background: color-mix(in srgb, var(--accent) 15%, transparent); color: var(--accent); font: 800 9px/1 var(--mono); letter-spacing: .04em; vertical-align: middle; box-shadow: 0 0 8px color-mix(in srgb, var(--accent) 25%, transparent); animation: surge-glow 2.4s ease-in-out infinite alternate; }
+@keyframes surge-glow {
+  0% { box-shadow: 0 0 4px color-mix(in srgb, var(--accent) 20%, transparent); }
+  100% { box-shadow: 0 0 12px color-mix(in srgb, var(--accent) 50%, transparent); }
+}
 .inspect-button { min-height: 40px; border: 1px solid var(--line); border-radius: 8px; padding: 0 11px; background: transparent; color: var(--muted); font-weight: 750; cursor: pointer; }
 .inspect-button:hover { color: var(--text); border-color: var(--line-strong); }
 
@@ -244,6 +260,8 @@ button { color: inherit; }
   .injury-line { grid-template-columns: 1fr auto; }
   .filters { grid-template-columns: 1fr; }
   .search-control { grid-column: auto; }
+  .slate-mode-toggle { width: 100%; display: flex; }
+  .mode-pill { flex: 1; justify-content: center; padding-inline: 8px; font-size: 11px; }
   .card-numbers { gap: 5px; }
   .card-number { padding: 8px 6px; }
   .card-number strong { font-size: 12px; }

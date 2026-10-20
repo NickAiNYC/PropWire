@@ -73,6 +73,14 @@
     </section>
 
     <section class="filter-panel" aria-label="Slate filters">
+      <div class="slate-mode-toggle" role="tablist" aria-label="Filter play status">
+        <button type="button" class="mode-pill active" data-mode="all" role="tab" aria-selected="true" id="modeAllBtn">
+          <span class="mode-icon">📐</span> All Model Projections <span class="mode-count" id="allCount">0</span>
+        </button>
+        <button type="button" class="mode-pill" data-mode="actionable" role="tab" aria-selected="false" id="modeActionableBtn">
+          <span class="mode-icon">⚡</span> Actionable Plays Only <span class="mode-count" id="actionableCount">0</span>
+        </button>
+      </div>
       <div class="prime-chips" id="primeChips" aria-label="Prime-time games"></div>
       <div class="filters">
         <label class="search-control">
