@@ -195,7 +195,7 @@ def main():
         print(f"  SETTLED GAMES OUT-OF-SAMPLE AUDIT  |  {a.season} Week {a.week} (n={n})")
         print(f"{'=' * 78}")
         print(f"  Yards Over-rate vs Fair Line: {over_yds:.1%} ({sum(settled_scored['actual_yards'] > settled_scored['fair_line_yards'])}/{n}, expected ~50%)")
-        print(f"  Rec Over-rate vs Fair Line:   {over_rec:.1%} ({sum(settled_scored['actual_rec'] > settled_scored['fair_line_rec'])}/{n}, expected ~50%)")
+        print(f"  Rec Over-rate vs Fair Line:   {over_rec:.1%} ({sum(settled_scored['actual_rec'] > settled_scored['fair_line_rec'])}/{n}, discrete half-step; expected player-level P(over) range ~40-62%)")
         print(f"  Mean Error (Actual - Proj):   {err_yds.mean():+.1f} yds (MAE {err_yds.abs().mean():.1f}), {err_rec.mean():+.2f} rec (MAE {err_rec.abs().mean():.2f})")
         print(f"  Correlation r:                {r_yds:.3f} (Yards), {r_rec:.3f} (Receptions)")
         print(f"  Guardrail Takeaway:           Directional under-bias replicated. Lean Under on close calls.")
@@ -218,7 +218,7 @@ def main():
             "proj_rec", "fair_line_rec", "proj_yards", "fair_line_yards",
             "questionable"]
     top = ok.sort_values("proj_yards", ascending=False).head(a.top)
-    print(f"\n  TOP {a.top} BY PROJECTED YARDS (fair lines = model median)\n")
+    print(f"\n  TOP {a.top} BY PROJECTED YARDS (yards fair line = calibrated median; receptions = closest half-step)\n")
     print(top[cols].to_string(index=False,
                               float_format=lambda x: f"{x:.1f}"))
 
@@ -267,15 +267,19 @@ def main():
     picks_payload = {
         "season": a.season,
         "week": a.week,
+        "gate_edge": W1_MIN_EDGE if a.week == 1 else MIN_EDGE,
+        "kelly_cap": W1_KELLY_CAP if a.week == 1 else KELLY_CAP,
+        "rostered_player_records": len(slate),
+        "projectable_player_records": len(ok),
         "note": "Top 25 Projections & Fair Lines (Active Games Only)",
         "picks": picks_list
     }
     for target_name in ["current_picks.json", "top_picks.json"]:
         with open(target_name, "w") as f:
-            json.dump(picks_payload, f, indent=2)
+            json.dump(picks_payload, f, indent=2, allow_nan=False)
         if os.path.exists("viewer"):
             with open(os.path.join("viewer", target_name), "w") as f:
-                json.dump(picks_payload, f, indent=2)
+                json.dump(picks_payload, f, indent=2, allow_nan=False)
     print("  current_picks.json & top_picks.json -> generated and synced to viewer/")
 
     if not a.odds:

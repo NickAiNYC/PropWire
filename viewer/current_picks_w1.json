@@ -1,6 +1,10 @@
 {
   "season": 2026,
   "week": 1,
+  "gate_edge": 0.1,
+  "kelly_cap": 0.005,
+  "rostered_player_records": 431,
+  "projectable_player_records": 146,
   "dates": "Sept 10 - Sept 14, 2026",
   "status": "Historical Audit",
   "has_verified_quotes": false,
