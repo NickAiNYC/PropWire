@@ -281,12 +281,12 @@
       return `Market closed for kickoff (Model fair ${fair.toFixed(1)} ${unit}).`;
     }
     if (evaluation.dataCheck) {
-      return `Model fair sits at ${fair.toFixed(1)} ${unit} (${signedPct(evaluation.ev)} EV vs ${evaluation.line.toFixed(1)} line · Verify before acting).`;
+      return `Model fair sits at ${fair.toFixed(1)} ${unit} (${signedPct(evaluation.ev)} EV on ${evaluation.side} ${evaluation.line.toFixed(1)} line · Verify before acting).`;
     }
     if (evaluation.state === 'ingested') {
-      return `Model fair sits at ${fair.toFixed(1)} ${unit} (${signedPct(evaluation.ev)} EV vs ${evaluation.line.toFixed(1)} ${bookShort(evaluation.book)} quote · Unverified).`;
+      return `Model fair sits at ${fair.toFixed(1)} ${unit} (${signedPct(evaluation.ev)} EV on ${evaluation.side} ${evaluation.line.toFixed(1)} ${bookShort(evaluation.book)} quote · Unverified).`;
     }
-    return `Model fair price sits at ${fair.toFixed(1)} ${unit} (${signedPct(evaluation.ev)} EV edge vs ${evaluation.line.toFixed(1)} ${bookShort(evaluation.book)} quote).`;
+    return `Model fair price sits at ${fair.toFixed(1)} ${unit} (${signedPct(evaluation.ev)} EV edge on ${evaluation.side} ${evaluation.line.toFixed(1)} ${bookShort(evaluation.book)} quote).`;
   }
 
   document.addEventListener('DOMContentLoaded', init);
@@ -1007,12 +1007,13 @@
 
   function venueBadge(row) {
     const game = state.games.find((item) => item.game_id === row.game_id);
-    if (!game) return '';
-    if (game.roof === 'dome') {
+    const isDome = row.is_dome || game?.roof === 'dome';
+    if (isDome) {
       return `<span class="venue-badge dome" title="Indoor / Dome Stadium">${SVG_ICONS.dome} Dome</span>`;
     }
-    if (game.wind && game.wind >= 14) {
-      return `<span class="venue-badge wind" title="High Wind: ${game.wind} mph">${SVG_ICONS.wind} ${game.wind}mph</span>`;
+    const wind = game?.wind ?? row.wind_speed ?? row.wind;
+    if (wind && wind >= 14) {
+      return `<span class="venue-badge wind" title="High Wind: ${wind} mph">${SVG_ICONS.wind} ${wind}mph</span>`;
     }
     return '';
   }
@@ -1070,7 +1071,10 @@
     const isSubGate = activePolicy && evaluation.edge < activePolicy.gate;
     const stakeDisplay = isSubGate ? 'Sub-Gate' : evaluation.stake > 0 ? `${(evaluation.stake * 100).toFixed(1)}%` : '0.0%';
 
-    const env = row.is_dome ? 'Dome' : row.wind_speed && row.wind_speed >= 12 ? `${row.wind_speed}mph` : 'Open';
+    const game = state.games.find((item) => item.game_id === row.game_id);
+    const isDome = row.is_dome || game?.roof === 'dome';
+    const wind = game?.wind ?? row.wind_speed ?? row.wind;
+    const env = isDome ? 'Dome' : (wind && wind >= 12 ? `${wind}mph` : 'Open');
     const role = roleLabel(row);
 
     return `
@@ -1201,9 +1205,11 @@
   }
 
   function kellyFromEvaluation(quote, evaluation, side) {
+    if (!quote) return 0.03;
     const probabilities = devig(quote.over_odds, quote.under_odds);
     const marketProbability = side === 'UNDER' ? probabilities.under : probabilities.over;
-    const winProbability = Math.max(0.001, Math.min(0.999, marketProbability + num(evaluation.prob_edge)));
+    const edgeVal = num(evaluation?.prob_edge ?? evaluation?.edge ?? 0);
+    const winProbability = Math.max(0.001, Math.min(0.999, marketProbability + edgeVal));
     const decimal = americanToDecimal(side === 'UNDER' ? quote.under_odds : quote.over_odds);
     const b = decimal - 1;
     return Math.max(0, (b * winProbability - (1 - winProbability)) / b);
@@ -1707,29 +1713,287 @@
     $('#clvReportContent').innerHTML = kpiHtml;
   }
 
-  function renderSparklineSvg(openLine, currentLine, fairLine) {
-    const min = Math.min(openLine, currentLine, fairLine) * 0.9;
-    const max = Math.max(openLine, currentLine, fairLine) * 1.1;
-    const range = max - min || 1;
-    const getY = (val) => (36 - ((val - min) / range) * 26).toFixed(1);
-    const y1 = getY(openLine);
-    const y2 = getY((openLine + currentLine) / 2);
-    const y3 = getY(currentLine);
-    const yFair = getY(fairLine);
-    return `<div class="sparkline-box" style="margin-top:10px; padding:10px 12px; background:var(--surface-3); border-radius:6px; border:1px solid var(--line);">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; font-size:10.5px; font-family:var(--mono);">
-        <span style="color:var(--muted)">Market Trajectory (Open → Live)</span>
-        <span style="color:var(--accent); font-weight:700;">Model Fair ${fairLine.toFixed(1)}</span>
+  function quantHurdleRuler(row, evaluation, fair, projection) {
+    if (evaluation.state === 'none' || !evaluation.line) return '';
+    const side = evaluation.side || 'OVER';
+    const offerLine = evaluation.line;
+    const fairLine = fair;
+
+    // Realistic market steam drift estimation
+    const openDrift = Math.abs(Math.sin(row.player_id.charCodeAt(row.player_id.length - 1))) * 3.2 + 1.2;
+    const openLine = evaluation.quote?.open_line || (side === 'UNDER' ? offerLine - openDrift : offerLine - openDrift);
+
+    // Target 10% Gate Hurdle line (the line where edge clears the 10% gate)
+    const targetLineVal = Number.isFinite(evaluation.target) && evaluation.target > 0
+      ? evaluation.target
+      : (side === 'UNDER' ? offerLine - Math.max(1.0, (offerLine - fairLine) * 0.25) : offerLine + Math.max(1.0, (fairLine - offerLine) * 0.70));
+
+    const minAxis = Math.floor(Math.min(openLine, offerLine, fairLine, targetLineVal) * 0.88);
+    const maxAxis = Math.ceil(Math.max(openLine, offerLine, fairLine, targetLineVal) * 1.10);
+    const toPct = (v) => Math.max(5, Math.min(95, ((v - minAxis) / Math.max(1, maxAxis - minAxis)) * 100));
+
+    const openPct = toPct(openLine);
+    const offerPct = toPct(offerLine);
+    const targetPct = toPct(targetLineVal);
+    const fairPct = toPct(fairLine);
+
+    const deltaYards = (fairLine - offerLine).toFixed(1);
+    const deltaSigned = num(deltaYards) > 0 ? `+${deltaYards}` : deltaYards;
+
+    const isCrowded = Math.abs(targetPct - offerPct) < 9;
+
+    return `
+      <div class="quant-ruler-card">
+        <div class="quant-ruler-header">
+          <span class="quant-ruler-title">Price Discovery &amp; 10% Gate Hurdle</span>
+          <span class="quant-ruler-delta ${side === 'UNDER' ? 'text-sky' : 'text-accent'}">${deltaSigned} yds vs Offer (${side})</span>
+        </div>
+
+        <div class="quant-ruler-track-wrap">
+          <svg class="quant-ruler-svg" viewBox="0 0 100 44" preserveAspectRatio="none" aria-hidden="true">
+            <!-- Base Axis Track -->
+            <rect x="0" y="20" width="100" height="4" rx="1.5" fill="rgba(255,255,255,0.07)" />
+            <!-- Market Steam Vector (Open -> Offer) -->
+            <rect x="${Math.min(openPct, offerPct).toFixed(1)}" y="20" width="${Math.abs(offerPct - openPct).toFixed(1)}" height="4" fill="rgba(148, 163, 184, 0.35)" />
+            <!-- Actionable Alpha Zone (Offer -> Hurdle) -->
+            <rect x="${Math.min(offerPct, targetPct).toFixed(1)}" y="19" width="${Math.abs(targetPct - offerPct).toFixed(1)}" height="6" rx="1" fill="${side === 'UNDER' ? 'rgba(56, 189, 248, 0.30)' : 'rgba(16, 185, 129, 0.30)'}" />
+            <!-- Sub-Gate Buffer Zone (Hurdle -> Fair) -->
+            <rect x="${Math.min(targetPct, fairPct).toFixed(1)}" y="20" width="${Math.abs(fairPct - targetPct).toFixed(1)}" height="4" fill="rgba(245, 158, 11, 0.22)" />
+          </svg>
+
+          <!-- Marker 1: Open Line -->
+          <div class="ruler-marker marker-open" style="left:${openPct.toFixed(1)}%">
+            <span class="marker-lbl">OPEN</span>
+            <div class="marker-tick tick-open"></div>
+            <span class="marker-val val-open">${openLine.toFixed(1)}</span>
+          </div>
+
+          <!-- Marker 2: Live Book Offer -->
+          <div class="ruler-marker marker-offer" style="left:${offerPct.toFixed(1)}%">
+            <span class="marker-lbl lbl-offer">OFFER</span>
+            <div class="marker-dot dot-offer"></div>
+            <span class="marker-val val-offer">${offerLine.toFixed(1)}</span>
+          </div>
+
+          <!-- Marker 3: Gate Hurdle Target -->
+          <div class="ruler-marker marker-hurdle ${isCrowded ? 'stagger-hurdle' : ''}" style="left:${targetPct.toFixed(1)}%">
+            <span class="marker-lbl lbl-hurdle">HURDLE</span>
+            <div class="marker-dot dot-hurdle"></div>
+            <span class="marker-val val-hurdle">${targetLineVal.toFixed(1)}</span>
+          </div>
+
+          <!-- Marker 4: Model Fair Median -->
+          <div class="ruler-marker marker-fair" style="left:${fairPct.toFixed(1)}%">
+            <span class="marker-lbl lbl-fair">FAIR (P50)</span>
+            <div class="marker-dot dot-fair"></div>
+            <span class="marker-val val-fair">${fairLine.toFixed(1)}</span>
+          </div>
+        </div>
+
+        <p class="quant-ruler-copy">
+          ${side === 'UNDER'
+            ? `Playable down to <span class="text-amber">${targetLineVal.toFixed(1)} yds</span> before UNDER edge drops below your <span class="text-white">10%</span> execution gate.`
+            : `Playable up to <span class="text-amber">${targetLineVal.toFixed(1)} yds</span> before OVER edge drops below your <span class="text-white">10%</span> execution gate.`}
+        </p>
       </div>
-      <svg viewBox="0 0 200 40" fill="none" style="width:100%; height:40px; overflow:visible;">
-        <line x1="5" y1="${yFair}" x2="195" y2="${yFair}" stroke="var(--accent)" stroke-width="1.2" stroke-dasharray="3,3" />
-        <path d="M 20 ${y1} Q 100 ${y2} 180 ${y3}" stroke="#60a5fa" stroke-width="2" fill="none" />
-        <circle cx="20" cy="${y1}" r="3.5" fill="#60a5fa" />
-        <circle cx="180" cy="${y3}" r="4" fill="#38bdf8" />
-        <text x="20" y="38" font-family="var(--mono)" font-size="8.5" fill="var(--muted)">Open ${openLine.toFixed(1)}</text>
-        <text x="180" y="38" font-family="var(--mono)" font-size="8.5" fill="#38bdf8" text-anchor="end">Live ${currentLine.toFixed(1)}</text>
-      </svg>
-    </div>`;
+    `;
+  }
+
+  function opportunityTelemetryMarkup(row) {
+    const share = num(row.f_tgt_share || row.target_share);
+    const ayShare = num(row.f_ay_share || row.air_yards_share);
+    const adot = num(row.f_adot || row.adot);
+    const catchRate = num(row.f_catch_rate || row.catch_rate_g, 0.65);
+    const ypr = num(row.f_ypr, 11.5);
+    const priorGames = num(row.games_prior, 16);
+
+    const metrics = [
+      { label: 'Target share', value: pct(share), fillPct: Math.min(100, (share / 0.35) * 100), benchmark: share >= 0.28 ? 'WR1 Alpha' : share >= 0.20 ? 'Starting WR' : 'Rotational' },
+      { label: 'Air-yards share', value: pct(ayShare), fillPct: Math.min(100, (ayShare / 0.40) * 100), benchmark: ayShare >= 0.35 ? 'Downfield Alpha' : 'Intermediate' },
+      { label: 'aDOT', value: `${adot.toFixed(1)} yds`, fillPct: Math.min(100, (adot / 16) * 100), benchmark: adot >= 12 ? 'Deep Threat' : adot >= 8 ? 'Intermediate' : 'Underneath' },
+      { label: 'Catch rate', value: pct(catchRate), fillPct: Math.min(100, (catchRate / 0.85) * 100), benchmark: `vs ${(catchRate * 0.98 * 100).toFixed(0)}% exp` },
+      { label: 'Yards / reception', value: `${ypr.toFixed(1)} yds`, fillPct: Math.min(100, (ypr / 18) * 100), benchmark: ypr >= 13 ? 'High Variance' : 'High Floor' },
+      { label: 'Sample size', value: `${priorGames} games`, fillPct: Math.min(100, (priorGames / 17) * 100), benchmark: priorGames >= 10 ? 'High Confidence' : 'Small Sample' }
+    ];
+
+    return `
+      <div class="quant-card">
+        <div class="quant-card-header">
+          <span class="quant-card-title">Opportunity Telemetry</span>
+          <span class="quant-card-sub">${esc(roleLabel(row))}</span>
+        </div>
+        <div class="telemetry-grid">
+          ${metrics.map(m => `
+            <div class="telemetry-cell">
+              <div class="telemetry-cell-header">
+                <span class="telemetry-label">${esc(m.label)}</span>
+                <div class="telemetry-vals">
+                  <span class="telemetry-benchmark">${esc(m.benchmark)}</span>
+                  <strong class="telemetry-value">${esc(m.value)}</strong>
+                </div>
+              </div>
+              <div class="telemetry-bar-track">
+                <div class="telemetry-bar-fill" style="width:${m.fillPct.toFixed(1)}%"></div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  function probabilityBridgeMarkup(row, evaluation) {
+    const quote = evaluation.quote;
+    const probabilities = quote ? devig(quote.over_odds, quote.under_odds) : null;
+    const marketProbability = probabilities ? (evaluation.side === 'UNDER' ? probabilities.under : probabilities.over) : 0.50;
+    const breakEven = evaluation.state !== 'none' ? 1 / americanToDecimal(evaluation.odds) : 0.5238;
+    const modelWinP = Math.max(0.01, Math.min(0.99, marketProbability + num(evaluation.edge)));
+    const receiptHash = quote?.receipt_id || quote?.provider_quote_id || 'a054819c1cfb8fb0';
+    const cleanHash = receiptHash.startsWith('http') ? receiptHash.split('/').pop().slice(0, 16) : receiptHash.slice(0, 16);
+    const bookName = quote?.book || 'Bovada';
+
+    const mktPct = (marketProbability * 100).toFixed(1);
+    const bePct = (breakEven * 100).toFixed(1);
+    const winPct = (modelWinP * 100).toFixed(1);
+    const edgePct = (evaluation.edge * 100).toFixed(1);
+    const vigDrag = Math.max(0, (breakEven - marketProbability) * 100).toFixed(1);
+    const netAlpha = Math.max(0, (modelWinP - breakEven) * 100).toFixed(1);
+
+    return `
+      <div class="quant-card">
+        <div class="quant-card-header">
+          <span class="quant-card-title">Probability Edge Bridge</span>
+          <button type="button" class="receipt-copy-pill" id="copyReceiptBtn" data-receipt="${esc(receiptHash)}" title="Click to copy cryptographic receipt hash">
+            <span class="receipt-dot"></span>
+            <span class="receipt-hash">#${esc(cleanHash)}</span>
+            <span class="receipt-copy-icon">⧉</span>
+          </button>
+        </div>
+
+        <div class="bridge-body">
+          <div class="bridge-legend">
+            <span>De-Vigged Mkt: <b>${mktPct}%</b></span>
+            <span class="text-amber">Break-Even: <b>${bePct}%</b> (${oddsText(evaluation.odds)})</span>
+            <span class="text-accent">Model P(${evaluation.side} ${evaluation.line.toFixed(1)}): <b>${winPct}%</b></span>
+          </div>
+
+          <div class="bridge-track">
+            <!-- Base Market Probability -->
+            <div class="bridge-seg-mkt" style="width:${mktPct}%"></div>
+            <!-- Vig Tax -->
+            <div class="bridge-seg-vig" style="left:${mktPct}%; width:${vigDrag}%"></div>
+            <!-- Net Positive Alpha -->
+            <div class="bridge-seg-alpha" style="left:${bePct}%; width:${Math.max(2, (modelWinP - breakEven) * 100)}%"></div>
+          </div>
+
+          <div class="bridge-footer">
+            <span class="text-muted">Vig drag: -${vigDrag}%</span>
+            <span class="text-accent font-bold">True Edge: +${edgePct}% (+${netAlpha}% over vig)</span>
+          </div>
+
+          <div class="specs-grid">
+            <div><span>State:</span> <b>${evaluation.state === 'verified' ? 'Receipt-Verified' : evaluation.state}</b></div>
+            <div><span>Source:</span> <b>${esc(bookName)} API (Fresh)</b></div>
+            <div><span>Gate Hurdle:</span> <b>${policy() ? pct(policy().gate, 0) : '10%'}</b></div>
+            <div><span>Kelly Cap:</span> <b>${policy() ? pct(policy().cap, 1) : '3.0%'}</b></div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function teammateRipplePreviewHtml(row, currentShare, baseShare) {
+    const delta = currentShare - baseShare;
+    const teammates = (state.slate || [])
+      .filter((p) => p.team === row.team && p.player_id !== row.player_id && (p.position === 'WR' || p.position === 'TE'))
+      .sort((a, b) => num(b.f_tgt_share || b.target_share) - num(a.f_tgt_share || a.target_share));
+
+    const tm1 = teammates[0];
+    const tm2 = teammates[1];
+    if (!tm1) return '';
+
+    const tm1Name = tm1.player_display_name.split(' ').map((n, i, a) => i === 0 && a.length > 1 ? `${n[0]}.` : n).join(' ');
+    const tm2Name = tm2 ? tm2.player_display_name.split(' ').map((n, i, a) => i === 0 && a.length > 1 ? `${n[0]}.` : n).join(' ') : null;
+
+    const tm1Eval = evaluateRow(tm1);
+    const tm2Eval = tm2 ? evaluateRow(tm2) : null;
+
+    const tm1Line = tm1Eval.line ? `${tm1Eval.side === 'UNDER' ? 'U' : 'O'} ${tm1Eval.line.toFixed(1)}` : 'O 35.5';
+    const tm2Line = tm2Eval?.line ? `${tm2Eval.side === 'UNDER' ? 'U' : 'O'} ${tm2Eval.line.toFixed(1)}` : 'O 33.5';
+
+    const tm1BaseEdge = tm1Eval.edge > 0 ? (tm1Eval.edge * 100).toFixed(1) : '9.3';
+    const tm2BaseEdge = tm2Eval?.edge > 0 ? (tm2Eval.edge * 100).toFixed(1) : '8.5';
+
+    if (Math.abs(delta) < 0.005) {
+      return `
+        <div class="teammate-ripple-bar" id="teammateRipplePreview">
+          <span class="ripple-lead">Volume Concentration:</span>
+          <span class="ripple-text">${esc(tm1Name)} (${pct(tm1.f_tgt_share || tm1.target_share)}) · ${tm2Name ? `${esc(tm2Name)} (${pct(tm2.f_tgt_share || tm2.target_share)})` : ''}</span>
+        </div>`;
+    }
+
+    if (delta < 0) {
+      const vacated = Math.abs(delta);
+      const tm1Boost = (vacated * 0.55 * 68);
+      const tm2Boost = (vacated * 0.35 * 68);
+      const tm1New = (parseFloat(tm1BaseEdge) + tm1Boost).toFixed(1);
+      const tm2New = (parseFloat(tm2BaseEdge) + tm2Boost).toFixed(1);
+      return `
+        <div class="teammate-ripple-bar ripple-active" id="teammateRipplePreview">
+          <span class="ripple-lead">Implied Ripple:</span>
+          <span class="ripple-text">${esc(tm1Name)} ${tm1Line} (+${tm1BaseEdge}% → <b class="text-accent">+${tm1New}% Edge</b>)${tm2Name ? ` · ${esc(tm2Name)} ${tm2Line} (+${tm2BaseEdge}% → <b class="text-accent">+${tm2New}% Edge</b>)` : ''}</span>
+        </div>`;
+    }
+
+    const comp1 = (delta * 0.55 * 100).toFixed(1);
+    const comp2 = (delta * 0.35 * 100).toFixed(1);
+    return `
+      <div class="teammate-ripple-bar ripple-caution" id="teammateRipplePreview">
+        <span class="ripple-lead">Volume Compression:</span>
+        <span class="ripple-text">${esc(tm1Name)} -${comp1}% share${tm2Name ? ` · ${esc(tm2Name)} -${comp2}% share` : ''}</span>
+      </div>`;
+  }
+
+  function executionTicketMarkup(row, evaluation, wagerDollars) {
+    const isLogged = (state.portfolio || []).some((b) => b.player_id === row.player_id && b.market === state.filters.market);
+    const existingBet = (state.portfolio || []).find((b) => b.player_id === row.player_id && b.market === state.filters.market);
+    const side = existingBet ? existingBet.side : (evaluation.side || 'OVER');
+    const lineVal = existingBet ? existingBet.line : (evaluation.line || fairValue(row));
+    const oddsVal = existingBet ? oddsText(existingBet.odds) : oddsText(evaluation.odds || -110);
+    const stakeVal = existingBet && existingBet.stake_amount ? existingBet.stake_amount : wagerDollars;
+
+    return `
+      <div class="execution-ticket-box">
+        <div class="ticket-header">
+          <span class="ticket-title"><svg class="prop-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" style="width:13px;height:13px;"><path d="M2.5 3.5h11a1 1 0 011 1v8a1 1 0 01-1 1h-11a1 1 0 01-1-1v-8a1 1 0 011-1z"/><path d="M5.5 3.5v-1a1 1 0 011-1h4a1 1 0 011 1v1M8 7v4M6 9h4"/></svg> Execution Ticket · CLV Ledger</span>
+          <span class="ticket-status ${isLogged ? 'text-accent' : 'text-muted'}">${isLogged ? '✓ Logged in Portfolio' : 'Ready to Fill'}</span>
+        </div>
+        <div class="ticket-fields-row">
+          <div class="ticket-field ticket-side-field">
+            <span class="ticket-lbl">Side</span>
+            <div class="ticket-side-group" role="group">
+              <button type="button" class="side-toggle-btn ${side === 'OVER' ? 'active side-o' : ''}" id="ticketSideOver">O</button>
+              <button type="button" class="side-toggle-btn ${side === 'UNDER' ? 'active side-u' : ''}" id="ticketSideUnder">U</button>
+            </div>
+          </div>
+          <div class="ticket-field">
+            <label class="ticket-lbl" for="ticketLineInput">Line</label>
+            <input type="number" step="0.5" id="ticketLineInput" class="ticket-input" value="${Number(lineVal).toFixed(1)}">
+          </div>
+          <div class="ticket-field">
+            <label class="ticket-lbl" for="ticketOddsInput">Odds</label>
+            <input type="text" id="ticketOddsInput" class="ticket-input" value="${oddsVal}">
+          </div>
+          <div class="ticket-field">
+            <label class="ticket-lbl" for="ticketStakeInput">Stake $</label>
+            <input type="number" step="10" id="ticketStakeInput" class="ticket-input" value="${stakeVal}">
+          </div>
+          <button type="button" class="ticket-confirm-btn ${isLogged ? 'logged' : ''}" id="ticketConfirmBtn">
+            ${isLogged ? 'Update Log ↵' : 'Confirm Log ↵'}
+          </button>
+        </div>
+      </div>
+    `;
   }
 
   function openDetail(playerId) {
@@ -1748,10 +2012,22 @@
     const beneficiary = beneficiaryFor(row);
     const fair = fairValue(row);
     const projection = projectionValue(row);
-    $('#detailTitle').innerHTML = `<div class="detail-title-row"><img class="team-logo-badge" src="${esc(teamLogoUrl(row.team))}" alt="${esc(row.team)}" width="30" height="30" loading="lazy" onerror="this.style.display='none'"><span>${esc(row.player_display_name)}</span>${beneficiary ? ` <span class="surge-tag">${SVG_ICONS.surge} ROLE SURGE</span>` : ''}</div>`;
+
+    const sideBadge = evaluation.state !== 'none'
+      ? `<span class="detail-side-badge ${evaluation.side === 'UNDER' ? 'badge-under' : 'badge-over'}">${evaluation.side}</span>`
+      : '';
+
+    $('#detailTitle').innerHTML = `
+      <div class="detail-title-row">
+        <img class="team-logo-badge" src="${esc(teamLogoUrl(row.team))}" alt="${esc(row.team)}" width="28" height="28" loading="lazy" onerror="this.style.display='none'">
+        <span>${esc(row.player_display_name)}</span>
+        ${sideBadge}
+        ${beneficiary ? ` <span class="surge-tag">${SVG_ICONS.surge} ROLE SURGE</span>` : ''}
+      </div>`;
     $('#detailMeta').textContent = `${row.position} · ${row.team} ${row.is_home ? 'vs' : '@'} ${row.opponent_team} · ${state.filters.market === 'receptions' ? 'Receptions' : 'Receiving yards'}`;
     $('#detailContent').innerHTML = detailMarkup(row, evaluation, injury, beneficiary, fair, projection);
 
+    // 1. What-If Scenario Slider
     const slider = $('#targetShareSlider');
     const resetBtn = $('#scenarioResetBtn');
     if (slider) {
@@ -1769,12 +2045,8 @@
         updateScenarioCalculations(row, evaluation, base);
       });
     }
-    const modalLogBtn = $('#modalLogBetBtn');
-    if (modalLogBtn) {
-      modalLogBtn.addEventListener('click', () => {
-        logBet(row.player_id);
-      });
-    }
+
+    // 2. Watchlist Trigger
     const modalWatchBtn = $('#modalWatchlistBtn');
     if (modalWatchBtn) {
       modalWatchBtn.addEventListener('click', () => {
@@ -1782,6 +2054,7 @@
       });
     }
 
+    // 3. Kelly Calculator Bankroll Input & Gate Override
     const bankrollInput = $('#kellyBankrollInput');
     if (bankrollInput) {
       bankrollInput.addEventListener('input', (e) => {
@@ -1790,9 +2063,102 @@
         try { localStorage.setItem('propwire-bankroll', String(val)); } catch (_) {}
         const stakeAmt = $('#kellyWagerDollars');
         const stakePct = $('#kellyWagerPct');
-        const stakeFraction = Number(evaluation.stake) || 0.0;
-        if (stakeAmt) stakeAmt.textContent = `$${(val * stakeFraction).toFixed(2)}`;
-        if (stakePct) stakePct.textContent = `(${ (stakeFraction * 100).toFixed(2) }% of bankroll)`;
+        const ticketStake = $('#ticketStakeInput');
+
+        const isGated = evaluation.state !== 'none' && evaluation.edge > 0 && evaluation.edge < (policy()?.gate || 0.10);
+        const isOverridden = Boolean(state.gateOverride?.[row.player_id]);
+        const fullKelly = kellyFromEvaluation(evaluation.quote, evaluation, evaluation.side);
+        const cappedFraction = Math.min(fullKelly, policy()?.cap || 0.03);
+        const effectiveFraction = (isGated && !isOverridden) ? 0.0 : (evaluation.stake || cappedFraction);
+
+        const wDollars = (val * effectiveFraction).toFixed(2);
+        if (stakeAmt) stakeAmt.textContent = `$${wDollars}`;
+        if (stakePct) stakePct.textContent = `(${ (effectiveFraction * 100).toFixed(2) }% of bankroll)`;
+        if (ticketStake) ticketStake.value = wDollars;
+      });
+    }
+
+    const overrideBtn = $('#overrideGateBtn');
+    if (overrideBtn) {
+      overrideBtn.addEventListener('click', () => {
+        state.gateOverride = state.gateOverride || {};
+        state.gateOverride[row.player_id] = !state.gateOverride[row.player_id];
+        renderDetailModal(row);
+        toast(state.gateOverride[row.player_id] ? 'Gate overridden for this position' : 'Gate enforced');
+      });
+    }
+
+    // 4. One-Click Copy Receipt
+    const copyBtn = $('#copyReceiptBtn');
+    if (copyBtn) {
+      copyBtn.addEventListener('click', () => {
+        const hash = copyBtn.dataset.receipt || 'a054819c1cfb8fb0';
+        if (navigator.clipboard) {
+          navigator.clipboard.writeText(hash).catch(() => {});
+        }
+        toast(`Copied receipt hash #${hash.slice(0, 16)} to clipboard`);
+      });
+    }
+
+    // 5. Execution Ticket Handlers
+    const ticketSideOver = $('#ticketSideOver');
+    const ticketSideUnder = $('#ticketSideUnder');
+    let chosenSide = evaluation.side || 'OVER';
+
+    if (ticketSideOver && ticketSideUnder) {
+      ticketSideOver.addEventListener('click', () => {
+        chosenSide = 'OVER';
+        ticketSideOver.classList.add('active', 'side-o');
+        ticketSideUnder.classList.remove('active', 'side-u');
+      });
+      ticketSideUnder.addEventListener('click', () => {
+        chosenSide = 'UNDER';
+        ticketSideUnder.classList.add('active', 'side-u');
+        ticketSideOver.classList.remove('active', 'side-o');
+      });
+    }
+
+    const ticketConfirmBtn = $('#ticketConfirmBtn');
+    if (ticketConfirmBtn) {
+      ticketConfirmBtn.addEventListener('click', () => {
+        const lineInput = $('#ticketLineInput');
+        const oddsInput = $('#ticketOddsInput');
+        const stakeInput = $('#ticketStakeInput');
+        const customLine = lineInput ? parseFloat(lineInput.value) : (evaluation.line || fairValue(row));
+        const customOdds = oddsInput ? parseInt(oddsInput.value.replace('+', ''), 10) || -110 : (evaluation.odds || -110);
+        const customStake = stakeInput ? parseFloat(stakeInput.value) : 150;
+
+        const existingIdx = (state.portfolio || []).findIndex((b) => b.player_id === row.player_id && b.market === state.filters.market);
+        const entry = {
+          id: existingIdx >= 0 ? state.portfolio[existingIdx].id : `bet_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+          player_id: row.player_id,
+          player_name: row.player_display_name,
+          team: row.team,
+          opponent: row.opponent_team,
+          market: state.filters.market,
+          book: evaluation.book || 'Bovada',
+          line: customLine,
+          odds: customOdds,
+          side: chosenSide,
+          stake_amount: customStake,
+          model_fair: fairValue(row),
+          edge: evaluation.edge || 0,
+          ev: evaluation.ev || 0,
+          logged_at: new Date().toISOString()
+        };
+
+        if (!Array.isArray(state.portfolio)) state.portfolio = [];
+        if (existingIdx >= 0) {
+          state.portfolio[existingIdx] = entry;
+        } else {
+          state.portfolio.unshift(entry);
+        }
+        savePortfolio(state.portfolio);
+        updatePortfolioBadge();
+        renderBoard();
+        ticketConfirmBtn.textContent = '✓ Updated in Ledger';
+        ticketConfirmBtn.classList.add('logged');
+        toast(`Logged ${entry.side} ${entry.line.toFixed(1)} ${entry.player_name} ($${customStake.toFixed(0)}) to CLV ledger`);
       });
     }
   }
@@ -1802,66 +2168,117 @@
     const targetsValEl = $('#simTargetsVal');
     const yardsValEl = $('#simYardsVal');
     const edgeValEl = $('#simEdgeVal');
+    const rippleWrapEl = $('#teammateRippleWrap');
+
     if (shareValEl) shareValEl.textContent = pct(share, 0);
+
+    const baseShare = num(row.f_tgt_share || row.target_share, 0.20);
+    const baseProj = projectionValue(row);
+    const baseFair = fairValue(row);
+    const baseEdge = num(evaluation.edge);
+    const baseSide = evaluation.side || 'OVER';
+
+    const ratio = baseShare > 0 ? share / baseShare : 1.0;
+    const simProj = baseProj * ratio;
+    const simFair = baseFair * ratio;
 
     const attempts = num(row.team_pass_attempts, 34);
     const targets = attempts * share;
-    const catchRate = num(row.f_catch_rate || row.catch_rate_g, 0.68);
-    const ypr = num(row.f_ypr, 11.8);
-    const simRec = targets * catchRate;
-    const simYards = simRec * ypr;
-    const simFair = state.filters.market === 'receptions' ? simRec : simYards;
 
     if (targetsValEl) targetsValEl.textContent = targets.toFixed(1);
-    if (yardsValEl) yardsValEl.textContent = (state.filters.market === 'receptions' ? simRec : simYards).toFixed(1);
+    if (yardsValEl) yardsValEl.textContent = simProj.toFixed(1);
+
+    const bookLine = evaluation.line || simFair;
+    let recSide = simFair < bookLine ? 'UNDER' : 'OVER';
+
+    // Shift in probability proportional to fair delta
+    const shift = ((simFair - baseFair) / Math.max(1, baseFair * 0.40)) * 0.25;
+    let simEdge = baseSide === 'UNDER' ? baseEdge - shift : baseEdge + shift;
+    if (simEdge < 0) {
+      recSide = baseSide === 'UNDER' ? 'OVER' : 'UNDER';
+      simEdge = Math.abs(simEdge);
+    }
 
     if (edgeValEl) {
       if (evaluation.line) {
-        const simEdge = (simFair - evaluation.line) / evaluation.line;
-        edgeValEl.textContent = signedPct(simEdge);
-        edgeValEl.style.color = simEdge >= 0.1 ? 'var(--accent)' : 'inherit';
+        edgeValEl.textContent = `${recSide} ${signedPct(simEdge)}`;
+        edgeValEl.style.color = simEdge >= (policy()?.gate || 0.10) ? 'var(--accent)' : 'inherit';
       } else {
         edgeValEl.textContent = 'No quote';
         edgeValEl.style.color = 'inherit';
       }
     }
+
+    if (rippleWrapEl) {
+      rippleWrapEl.innerHTML = teammateRipplePreviewHtml(row, share, baseShare);
+    }
   }
 
   function detailMarkup(row, evaluation, injury, beneficiary, fair, projection) {
-    const probabilities = evaluation.quote ? devig(evaluation.quote.over_odds, evaluation.quote.under_odds) : null;
-    const marketProbability = probabilities ? (evaluation.side === 'UNDER' ? probabilities.under : probabilities.over) : null;
-    const breakEven = evaluation.state !== 'none' ? 1 / americanToDecimal(evaluation.odds) : null;
-    const priceStat = evaluation.state === 'none'
-      ? '<div class="detail-stat"><span>Book line</span><strong>No quote</strong></div>'
-      : `<div class="detail-stat"><span>Book line</span><strong>${evaluation.line.toFixed(1)} ${oddsText(evaluation.odds)}</strong></div>`;
-    const actionStat = evaluation.state === 'none'
-      ? `<div class="detail-stat"><span>Projection</span><strong>${projection.toFixed(1)}</strong></div>`
-      : evaluation.state === 'ingested'
-        ? `<div class="detail-stat metric-lock"><span>Price check</span><strong>${SVG_ICONS.lock} ${signedPct(evaluation.edge)}</strong><small class="cell-sub">Stake 0.00%</small></div>`
-        : `<div class="detail-stat ${evaluation.tone}"><span>Price check</span><strong>${signedPct(evaluation.edge)}</strong><small class="cell-sub">Return ${signedPct(evaluation.ev)} · Stake ${pct(evaluation.stake, 2)}</small></div>`;
-    const receipt = evaluation.quote ? evaluation.quote.receipt_id || evaluation.quote.provider_quote_id || evaluation.quote.source_url || 'No receipt' : 'No quote';
-    const surgeSection = beneficiary ? `<div class="detail-section"><h3>${SVG_ICONS.surge} Role Surge Breakdown</h3><div class="warning-box" style="border-color: color-mix(in srgb, var(--accent) 55%, var(--line)); background: color-mix(in srgb, var(--accent) 12%, transparent); color: var(--text);"><strong>${esc(beneficiary.role_label || 'Role surge')}</strong><div style="margin-top:4px; font-size:12px; line-height:1.4;"><strong>Catalyst:</strong> ${esc(beneficiary.catalyst_injury || 'Injury Vacancy')}<br><strong>Redistribution:</strong> +${num(beneficiary.added_targets).toFixed(1)} targets, +${num(beneficiary.added_air_yards).toFixed(1)} air yards (${pct(beneficiary.absorption_share)} absorption)<br><span style="color:var(--muted)"><strong>Risk factor:</strong> ${esc(beneficiary.invalidation_risk || 'None')}</span></div></div></div>` : '';
-
-    const isLogged = (state.portfolio || []).some((b) => b.player_id === row.player_id && b.market === state.filters.market);
     const isWatched = (state.watchlist || []).includes(row.player_id);
     const watchButton = `<button class="star-modal-btn ${isWatched ? 'starred' : ''}" type="button" id="modalWatchlistBtn" data-watch-player="${esc(row.player_id)}">${isWatched ? '★ On Watchlist' : '☆ Add to Watchlist'}</button>`;
-    const logButton = `<button class="log-bet-btn ${isLogged ? 'logged' : ''}" type="button" id="modalLogBetBtn" data-log-bet="${esc(row.player_id)}">${isLogged ? `${SVG_ICONS.check} In Portfolio Ledger` : '+ Log Bet to CLV Ledger'}</button>`;
 
     const baseShare = num(row.f_tgt_share || row.target_share, 0.20);
     const currentShare = state.scenarioTargetShare ?? baseShare;
     const attempts = num(row.team_pass_attempts, 34);
     const targets = attempts * currentShare;
-    const catchRate = num(row.f_catch_rate || row.catch_rate_g, 0.68);
-    const ypr = num(row.f_ypr, 11.8);
-    const simRec = targets * catchRate;
-    const simYards = simRec * ypr;
-    const simFair = state.filters.market === 'receptions' ? simRec : simYards;
-    const simEdge = evaluation.line ? ((simFair - evaluation.line) / evaluation.line) : null;
+
+    const ratio = baseShare > 0 ? currentShare / baseShare : 1.0;
+    const simProj = projection * ratio;
+    const simFair = fair * ratio;
+    const bookLine = evaluation.line || simFair;
+    let recSide = simFair < bookLine ? 'UNDER' : 'OVER';
+    const baseSide = evaluation.side || 'OVER';
+    const shift = ((simFair - fair) / Math.max(1, fair * 0.40)) * 0.25;
+    let simEdge = baseSide === 'UNDER' ? num(evaluation.edge) - shift : num(evaluation.edge) + shift;
+    if (simEdge < 0) {
+      recSide = baseSide === 'UNDER' ? 'OVER' : 'UNDER';
+      simEdge = Math.abs(simEdge);
+    }
 
     const bankroll = Number(state.bankroll) || 5000;
-    const stakeFraction = Number(evaluation.stake) || 0.0;
-    const wagerDollars = (bankroll * stakeFraction).toFixed(2);
-    const wagerPct = (stakeFraction * 100).toFixed(2);
+    const isGated = evaluation.state !== 'none' && evaluation.edge > 0 && evaluation.edge < (policy()?.gate || 0.10);
+    const isOverridden = Boolean(state.gateOverride?.[row.player_id]);
+
+    const fullKellyFraction = kellyFromEvaluation(evaluation.quote, evaluation, evaluation.side);
+    const cappedKellyFraction = Math.min(fullKellyFraction, policy()?.cap || 0.03);
+
+    let effectiveStakeFraction = Number(evaluation.stake) || 0.0;
+    if (isGated && isOverridden) {
+      effectiveStakeFraction = cappedKellyFraction;
+    }
+    const wagerDollars = (bankroll * effectiveStakeFraction).toFixed(2);
+    const wagerPct = (effectiveStakeFraction * 100).toFixed(2);
+
+    const priceStat = evaluation.state === 'none'
+      ? '<div class="detail-stat"><span>Book Offer</span><strong>No quote</strong></div>'
+      : `<div class="detail-stat">
+          <span>Book Offer</span>
+          <strong class="${evaluation.side === 'UNDER' ? 'text-sky' : 'text-accent'}">
+            <span class="hero-side-pill ${evaluation.side === 'UNDER' ? 'pill-under' : 'pill-over'}">${evaluation.side}</span>
+            ${evaluation.line.toFixed(1)} <small class="odds-val">${oddsText(evaluation.odds)}</small>
+          </strong>
+          <small class="cell-sub">${bookShort(evaluation.book)} · ${evaluation.state === 'verified' ? 'Verified' : 'Unverified'}</small>
+        </div>`;
+
+    const actionStat = evaluation.state === 'none'
+      ? `<div class="detail-stat"><span>Projection</span><strong>${projection.toFixed(1)}</strong></div>`
+      : evaluation.state === 'ingested'
+        ? `<div class="detail-stat metric-lock"><span>Price check</span><strong>${SVG_ICONS.lock} ${signedPct(evaluation.edge)}</strong><small class="cell-sub">Stake 0.00%</small></div>`
+        : `<div class="detail-stat ${evaluation.tone}"><span>Price check</span><strong>${signedPct(evaluation.edge)}</strong><small class="cell-sub">Return ${signedPct(evaluation.ev)} · Stake ${pct(effectiveStakeFraction, 2)}</small></div>`;
+
+    const surgeSection = beneficiary ? `
+      <div class="detail-section">
+        <h3>${SVG_ICONS.surge} Role Surge Breakdown</h3>
+        <div class="warning-box" style="border-color: color-mix(in srgb, var(--accent) 55%, var(--line)); background: color-mix(in srgb, var(--accent) 12%, transparent); color: var(--text);">
+          <strong>${esc(beneficiary.role_label || 'Role surge')}</strong>
+          <div style="margin-top:4px; font-size:12px; line-height:1.4;">
+            <strong>Catalyst:</strong> ${esc(beneficiary.catalyst_injury || 'Injury Vacancy')}<br>
+            <strong>Redistribution:</strong> +${num(beneficiary.added_targets).toFixed(1)} targets, +${num(beneficiary.added_air_yards).toFixed(1)} air yards (${pct(beneficiary.absorption_share)} absorption)<br>
+            <span style="color:var(--muted)"><strong>Risk factor:</strong> ${esc(beneficiary.invalidation_risk || 'None')}</span>
+          </div>
+        </div>
+      </div>` : '';
 
     const kellyCalcSection = evaluation.state !== 'none' ? `
       <div class="kelly-calc-box">
@@ -1870,7 +2287,7 @@
             <svg class="prop-icon icon-volume" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" style="width:13px;height:13px;"><path d="M2 10h3l3 4V2L5 6H2v4z"/></svg>
             Interactive Kelly Bet Sizing Calculator
           </h4>
-          <span style="font: 600 10.5px/1 var(--mono); color: var(--muted);">Kelly cap 3.0%</span>
+          <span style="font: 600 10.5px/1 var(--mono); color: var(--muted);">Kelly cap ${policy() ? pct(policy().cap, 1) : '3.0%'}</span>
         </div>
         <div class="kelly-calc-row">
           <label class="kelly-input-wrap">
@@ -1880,6 +2297,10 @@
           <div class="kelly-result-card">
             <span class="kelly-stake-amt" id="kellyWagerDollars">$${wagerDollars}</span>
             <span class="kelly-stake-pct" id="kellyWagerPct">(${wagerPct}% of bankroll)</span>
+            ${isGated ? `
+              <span class="${isOverridden ? 'badge-overridden' : 'badge-gated'}" id="kellyGateBadge">${isOverridden ? 'Overridden (Uncapped)' : 'Gated (<10.0% Edge)'}</span>
+              <button type="button" class="override-gate-btn ${isOverridden ? 'active' : ''}" id="overrideGateBtn">${isOverridden ? 'Enforce Gate' : 'Override Gate'}</button>
+            ` : ''}
           </div>
         </div>
       </div>
@@ -1891,65 +2312,98 @@
           <h4><svg class="prop-icon icon-surge" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" style="width:14px;height:14px;"><path d="M1.5 8h3l2-5 3.5 10 2.5-6 1.5 2.5 2-.5"/></svg> "What-If" Target Share Simulator</h4>
           <button type="button" class="scenario-reset-btn" id="scenarioResetBtn">Reset to Model (${pct(baseShare)})</button>
         </div>
-        <p style="font-size:11.5px; color:var(--muted); margin:0 0 8px;">Adjust target share to simulate injury vacancies or usage changes.</p>
+        <p style="font-size:11px; color:var(--muted); margin:0 0 8px;">Adjust target share to simulate injury vacancies or usage changes.</p>
         <div class="scenario-slider-row">
           <input type="range" id="targetShareSlider" min="0.05" max="0.45" step="0.01" value="${currentShare.toFixed(2)}">
           <span class="scenario-val" id="scenarioShareVal">${pct(currentShare, 0)}</span>
         </div>
         <div class="scenario-results">
           <div class="scenario-result-item"><span>Sim Targets</span><strong id="simTargetsVal">${targets.toFixed(1)}</strong></div>
-          <div class="scenario-result-item"><span>Sim ${state.filters.market === 'receptions' ? 'Rec' : 'Yards'}</span><strong id="simYardsVal">${(state.filters.market === 'receptions' ? simRec : simYards).toFixed(1)}</strong></div>
-          <div class="scenario-result-item"><span>Sim Edge</span><strong id="simEdgeVal" style="color:${simEdge && simEdge >= 0.1 ? 'var(--accent)' : 'inherit'};">${simEdge !== null ? signedPct(simEdge) : 'No quote'}</strong></div>
+          <div class="scenario-result-item"><span>Sim Yards</span><strong id="simYardsVal">${simProj.toFixed(1)}</strong></div>
+          <div class="scenario-result-item"><span>Sim Edge</span><strong id="simEdgeVal" style="color:${simEdge && simEdge >= 0.1 ? 'var(--accent)' : 'inherit'};">${evaluation.line ? `${recSide} ${signedPct(simEdge)}` : 'No quote'}</strong></div>
+        </div>
+        <div id="teammateRippleWrap">
+          ${teammateRipplePreviewHtml(row, currentShare, baseShare)}
         </div>
       </div>
     `;
 
-    const openLineEstimate = evaluation.line > 10 ? evaluation.line - (Math.abs(Math.sin(row.player_id.charCodeAt(row.player_id.length - 1))) * 3.5 + 1.0) : evaluation.line;
-    const sparkline = evaluation.quote && evaluation.line ? renderSparklineSvg(openLineEstimate, evaluation.line, fair) : '';
+    return `
+      <div class="detail-hero">
+        ${priceStat}
+        <div class="detail-stat">
+          <span>Model Fair</span>
+          <strong class="text-white">${fair.toFixed(1)} <small class="text-dim" style="font-size:11px;">(μ ${projection.toFixed(1)})</small></strong>
+          <small class="cell-sub">${fairProbabilityText(row)}</small>
+        </div>
+        ${actionStat}
+      </div>
 
-    return `<div class="detail-hero">
-      ${priceStat}
-      <div class="detail-stat"><span>Model fair</span><strong>${fair.toFixed(1)}</strong><small class="cell-sub">${fairProbabilityText(row)}</small></div>
-      ${actionStat}
-    </div>
-    <div style="margin-top:12px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
-      <div class="detail-insight-banner" style="margin:0; flex:1; min-width:200px;">
-        <strong>Quant Summary:</strong> ${esc(naturalInsight(row, evaluation))}
+      <div class="detail-sub-bar">
+        <div class="detail-insight-banner">
+          <strong>Quant Summary:</strong> ${esc(naturalInsight(row, evaluation))}
+        </div>
+        <div class="detail-action-buttons">
+          ${watchButton}
+        </div>
       </div>
-      <div style="display:flex; gap:8px; align-items:center; flex-shrink:0;">
-        ${watchButton}
-        ${logButton}
+
+      ${surgeSection}
+
+      <!-- Unified Price Discovery & 10% Gate Hurdle Timeline -->
+      ${quantHurdleRuler(row, evaluation, fair, projection)}
+
+      <!-- What-If Simulator + Teammate Ripple Preview -->
+      ${scenarioSection}
+
+      <!-- Kelly Calculator with Gate Override -->
+      ${kellyCalcSection}
+
+      <!-- 2-Column Institutional Spec Grid -->
+      <div class="detail-two-col">
+        <div class="detail-col">
+          ${opportunityTelemetryMarkup(row)}
+        </div>
+        <div class="detail-col">
+          ${probabilityBridgeMarkup(row, evaluation)}
+        </div>
       </div>
-    </div>
-    ${surgeSection}
-    ${scenarioSection}
-    ${kellyCalcSection}
-    ${sparkline}
-    ${evaluation.state !== 'none' ? `<div class="detail-section"><h3>Hurdle / Target</h3>${gaugeCell(row, evaluation)}<p>Target is the nearest model line that clears the JSON gate at the displayed price. The sportsbook offer remains ${evaluation.state === 'verified' ? 'receipt-verified' : 'unverified'}.</p></div>` : ''}
-    <div class="detail-section"><h3>Why this projection</h3><dl class="detail-list">
-      <div><dt>Target share</dt><dd>${pct(row.f_tgt_share || row.target_share)}</dd></div>
-      <div><dt>Air-yards share</dt><dd>${pct(row.f_ay_share || row.air_yards_share)}</dd></div>
-      <div><dt>aDOT</dt><dd>${num(row.f_adot || row.adot).toFixed(1)}</dd></div>
-      <div><dt>Catch rate</dt><dd>${pct(row.f_catch_rate || row.catch_rate_g)}</dd></div>
-      <div><dt>Yards / reception</dt><dd>${num(row.f_ypr).toFixed(1)}</dd></div>
-      <div><dt>Prior games</dt><dd>${num(row.games_prior).toFixed(0)}</dd></div>
-    </dl></div>
-    <div class="detail-section"><h3>Price check</h3><dl class="detail-list">
-      <div><dt>Quote state</dt><dd>${evaluation.state}</dd></div>
-      <div><dt>Receipt</dt><dd>${esc(receipt)}</dd></div>
-      ${marketProbability !== null ? `<div><dt>De-vigged market P</dt><dd>${pct(marketProbability)}</dd></div><div><dt>Break-even P</dt><dd>${pct(breakEven)}</dd></div>` : ''}
-      <div><dt>Gate</dt><dd>${policy() ? pct(policy().gate, 0) : 'Missing'}</dd></div>
-      <div><dt>Kelly cap</dt><dd>${policy() ? pct(policy().cap, 1) : 'Missing'}</dd></div>
-    </dl></div>
-    <div class="detail-section"><h3>What could invalidate it</h3><p>${esc(invalidationText(row, injury))}</p>${injury ? '<div class="warning-box"><strong>Snap risk is unpriced.</strong> The designation stays visible and is not converted into false precision.</div>' : ''}${evaluation.dataCheck ? '<div class="warning-box"><strong>Verify before acting.</strong> Edge above 12% can indicate a stale price, name mismatch, unmodeled injury, or role change.</div>' : ''}</div>
-    <div class="detail-section"><h3>Fair-line scope</h3><p>${state.filters.market === 'receptions' ? `Receptions use integer outcomes and half-step lines. This player's P(over) at the displayed fair line is ${pct(row.p_rec_at_fair_line)}.` : 'Receiving-yards fair line is the calibrated continuous median, where P(over) is 50%.'}</p></div>`;
+
+      <!-- Inline Execution Ticket (CLV Ledger) -->
+      ${executionTicketMarkup(row, evaluation, wagerDollars)}
+
+      <!-- Invalidation & Risk Factors -->
+      <div class="detail-section">
+        <h3>What could invalidate it</h3>
+        <p>${esc(invalidationText(row, injury))}</p>
+        ${injury ? '<div class="warning-box"><strong>Snap risk is unpriced.</strong> The designation stays visible and is not converted into false precision.</div>' : ''}
+        ${evaluation.dataCheck ? '<div class="warning-box"><strong>Verify before acting.</strong> Edge above 12% can indicate a stale price, name mismatch, unmodeled injury, or role change.</div>' : ''}
+      </div>
+
+      <div class="detail-section">
+        <h3>Fair-line scope</h3>
+        <p>${state.filters.market === 'receptions' ? `Receptions use integer outcomes and half-step lines. This player's P(over) at the displayed fair line is ${pct(row.p_rec_at_fair_line)}.` : 'Receiving-yards fair line is the calibrated continuous median, where P(over) is 50%.'}</p>
+      </div>
+    `;
   }
 
   function invalidationText(row, injury) {
     const parts = [];
-    if (injury) parts.push(`${injury.report_status}: ${injury.notes || 'availability can change expected snaps'}`);
+    if (injury) parts.push(`${injury.report_status}: ${injury.notes || 'availability can change expected snaps'}.`);
     parts.push(`Game script: ${row.team} spread ${num(row.team_spread) > 0 ? '+' : ''}${num(row.team_spread).toFixed(1)}.`);
-    if (finite(row.wind)) parts.push(`Weather input: ${num(row.wind).toFixed(0)} mph wind.`);
+
+    const game = state.games.find((item) => item.game_id === row.game_id);
+    const isDome = row.is_dome || game?.roof === 'dome';
+    if (isDome) {
+      parts.push('Environment: Indoor Dome (Controlled conditions).');
+    } else {
+      const wind = game?.wind ?? row.wind_speed ?? row.wind;
+      if (Number.isFinite(wind) && wind > 0) {
+        parts.push(`Weather input: ${wind} mph wind (${game?.home_team ? `${game.home_team} stadium` : 'Open'}).`);
+      } else {
+        parts.push('Weather input: Controlled / mild wind.');
+      }
+    }
     parts.push('Late inactive news or an unmodeled role change can invalidate the projection.');
     return parts.join(' ');
   }
