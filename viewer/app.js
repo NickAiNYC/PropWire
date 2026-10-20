@@ -2130,7 +2130,7 @@ function renderDrawerBodyContent() {
     <div class="scenario-lab-box">
       <div class="scenario-lab-header">
         <div class="scenario-lab-title">
-          <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;color:#10b981;"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;color:#B6F36B;"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
           Interactive Scenario Lab (Live Parameter Tuning)
         </div>
         <button class="btn-reset-sliders" onclick="resetDrawerLabSliders()">Reset 0%</button>
@@ -2233,7 +2233,7 @@ function renderDrawerBodyContent() {
               <div>
                 <div style="display:flex; align-items:center; gap:6px;">
                   <span style="font-weight:700; font-size:12px; color:var(--text-ink);">🔒 ${playerSnap.snapshot_type.toUpperCase()} RECORD</span>
-                  <span class="provisional-badge" style="color:#22c55e; background:rgba(34,197,94,0.12); border-color:rgba(34,197,94,0.35);">SHA-256 VERIFIED ✓</span>
+                  <span class="provisional-badge" style="color:#B6F36B; background:rgba(182, 243, 107,0.12); border-color:rgba(182, 243, 107,0.35);">SHA-256 VERIFIED ✓</span>
                 </div>
                 <div style="font-size:10px; font-family:var(--font-mono); color:var(--text-ink-tertiary); margin-top:2px;">
                   Frozen: ${new Date(playerSnap.created_at).toLocaleString()} &bull; Game: ${playerSnap.game_id}
@@ -2276,7 +2276,7 @@ function renderDrawerBodyContent() {
             </div>
             <div class="snapshot-hash-box">
               <code>${playerSnap.content_hash}</code>
-              <span style="color:#22c55e; font-weight:700; font-size:10px; white-space:nowrap;">IMMUTABLE</span>
+              <span style="color:#B6F36B; font-weight:700; font-size:10px; white-space:nowrap;">IMMUTABLE</span>
             </div>
             <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
               <button class="btn-secondary" style="font-size:11px; padding:4px 10px; font-weight:600;" onclick="copySnapshotJson('${playerSnap.snapshot_id}')">
@@ -2564,7 +2564,7 @@ function renderDrawerDensityCurve(p, market, bookLine) {
   let edgeBufferSvg = '';
   if (p.isQualified && bookX < fairX) {
     edgeBufferSvg = `
-      <rect x="${bookX}" y="${pad.top}" width="${fairX - bookX}" height="${h - pad.top - pad.bottom}" fill="rgba(34, 197, 94, 0.12)" stroke="none"/>
+      <rect x="${bookX}" y="${pad.top}" width="${fairX - bookX}" height="${h - pad.top - pad.bottom}" fill="rgba(182, 243, 107, 0.12)" stroke="none"/>
       <text x="${(bookX + fairX) / 2}" y="${pad.top + 16}" font-family="var(--font-mono)" font-size="8.5" font-weight="700" fill="var(--status-green)" text-anchor="middle">EDGE BUFFER</text>
     `;
   }
@@ -3753,7 +3753,7 @@ function generateXCard(row) {
   canvasRoundRect(ctx, 24, 24, W - 48, H - 48, 16, false, true);
 
   // Corner Accent Brackets (Emerald Glow)
-  ctx.strokeStyle = '#10b981';
+  ctx.strokeStyle = '#B6F36B';
   ctx.lineWidth = 3;
   ctx.beginPath(); ctx.moveTo(24, 60); ctx.lineTo(24, 24); ctx.lineTo(60, 24); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(W - 60, 24); ctx.lineTo(W - 24, 24); ctx.lineTo(W - 24, 60); ctx.stroke();
@@ -3763,12 +3763,12 @@ function generateXCard(row) {
   // 4. Header Bar
   // Brand squircle icon
   ctx.fillStyle = '#0f172a';
-  ctx.strokeStyle = '#10b981';
+  ctx.strokeStyle = '#B6F36B';
   ctx.lineWidth = 1.5;
   canvasRoundRect(ctx, 50, 44, 38, 38, 8, true, true);
 
   // Upward trend arrow
-  ctx.strokeStyle = '#10b981';
+  ctx.strokeStyle = '#B6F36B';
   ctx.lineWidth = 2.5;
   ctx.beginPath(); ctx.moveTo(59, 67); ctx.lineTo(74, 52); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(66, 52); ctx.lineTo(74, 52); ctx.lineTo(74, 60); ctx.stroke();
@@ -3780,7 +3780,7 @@ function generateXCard(row) {
   ctx.fillText('PROP·WIRE', 100, 71);
 
   // Subtitle
-  ctx.fillStyle = '#10b981';
+  ctx.fillStyle = '#B6F36B';
   ctx.font = '700 11px "SF Mono", Menlo, Consolas, monospace';
   ctx.fillText('QUANTITATIVE SPORTS BETTING TERMINAL • AUDIT RECEIPT', 255, 70);
 
@@ -3815,15 +3815,15 @@ function generateXCard(row) {
     ctx.fillText(`Model absorbs +${ben.projected_extra_targets_per_game} tgts/g (${ben.share_of_vacated_targets}% vacated share)`, 1130, 123);
     ctx.textAlign = 'left';
   } else if (row.roleShift.type === 'SUSTAINED_SURGE') {
-    ctx.fillStyle = 'rgba(16, 185, 129, 0.12)';
-    ctx.strokeStyle = 'rgba(16, 185, 129, 0.4)';
+    ctx.fillStyle = 'rgba(182, 243, 107, 0.12)';
+    ctx.strokeStyle = 'rgba(182, 243, 107, 0.4)';
     canvasRoundRect(ctx, 50, 96, 1100, 44, 8, true, true);
 
-    ctx.fillStyle = '#10b981';
+    ctx.fillStyle = '#B6F36B';
     ctx.font = 'bold 13.5px -apple-system, BlinkMacSystemFont, sans-serif';
     ctx.fillText(`⚡ SUSTAINED ROLE SURGE: +${Math.round((row.roleShift.diff || 0.05) * 100)}% Target Share Expansion (L3W)`, 68, 123);
 
-    ctx.fillStyle = '#34d399';
+    ctx.fillStyle = '#B6F36B';
     ctx.font = '700 11.5px "SF Mono", monospace';
     ctx.textAlign = 'right';
     ctx.fillText('Calibrated Poisson-Gamma GLM Drift', 1130, 123);
@@ -3888,10 +3888,10 @@ function generateXCard(row) {
 
   // Status Badge (Top Right)
   if (row.isQualified) {
-    ctx.fillStyle = 'rgba(16, 185, 129, 0.18)';
-    ctx.strokeStyle = '#10b981';
+    ctx.fillStyle = 'rgba(182, 243, 107, 0.18)';
+    ctx.strokeStyle = '#B6F36B';
     canvasRoundRect(ctx, 890, 156, 260, 42, 6, true, true);
-    ctx.fillStyle = '#10b981';
+    ctx.fillStyle = '#B6F36B';
     ctx.font = 'bold 13px "SF Mono", monospace';
     ctx.textAlign = 'center';
     ctx.fillText(`✓ QUALIFIED BET (${(row.actionableStake * 100).toFixed(2)}%)`, 1020, 182);
@@ -3955,19 +3955,19 @@ function generateXCard(row) {
 
   // Card 3: Expected Value (EV)
   ctx.fillStyle = '#0c101a';
-  ctx.strokeStyle = row.expectedReturn > 0 ? 'rgba(16, 185, 129, 0.45)' : 'rgba(255, 255, 255, 0.08)';
+  ctx.strokeStyle = row.expectedReturn > 0 ? 'rgba(182, 243, 107, 0.45)' : 'rgba(255, 255, 255, 0.08)';
   canvasRoundRect(ctx, 805, cardY, 345, cardH, 10, true, true);
 
   ctx.fillStyle = '#94a3b8';
   ctx.font = '700 11px "SF Mono", monospace';
   ctx.fillText('EDGE / EXPECTED VALUE', 827, cardY + 30);
 
-  ctx.fillStyle = row.expectedReturn > 0 ? '#10b981' : '#cbd5e1';
+  ctx.fillStyle = row.expectedReturn > 0 ? '#B6F36B' : '#cbd5e1';
   ctx.font = 'bold 42px "SF Mono", monospace';
   const evSign = row.expectedReturn > 0 ? '+' : '';
   ctx.fillText(`${evSign}${(row.expectedReturn * 100).toFixed(1)}% EV`, 827, cardY + 84);
 
-  ctx.fillStyle = '#34d399';
+  ctx.fillStyle = '#B6F36B';
   ctx.font = '700 14px -apple-system, sans-serif';
   ctx.fillText(`${row.status === 'QUALIFIED' ? '✓ Qualified Play' : 'Model Lean'} (+${(row.probEdge * 100).toFixed(1)}% Edge)`, 827, cardY + 118);
 
@@ -4012,7 +4012,7 @@ function generateXCard(row) {
   const fairPx = trackX + Math.min(trackW * 0.92, Math.max(trackW * 0.08, ((fairVal - minSpan) / span) * trackW));
 
   // Highlight buffer
-  ctx.fillStyle = 'rgba(16, 185, 129, 0.4)';
+  ctx.fillStyle = 'rgba(182, 243, 107, 0.4)';
   const leftBuf = Math.min(offerPx, fairPx);
   const bufWidth = Math.abs(fairPx - offerPx);
   canvasRoundRect(ctx, leftBuf, trackY, bufWidth, 8, 4, true, false);
@@ -4033,15 +4033,15 @@ function generateXCard(row) {
   ctx.fillText(`Max ${maxOver}`, boundPx, trackY + 26);
 
   // Draw Pin 3: Fair
-  ctx.fillStyle = '#10b981';
+  ctx.fillStyle = '#B6F36B';
   ctx.beginPath(); ctx.arc(fairPx, trackY + 4, 7, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = '#10b981';
+  ctx.fillStyle = '#B6F36B';
   ctx.font = '700 11px "SF Mono", monospace';
   ctx.fillText(`Fair ${fairVal.toFixed(1)}`, fairPx, trackY - 10);
   ctx.textAlign = 'left';
 
   // Bottom Summary of Boundary
-  ctx.fillStyle = row.isQualified ? '#34d399' : '#94a3b8';
+  ctx.fillStyle = row.isQualified ? '#B6F36B' : '#94a3b8';
   ctx.font = '12px -apple-system, sans-serif';
   const cushionVal = (fairVal - offerVal).toFixed(1);
   const summaryStr = row.isQualified
@@ -4061,7 +4061,7 @@ function generateXCard(row) {
   ctx.font = '700 11px "SF Mono", monospace';
   ctx.fillText('🔒 SHA-256 VERIFIED IMMUTABLE SNAPSHOT  •  AUDITED PRE-GAME PROOF LEDGER', 50, 634);
 
-  ctx.fillStyle = '#10b981';
+  ctx.fillStyle = '#B6F36B';
   ctx.font = '700 13px "SF Mono", monospace';
   ctx.textAlign = 'right';
   ctx.fillText('https://receiving-props-agent.vercel.app/', 1150, 634);

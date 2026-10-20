@@ -28,7 +28,7 @@
   --text-ink-dim: #a1a1aa;
 
   /* Restrained Status Tokens */
-  --status-green: #15803d;
+  --status-green: #4D7C0F;
   --status-green-bg: #f0fdf4;
   --status-green-border: #bbf7d0;
 
@@ -77,7 +77,7 @@
   --logo-squircle-border: #e2e8f0;
   --logo-squircle-shadow: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.08));
   --logo-prop-color: #141416;
-  --logo-green: #15803d;
+  --logo-green: #4D7C0F;
 }
 
 /* ==========================================================================
@@ -106,9 +106,9 @@
   --text-ink-dim: #475569;
 
   /* Status Tokens */
-  --status-green: #22c55e;
-  --status-green-bg: rgba(34, 197, 94, 0.14);
-  --status-green-border: rgba(34, 197, 94, 0.32);
+  --status-green: #B6F36B;
+  --status-green-bg: rgba(182, 243, 107, 0.14);
+  --status-green-border: rgba(182, 243, 107, 0.32);
 
   --status-amber: #f59e0b;
   --status-amber-bg: rgba(245, 158, 11, 0.14);
@@ -150,7 +150,7 @@
   --logo-squircle-border: rgba(255, 255, 255, 0.12);
   --logo-squircle-shadow: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.5));
   --logo-prop-color: #f3f4f6;
-  --logo-green: #22c55e;
+  --logo-green: #B6F36B;
 }
 
 /* Base Reset & Setup */
@@ -879,14 +879,14 @@ body {
 
 .opp-card-qualified {
   border-left: 4px solid var(--status-green);
-  border-color: rgba(16, 185, 129, 0.4);
-  box-shadow: 0 0 20px rgba(16, 185, 129, 0.12), var(--shadow-sm);
-  background: linear-gradient(135deg, var(--bg-surface) 0%, rgba(16, 185, 129, 0.04) 100%);
+  border-color: rgba(182, 243, 107, 0.4);
+  box-shadow: 0 0 20px rgba(182, 243, 107, 0.12), var(--shadow-sm);
+  background: linear-gradient(135deg, var(--bg-surface) 0%, rgba(182, 243, 107, 0.04) 100%);
 }
 
 .opp-card-qualified:hover {
-  border-color: #10b981;
-  box-shadow: 0 0 28px rgba(16, 185, 129, 0.22), var(--shadow-md);
+  border-color: #B6F36B;
+  box-shadow: 0 0 28px rgba(182, 243, 107, 0.22), var(--shadow-md);
 }
 
 .opp-card-header {
@@ -968,7 +968,7 @@ body {
 
 .role-surge {
   background: #f0fdf4;
-  color: #15803d;
+  color: #4D7C0F;
   border: 1px solid #bbf7d0;
 }
 
@@ -1773,13 +1773,13 @@ body {
 }
 
 .slate-table tbody tr.row-qualified {
-  background: linear-gradient(90deg, rgba(16, 185, 129, 0.08) 0%, rgba(16, 185, 129, 0.02) 40%, transparent 100%);
-  border-left: 3px solid #10b981;
+  background: linear-gradient(90deg, rgba(182, 243, 107, 0.08) 0%, rgba(182, 243, 107, 0.02) 40%, transparent 100%);
+  border-left: 3px solid #B6F36B;
 }
 
 .slate-table tbody tr.row-qualified:hover {
-  background: linear-gradient(90deg, rgba(16, 185, 129, 0.16) 0%, rgba(16, 185, 129, 0.04) 50%, transparent 100%);
-  box-shadow: inset 0 0 16px rgba(16, 185, 129, 0.08);
+  background: linear-gradient(90deg, rgba(182, 243, 107, 0.16) 0%, rgba(182, 243, 107, 0.04) 50%, transparent 100%);
+  box-shadow: inset 0 0 16px rgba(182, 243, 107, 0.08);
 }
 
 /* Micro-visualizations: Mini Divergence Sparkline Bar */
@@ -1801,8 +1801,8 @@ body {
 }
 
 .mini-divergence-fill.fill-positive {
-  background: linear-gradient(90deg, #10b981, #34d399);
-  box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
+  background: linear-gradient(90deg, #B6F36B, #B6F36B);
+  box-shadow: 0 0 8px rgba(182, 243, 107, 0.4);
 }
 
 .mini-divergence-fill.fill-neutral {
@@ -1815,10 +1815,10 @@ body {
   width: 10px;
   height: 10px;
   background: #ffffff;
-  border: 2px solid #10b981;
+  border: 2px solid #B6F36B;
   border-radius: 50%;
   transform: translateX(-50%);
-  box-shadow: 0 0 6px #10b981;
+  box-shadow: 0 0 6px #B6F36B;
 }
 
 .pos-tag {
@@ -2561,28 +2561,28 @@ body {
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.04em;
-  background: rgba(16, 185, 129, 0.1);
-  color: #10b981;
-  border: 1px solid rgba(16, 185, 129, 0.35);
-  box-shadow: 0 0 12px rgba(16, 185, 129, 0.15);
+  background: rgba(182, 243, 107, 0.1);
+  color: #B6F36B;
+  border: 1px solid rgba(182, 243, 107, 0.35);
+  box-shadow: 0 0 12px rgba(182, 243, 107, 0.15);
   cursor: pointer;
   transition: all 0.2s ease;
   position: relative;
 }
 
 .snapshot-status-badge:hover {
-  background: rgba(16, 185, 129, 0.18);
-  border-color: #10b981;
-  box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+  background: rgba(182, 243, 107, 0.18);
+  border-color: #B6F36B;
+  box-shadow: 0 0 20px rgba(182, 243, 107, 0.3);
 }
 
 .snapshot-ticker-pulse {
   width: 7px;
   height: 7px;
-  background: #10b981;
+  background: #B6F36B;
   border-radius: 50%;
   display: inline-block;
-  box-shadow: 0 0 8px #10b981;
+  box-shadow: 0 0 8px #B6F36B;
   animation: ticker-pulse 1.8s infinite ease-in-out;
 }
 
@@ -2854,9 +2854,9 @@ body {
   font-family: var(--font-mono);
   font-size: 9.5px;
   font-weight: 800;
-  color: #22c55e;
-  background: rgba(34, 197, 94, 0.12);
-  border: 1px solid rgba(34, 197, 94, 0.4);
+  color: #B6F36B;
+  background: rgba(182, 243, 107, 0.12);
+  border: 1px solid rgba(182, 243, 107, 0.4);
   padding: 1px 5px;
   border-radius: 4px;
   letter-spacing: 0.03em;
@@ -3069,11 +3069,11 @@ body {
 }
 
 .quick-pill.active {
-  background: #10b981;
+  background: #B6F36B;
   color: #09090b;
   font-weight: 700;
-  border-color: #10b981;
-  box-shadow: 0 0 12px rgba(16, 185, 129, 0.35);
+  border-color: #B6F36B;
+  box-shadow: 0 0 12px rgba(182, 243, 107, 0.35);
 }
 
 /* ==========================================================================
@@ -3081,10 +3081,10 @@ body {
    ========================================================================== */
 
 .btn-copied-active {
-  background: rgba(16, 185, 129, 0.18) !important;
-  color: #10b981 !important;
-  border-color: #10b981 !important;
-  box-shadow: 0 0 16px rgba(16, 185, 129, 0.45) !important;
+  background: rgba(182, 243, 107, 0.18) !important;
+  color: #B6F36B !important;
+  border-color: #B6F36B !important;
+  box-shadow: 0 0 16px rgba(182, 243, 107, 0.45) !important;
   font-weight: 700 !important;
   transform: scale(1.03);
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
@@ -3162,7 +3162,7 @@ body {
 }
 
 .btn-pwa-install {
-  background: #10b981;
+  background: #B6F36B;
   color: #09090b;
   border: none;
   font-size: 12px;
@@ -3175,8 +3175,8 @@ body {
 }
 
 .btn-pwa-install:hover {
-  background: #059669;
-  box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
+  background: #9AD94F;
+  box-shadow: 0 0 10px rgba(182, 243, 107, 0.4);
 }
 
 .btn-pwa-dismiss {
@@ -3284,9 +3284,9 @@ body {
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  background: #10b981;
+  background: #B6F36B;
   border: 2px solid var(--bg-surface);
-  box-shadow: 0 0 6px rgba(16, 185, 129, 0.5);
+  box-shadow: 0 0 6px rgba(182, 243, 107, 0.5);
   cursor: pointer;
   transition: transform 0.1s ease;
 }
@@ -3299,9 +3299,9 @@ body {
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  background: #10b981;
+  background: #B6F36B;
   border: 2px solid var(--bg-surface);
-  box-shadow: 0 0 6px rgba(16, 185, 129, 0.5);
+  box-shadow: 0 0 6px rgba(182, 243, 107, 0.5);
   cursor: pointer;
 }
 
