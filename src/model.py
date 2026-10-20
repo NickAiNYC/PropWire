@@ -152,10 +152,10 @@ class ReceivingModel:
         return stats.nbinom.sf(np.floor(lines), r, p)
 
     def p_yards_over_vec(self, mu_rec: np.ndarray, mu_ypr: np.ndarray,
-                         lines: np.ndarray, n_max: int = 22) -> np.ndarray:
+                         lines: np.ndarray, n_max: int = 36) -> np.ndarray:
         """Same compound sum as p_yards_over, evaluated for every row at once
-        on a shared reception grid. n_max=22 truncates <1e-6 of the mass for
-        realistic receiving volumes."""
+        on a shared reception grid. n_max=36 prevents tail truncation even for
+        elite target-earners with mu_rec ~ 10."""
         mu_rec = np.asarray(mu_rec, float)
         mu_ypr = np.asarray(mu_ypr, float)
         lines = np.asarray(lines, float)
@@ -174,7 +174,7 @@ class ReceivingModel:
         hi = np.full_like(mu_rec, 400.0)
         for _ in range(iters):
             mid = (lo + hi) / 2
-            over = self.p_yards_over_vec(mu_rec, mu_ypr, mid) > (1 - q)
+            over = self.p_yards_over_vec(mu_rec, mu_ypr, mid, n_max=36) > (1 - q)
             lo = np.where(over, mid, lo)
             hi = np.where(over, hi, mid)
         return (lo + hi) / 2

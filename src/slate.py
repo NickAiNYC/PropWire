@@ -252,7 +252,7 @@ def build_slate(season: int, week: int, apply_week1_adjustments: bool = True,
     slate = slate.drop(columns=["game_id", "season", "week", "opponent_team",
                                 "is_home", "team_spread", "total_line",
                                 "implied_team_total", "implied_opp_total",
-                                "is_dome", "wind"], errors="ignore")
+                                "is_dome", "wind", "unposted_lines"], errors="ignore")
     slate = slate.merge(pairs, on="team", how="inner")
     slate = attach_game_context(slate, games)
 

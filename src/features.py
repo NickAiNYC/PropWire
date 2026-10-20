@@ -91,6 +91,11 @@ def attach_game_context(df: pd.DataFrame, games: pd.DataFrame) -> pd.DataFrame:
     away["team_spread"] = -away["spread_line"]
     ctx = pd.concat([home, away], ignore_index=True)
 
+    # Track if book lines are unposted, and impute standard league medians (total 44.5, pick'em 0.0)
+    ctx["unposted_lines"] = ctx["total_line"].isna().astype(int)
+    ctx["total_line"] = ctx["total_line"].fillna(44.5)
+    ctx["team_spread"] = ctx["team_spread"].fillna(0.0)
+
     # Implied team total = half the game total, shifted by half the spread.
     ctx["implied_team_total"] = ctx["total_line"] / 2.0 + ctx["team_spread"] / 2.0
     ctx["implied_opp_total"] = ctx["total_line"] / 2.0 - ctx["team_spread"] / 2.0
@@ -99,7 +104,7 @@ def attach_game_context(df: pd.DataFrame, games: pd.DataFrame) -> pd.DataFrame:
     ctx.loc[ctx.is_dome == 1, "wind"] = 0.0
 
     cols = ["game_id", "team", "is_home", "team_spread", "total_line",
-            "implied_team_total", "implied_opp_total", "is_dome", "wind"]
+            "implied_team_total", "implied_opp_total", "is_dome", "wind", "unposted_lines"]
     return df.merge(ctx[cols], on=["game_id", "team"], how="left")
 
 
