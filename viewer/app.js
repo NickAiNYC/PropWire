@@ -1642,6 +1642,23 @@ function openDrawerForPlayer(playerName) {
 
   drawer.classList.add('active');
   overlay.classList.add('active');
+
+  const bodyEl = document.getElementById('drawerBody');
+  if (bodyEl) {
+    bodyEl.scrollTop = 0;
+    const btns = document.querySelectorAll('.step-nav-btn');
+    btns.forEach((b, i) => b.classList.toggle('active', i === 0));
+    bodyEl.onscroll = () => {
+      const steps = ['drawerStep1', 'drawerStep2', 'drawerStep3', 'drawerStep4', 'drawerStep5', 'drawerStep6'];
+      for (let i = steps.length - 1; i >= 0; i--) {
+        const stepEl = document.getElementById(steps[i]);
+        if (stepEl && stepEl.getBoundingClientRect().top <= 200) {
+          btns.forEach((b, idx) => b.classList.toggle('active', idx === i));
+          break;
+        }
+      }
+    };
+  }
 }
 
 function renderDrawerBodyContent() {
@@ -1653,7 +1670,7 @@ function renderDrawerBodyContent() {
 
   body.innerHTML = `
     <!-- STEP 1: DECISION (Side, Offer, Qualification, Rationale) -->
-    <div class="drawer-section-title">1. The Decision &amp; Qualification Status</div>
+    <div class="drawer-section-title" id="drawerStep1">1. The Decision &amp; Qualification Status</div>
     <div style="background:var(--bg-surface-subtle); border:1px solid var(--border-subtle); border-radius:8px; padding:14px; margin-bottom:16px;">
       <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px; flex-wrap:wrap;">
         ${p.isVerifiedQuote ? `<span class="verified-quote-badge">⚡ VERIFIED QUOTE &bull; ${p.quoteSource}</span>` : `<span style="font-size:10px; font-family:var(--font-mono); color:var(--text-ink-tertiary); background:rgba(255,255,255,0.06); padding:2px 6px; border-radius:4px;">CALIBRATED BASELINE</span>`}
@@ -1680,7 +1697,7 @@ function renderDrawerBodyContent() {
     </div>
 
     <!-- STEP 2: PRICE (Sportsbook comparison + Sensitivity + Boundaries) -->
-    <div class="drawer-section-title">2. Price Verification &amp; Price Boundaries</div>
+    <div class="drawer-section-title" id="drawerStep2">2. Price Verification &amp; Price Boundaries</div>
     <div class="price-boundary-box" style="margin-bottom:12px;">
       <div class="price-boundary-label">Price Boundaries Required to Clear Hurdle:</div>
       <div class="price-boundary-val">
@@ -1709,7 +1726,7 @@ function renderDrawerBodyContent() {
     </table>
 
     <!-- STEP 3: EVIDENCE (Role-Change Detection & Injury Vacancy) -->
-    <div class="drawer-section-title">3. Evidence &amp; Role-Change Detection</div>
+    <div class="drawer-section-title" id="drawerStep3">3. Evidence &amp; Role-Change Detection</div>
     ${(() => {
       const ben = currentInjuriesData && currentInjuriesData.impacted_beneficiaries
         ? (currentInjuriesData.impacted_beneficiaries[p.player_id] || Object.values(currentInjuriesData.impacted_beneficiaries).find(b => b.name === p.name))
@@ -1801,7 +1818,7 @@ function renderDrawerBodyContent() {
     </div>
 
     <!-- STEP 4: RISKS & INVALIDATION FACTORS -->
-    <div class="drawer-section-title">4. Invalidation Factors &amp; Matchup Risks</div>
+    <div class="drawer-section-title" id="drawerStep4">4. Invalidation Factors &amp; Matchup Risks</div>
     <div style="background:var(--bg-surface-subtle); border:1px solid var(--border-subtle); border-radius:8px; padding:12px; margin-bottom:16px; font-size:12px; line-height:1.6; color:var(--text-ink-secondary);">
       ${p.questionable ? `
         <div style="color:var(--status-amber); font-weight:700; margin-bottom:6px;">
@@ -1810,12 +1827,11 @@ function renderDrawerBodyContent() {
       ` : `<div style="color:var(--status-green); margin-bottom:6px;">✓ Clean health status. No official injury designation.</div>`}
       &bull; <strong>Defensive Matchup:</strong> Opponent allows <strong>${((Number(p.def_yards_idx || 1.0) - 1.0) * 100).toFixed(1)}%</strong> ${p.def_yards_idx >= 1.0 ? 'more' : 'fewer'} yards to ${p.position}s than NFL average.<br>
       &bull; <strong>Game Script &amp; Spread:</strong> ${p.team} is ${p.team_spread > 0 ? '+' : ''}${Number(p.team_spread || 0).toFixed(1)}. Positive scripts reduce pass volume; trailing scripts inflate targets.<br>
-      &bull; <strong>Game Script &amp; Spread:</strong> ${p.team} is ${p.team_spread > 0 ? '+' : ''}${Number(p.team_spread || 0).toFixed(1)}. Positive scripts reduce pass volume; trailing scripts inflate targets.<br>
       &bull; <strong>Venue:</strong> ${p.is_dome ? 'Indoor Dome (ideal passing environment)' : `Outdoor stadium &bull; Wind: ${p.wind || 0} mph`}.
     </div>
 
     <!-- STEP 5: DISTRIBUTION & PREDICTIVE RANGES -->
-    <div class="drawer-section-title">5. Predictive Distribution &amp; Outcome Ranges</div>
+    <div class="drawer-section-title" id="drawerStep5">5. Predictive Distribution &amp; Outcome Ranges</div>
     <div class="outcome-range-bar-wrap">
       <div class="range-steps-row">
         <span>10th: <strong>${Math.round(p.projVol * 0.35)}</strong></span>
@@ -1835,7 +1851,7 @@ function renderDrawerBodyContent() {
     <div id="drawerCurveContainer" style="width:100%; height:180px; position:relative; background:var(--bg-canvas); border:1px solid var(--border-subtle); border-radius:6px; margin-bottom:16px;"></div>
 
     <!-- STEP 6: IMMUTABLE DECISION-TIME SNAPSHOT AUDIT -->
-    <div class="drawer-section-title">6. Immutable Decision-Time Snapshot Audit</div>
+    <div class="drawer-section-title" id="drawerStep6">6. Immutable Decision-Time Snapshot Audit</div>
     ${(() => {
       const snapMarketKey = (p.market === 'receptions' || currentFilterMarket === 'receptions') ? 'receptions' : 'receiving_yards';
       const playerSnap = currentSnapshots.find(s => s.player_id === p.player_id && s.market === snapMarketKey);
@@ -2134,6 +2150,19 @@ function renderDrawerDensityCurve(p, market, bookLine) {
   `;
 }
 
+function scrollToDrawerStep(stepId) {
+  const el = document.getElementById(stepId);
+  const body = document.getElementById('drawerBody');
+  if (el && body) {
+    const topPos = el.offsetTop - body.offsetTop - 8;
+    body.scrollTo({ top: topPos, behavior: 'smooth' });
+    const btns = document.querySelectorAll('.step-nav-btn');
+    btns.forEach(b => b.classList.remove('active'));
+    const clickedBtn = Array.from(btns).find(b => b.getAttribute('onclick')?.includes(stepId));
+    if (clickedBtn) clickedBtn.classList.add('active');
+  }
+}
+
 function closeDrawer() {
   document.getElementById('detailDrawer')?.classList.remove('active');
   document.getElementById('drawerOverlay')?.classList.remove('active');
@@ -2187,7 +2216,11 @@ function quickSaveCondition(playerId) {
       entryOdds: ev.odds,
       targetQualLine: ev.priceBoundaries.maxOverLine,
       targetQualOdds: ev.priceBoundaries.breakEvenOddsAtFair,
-      status: 'MONITORING',
+      status: ev.isQualified ? 'TRIGGER_MET' : 'MONITORING',
+      savedAtTimestamp: Date.now(),
+      savedOfferLine: ev.bookLine,
+      savedFairLine: ev.fairLine,
+      savedStatus: ev.status,
       createdDate: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       log: [`Created: Monitoring for line <= ${ev.priceBoundaries.maxOverLine} or odds >= ${ev.priceBoundaries.breakEvenOddsAtFair}`]
     });
@@ -2224,14 +2257,75 @@ function renderWatchlistPage() {
 
   container.innerHTML = `
     <div style="display:flex; flex-direction:column; gap:12px;">
-      ${userSavedConditions.map(c => `
-        <div class="opp-card">
+      ${userSavedConditions.map(c => {
+        const currP = slateData.find(x => x.player_id === c.playerId);
+        const currEv = currP ? getEvaluatedPlayerRow(currP) : null;
+
+        let isHurdleMet = c.status === 'TRIGGER_MET';
+        let lineDeltaText = '(No change)';
+        let fairDeltaText = '(No change)';
+        let boundaryCushionText = 'N/A';
+
+        if (currEv) {
+          if (currEv.isQualified || (currEv.bookLine && c.side === 'OVER' && currEv.bookLine <= c.targetQualLine) || (currEv.bookLine && c.side === 'UNDER' && currEv.bookLine >= c.targetQualLine)) {
+            isHurdleMet = true;
+          }
+
+          if (c.savedOfferLine && currEv.bookLine) {
+            const diff = currEv.bookLine - c.savedOfferLine;
+            if (diff > 0) {
+              lineDeltaText = `<span style="color:${c.side === 'OVER' ? 'var(--status-red)' : 'var(--status-green)'}; font-weight:700;">+${diff.toFixed(1)}</span>`;
+            } else if (diff < 0) {
+              lineDeltaText = `<span style="color:${c.side === 'OVER' ? 'var(--status-green)' : 'var(--status-red)'}; font-weight:700;">${diff.toFixed(1)}</span>`;
+            }
+          }
+
+          if (c.savedFairLine && currEv.fairLine) {
+            const fairDiff = currEv.fairLine - c.savedFairLine;
+            if (Math.abs(fairDiff) >= 0.1) {
+              fairDeltaText = `<span style="color:var(--accent-editorial); font-weight:700;">${fairDiff > 0 ? '+' : ''}${fairDiff.toFixed(1)}</span>`;
+            }
+          }
+
+          if (currEv.bookLine) {
+            const cushion = c.side === 'OVER' ? (c.targetQualLine - currEv.bookLine) : (currEv.bookLine - c.targetQualLine);
+            boundaryCushionText = cushion >= 0 
+              ? `<span style="color:var(--status-green); font-weight:700;">+${cushion.toFixed(1)} yd surplus (cleared)</span>`
+              : `<span style="color:var(--status-amber); font-weight:700;">${cushion.toFixed(1)} yd deficit</span>`;
+          }
+        }
+
+        return `
+        <div class="opp-card ${isHurdleMet ? 'verified-opp' : ''}">
           <div class="opp-card-header">
             <div>
               <div class="opp-player-name" onclick="openDrawerForPlayer('${c.playerName}')">${c.playerName}</div>
               <div class="opp-matchup-sub">${c.team} vs ${c.opponent} &bull; ${c.market === 'receptions' ? 'Receptions' : 'Yards'} (${c.side})</div>
             </div>
-            <span class="role-badge role-surge">ACTIVE MONITORING</span>
+            <span class="role-badge ${isHurdleMet ? 'role-primary-shift' : 'role-surge'}">
+              ${isHurdleMet ? '✓ QUALIFIED TRIGGER' : 'ACTIVE MONITORING'}
+            </span>
+          </div>
+
+          <!-- Active Delta Box -->
+          <div class="saved-delta-box">
+            <div class="delta-header">
+              <span class="delta-label">⚡ Delta Since Saved</span>
+              <span class="${isHurdleMet ? 'delta-status-met' : 'delta-status-pending'}">
+                ${isHurdleMet ? '✓ QUALIFIED (Hurdle Cleared)' : '⏳ Awaiting Line/Odds Trigger'}
+              </span>
+            </div>
+            <div class="delta-items">
+              <div class="delta-item">
+                <span>&bull; <strong>Book Offer:</strong> Saved at ${c.savedOfferLine || c.entryLine || 'Unquoted'} &rarr; Current: <strong>${currEv && currEv.bookLine ? currEv.bookLine : 'Unquoted'}</strong> ${lineDeltaText}</span>
+              </div>
+              <div class="delta-item">
+                <span>&bull; <strong>Model Fair Line:</strong> ${Number(c.savedFairLine || c.fairLine).toFixed(1)} &rarr; Current: <strong>${currEv ? Number(currEv.fairLine).toFixed(1) : 'N/A'}</strong> ${fairDeltaText}</span>
+              </div>
+              <div class="delta-item">
+                <span>&bull; <strong>Boundary Cushion:</strong> ${c.side} boundary: ${c.targetQualLine} &bull; Cushion: <strong>${boundaryCushionText}</strong></span>
+              </div>
+            </div>
           </div>
 
           <div class="opp-pricing-row">
@@ -2243,9 +2337,13 @@ function renderWatchlistPage() {
               <span class="pricing-label">Target Qual Hurdle</span>
               <span class="pricing-val">${c.side} &le; ${c.targetQualLine}</span>
             </div>
+            <div class="pricing-metric">
+              <span class="pricing-label">Trigger Status</span>
+              <span class="pricing-val" style="color:${isHurdleMet ? 'var(--status-green)' : 'var(--status-amber)'};">${isHurdleMet ? 'MET' : 'PENDING'}</span>
+            </div>
           </div>
 
-          <div style="font-size:11px; color:var(--text-ink-secondary);">
+          <div style="font-size:11px; color:var(--text-ink-secondary); margin-top:6px;">
             <strong>Trigger History:</strong> ${c.log.join(' &bull; ')}
           </div>
 
@@ -2255,7 +2353,8 @@ function renderWatchlistPage() {
             <button class="btn-watch" onclick="quickSaveCondition('${c.playerId}')" style="color:var(--status-red);">Delete</button>
           </div>
         </div>
-      `).join('')}
+      `;
+      }).join('')}
     </div>
   `;
 }

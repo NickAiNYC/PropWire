@@ -222,11 +222,11 @@
           <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
             <span style="font-family:var(--font-mono); font-size:11px; color:var(--text-ink-tertiary);">VIEW MODE:</span>
             <div class="segmented-control" id="viewModeGroup">
-              <button class="seg-btn" id="btnModeBaseline" onclick="setViewMode('baseline')">Model Baselines</button>
-              <button class="seg-btn" id="btnModeSurges" onclick="setViewMode('surges')">Role Surges (12)</button>
-              <button class="seg-btn" id="btnModeInjurySurges" onclick="setViewMode('injury_surges')">Injury Shifts (6)</button>
-              <button class="seg-btn active" id="btnModeVerifiedQuotes" onclick="setViewMode('verified_quotes')">Verified Quotes (<span id="verifiedQuotesTabCount">10</span>)</button>
-              <button class="seg-btn" id="btnModeDemoQuotes" onclick="setViewMode('demo_quotes')">Explore Scenarios</button>
+              <button class="seg-btn active" id="btnModeVerifiedQuotes" onclick="setViewMode('verified_quotes')">⚡ Verified Quotes (<span id="verifiedQuotesTabCount">10</span>)</button>
+              <button class="seg-btn" id="btnModeInjurySurges" onclick="setViewMode('injury_surges')">🎯 Injury Vacancies (6)</button>
+              <button class="seg-btn" id="btnModeSurges" onclick="setViewMode('surges')">📈 Role Surges (12)</button>
+              <button class="seg-btn" id="btnModeBaseline" onclick="setViewMode('baseline')">Pure Baselines</button>
+              <button class="seg-btn" id="btnModeDemoQuotes" onclick="setViewMode('demo_quotes')">🧪 Scenario Lab</button>
             </div>
           </div>
         </div>
@@ -622,6 +622,16 @@
           </svg>
         </button>
       </div>
+
+      <!-- Sticky Micro-Step Navigation Bar -->
+      <nav class="drawer-step-nav" id="drawerStepNav">
+        <button class="step-nav-btn active" onclick="scrollToDrawerStep('drawerStep1')">1. Decision</button>
+        <button class="step-nav-btn" onclick="scrollToDrawerStep('drawerStep2')">2. Price</button>
+        <button class="step-nav-btn" onclick="scrollToDrawerStep('drawerStep3')">3. Role</button>
+        <button class="step-nav-btn" onclick="scrollToDrawerStep('drawerStep4')">4. Risk</button>
+        <button class="step-nav-btn" onclick="scrollToDrawerStep('drawerStep5')">5. Curve</button>
+        <button class="step-nav-btn" onclick="scrollToDrawerStep('drawerStep6')">6. Audit</button>
+      </nav>
 
       <div class="drawer-body" id="drawerBody">
         <!-- Rendered dynamically in strict 6-step order by app.js:

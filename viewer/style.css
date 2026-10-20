@@ -1627,6 +1627,104 @@ body {
   height: 18px;
 }
 
+/* Sticky Micro-Step Navigation Bar in Drawer */
+.drawer-step-nav {
+  display: flex;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 8px 16px;
+  gap: 6px;
+  overflow-x: auto;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  scrollbar-width: none;
+}
+
+.drawer-step-nav::-webkit-scrollbar {
+  display: none;
+}
+
+.step-nav-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-ink-tertiary);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.step-nav-btn:hover {
+  color: var(--text-ink);
+  background: var(--bg-surface-subtle);
+}
+
+.step-nav-btn.active {
+  color: var(--accent-editorial);
+  background: var(--bg-surface-subtle);
+  border-color: var(--border-medium);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Saved Condition Active Delta Box */
+.saved-delta-box {
+  background: var(--bg-surface-subtle);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  padding: 10px 12px;
+  margin: 8px 0;
+}
+
+.delta-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.delta-label {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 700;
+  color: var(--text-ink-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.delta-status-met {
+  color: var(--status-green);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.delta-status-pending {
+  color: var(--status-amber);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.delta-items {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 11px;
+  color: var(--text-ink-secondary);
+  line-height: 1.4;
+}
+
+.delta-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .drawer-body {
   flex: 1;
   overflow-y: auto;
