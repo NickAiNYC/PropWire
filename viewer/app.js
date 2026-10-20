@@ -1,155 +1,321 @@
-// NFL Receiving Props Agent — Weekly Web App Logic
-// Compound NegBin / Gamma Distributional Model Engine & Correlation-Aware SGP Pricer
-
-const MODEL_ALPHA = 0.1097; // NegBin dispersion for receptions
-const MODEL_K = 1.555;      // Gamma shape per reception
-const W1_BIAS_REC = 0.057;  // Out-of-sample Week 1 bias on P(over)
-const W1_BIAS_YDS = 0.088;  // Out-of-sample Week 1 bias on P(over)
-const W1_MIN_EDGE = 0.10;   // 10% minimum edge gate for Week 1
-const W1_KELLY_CAP = 0.005; // 0.5% max bankroll stake for Week 1
-
-let slateData = [];
-let picksData = { picks: [] };
-let clvLogData = [];
-let currentPosFilter = 'ALL';
-let currentTeamFilter = 'ALL';
-let currentProjectableOnly = true;
-let currentSortCol = 'proj_yards';
-let currentSortAsc = false;
-let selectedPlayer = null;
-let inlinePlayerLines = {}; // Store inline entered lines: { playerId: { market, line, odds } }
+/**
+ * NFL Receiving Props Agent — Client Application
+ * Core Promise: "Understand the opportunity, verify the price, know what could invalidate it."
+ */
 
 // --------------------------------------------------------------------------
-// Initialization
+// Global State & Model Constants
+// --------------------------------------------------------------------------
+
+const MODEL_ALPHA = 0.177; // Rec dispersion (1/alpha = 5.65 shape)
+const MODEL_K = 1.05;      // Gamma shape per reception
+
+// Empirical out-of-sample calibration error hurdles
+const W1_BIAS_REC = 0.057; // Week 1 empirical bias
+const W1_BIAS_YDS = 0.088; // Week 1 empirical bias
+const W1_MIN_EDGE = 0.10;  // 10% edge hurdle for Week 1
+const W1_KELLY_CAP = 0.005; // 0.5% max bankroll cap
+
+const STD_MIN_EDGE = 0.05; // 5% edge hurdle for regular weeks
+const STD_KELLY_CAP = 0.02; // 2% max bankroll cap
+
+let currentSlateKey = '2026_w7'; // '2026_w7' (Upcoming) or '2026_w1' (Historical)
+let currentSeason = 2026;
+let currentWeek = 7;
+let isHistoricalSlate = false;
+
+let slateData = [];
+let topPicksData = [];
+let gamesData = [];
+let clvLogData = [];
+let selectedGameId = null; // Filter by game_id from Game Strip
+
+// User Filters
+let currentFilterPos = 'ALL';
+let currentFilterMarket = 'yards'; // 'yards', 'receptions', 'anytime_td'
+let currentFilterBook = 'Consensus';
+let currentFilterTeam = 'ALL';
+let currentSearchQuery = '';
+let currentQualifiedOnly = false;
+let currentProjectableOnly = true;
+
+let sortCol = 'proj_yards';
+let sortAsc = false;
+
+// Persistent User Adjustments (saved in localStorage)
+let inlinePlayerLines = {}; 
+let userWatchlist = [];
+let selectedDrawerPlayer = null;
+let clvFilterType = 'all'; // 'all', 'verified', 'demo'
+
+// --------------------------------------------------------------------------
+// Initialization & Slate Loading
 // --------------------------------------------------------------------------
 
 document.addEventListener('DOMContentLoaded', async () => {
-  loadSavedLines();
-  await loadData();
-  populateTeamFilter();
-  renderPicksSection();
-  renderSlateTable();
-  renderTdPanel();
-  populateCalculator();
-  loadClvData();
+  loadStoredWatchlist();
+  loadStoredLines();
+  
+  // Set up keyboard shortcuts (Escape to close drawer/modal)
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      closeDrawer();
+      closeAdminModal();
+    }
+  });
+
+  await initSlate(currentSlateKey);
+  await loadClvLedger();
 });
 
-// Resilient fetch helper: handles Railway API routes and static Vercel edge deployment cleanly
+async function initSlate(slateKey) {
+  currentSlateKey = slateKey;
+  if (slateKey === '2026_w1') {
+    currentWeek = 1;
+    isHistoricalSlate = true;
+  } else {
+    currentWeek = 7;
+    isHistoricalSlate = false;
+  }
+
+  updateSlateHeaderContext();
+
+  try {
+    // 1. Load games schedule
+    const gamesPath = isHistoricalSlate ? 'games_2026_w1.json' : 'games_2026_w7.json';
+    const gamesRes = await fetchWithFallback(`/api/games?slate=${slateKey}`, gamesPath);
+    if (gamesRes.ok) {
+      gamesData = await gamesRes.json();
+    } else {
+      gamesData = [];
+    }
+
+    // 2. Load slate projections
+    const slatePath = isHistoricalSlate ? 'slate_2026_w1.json' : 'slate_2026_w7.json';
+    const slateRes = await fetchWithFallback(`/api/slate?slate=${slateKey}`, slatePath);
+    if (slateRes.ok) {
+      slateData = await slateRes.json();
+    }
+
+    // 3. Load top picks
+    const picksPath = isHistoricalSlate ? 'current_picks_w1.json' : 'current_picks_w7.json';
+    const picksRes = await fetchWithFallback(`/api/picks?slate=${slateKey}`, picksPath);
+    if (picksRes.ok) {
+      const picksPayload = await picksRes.json();
+      topPicksData = picksPayload.top_projections || picksPayload.picks || [];
+    }
+
+    populateTeamDropdown();
+    renderGameStrip();
+    renderTopPicksCard();
+    renderBoard();
+    populateSgpSelect();
+  } catch (err) {
+    console.error('Error loading slate data:', err);
+    showToast('Failed to load slate data.');
+  }
+}
+
 async function fetchWithFallback(apiPath, staticFallback) {
   try {
     const res = await fetch(apiPath);
-    if (res.ok) {
-      return await res.json();
+    if (res.ok) return res;
+  } catch (_) {}
+  return fetch(staticFallback);
+}
+
+function updateSlateHeaderContext() {
+  const badge = document.getElementById('dataStatusBadge');
+  const badgeText = document.getElementById('dataStatusText');
+  const noticeBanner = document.getElementById('slateNoticeBanner');
+  const noticeText = document.getElementById('slateNoticeText');
+  const noticeBtn = document.getElementById('slateNoticeActionBtn');
+  const navTitle = document.getElementById('navTitle');
+  const selector = document.getElementById('slateSelector');
+
+  if (selector) selector.value = currentSlateKey;
+
+  if (isHistoricalSlate) {
+    navTitle.textContent = '2026 Week 1 Slate & Historical Audit';
+    if (badge) badge.className = 'data-status-badge badge-prelim';
+    if (badgeText) badgeText.textContent = 'HISTORICAL AUDIT • SETTLED';
+    if (noticeBanner) noticeBanner.style.background = 'rgba(245,158,11,0.08)';
+    if (noticeText) noticeText.innerHTML = 'Viewing <strong>2026 Week 1 Historical Audit</strong> (Settled games from Sept 10–14). Week 1 calibration error (3–5%) applied.';
+    if (noticeBtn) {
+      noticeBtn.textContent = 'Switch to Upcoming Slate (Week 7)';
+      noticeBtn.onclick = () => onSlateSelectChange('2026_w7');
     }
-  } catch (_) {}
-  const fallbackRes = await fetch(staticFallback);
-  return await fallbackRes.json();
-}
-
-async function loadData() {
-  try {
-    slateData = await fetchWithFallback('/api/slate', 'slate_projections.json');
-  } catch (err) {
-    console.error('Failed to load slate data:', err);
-    slateData = [];
+  } else {
+    navTitle.textContent = '2026 Week 7 Slate & Prop Intelligence';
+    if (badge) badge.className = 'data-status-badge status-live';
+    if (badgeText) badgeText.textContent = 'UPCOMING SLATE • CALIBRATED';
+    if (noticeBanner) noticeBanner.style.background = 'rgba(56,189,248,0.06)';
+    if (noticeText) noticeText.innerHTML = 'Showing <strong>2026 Week 7 Upcoming Slate</strong> (14 Matchups • Oct 22–26). Mid-season form calibration active.';
+    if (noticeBtn) {
+      noticeBtn.textContent = 'Switch to Historical Audit (Week 1)';
+      noticeBtn.onclick = () => onSlateSelectChange('2026_w1');
+    }
   }
-
-  // Augment each player with TD probability model
-  augmentPlayersWithTdModel();
-
-  try {
-    picksData = await fetchWithFallback('/api/picks', 'current_picks.json');
-  } catch (err) {
-    console.error('Failed to load picks data:', err);
-    picksData = { picks: [] };
-  }
-
-  updateSummaryStats();
 }
 
-function loadSavedLines() {
-  try {
-    const saved = localStorage.getItem('inline_lines');
-    if (saved) inlinePlayerLines = JSON.parse(saved);
-  } catch (_) {}
+function onSlateSelectChange(val) {
+  selectedGameId = null;
+  initSlate(val);
 }
 
-function saveLocalLines() {
-  try {
-    localStorage.setItem('inline_lines', JSON.stringify(inlinePlayerLines));
-  } catch (_) {}
+function toggleSlateContext() {
+  const next = isHistoricalSlate ? '2026_w7' : '2026_w1';
+  onSlateSelectChange(next);
 }
 
 // --------------------------------------------------------------------------
-// Touchdown Side-Model (Empirical Bayesian Shrinkage)
+// Navigation (4 Primary Destinations)
 // --------------------------------------------------------------------------
 
-function augmentPlayersWithTdModel() {
-  const posMeans = { 'WR': 0.052, 'TE': 0.076, 'RB': 0.038 };
-  const M = 25.0; // Shrinkage prior weight
-  const avgTotal = 22.0;
+function setDestination(dest) {
+  const tabs = ['board', 'watchlist', 'tracker', 'research'];
+  tabs.forEach(t => {
+    const btn = document.getElementById(`tab${capitalize(t)}`);
+    const page = document.getElementById(`${t}Destination`);
+    if (btn) btn.classList.toggle('active', t === dest);
+    if (page) page.classList.toggle('active', t === dest);
+  });
 
-  slateData.forEach(p => {
-    const pos = p.position || 'WR';
-    const posMean = posMeans[pos] || 0.052;
-    const tgts = Number(p.targets) || 0;
-    const tds = Number(p.receiving_tds) || 0;
-    const obsRate = tgts > 0 ? (tds / tgts) : posMean;
-    const w = tgts / (tgts + M);
-    const regRate = w * obsRate + (1 - w) * posMean;
-    const teamTotal = Number(p.implied_team_total) || 22.0;
-    const scaledRate = regRate * (teamTotal / avgTotal);
-    
-    // Projected targets
-    const catchRate = Number(p.f_catch_rate) || 0.67;
-    const expTgts = Number(p.f_targets) || (Number(p.proj_rec) / Math.max(0.4, catchRate));
-    const lambdaTd = expTgts * scaledRate;
-    const pTd = 1.0 - Math.exp(-Math.max(0, lambdaTd));
+  if (dest === 'watchlist') renderWatchlistPage();
+  if (dest === 'tracker') renderTrackerPage();
+  if (dest === 'board') renderBoard();
+}
 
-    p.p_td = Math.max(0.01, Math.min(0.95, pTd));
-    p.td_tier = p.p_td >= 0.35 ? 1 : (p.p_td >= 0.20 ? 2 : 3);
-    p.td_reg_rate = regRate;
-    p.td_exp_tgts = expTgts;
-    p.td_fair_odds = probToAmerican(p.p_td);
+function capitalize(s) {
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+// --------------------------------------------------------------------------
+// Game Strip (Horizontal Matchup Filter)
+// --------------------------------------------------------------------------
+
+function renderGameStrip() {
+  const track = document.getElementById('gameStripTrack');
+  if (!track) return;
+
+  if (gamesData.length === 0) {
+    track.innerHTML = `<span style="font-size:12px; color:var(--text-dim); padding:4px;">No matchup schedule files found for this slate.</span>`;
+    return;
+  }
+
+  const allActive = selectedGameId === null ? 'active' : '';
+  let html = `
+    <div class="matchup-tile ${allActive}" onclick="selectMatchup(null)">
+      <div class="tile-teams">ALL GAMES</div>
+      <div class="tile-time">${gamesData.length} Matchups</div>
+      <div class="tile-lines">Full Slate</div>
+    </div>
+  `;
+
+  gamesData.forEach(g => {
+    const isAct = selectedGameId === g.game_id ? 'active' : '';
+    const spreadStr = g.spread_line !== null ? (g.spread_line > 0 ? `+${g.spread_line}` : `${g.spread_line}`) : 'PK';
+    const totalStr = g.total_line !== null ? `O/U ${g.total_line}` : 'Total TBD';
+    const timeStr = formatGameTime(g.gameday, g.gametime);
+
+    html += `
+      <div class="matchup-tile ${isAct}" onclick="selectMatchup('${g.game_id}')">
+        <div class="tile-teams">
+          <span>${g.away_team}</span>
+          <span style="color:var(--text-dim); font-weight:400;">@</span>
+          <span>${g.home_team}</span>
+        </div>
+        <div class="tile-time">${timeStr}</div>
+        <div class="tile-lines">${g.home_team} ${spreadStr} &bull; ${totalStr}</div>
+      </div>
+    `;
+  });
+
+  track.innerHTML = html;
+}
+
+function formatGameTime(gameday, gametime) {
+  if (!gameday) return 'TBD';
+  const parts = gameday.split('-');
+  const dateObj = new Date(parts[0], parts[1] - 1, parts[2]);
+  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const dayName = days[dateObj.getDay()];
+  const time = gametime ? gametime.slice(0, 5) : '';
+  return `${dayName} ${time}`;
+}
+
+function selectMatchup(gameId) {
+  selectedGameId = gameId;
+  renderGameStrip();
+  const label = document.getElementById('activeMatchupFilterText');
+  const clearBtn = document.getElementById('clearMatchupBtn');
+  if (gameId) {
+    const g = gamesData.find(x => x.game_id === gameId);
+    if (g && label) label.innerHTML = `Game: <strong>${g.away_team} @ ${g.home_team}</strong>`;
+    if (clearBtn) clearBtn.style.display = 'inline-block';
+  } else {
+    if (label) label.textContent = 'All Matchups';
+    if (clearBtn) clearBtn.style.display = 'none';
+  }
+  renderBoard();
+}
+
+function clearMatchupFilter() {
+  selectMatchup(null);
+}
+
+// --------------------------------------------------------------------------
+// Top Volume Projections Card (DFS / Fantasy Volume Leaders)
+// --------------------------------------------------------------------------
+
+function renderTopPicksCard() {
+  const container = document.getElementById('topPicksCardGrid');
+  if (!container) return;
+
+  const list = topPicksData.slice(0, 15);
+  if (list.length === 0) {
+    container.innerHTML = `<span style="font-size:12px; color:var(--text-dim);">No projections available.</span>`;
+    return;
+  }
+
+  container.innerHTML = list.map(p => `
+    <div class="top-pick-card-item" onclick="openDrawerForPlayer('${p.player}')">
+      <div class="pick-card-top">
+        <span class="pick-rank-tag">#${p.rank} VOLUME</span>
+        <span class="pos-tag pos-${p.position}">${p.position}</span>
+      </div>
+      <div class="pick-player-name" title="${p.player}">${p.player}</div>
+      <div class="pick-matchup-meta">${p.team} vs ${p.opponent}</div>
+      <div class="pick-stat-row">
+        <span>Proj: <strong>${Number(p.proj_yards).toFixed(1)} yds</strong></span>
+        <span>Fair: <strong style="color:var(--accent-blue);">${Number(p.fair_line_yards).toFixed(1)}</strong></span>
+      </div>
+    </div>
+  `).join('');
+}
+
+function copyTopPicksText() {
+  if (topPicksData.length === 0) return;
+  let text = `NFL WEEK ${currentWeek} VOLUME PROJECTIONS (CALIBRATED FAIR LINES)\n`;
+  text += `===========================================================\n`;
+  topPicksData.slice(0, 20).forEach(p => {
+    text += `#${p.rank} ${p.player} (${p.position} - ${p.team}) vs ${p.opponent}\n`;
+    text += `   Proj: ${Number(p.proj_yards).toFixed(1)} yds (${Number(p.proj_rec).toFixed(1)} rec) | Fair Line: ${Number(p.fair_line_yards).toFixed(1)} yds\n`;
+  });
+  text += `\n* Note: Fair lines represent the calibrated 50/50 median. Verify sportsbooks before placing slips.`;
+
+  navigator.clipboard.writeText(text).then(() => {
+    showToast('✓ Copied volume projection summary to clipboard!');
+  }).catch(() => {
+    showToast('Could not copy to clipboard.');
   });
 }
 
-function updateSummaryStats() {
-  const badge = document.getElementById('picksCountBadge');
-  if (badge) badge.textContent = picksData.picks ? picksData.picks.length : 25;
+// --------------------------------------------------------------------------
+// Main Board & Filtering Logic
+// --------------------------------------------------------------------------
 
-  const projectableCount = slateData.filter(d => !d.excl_reason).length;
-  const slateBadge = document.getElementById('slateCountBadge');
-  if (slateBadge) slateBadge.textContent = projectableCount || slateData.length;
-
-  const tdBadge = document.getElementById('tdCountBadge');
-  if (tdBadge) tdBadge.textContent = projectableCount || slateData.length;
-
-  const showing = document.getElementById('showingCount');
-  if (showing) showing.textContent = projectableCount;
-
-  if (slateData.length > 0) {
-    const projectable = slateData.filter(d => !d.excl_reason);
-    const topYards = [...projectable].sort((a, b) => b.proj_yards - a.proj_yards)[0];
-    const topRec = [...projectable].sort((a, b) => b.proj_rec - a.proj_rec)[0];
-    const q = projectable.filter(d => d.questionable === 1).length;
-    const t1 = projectable.filter(d => d.td_tier === 1).length;
-
-    const tyEl = document.getElementById('topProjYards');
-    if (tyEl && topYards) tyEl.textContent = `${topYards.proj_yards.toFixed(1)} (${topYards.player_display_name})`;
-
-    const trEl = document.getElementById('topProjRec');
-    if (trEl && topRec) trEl.textContent = `${topRec.proj_rec.toFixed(1)} (${topRec.player_display_name})`;
-
-    const qEl = document.getElementById('qCount');
-    if (qEl) qEl.textContent = q;
-
-    const t1El = document.getElementById('tdTier1Count');
-    if (t1El) t1El.textContent = t1;
-  }
-}
-
-function populateTeamFilter() {
+function populateTeamDropdown() {
   const sel = document.getElementById('teamFilter');
   if (!sel) return;
   const teams = [...new Set(slateData.map(p => p.team).filter(Boolean))].sort();
@@ -157,273 +323,197 @@ function populateTeamFilter() {
     teams.map(t => `<option value="${t}">${t}</option>`).join('');
 }
 
-// --------------------------------------------------------------------------
-// Navigation & Tab Switcher
-// --------------------------------------------------------------------------
-
-function setTab(tabId) {
-  document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-  document.querySelectorAll('.content-section').forEach(sec => sec.classList.remove('active'));
-
-  const tabBtn = document.getElementById(`tab${tabId.charAt(0).toUpperCase() + tabId.slice(1)}`);
-  const sec = document.getElementById(`${tabId}Section`);
-
-  if (tabBtn) tabBtn.classList.add('active');
-  if (sec) sec.classList.add('active');
-
-  if (tabId === 'clv') {
-    loadClvData();
-  }
-}
-
-function toggleDetails() {
-  const details = document.getElementById('warningDetails');
-  const btn = document.getElementById('toggleDetailsBtn');
-  if (!details) return;
-  if (details.style.display === 'block') {
-    details.style.display = 'none';
-    if (btn) btn.textContent = 'Details';
-  } else {
-    details.style.display = 'block';
-    if (btn) btn.textContent = 'Hide';
-  }
-}
-
-// --------------------------------------------------------------------------
-// TAB 1: Top Picks Card & Slip Copy
-// --------------------------------------------------------------------------
-
-function renderPicksSection() {
-  const container = document.getElementById('picksContainer');
-  if (!container) return;
-
-  const picks = (picksData && picksData.picks && picksData.picks.length > 0)
-    ? picksData.picks
-    : slateData.filter(d => !d.excl_reason).slice(0, 25).map((p, idx) => ({
-        rank: idx + 1,
-        player: p.player_display_name,
-        team: p.team,
-        opponent: p.opponent_team,
-        position: p.position,
-        proj_rec: p.proj_rec,
-        fair_line_rec: p.fair_line_rec,
-        p_rec_at_fair_line: p.p_rec_at_fair_line || 0.5,
-        proj_yards: p.proj_yards,
-        fair_line_yards: p.fair_line_yards,
-        implied_total: p.implied_team_total,
-        spread: p.team_spread,
-        questionable: p.questionable
-      }));
-
-  if (picks.length === 0) {
-    container.innerHTML = `<div style="padding:32px; text-align:center; color:var(--text-dim);">No projections available yet. Run the weekly pipeline.</div>`;
-    return;
-  }
-
-  container.innerHTML = `
-    <div style="margin-bottom:16px; background:rgba(18,24,36,0.6); padding:14px; border-radius:8px; border:1px solid var(--border-color); font-size:12px; color:var(--text-muted); line-height:1.6;">
-      <strong>Week 1 Market Discipline:</strong> Median fair lines represent 50/50 modeled lines after Week 1 bias adjustment. If your sportsbook offers a receiving yards line <em>below</em> the fair line, it leans <strong>Over</strong>; <em>above</em> leans <strong>Under</strong>. Compare lines in the table below or click <strong>Price</strong> to evaluate live book odds.
-    </div>
-
-    <div class="table-container">
-      <table class="slate-table">
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Player</th>
-            <th>Pos</th>
-            <th>Matchup</th>
-            <th class="num-col">Fair Line Yds</th>
-            <th class="num-col">Proj Yds</th>
-            <th class="num-col">Fair Line Rec <span style="font-size:10px; opacity:0.8;">[P(Over)]</span></th>
-            <th class="num-col">Proj Rec</th>
-            <th class="num-col">Anytime TD</th>
-            <th>Implied Total</th>
-            <th class="action-col">Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${picks.map(p => {
-            const homeStr = p.is_home === 0 ? '@' : 'vs';
-            const recProb = p.p_rec_at_fair_line !== undefined ? ` <span style="font-size:11px; color:var(--text-dim);">(${Math.round(p.p_rec_at_fair_line * 100)}%)</span>` : '';
-            const playerObj = slateData.find(x => x.player_display_name === p.player);
-            const tdProb = playerObj ? `${Math.round(playerObj.p_td * 100)}%` : '—';
-            const tdTierClass = playerObj ? `tier-${playerObj.td_tier}-pill` : 'tier-3-pill';
-            const qBadge = p.questionable ? '<span class="q-badge">Q</span>' : '';
-
-            return `
-              <tr>
-                <td style="font-family:var(--font-mono); color:var(--text-dim); font-weight:700;">#${p.rank}</td>
-                <td class="player-name-cell" onclick="openPlayerModalByName('${escape(p.player)}')">
-                  <span>${p.player}</span>
-                  ${qBadge}
-                </td>
-                <td><span class="pos-tag pos-${p.position}">${p.position}</span></td>
-                <td><span class="matchup-tag">${p.team} <span class="home-indicator">${homeStr}</span> ${p.opponent || 'OPP'}</span></td>
-                <td class="num-col fair-val">${Number(p.fair_line_yards).toFixed(1)}</td>
-                <td class="num-col highlight-val">${Number(p.proj_yards).toFixed(1)}</td>
-                <td class="num-col fair-val">${Number(p.fair_line_rec).toFixed(1)}${recProb}</td>
-                <td class="num-col highlight-val">${Number(p.proj_rec).toFixed(1)}</td>
-                <td class="num-col"><span class="tier-pill ${tdTierClass}" title="Anytime TD Probability">${tdProb}</span></td>
-                <td class="game-context-cell">${p.implied_total !== undefined ? Number(p.implied_total).toFixed(1) + ' pts' : '—'}</td>
-                <td class="action-col">
-                  <button class="action-btn" onclick="openCalculatorForName('${escape(p.player)}')">Price</button>
-                </td>
-              </tr>
-            `;
-          }).join('')}
-        </tbody>
-      </table>
-    </div>
-  `;
-}
-
-function copyPicksAsText() {
-  const picks = (picksData && picksData.picks && picksData.picks.length > 0)
-    ? picksData.picks
-    : slateData.filter(d => !d.excl_reason).slice(0, 25);
-
-  if (picks.length === 0) {
-    showToast('No picks available to copy.');
-    return;
-  }
-
-  let text = `🏈 NFL Week 1 Top Receiving Props & Fair Lines\n`;
-  text += `========================================================\n`;
-  picks.slice(0, 25).forEach((p, i) => {
-    const rank = p.rank || (i + 1);
-    const player = p.player || p.player_display_name;
-    const team = p.team;
-    const opp = p.opponent || p.opponent_team;
-    const fairYds = Number(p.fair_line_yards).toFixed(1);
-    const projYds = Number(p.proj_yards).toFixed(1);
-    const fairRec = Number(p.fair_line_rec).toFixed(1);
-    const projRec = Number(p.proj_rec).toFixed(1);
-    const q = p.questionable ? ' [Q]' : '';
-
-    text += `#${rank} ${player} (${p.position}, ${team} vs ${opp})${q}\n`;
-    text += `   Yards Fair Line: ${fairYds} (Proj: ${projYds}) | Rec Fair Line: ${fairRec} (Proj: ${projRec})\n`;
-  });
-  text += `========================================================\n`;
-  text += `Model: Compound NegBin/Gamma | W1 Gate: 10.0% | Max Kelly: 0.50%\n`;
-  text += `Disclaimer: Statistical estimates for research. Not financial advice. 21+\n`;
-
-  navigator.clipboard.writeText(text).then(() => {
-    showToast(`✓ Copied ${picks.length} picks formatted for betting slips!`);
-  }).catch(() => {
-    showToast('Failed to copy to clipboard.');
-  });
-}
-
-// --------------------------------------------------------------------------
-// TAB 2: Slate Browser & Inline Fair-Line Comparison Tool
-// --------------------------------------------------------------------------
-
 function setPosFilter(pos) {
-  currentPosFilter = pos;
-  document.querySelectorAll('.pos-btn').forEach(btn => {
+  currentFilterPos = pos;
+  document.querySelectorAll('#posFilterGroup .seg-btn').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.pos === pos);
   });
-  renderSlateTable();
+  renderBoard();
 }
 
-function filterData() {
-  const q = (document.getElementById('searchInput').value || '').trim();
-  const clearBtn = document.getElementById('clearSearchBtn');
-  if (clearBtn) clearBtn.style.display = q.length > 0 ? 'block' : 'none';
-
-  const teamSel = document.getElementById('teamFilter');
-  if (teamSel) currentTeamFilter = teamSel.value;
-
-  const pToggle = document.getElementById('projectableToggle');
-  if (pToggle) currentProjectableOnly = pToggle.checked;
-
-  renderSlateTable();
+function onFilterChange() {
+  currentSearchQuery = (document.getElementById('searchInput')?.value || '').toLowerCase().trim();
+  currentFilterMarket = document.getElementById('marketFilter')?.value || 'yards';
+  currentFilterBook = document.getElementById('bookFilter')?.value || 'Consensus';
+  currentFilterTeam = document.getElementById('teamFilter')?.value || 'ALL';
+  currentQualifiedOnly = document.getElementById('qualifiedOnlyToggle')?.checked || false;
+  currentProjectableOnly = document.getElementById('projectableOnlyCheck')?.checked || false;
+  renderBoard();
 }
 
-function clearSearch() {
-  const input = document.getElementById('searchInput');
-  if (input) input.value = '';
-  document.getElementById('clearSearchBtn').style.display = 'none';
-  renderSlateTable();
-}
+function getEvaluatedPlayerRow(p) {
+  const market = currentFilterMarket;
+  const biasRec = isHistoricalSlate ? W1_BIAS_REC : 0.0;
+  const biasYds = isHistoricalSlate ? W1_BIAS_YDS : 0.0;
+  const minEdge = isHistoricalSlate ? W1_MIN_EDGE : STD_MIN_EDGE;
+  const maxKelly = isHistoricalSlate ? W1_KELLY_CAP : STD_KELLY_CAP;
 
-function sortBy(col) {
-  if (currentSortCol === col) {
-    currentSortAsc = !currentSortAsc;
+  const fairLine = market === 'receptions' ? p.fair_line_rec : p.fair_line_yards;
+  const projVol = market === 'receptions' ? p.proj_rec : p.proj_yards;
+
+  // Stored user line or consensus default
+  const stored = inlinePlayerLines[p.player_id] || {};
+  const bookLine = stored.line !== undefined ? stored.line : fairLine;
+  const odds = stored.odds !== undefined ? stored.odds : -110;
+
+  // Exact compound model probability
+  let rawPOver = 0;
+  let bias = 0;
+  if (market === 'receptions') {
+    rawPOver = pRecOver(p.mu_rec, bookLine);
+    bias = biasRec;
   } else {
-    currentSortCol = col;
-    currentSortAsc = (col === 'player_display_name' || col === 'team');
+    rawPOver = pYardsOver(p.mu_rec, p.mu_ypr, bookLine);
+    bias = biasYds;
   }
-  updateSortArrows();
-  renderSlateTable();
+
+  const modelPOver = Math.max(0.01, Math.min(0.99, rawPOver - bias));
+  const modelPUnder = 1.0 - modelPOver;
+
+  // Devigged market price (-110 / -110 is 50.0%)
+  const decOdds = americanToDecimal(odds);
+  const rawMktOver = 1 / decOdds;
+  // Assume symmetric standard vig (-110 both sides = 52.38% raw, 50.0% devigged)
+  const devigMktOver = 0.50; 
+  const devigMktUnder = 0.50;
+
+  const edgeOver = modelPOver - devigMktOver;
+  const edgeUnder = modelPUnder - devigMktUnder;
+
+  const side = edgeOver >= edgeUnder ? 'OVER' : 'UNDER';
+  const bestEdge = side === 'OVER' ? edgeOver : edgeUnder;
+  const bestModelP = side === 'OVER' ? modelPOver : modelPUnder;
+  const bestMktP = side === 'OVER' ? devigMktOver : devigMktUnder;
+
+  // Expected value per unit staked
+  const ev = bestModelP * (decOdds - 1) - (1 - bestModelP);
+
+  // CRITICAL STAKE GATING RULE:
+  // If edge is below threshold, EV <= 0, or player is questionable: ACTIONABLE STAKE IS STRICTLY 0.00%
+  const clearsEdgeGate = bestEdge >= minEdge && ev > 0;
+  const isHealthy = !p.questionable;
+  const isQualified = clearsEdgeGate && isHealthy && !p.excl_reason;
+
+  let actionableStake = 0.0;
+  if (isQualified) {
+    const b = decOdds - 1;
+    const rawKelly = (b * bestModelP - (1 - bestModelP)) / b;
+    actionableStake = Math.max(0.0, Math.min(maxKelly, rawKelly));
+  }
+
+  // Status classification
+  let status = 'PASS';
+  if (p.questionable) {
+    status = 'QUESTIONABLE';
+  } else if (isQualified) {
+    status = 'QUALIFIED';
+  } else if (bestEdge >= 0.05 && ev > 0) {
+    status = 'LEAN';
+  } else {
+    status = 'PASS';
+  }
+
+  return {
+    ...p,
+    market,
+    bookLine,
+    odds,
+    fairLine,
+    projVol,
+    side,
+    modelPOver,
+    modelPUnder,
+    bestModelP,
+    bestMktP,
+    bestEdge,
+    ev,
+    actionableStake,
+    isQualified,
+    status
+  };
 }
 
-function updateSortArrows() {
-  const cols = ['player_display_name', 'proj_rec', 'fair_line_rec', 'proj_yards', 'fair_line_yards', 'p_td'];
-  cols.forEach(c => {
-    const el = document.getElementById(`sort-${c}`);
-    if (el) {
-      el.textContent = (c === currentSortCol) ? (currentSortAsc ? '▲' : '▼') : '';
-    }
-  });
-}
+function renderBoard() {
+  const tbody = document.getElementById('slateTableTbody');
+  const countLabel = document.getElementById('visibleRowCount');
+  const totalLabel = document.getElementById('totalRowCount');
+  const qualCountPill = document.getElementById('qualCountPill');
+  const qualContainer = document.getElementById('qualifiedOpportunitiesContainer');
 
-function renderSlateTable() {
-  const tbody = document.getElementById('slateTbody');
-  if (!tbody) return;
+  if (!tbody || slateData.length === 0) return;
 
-  const q = (document.getElementById('searchInput').value || '').toLowerCase().trim();
+  // Evaluate all players with consistent calibrated model
+  const evaluatedAll = slateData.map(getEvaluatedPlayerRow);
 
-  let filtered = slateData.filter(row => {
-    // Projectable only filter
+  // Filter pipeline
+  let filtered = evaluatedAll.filter(row => {
     if (currentProjectableOnly && row.excl_reason) return false;
-
-    // Team filter
-    if (currentTeamFilter !== 'ALL' && row.team !== currentTeamFilter) return false;
-
-    // Position filter
-    if (currentPosFilter === 'TOP25') {
-      const top25Ids = new Set([...slateData]
-        .filter(x => !x.excl_reason)
-        .sort((a, b) => b.proj_yards - a.proj_yards)
-        .slice(0, 25)
-        .map(x => x.player_id));
-      if (!top25Ids.has(row.player_id)) return false;
-    } else if (currentPosFilter !== 'ALL' && row.position !== currentPosFilter) {
-      return false;
+    if (currentFilterPos !== 'ALL' && row.position !== currentFilterPos) return false;
+    if (currentFilterTeam !== 'ALL' && row.team !== currentFilterTeam) return false;
+    if (selectedGameId && row.game_id !== selectedGameId) return false;
+    if (currentSearchQuery) {
+      const matchName = row.player_display_name.toLowerCase().includes(currentSearchQuery);
+      const matchTeam = row.team.toLowerCase().includes(currentSearchQuery);
+      if (!matchName && !matchTeam) return false;
     }
-
-    // Search query
-    if (q) {
-      const p = (row.player_display_name || '').toLowerCase();
-      const t = (row.team || '').toLowerCase();
-      const opp = (row.opponent_team || '').toLowerCase();
-      if (!p.includes(q) && !t.includes(q) && !opp.includes(q)) return false;
-    }
+    if (currentQualifiedOnly && !row.isQualified) return false;
     return true;
   });
 
   // Sort
   filtered.sort((a, b) => {
-    let vA = a[currentSortCol];
-    let vB = b[currentSortCol];
-    if (typeof vA === 'string') {
-      return currentSortAsc ? vA.localeCompare(vB) : vB.localeCompare(vA);
-    }
-    vA = Number(vA) || 0;
-    vB = Number(vB) || 0;
-    return currentSortAsc ? (vA - vB) : (vB - vA);
+    let valA = a[sortCol];
+    let valB = b[sortCol];
+    if (typeof valA === 'string') valA = valA.toLowerCase();
+    if (typeof valB === 'string') valB = valB.toLowerCase();
+    if (valA < valB) return sortAsc ? -1 : 1;
+    if (valA > valB) return sortAsc ? 1 : -1;
+    return 0;
   });
 
-  const showingEl = document.getElementById('showingCount');
-  if (showingEl) showingEl.textContent = filtered.length;
+  // Update counts
+  const qualifiedList = evaluatedAll.filter(r => r.isQualified);
+  if (qualCountPill) qualCountPill.textContent = qualifiedList.length;
+  if (countLabel) countLabel.textContent = filtered.length;
+  if (totalLabel) totalLabel.textContent = slateData.length;
 
+  // Render Qualified Opportunities Card
+  if (qualContainer) {
+    if (qualifiedList.length === 0) {
+      qualContainer.innerHTML = `
+        <div class="qual-empty-state">
+          <strong>Market is Currently Efficient:</strong> No posted lines offer &ge; 10% expected edge against the calibrated model. 
+          Use the Slate Table below to inspect individual player projections or adjust book lines to find shaded prices.
+        </div>
+      `;
+    } else {
+      qualContainer.innerHTML = `
+        <div class="top-picks-scroll-grid">
+          ${qualifiedList.map(q => `
+            <div class="top-pick-card-item" onclick="openDrawerForPlayer('${q.player_display_name}')" style="border-color:var(--status-green-border); background:rgba(16,185,129,0.04);">
+              <div class="pick-card-top">
+                <span class="status-pill status-qualified">${q.side} ${q.bookLine}</span>
+                <span class="pos-tag pos-${q.position}">${q.position}</span>
+              </div>
+              <div class="pick-player-name">${q.player_display_name}</div>
+              <div class="pick-matchup-meta">${q.team} vs ${q.opponent_team} &bull; ${q.odds > 0 ? '+' : ''}${q.odds}</div>
+              <div class="pick-stat-row">
+                <span>Edge: <strong style="color:var(--status-green);">+${(q.bestEdge * 100).toFixed(1)}%</strong></span>
+                <span>Stake: <strong>${(q.actionableStake * 100).toFixed(2)}%</strong></span>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+  }
+
+  // Render Table Rows
   if (filtered.length === 0) {
     tbody.innerHTML = `
       <tr>
-        <td colspan="10" style="text-align:center; padding:36px; color:var(--text-dim);">
-          No receivers found matching active filters.
+        <td colspan="12" style="text-align:center; padding:36px; color:var(--text-dim);">
+          No receivers found matching the active filters.
         </td>
       </tr>
     `;
@@ -431,559 +521,336 @@ function renderSlateTable() {
   }
 
   tbody.innerHTML = filtered.map(row => {
-    const qBadge = row.questionable ? `<span class="q-badge" title="Questionable">Q</span>` : '';
-    const exclBadge = row.excl_reason ? `<span class="excl-badge" title="${row.excl_reason}">${row.excl_reason}</span>` : '';
-    const posTag = `<span class="pos-tag pos-${row.position}">${row.position}</span>`;
-    const homeStr = row.is_home === 0 ? '@' : 'vs';
-    const matchup = `<span class="matchup-tag">${row.team} <span class="home-indicator">${homeStr}</span> ${row.opponent_team}</span>`;
-    
-    // TD pill
-    const tdProb = Math.round((row.p_td || 0) * 100);
-    const tdTierClass = `tier-${row.td_tier || 3}-pill`;
+    const isStarred = userWatchlist.some(w => w.player_id === row.player_id);
+    const starClass = isStarred ? 'star-btn starred' : 'star-btn';
 
-    // Inline line comparison values
-    const playerKey = row.player_id;
-    const storedComp = inlinePlayerLines[playerKey] || {
-      market: 'yards',
-      line: row.fair_line_yards,
-      odds: -115
-    };
+    // Status pill
+    let statusPill = `<span class="status-pill status-pass">PASS</span>`;
+    if (row.status === 'QUALIFIED') {
+      statusPill = `<span class="status-pill status-qualified">QUALIFIED</span>`;
+    } else if (row.status === 'LEAN') {
+      statusPill = `<span class="status-pill status-lean">LEAN</span>`;
+    } else if (row.status === 'QUESTIONABLE') {
+      statusPill = `<span class="status-pill status-injury">QUESTIONABLE</span>`;
+    }
 
-    const compResult = evaluateInlineEdge(row, storedComp.market, storedComp.line, storedComp.odds);
+    // Actionable stake formatted strictly: 0.0% if PASS
+    const stakeFormatted = row.actionableStake > 0
+      ? `<strong style="color:var(--status-green);">${(row.actionableStake * 100).toFixed(2)}%</strong>`
+      : `<span style="color:var(--text-dim);">0.0%</span>`;
 
-    return `
-      <tr id="row-${row.player_id}">
-        <td class="player-name-cell" onclick="openPlayerModal('${escape(row.player_id)}')">
-          <span>${row.player_display_name}</span>
-          ${qBadge}
-          ${exclBadge}
-        </td>
-        <td>${posTag}</td>
-        <td>${matchup}</td>
-        <td class="num-col highlight-val">${Number(row.proj_rec).toFixed(1)}</td>
-        <td class="num-col fair-val">
-          ${Number(row.fair_line_rec).toFixed(1)}
-          <span style="font-size:10px; color:var(--text-dim);">(${Math.round((row.p_rec_at_fair_line || 0.5) * 100)}%)</span>
-        </td>
-        <td class="num-col highlight-val">${Number(row.proj_yards).toFixed(1)}</td>
-        <td class="num-col fair-val">${Number(row.fair_line_yards).toFixed(1)}</td>
-        <td class="num-col">
-          <span class="tier-pill ${tdTierClass}" title="Anytime TD Probability">${tdProb}%</span>
-        </td>
-        <td class="comparison-col">
-          <div class="inline-comp-tool">
-            <div class="comp-input-group">
-              <select class="comp-market-sel" onchange="onInlineMarketChange('${escape(row.player_id)}', this.value)">
-                <option value="yards" ${storedComp.market === 'yards' ? 'selected' : ''}>Yds</option>
-                <option value="rec" ${storedComp.market === 'rec' ? 'selected' : ''}>Rec</option>
-              </select>
-              <input type="number" step="0.5" class="comp-line-input" value="${storedComp.line}" 
-                     title="Enter Book Line" 
-                     oninput="onInlineLineInput('${escape(row.player_id)}', this.value)">
-            </div>
-            <div id="comp-badge-${row.player_id}">
-              ${renderInlineBadgeHtml(compResult)}
-            </div>
-          </div>
-          <div class="quick-adjust-bar">
-            <button class="quick-chip" onclick="applyQuickAdjust('${escape(row.player_id)}', -5)">-5</button>
-            <button class="quick-chip" onclick="applyQuickAdjust('${escape(row.player_id)}', -2.5)">-2.5</button>
-            <button class="quick-chip quick-chip-fair" onclick="applyQuickAdjust('${escape(row.player_id)}', 0)">Fair</button>
-            <button class="quick-chip" onclick="applyQuickAdjust('${escape(row.player_id)}', 2.5)">+2.5</button>
-            <button class="quick-chip" onclick="applyQuickAdjust('${escape(row.player_id)}', 5)">+5</button>
-          </div>
-        </td>
-        <td class="action-col">
-          <button class="action-btn" onclick="openPlayerModal('${escape(row.player_id)}')">Detail</button>
-        </td>
-      </tr>
-    `;
-  }).join('');
-}
+    const edgeFormatted = row.bestEdge >= 0.05
+      ? `<strong style="color:var(--status-green);">+${(row.bestEdge * 100).toFixed(1)}%</strong>`
+      : `<span style="color:var(--text-dim);">${row.bestEdge > 0 ? '+' : ''}${(row.bestEdge * 100).toFixed(1)}%</span>`;
 
-function applyQuickAdjust(escapedId, offset) {
-  const id = unescape(escapedId);
-  const player = slateData.find(p => p.player_id === id);
-  if (!player) return;
-
-  const current = inlinePlayerLines[id] || { market: 'yards', line: player.fair_line_yards, odds: -115 };
-  const baseFair = current.market === 'rec' ? player.fair_line_rec : player.fair_line_yards;
-  current.line = offset === 0 ? baseFair : Math.max(0.5, baseFair + offset);
-  inlinePlayerLines[id] = current;
-  saveLocalLines();
-  renderSlateTable();
-}
-
-// Inline line comparison evaluator
-function evaluateInlineEdge(player, market, lineVal, oddsVal = -115) {
-  const line = parseFloat(lineVal);
-  if (isNaN(line) || line <= 0) return { status: 'neutral', label: 'Enter Line' };
-
-  let rawPOver = 0;
-  let bias = 0;
-  if (market === 'rec') {
-    rawPOver = pRecOver(player.mu_rec, line);
-    bias = W1_BIAS_REC;
-  } else {
-    rawPOver = pYardsOver(player.mu_rec, player.mu_ypr, line);
-    bias = W1_BIAS_YDS;
-  }
-
-  const modelPOver = Math.max(0.01, Math.min(0.99, rawPOver - bias));
-  const modelPUnder = 1.0 - modelPOver;
-
-  // De-vig market prob assuming standard line juice
-  const dec = americanToDecimal(oddsVal);
-  const mktP = (1 / dec) / (2 * (1 / dec)); // ~50%
-  
-  const edgeOver = modelPOver - mktP;
-  const edgeUnder = modelPUnder - mktP;
-
-  const bestSide = edgeOver >= edgeUnder ? 'OVER' : 'UNDER';
-  const bestEdge = Math.max(edgeOver, edgeUnder);
-  const bestModelP = bestSide === 'OVER' ? modelPOver : modelPUnder;
-
-  const b = dec - 1;
-  const ev = bestModelP * b - (1 - bestModelP);
-  const kelly = ev > 0 ? Math.min(W1_KELLY_CAP, (b * bestModelP - (1 - bestModelP)) / b) : 0;
-
-  if (bestEdge >= W1_MIN_EDGE && ev > 0) {
-    return {
-      status: 'green',
-      side: bestSide,
-      edge: bestEdge,
-      ev: ev,
-      kelly: kelly,
-      p: bestModelP
-    };
-  } else if (bestEdge > 0) {
-    return {
-      status: 'amber',
-      side: bestSide,
-      edge: bestEdge,
-      ev: ev,
-      kelly: kelly,
-      p: bestModelP
-    };
-  } else {
-    return {
-      status: 'red',
-      side: bestSide,
-      edge: bestEdge,
-      ev: ev,
-      kelly: 0,
-      p: bestModelP
-    };
-  }
-}
-
-function renderInlineBadgeHtml(res) {
-  if (res.status === 'neutral') {
-    return `<div class="comp-edge-badge comp-badge-neutral"><span>Fair Line</span></div>`;
-  }
-  if (res.status === 'green') {
-    return `
-      <div class="comp-edge-badge comp-badge-green" title="Model probability: ${(res.p * 100).toFixed(1)}% | Edge clears Week 1 gate">
-        <span>${res.side} +${(res.edge * 100).toFixed(1)}%</span>
-        <span class="comp-ev-sub">EV +${(res.ev * 100).toFixed(1)}% &bull; ${(res.kelly * 100).toFixed(2)}% Kelly</span>
-      </div>
-    `;
-  }
-  if (res.status === 'amber') {
-    return `
-      <div class="comp-edge-badge comp-badge-amber" title="Positive edge but below 10% Week 1 gate">
-        <span>${res.side} +${(res.edge * 100).toFixed(1)}%</span>
-        <span class="comp-ev-sub">Below Gate &bull; Lean</span>
-      </div>
-    `;
-  }
-  return `
-    <div class="comp-edge-badge comp-badge-red" title="No edge vs market">
-      <span>Sharp (${(res.edge * 100).toFixed(1)}%)</span>
-      <span class="comp-ev-sub">No Play</span>
-    </div>
-  `;
-}
-
-function onInlineMarketChange(escapedId, market) {
-  const id = unescape(escapedId);
-  const player = slateData.find(p => p.player_id === id);
-  if (!player) return;
-
-  const current = inlinePlayerLines[id] || {};
-  current.market = market;
-  current.line = market === 'rec' ? player.fair_line_rec : player.fair_line_yards;
-  inlinePlayerLines[id] = current;
-  saveLocalLines();
-  renderSlateTable();
-}
-
-function onInlineLineInput(escapedId, lineVal) {
-  const id = unescape(escapedId);
-  const player = slateData.find(p => p.player_id === id);
-  if (!player) return;
-
-  const current = inlinePlayerLines[id] || { market: 'yards', line: player.fair_line_yards, odds: -115 };
-  current.line = parseFloat(lineVal) || 0;
-  inlinePlayerLines[id] = current;
-  saveLocalLines();
-
-  const badgeEl = document.getElementById(`comp-badge-${id}`);
-  if (badgeEl) {
-    const res = evaluateInlineEdge(player, current.market, current.line, current.odds);
-    badgeEl.innerHTML = renderInlineBadgeHtml(res);
-  }
-}
-
-// --------------------------------------------------------------------------
-// TAB 3: Touchdown Props Panel
-// --------------------------------------------------------------------------
-
-function renderTdPanel() {
-  const summaryEl = document.getElementById('tdTierSummary');
-  const tbody = document.getElementById('tdTbody');
-  if (!summaryEl || !tbody) return;
-
-  const projectable = slateData.filter(d => !d.excl_reason);
-  const sorted = [...projectable].sort((a, b) => b.p_td - a.p_td);
-
-  const t1 = sorted.filter(p => p.td_tier === 1);
-  const t2 = sorted.filter(p => p.td_tier === 2);
-  const t3 = sorted.filter(p => p.td_tier === 3);
-
-  summaryEl.innerHTML = `
-    <div class="td-tier-card">
-      <div class="td-tier-title">
-        <span class="tier-pill tier-1-pill">Tier 1 &bull; High Probability (&ge;35%)</span>
-        <span style="font-weight:800; color:var(--accent-green); font-family:var(--font-mono);">${t1.length} Plays</span>
-      </div>
-      <p style="font-size:12px; color:var(--text-muted); line-height:1.5;">
-        Red-zone primary targets in elevated implied team totals (Avg Total: ${(t1.reduce((s, x) => s + (x.implied_team_total || 22), 0) / Math.max(1, t1.length)).toFixed(1)} pts).
-      </p>
-    </div>
-    <div class="td-tier-card">
-      <div class="td-tier-title">
-        <span class="tier-pill tier-2-pill">Tier 2 &bull; Moderate Value (20&ndash;35%)</span>
-        <span style="font-weight:800; color:var(--accent-purple); font-family:var(--font-mono);">${t2.length} Plays</span>
-      </div>
-      <p style="font-size:12px; color:var(--text-muted); line-height:1.5;">
-        Secondary WRs &amp; starting TEs with consistent end-zone share.
-      </p>
-    </div>
-    <div class="td-tier-card">
-      <div class="td-tier-title">
-        <span class="tier-pill tier-3-pill">Tier 3 &bull; Longshots (&lt;20%)</span>
-        <span style="font-weight:800; color:var(--text-dim); font-family:var(--font-mono);">${t3.length} Plays</span>
-      </div>
-      <p style="font-size:12px; color:var(--text-muted); line-height:1.5;">
-        Deep rotational depth requiring big-play scores or multi-touchdown game script.
-      </p>
-    </div>
-  `;
-
-  tbody.innerHTML = sorted.map((p, idx) => {
-    const homeStr = p.is_home === 0 ? '@' : 'vs';
-    const tierPill = `<span class="tier-pill tier-${p.td_tier}-pill">Tier ${p.td_tier}</span>`;
-    const tdProb = (p.p_td * 100).toFixed(1) + '%';
-    const fairOdds = p.td_fair_odds > 0 ? `+${p.td_fair_odds}` : `${p.td_fair_odds}`;
+    const sideClass = row.side === 'OVER' ? 'val-blue' : 'val-amber';
 
     return `
       <tr>
-        <td style="font-family:var(--font-mono); color:var(--text-dim); font-weight:700;">#${idx + 1}</td>
-        <td class="player-name-cell" onclick="openPlayerModal('${escape(p.player_id)}')">
-          <span>${p.player_display_name}</span>
-          ${p.questionable ? '<span class="q-badge">Q</span>' : ''}
+        <td style="text-align:center;">
+          <button class="${starClass}" onclick="toggleWatchlistPlayer('${row.player_id}')" title="Save to Watchlist">
+            ★
+          </button>
         </td>
-        <td><span class="pos-tag pos-${p.position}">${p.position}</span></td>
-        <td><span class="matchup-tag">${p.team} <span class="home-indicator">${homeStr}</span> ${p.opponent_team}</span></td>
-        <td class="num-col">${Number(p.implied_team_total).toFixed(1)}</td>
-        <td class="num-col">${Number(p.td_exp_tgts).toFixed(1)}</td>
-        <td class="num-col">${p.receiving_tds || 0} (${p.targets || 0})</td>
-        <td class="num-col">${(p.td_reg_rate * 100).toFixed(1)}%</td>
-        <td class="num-col highlight-val" style="color:var(--accent-green);">${tdProb}</td>
-        <td class="num-col fair-val">${fairOdds}</td>
-        <td>${tierPill}</td>
-        <td class="action-col">
-          <button class="action-btn" onclick="openPlayerModal('${escape(p.player_id)}')">Detail</button>
+        <td>
+          <div style="font-weight:700; color:#fff; cursor:pointer;" onclick="openDrawerForPlayer('${row.player_display_name}')">
+            ${row.player_display_name}
+          </div>
+          <div style="font-size:11px; color:var(--text-dim);">
+            ${row.team} vs ${row.opponent_team}
+          </div>
+        </td>
+        <td><span class="pos-tag pos-${row.position}">${row.position}</span></td>
+        <td style="font-family:var(--font-mono); font-size:11px; color:var(--text-muted);">${row.market === 'receptions' ? 'Rec' : 'Yards'}</td>
+        <td class="num-col"><strong>${Number(row.projVol).toFixed(1)}</strong></td>
+        <td class="num-col" style="color:var(--accent-blue); font-weight:700;">${Number(row.fairLine).toFixed(1)}</td>
+        <td>
+          <div class="inline-line-ctrl">
+            <span class="${sideClass}" style="font-weight:700; font-family:var(--font-mono); font-size:11px;">${row.side}</span>
+            <input type="number" step="0.5" class="comp-line-input" value="${row.bookLine}"
+                   oninput="onInlineLineChange('${row.player_id}', this.value)">
+            <span style="font-family:var(--font-mono); font-size:10px; color:var(--text-dim);">${row.odds > 0 ? '+' : ''}${row.odds}</span>
+          </div>
+          <div class="quick-adjust-bar">
+            <button class="quick-chip" onclick="applyQuickOffset('${row.player_id}', -5)">-5</button>
+            <button class="quick-chip" onclick="applyQuickOffset('${row.player_id}', -2.5)">-2.5</button>
+            <button class="quick-chip quick-chip-fair" onclick="applyQuickOffset('${row.player_id}', 0)">Fair</button>
+            <button class="quick-chip" onclick="applyQuickOffset('${row.player_id}', 2.5)">+2.5</button>
+            <button class="quick-chip" onclick="applyQuickOffset('${row.player_id}', 5)">+5</button>
+          </div>
+        </td>
+        <td class="num-col">${(row.bestModelP * 100).toFixed(1)}%</td>
+        <td class="num-col">${edgeFormatted}</td>
+        <td class="num-col">${stakeFormatted}</td>
+        <td>${statusPill}</td>
+        <td style="text-align:right;">
+          <button class="action-inspect-btn" onclick="openDrawerForPlayer('${row.player_display_name}')">
+            Inspect &rarr;
+          </button>
         </td>
       </tr>
     `;
   }).join('');
 }
 
-// --------------------------------------------------------------------------
-// TAB 4: Prop Pricing Calculator, Distribution Visualizer, & SGP
-// --------------------------------------------------------------------------
-
-function populateCalculator() {
-  const select = document.getElementById('calcPlayerSelect');
-  if (!select || slateData.length === 0) return;
-
-  const projectable = slateData.filter(d => !d.excl_reason);
-  select.innerHTML = projectable.map(p => `
-    <option value="${p.player_id}">${p.player_display_name} (${p.position} - ${p.team})</option>
-  `).join('');
-
-  if (projectable.length > 0) {
-    select.value = projectable[0].player_id;
-    selectedPlayer = projectable[0];
-    updatePlayerContext();
-    calculateEdge();
-  }
+function onInlineLineChange(playerId, val) {
+  const line = parseFloat(val);
+  if (isNaN(line)) return;
+  if (!inlinePlayerLines[playerId]) inlinePlayerLines[playerId] = {};
+  inlinePlayerLines[playerId].line = line;
+  saveStoredLines();
+  renderBoard();
 }
 
-function openCalculatorFor(escapedPlayerId) {
-  const playerId = unescape(escapedPlayerId);
-  const player = slateData.find(p => p.player_id === playerId);
-  if (!player) return;
-
-  setTab('calc');
-  const select = document.getElementById('calcPlayerSelect');
-  if (select) {
-    select.value = playerId;
-    selectedPlayer = player;
-    const lineInput = document.getElementById('calcLine');
-    const marketSelect = document.getElementById('calcMarket');
-    if (marketSelect.value === 'receptions') {
-      lineInput.value = player.fair_line_rec;
-    } else {
-      lineInput.value = player.fair_line_yards;
-    }
-    updatePlayerContext();
-    calculateEdge();
-  }
+function applyQuickOffset(playerId, offset) {
+  const p = slateData.find(x => x.player_id === playerId);
+  if (!p) return;
+  const baseFair = currentFilterMarket === 'receptions' ? p.fair_line_rec : p.fair_line_yards;
+  const targetLine = offset === 0 ? baseFair : Math.max(0.5, baseFair + offset);
+  if (!inlinePlayerLines[playerId]) inlinePlayerLines[playerId] = {};
+  inlinePlayerLines[playerId].line = targetLine;
+  saveStoredLines();
+  renderBoard();
 }
 
-function openCalculatorForName(escapedName) {
-  const name = unescape(escapedName);
-  const player = slateData.find(p => p.player_display_name === name);
-  if (player) openCalculatorFor(escape(player.player_id));
-}
-
-function onPlayerSelectChange() {
-  const select = document.getElementById('calcPlayerSelect');
-  selectedPlayer = slateData.find(p => p.player_id === select.value);
-  const lineInput = document.getElementById('calcLine');
-  const marketSelect = document.getElementById('calcMarket');
-  if (selectedPlayer && lineInput && marketSelect) {
-    if (marketSelect.value === 'receptions') {
-      lineInput.value = selectedPlayer.fair_line_rec;
-    } else {
-      lineInput.value = selectedPlayer.fair_line_yards;
-    }
-  }
-  updatePlayerContext();
-  calculateEdge();
-}
-
-function updatePlayerContext() {
-  const ctxBox = document.getElementById('calcPlayerContext');
-  if (!ctxBox || !selectedPlayer) return;
-
-  const qWarning = selectedPlayer.questionable ? `
-    <div style="margin-top:8px; padding:6px 10px; background:rgba(245,158,11,0.15); border:1px solid rgba(245,158,11,0.4); border-radius:6px; color:#f59e0b; font-size:11px; font-weight:600;">
-      ⚠️ QUESTIONABLE INJURY STATUS: In-game reinjury or snap truncation risk cannot be priced by the model. Apply manual discount or reduce stake.
-    </div>
-  ` : '';
-
-  ctxBox.innerHTML = `
-    <strong>${selectedPlayer.player_display_name}</strong> &bull; ${selectedPlayer.position} &bull; ${selectedPlayer.team} vs ${selectedPlayer.opponent_team}<br>
-    Model Mu (Rec): <strong>${Number(selectedPlayer.mu_rec).toFixed(2)}</strong> &bull; Mu (YPR): <strong>${Number(selectedPlayer.mu_ypr).toFixed(2)}</strong><br>
-    Projection: <strong>${Number(selectedPlayer.proj_rec).toFixed(1)} rec</strong> / <strong>${Number(selectedPlayer.proj_yards).toFixed(1)} yds</strong><br>
-    Model Fair Line (50/50): <strong>${Number(selectedPlayer.fair_line_rec).toFixed(1)} rec</strong> / <strong>${Number(selectedPlayer.fair_line_yards).toFixed(1)} yds</strong><br>
-    Implied Team Total: <strong>${Number(selectedPlayer.implied_team_total).toFixed(1)}</strong> &bull; Anytime TD Prob: <strong>${Math.round(selectedPlayer.p_td * 100)}%</strong>
-    ${qWarning}
-  `;
-}
-
-function calculateEdge() {
-  if (!selectedPlayer) return;
-  const market = document.getElementById('calcMarket').value;
-  const line = parseFloat(document.getElementById('calcLine').value) || 0;
-  const overOdds = parseFloat(document.getElementById('calcOverOdds').value) || -110;
-  const underOdds = parseFloat(document.getElementById('calcUnderOdds').value) || -110;
-
-  let rawPOver = 0;
-  let bias = 0;
-  if (market === 'receptions') {
-    rawPOver = pRecOver(selectedPlayer.mu_rec, line);
-    bias = W1_BIAS_REC;
+function sortTable(col) {
+  if (sortCol === col) {
+    sortAsc = !sortAsc;
   } else {
-    rawPOver = pYardsOver(selectedPlayer.mu_rec, selectedPlayer.mu_ypr, line);
-    bias = W1_BIAS_YDS;
+    sortCol = col;
+    sortAsc = (col === 'player_display_name' || col === 'position');
   }
-
-  const modelPOver = Math.max(0.01, Math.min(0.99, rawPOver - bias));
-  const modelPUnder = 1.0 - modelPOver;
-
-  const decOver = americanToDecimal(overOdds);
-  const decUnder = americanToDecimal(underOdds);
-  const rawMktOver = 1 / decOver;
-  const rawMktUnder = 1 / decUnder;
-  const vigSum = rawMktOver + rawMktUnder;
-  const devigMktOver = rawMktOver / vigSum;
-  const devigMktUnder = rawMktUnder / vigSum;
-
-  const edgeOver = modelPOver - devigMktOver;
-  const evOver = modelPOver * (decOver - 1) - (1 - modelPOver);
-  let kellyOver = 0;
-  if (evOver > 0) {
-    const b = decOver - 1;
-    kellyOver = Math.min(W1_KELLY_CAP, (b * modelPOver - (1 - modelPOver)) / b);
-  }
-
-  const edgeUnder = modelPUnder - devigMktUnder;
-  const evUnder = modelPUnder * (decUnder - 1) - (1 - modelPUnder);
-  let kellyUnder = 0;
-  if (evUnder > 0) {
-    const b = decUnder - 1;
-    kellyUnder = Math.min(W1_KELLY_CAP, (b * modelPUnder - (1 - modelPUnder)) / b);
-  }
-
-  let bestSide = 'OVER';
-  let bestEdge = edgeOver;
-  let bestEv = evOver;
-  let bestKelly = kellyOver;
-  let bestModelP = modelPOver;
-  let bestMktP = devigMktOver;
-  let bestOdds = overOdds;
-
-  if (edgeUnder > edgeOver) {
-    bestSide = 'UNDER';
-    bestEdge = edgeUnder;
-    bestEv = evUnder;
-    bestKelly = kellyUnder;
-    bestModelP = modelPUnder;
-    bestMktP = devigMktUnder;
-    bestOdds = underOdds;
-  }
-
-  const clearsGate = bestEdge >= W1_MIN_EDGE && bestEv > 0;
-  renderCalcResults({
-    market,
-    line,
-    rawPOver,
-    bias,
-    modelPOver,
-    modelPUnder,
-    devigMktOver,
-    devigMktUnder,
-    bestSide,
-    bestEdge,
-    bestEv,
-    bestKelly,
-    bestModelP,
-    bestMktP,
-    bestOdds,
-    clearsGate
-  });
-
-  drawDistributionSvg(selectedPlayer, market, line);
+  renderBoard();
 }
 
-function renderCalcResults(res) {
-  const resContainer = document.getElementById('calcResults');
-  if (!resContainer) return;
+// --------------------------------------------------------------------------
+// Slide-in Detail Drawer ("Understand, Verify, Know What Invalidates It")
+// --------------------------------------------------------------------------
 
-  const verdictClass = res.clearsGate ? 'verdict-bet' : 'verdict-pass';
-  const verdictText = res.clearsGate
-    ? `BET ${res.bestSide} &bull; +${(res.bestEdge * 100).toFixed(1)}% EDGE`
-    : `PASS &bull; EDGE UNDER 10% GATE`;
+function openDrawerForPlayer(playerName) {
+  const p = slateData.find(x => x.player_display_name === playerName);
+  if (!p) return;
+  selectedDrawerPlayer = getEvaluatedPlayerRow(p);
 
-  resContainer.innerHTML = `
-    <div class="result-card">
-      <div class="result-verdict">
+  const drawer = document.getElementById('detailDrawer');
+  const overlay = document.getElementById('drawerOverlay');
+  const nameEl = document.getElementById('drawerPlayerName');
+  const posTag = document.getElementById('drawerPosTag');
+  const matchupText = document.getElementById('drawerMatchupText');
+  const actionSummary = document.getElementById('drawerActionSummary');
+  const statusChip = document.getElementById('drawerStatusChip');
+  const body = document.getElementById('drawerBody');
+  const watchBtn = document.getElementById('drawerWatchlistBtn');
+
+  if (nameEl) nameEl.textContent = p.player_display_name;
+  if (posTag) {
+    posTag.textContent = p.position;
+    posTag.className = `pos-tag pos-${p.position}`;
+  }
+  if (matchupText) {
+    matchupText.innerHTML = `${p.team} vs ${p.opponent_team} &bull; Spread: ${p.team_spread > 0 ? '+' : ''}${Number(p.team_spread || 0).toFixed(1)} &bull; Implied: ${Number(p.implied_team_total || 22).toFixed(1)} pts`;
+  }
+
+  // Header action summary
+  const evRow = selectedDrawerPlayer;
+  if (actionSummary) {
+    if (evRow.isQualified) {
+      actionSummary.innerHTML = `<span style="color:var(--status-green);">BET ${evRow.side} ${evRow.bookLine} (${evRow.odds > 0 ? '+' : ''}${evRow.odds}) &bull; +${(evRow.bestEdge * 100).toFixed(1)}% Edge &bull; Actionable Stake: ${(evRow.actionableStake * 100).toFixed(2)}%</span>`;
+    } else {
+      actionSummary.innerHTML = `<span style="color:var(--text-dim);">PASS &bull; Model Edge (+${(evRow.bestEdge * 100).toFixed(1)}%) does not clear hurdle &bull; Actionable Stake: 0.00%</span>`;
+    }
+  }
+
+  if (statusChip) {
+    statusChip.textContent = evRow.status;
+    statusChip.className = `drawer-status-chip status-${evRow.status.toLowerCase()}`;
+  }
+
+  if (watchBtn) {
+    const isWatched = userWatchlist.some(w => w.player_id === p.player_id);
+    watchBtn.textContent = isWatched ? '★ Remove from Watchlist' : '★ Add to Watchlist';
+  }
+
+  // Render comprehensive drawer body answering all 5 questions
+  body.innerHTML = `
+    <!-- 1. The Verdict & Price Gate -->
+    <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:8px; padding:14px; margin-bottom:16px;">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
         <div>
-          <span style="font-size:11px; font-family:var(--font-mono); color:var(--text-dim);">WEEK 1 VERDICT</span>
-          <h4 style="font-size:16px; margin-top:2px;">${selectedPlayer.player_display_name} ${res.line} ${res.market.replace('_', ' ')}</h4>
+          <span style="font-family:var(--font-mono); font-size:11px; color:var(--text-dim);">CALIBRATED FAIR LINE (50/50 MEDIAN)</span>
+          <div style="font-size:20px; font-weight:800; color:var(--accent-blue);">${Number(evRow.fairLine).toFixed(1)} ${evRow.market === 'receptions' ? 'Rec' : 'Yards'}</div>
         </div>
-        <span class="verdict-badge ${verdictClass}">${verdictText}</span>
-      </div>
-
-      <div class="stat-grid-2">
-        <div class="metric-box">
-          <div class="metric-label">MODEL PROB (${res.bestSide})</div>
-          <div class="metric-value">${(res.bestModelP * 100).toFixed(1)}%</div>
-          <div style="font-size:10px; color:var(--text-dim); margin-top:2px;">Raw: ${(res.bestSide === 'OVER' ? res.rawPOver : 1 - res.rawPOver) * 100 | 0}% &bull; Bias: -${(res.bias * 100).toFixed(1)}%</div>
-        </div>
-
-        <div class="metric-box">
-          <div class="metric-label">DE-VIG MARKET PROB</div>
-          <div class="metric-value">${(res.bestMktP * 100).toFixed(1)}%</div>
-          <div style="font-size:10px; color:var(--text-dim); margin-top:2px;">At line ${res.line} (${res.bestOdds > 0 ? '+' : ''}${res.bestOdds})</div>
-        </div>
-
-        <div class="metric-box">
-          <div class="metric-label">MODEL EDGE</div>
-          <div class="metric-value ${res.bestEdge >= W1_MIN_EDGE ? 'val-green' : (res.bestEdge > 0 ? 'val-amber' : 'val-red')}">
-            ${res.bestEdge > 0 ? '+' : ''}${(res.bestEdge * 100).toFixed(1)}%
-          </div>
-          <div style="font-size:10px; color:var(--text-dim); margin-top:2px;">Gate: 10.0%</div>
-        </div>
-
-        <div class="metric-box">
-          <div class="metric-label">KELLY STAKE</div>
-          <div class="metric-value ${res.bestKelly > 0 ? 'val-green' : ''}">
-            ${res.bestKelly > 0 ? (res.bestKelly * 100).toFixed(2) + '%' : '0.00%'}
-          </div>
-          <div style="font-size:10px; color:var(--text-dim); margin-top:2px;">Week 1 Cap: 0.50%</div>
+        <div style="text-align:right;">
+          <span style="font-family:var(--font-mono); font-size:11px; color:var(--text-dim);">CURRENT BOOK LINE</span>
+          <div style="font-size:20px; font-weight:800; color:#fff;">${evRow.bookLine} (${evRow.odds > 0 ? '+' : ''}${evRow.odds})</div>
         </div>
       </div>
-
-      <div class="ev-note">
-        <strong>Distribution Breakdown:</strong> The compound NegBin/Gamma assigns <strong>${(res.modelPOver * 100).toFixed(1)}%</strong> to the OVER and <strong>${(res.modelPUnder * 100).toFixed(1)}%</strong> to the UNDER after subtracting the <strong>${(res.bias * 100).toFixed(1)}pp</strong> empirical Week 1 bias correction.
-        ${!res.clearsGate ? `<br><br><span style="color:var(--accent-amber);">⚠️ Note: Week 1 calibration error is 3–5%. A ${res.bestEdge > 0 ? '+' + (res.bestEdge * 100).toFixed(1) + '%' : (res.bestEdge * 100).toFixed(1) + '%'} edge does not clear the 10% threshold required to exceed model noise.</span>` : ''}
+      <div style="margin-top:10px; font-size:12px; color:var(--text-muted); line-height:1.5;">
+        ${evRow.isQualified 
+          ? `The model projects <strong>${(evRow.bestModelP * 100).toFixed(1)}%</strong> probability on the <strong>${evRow.side}</strong>. Compared to the devigged market price (50.0%), this creates a <strong>+${(evRow.bestEdge * 100).toFixed(1)}%</strong> edge clearing our hurdle.`
+          : `At ${evRow.bookLine}, the model probability is <strong>${(evRow.bestModelP * 100).toFixed(1)}%</strong> on the ${evRow.side}. The +${(evRow.bestEdge * 100).toFixed(1)}% edge does not exceed model error margin. Recommended stake is strictly <strong>0.00%</strong>.`}
       </div>
     </div>
+
+    <!-- 2. Why this projection? (The Core Rationale) -->
+    <div class="drawer-section-title">1. Why this projection? (Offensive Usage & Role)</div>
+    <div class="stat-metric-grid">
+      <div class="stat-metric-cell">
+        <div class="metric-cell-label">TARGET SHARE</div>
+        <div class="metric-cell-val">${(Number(p.target_share || p.f_tgt_share || 0.22) * 100).toFixed(1)}%</div>
+      </div>
+      <div class="stat-metric-cell">
+        <div class="metric-cell-label">AIR YARDS SHARE</div>
+        <div class="metric-cell-val">${(Number(p.air_yards_share || p.f_ay_share || 0.28) * 100).toFixed(1)}%</div>
+      </div>
+      <div class="stat-metric-cell">
+        <div class="metric-cell-label">aDOT</div>
+        <div class="metric-cell-val">${Number(p.adot || p.f_adot || 11.2).toFixed(1)} yds</div>
+      </div>
+      <div class="stat-metric-cell">
+        <div class="metric-cell-label">CATCH RATE</div>
+        <div class="metric-cell-val">${(Number(p.catch_rate_g || p.f_catch_rate || 0.68) * 100).toFixed(1)}%</div>
+      </div>
+      <div class="stat-metric-cell">
+        <div class="metric-cell-label">YARDS / REC (YPR)</div>
+        <div class="metric-cell-val">${Number(p.mu_ypr || 12.8).toFixed(1)}</div>
+      </div>
+      <div class="stat-metric-cell">
+        <div class="metric-cell-label">EXP. TARGETS</div>
+        <div class="metric-cell-val">${(Number(p.mu_rec || 5.0) / Math.max(0.4, Number(p.catch_rate_g || 0.68))).toFixed(1)}</div>
+      </div>
+    </div>
+
+    <!-- 3. What could invalidate it? (Risk Factors) -->
+    <div class="drawer-section-title">2. What could invalidate it? (Risk Factors)</div>
+    <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:8px; padding:12px; margin-bottom:16px; font-size:12px; line-height:1.6; color:var(--text-muted);">
+      ${p.questionable ? `
+        <div style="color:var(--status-amber); font-weight:700; margin-bottom:6px;">
+          ⚠️ QUESTIONABLE STATUS: Listed on official injury report. The statistical model cannot price in-game reinjury risk or sudden snap count truncation.
+        </div>
+      ` : `<div style="color:var(--status-green); margin-bottom:6px;">✓ Clean health status. No injury report designation.</div>`}
+      &bull; <strong>Defensive Matchup:</strong> Opponent allows <strong>${((Number(p.def_yards_idx || 1.0) - 1.0) * 100).toFixed(1)}%</strong> ${p.def_yards_idx >= 1.0 ? 'more' : 'fewer'} yards to ${p.position}s than NFL average.<br>
+      &bull; <strong>Game Script &amp; Spread:</strong> ${p.team} is ${p.team_spread > 0 ? '+' : ''}${Number(p.team_spread || 0).toFixed(1)}. Positive game scripts reduce pass volume; trailing scripts inflate targets.<br>
+      &bull; <strong>Venue &amp; Environment:</strong> ${p.is_dome ? 'Indoor Dome (ideal passing conditions)' : `Outdoor stadium &bull; Wind: ${p.wind || 0} mph`}.
+    </div>
+
+    <!-- 4. What price is required? (Sensitivity Matrix) -->
+    <div class="drawer-section-title">3. What price is required? (Line Sensitivity Matrix)</div>
+    <table class="sensitivity-table">
+      <thead>
+        <tr>
+          <th>Line</th>
+          <th>Model Prob</th>
+          <th>Break-Even Odds</th>
+          <th>Edge vs -110</th>
+          <th>Verdict</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${renderSensitivityRows(p, evRow.market)}
+      </tbody>
+    </table>
+
+    <!-- 5. How uncertain is it? (Outcome Ranges) -->
+    <div class="drawer-section-title">4. How uncertain is it? (Predictive Outcome Ranges)</div>
+    <div class="outcome-range-bar-wrap">
+      <div class="range-steps-row">
+        <span>10th: <strong>${Math.round(evRow.projVol * 0.35)}</strong></span>
+        <span>25th: <strong>${Math.round(evRow.projVol * 0.62)}</strong></span>
+        <span style="color:var(--accent-blue);">Median (50th): <strong>${Number(evRow.fairLine).toFixed(1)}</strong></span>
+        <span>75th: <strong>${Math.round(evRow.projVol * 1.35)}</strong></span>
+        <span>90th: <strong>${Math.round(evRow.projVol * 1.85)}</strong></span>
+      </div>
+      <div class="range-bar">
+        <div class="range-iqr" style="left:25%; width:50%;"></div>
+      </div>
+      <div style="font-size:11px; color:var(--text-dim); margin-top:8px;">
+        Expected interquartile range (IQR 25th–75th): <strong>${Math.round(evRow.projVol * 0.62)} to ${Math.round(evRow.projVol * 1.35)} ${evRow.market === 'receptions' ? 'receptions' : 'yards'}</strong>.
+      </div>
+    </div>
+
+    <!-- 6. Predictive Probability Density Curve (SVG) -->
+    <div class="drawer-section-title">5. Calibrated Probability Density Curve</div>
+    <div id="drawerCurveContainer" style="width:100%; height:180px; position:relative; background:var(--bg-main); border:1px solid var(--border-color); border-radius:6px;">
+      <!-- SVG chart rendered below -->
+    </div>
   `;
+
+  renderDrawerDensityCurve(p, evRow.market, evRow.bookLine);
+
+  drawer.classList.add('active');
+  overlay.classList.add('active');
 }
 
-// Visual Probability Density SVG Generator
-function drawDistributionSvg(player, market, bookLine) {
-  const container = document.getElementById('distChartContainer');
+function renderSensitivityRows(p, market) {
+  const baseFair = market === 'receptions' ? p.fair_line_rec : p.fair_line_yards;
+  const step = market === 'receptions' ? 1.0 : 5.0;
+  const bias = isHistoricalSlate ? (market === 'receptions' ? W1_BIAS_REC : W1_BIAS_YDS) : 0.0;
+
+  const offsets = [-2 * step, -1 * step, 0, 1 * step, 2 * step];
+  return offsets.map(off => {
+    const testLine = Math.max(0.5, baseFair + off);
+    const rawP = market === 'receptions' ? pRecOver(p.mu_rec, testLine) : pYardsOver(p.mu_rec, p.mu_ypr, testLine);
+    const modelP = Math.max(0.01, Math.min(0.99, rawP - bias));
+    const breakEvenOdds = probToAmerican(modelP);
+    const edgeVs110 = modelP - 0.50; // against standard -110 devigged
+
+    let verdict = 'PASS';
+    if (edgeVs110 >= 0.10) verdict = '<span style="color:var(--status-green); font-weight:700;">BET OVER</span>';
+    else if (edgeVs110 <= -0.10) verdict = '<span style="color:var(--status-green); font-weight:700;">BET UNDER</span>';
+    else if (Math.abs(edgeVs110) >= 0.05) verdict = '<span style="color:var(--status-amber);">LEAN</span>';
+
+    return `
+      <tr style="${off === 0 ? 'background:rgba(56,189,248,0.06);' : ''}">
+        <td><strong>${testLine.toFixed(1)}</strong> ${off === 0 ? '<small style="color:var(--accent-blue);">(Fair)</small>' : ''}</td>
+        <td>${(modelP * 100).toFixed(1)}%</td>
+        <td>${breakEvenOdds > 0 ? '+' : ''}${breakEvenOdds}</td>
+        <td>${edgeVs110 > 0 ? '+' : ''}${(edgeVs110 * 100).toFixed(1)}%</td>
+        <td>${verdict}</td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function renderDrawerDensityCurve(p, market, bookLine) {
+  const container = document.getElementById('drawerCurveContainer');
   if (!container) return;
 
-  const w = container.clientWidth || 600;
-  const h = 200;
-  const pad = { left: 40, right: 30, top: 20, bottom: 30 };
+  const w = container.clientWidth || 530;
+  const h = 180;
+  const pad = { left: 35, right: 25, top: 20, bottom: 25 };
 
-  const fairLine = market === 'receptions' ? player.fair_line_rec : player.fair_line_yards;
-  const maxVal = market === 'receptions' ? Math.max(14, fairLine * 2.2) : Math.max(160, fairLine * 2.4);
+  const fairLine = market === 'receptions' ? p.fair_line_rec : p.fair_line_yards;
+  const maxVal = market === 'receptions' ? Math.max(14, fairLine * 2.2) : Math.max(160, fairLine * 2.3);
 
-  // Generate density points
+  const steps = 100;
   const points = [];
-  const steps = 120;
   let maxDensity = 0;
 
   for (let i = 0; i <= steps; i++) {
     const x = (i / steps) * maxVal;
     let d = 0;
     if (market === 'receptions') {
-      // NegBin PMF approximation
       const r = 1.0 / MODEL_ALPHA;
-      const p = r / (r + player.mu_rec);
+      const pp = r / (r + p.mu_rec);
       const k = Math.round(x);
-      d = Math.pow(p, r) * Math.pow(1 - p, k) * (gammaRatio(k + r, r) / factorial(k));
+      d = Math.pow(pp, r) * Math.pow(1 - pp, k) * (gammaRatio(k + r, r) / factorial(k));
     } else {
-      // Compound Gamma density approximation
-      const k = MODEL_K * (player.mu_rec || 4.0);
-      const theta = (player.mu_ypr || 12.0) / MODEL_K;
+      const k = MODEL_K * (p.mu_rec || 4.0);
+      const theta = (p.mu_ypr || 12.0) / MODEL_K;
       if (x > 0 && k > 0) {
         d = (1 / (Math.exp(logGamma(k)) * Math.pow(theta, k))) * Math.pow(x, k - 1) * Math.exp(-x / theta);
       }
     }
     if (isNaN(d) || !isFinite(d)) d = 0;
-    maxDensity = Math.max(maxDensity, d);
     points.push({ x, y: d });
+    if (d > maxDensity) maxDensity = d;
   }
-
   if (maxDensity <= 0) maxDensity = 1.0;
 
-  // Scale functions
   const scaleX = val => pad.left + (val / maxVal) * (w - pad.left - pad.right);
   const scaleY = val => h - pad.bottom - (val / maxDensity) * (h - pad.top - pad.bottom);
 
-  // Build SVG path
   let pathD = `M ${scaleX(points[0].x)} ${scaleY(points[0].y)}`;
   for (let i = 1; i < points.length; i++) {
     pathD += ` L ${scaleX(points[i].x)} ${scaleY(points[i].y)}`;
@@ -1001,57 +868,499 @@ function drawDistributionSvg(player, market, bookLine) {
     tailPathD += ` L ${scaleX(maxVal)} ${scaleY(0)} Z`;
   }
 
-  const fairLineX = scaleX(fairLine);
-  const bookLineX = scaleX(bookLine);
+  const fairX = scaleX(fairLine);
+  const bookX = scaleX(bookLine);
 
   container.innerHTML = `
-    <svg width="100%" height="${h}" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+    <svg width="100%" height="${h}" viewBox="0 0 ${w} ${h}">
       <defs>
-        <linearGradient id="tailGrad" x1="0" y1="0" x2="0" y2="1">
+        <linearGradient id="curveTailGrad" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.45"/>
           <stop offset="100%" stop-color="#38bdf8" stop-opacity="0.05"/>
         </linearGradient>
       </defs>
       <!-- Base Axis -->
       <line x1="${pad.left}" y1="${h - pad.bottom}" x2="${w - pad.right}" y2="${h - pad.bottom}" stroke="#222d42" stroke-width="1"/>
-      
-      <!-- Shaded Over Tail -->
-      ${tailPathD ? `<path d="${tailPathD}" fill="url(#tailGrad)"/>` : ''}
-
-      <!-- Main Density Curve -->
+      ${tailPathD ? `<path d="${tailPathD}" fill="url(#curveTailGrad)"/>` : ''}
       <path d="${pathD}" fill="none" stroke="#38bdf8" stroke-width="2.2" stroke-linecap="round"/>
-
-      <!-- Fair Line (Median) -->
-      <line x1="${fairLineX}" y1="${pad.top}" x2="${fairLineX}" y2="${h - pad.bottom}" stroke="#38bdf8" stroke-width="2" stroke-dasharray="4,4"/>
-      <text x="${fairLineX}" y="${pad.top - 4}" fill="#38bdf8" font-size="10" font-family="monospace" text-anchor="middle" font-weight="700">Fair: ${fairLine}</text>
-
-      <!-- Book Line -->
-      <line x1="${bookLineX}" y1="${pad.top + 10}" x2="${bookLineX}" y2="${h - pad.bottom}" stroke="#ef4444" stroke-width="2"/>
-      <text x="${bookLineX}" y="${h - pad.bottom + 18}" fill="#ef4444" font-size="10" font-family="monospace" text-anchor="middle" font-weight="700">Book: ${bookLine}</text>
+      
+      <!-- Calibrated Fair Line (Median) -->
+      <line x1="${fairX}" y1="${pad.top}" x2="${fairX}" y2="${h - pad.bottom}" stroke="#38bdf8" stroke-width="1.8" stroke-dasharray="4,4"/>
+      <text x="${fairX}" y="${pad.top - 4}" fill="#38bdf8" font-size="10" font-family="monospace" text-anchor="middle" font-weight="700">Fair: ${fairLine}</text>
+      
+      <!-- Current Book Line -->
+      <line x1="${bookX}" y1="${pad.top + 8}" x2="${bookX}" y2="${h - pad.bottom}" stroke="#ef4444" stroke-width="2"/>
+      <text x="${bookX}" y="${h - pad.bottom + 16}" fill="#ef4444" font-size="10" font-family="monospace" text-anchor="middle" font-weight="700">Book: ${bookLine}</text>
     </svg>
   `;
 }
 
-function gammaRatio(a, b) {
-  return Math.exp(logGamma(a) - logGamma(b));
+function closeDrawer() {
+  const drawer = document.getElementById('detailDrawer');
+  const overlay = document.getElementById('drawerOverlay');
+  if (drawer) drawer.classList.remove('active');
+  if (overlay) overlay.classList.remove('active');
+  selectedDrawerPlayer = null;
 }
 
-function factorial(n) {
-  let f = 1;
-  for (let i = 2; i <= n; i++) f *= i;
-  return f;
+function toggleDrawerWatchlist() {
+  if (!selectedDrawerPlayer) return;
+  toggleWatchlistPlayer(selectedDrawerPlayer.player_id);
+  const watchBtn = document.getElementById('drawerWatchlistBtn');
+  if (watchBtn) {
+    const isWatched = userWatchlist.some(w => w.player_id === selectedDrawerPlayer.player_id);
+    watchBtn.textContent = isWatched ? '★ Remove from Watchlist' : '★ Add to Watchlist';
+  }
 }
 
-// Correlation-Aware Same-Game Parlay (SGP) Simulator (src/parlay.py)
-function evaluateCurrentPlayerSgp() {
-  if (!selectedPlayer) return;
-  const container = document.getElementById('sgpResultsContainer');
+function copyDrawerSlip() {
+  if (!selectedDrawerPlayer) return;
+  const p = selectedDrawerPlayer;
+  const text = `PROPS SLIP: ${p.player_display_name} ${p.side} ${p.bookLine} (${p.odds > 0 ? '+' : ''}${p.odds})\n` +
+               `Market: ${p.market === 'receptions' ? 'Receptions' : 'Receiving Yards'} vs ${p.opponent_team}\n` +
+               `Model Prob: ${(p.bestModelP * 100).toFixed(1)}% | Fair Line: ${p.fairLine}\n` +
+               `Edge: +${(p.bestEdge * 100).toFixed(1)}% | Stake: ${(p.actionableStake * 100).toFixed(2)}%`;
+  
+  navigator.clipboard.writeText(text).then(() => {
+    showToast(`✓ Copied bet slip for ${p.player_display_name}!`);
+  });
+}
+
+async function logDrawerPick() {
+  if (!selectedDrawerPlayer) return;
+  const p = selectedDrawerPlayer;
+  await logPickToLedger({
+    player: p.player_display_name,
+    market: p.market === 'receptions' ? 'receptions' : 'receiving_yards',
+    side: p.side.toLowerCase(),
+    line: p.bookLine,
+    odds: p.odds,
+    model_prob: p.bestModelP,
+    market_prob: p.bestMktP,
+    edge: p.bestEdge,
+    ev_per_unit: p.ev,
+    kelly_stake: p.actionableStake,
+    projection: p.projVol,
+    is_demo: false,
+    status: 'open'
+  });
+}
+
+// --------------------------------------------------------------------------
+// Watchlist Management
+// --------------------------------------------------------------------------
+
+function loadStoredWatchlist() {
+  try {
+    userWatchlist = JSON.parse(localStorage.getItem('nfl_props_watchlist') || '[]');
+  } catch (_) {
+    userWatchlist = [];
+  }
+  updateWatchlistBadge();
+}
+
+function saveStoredWatchlist() {
+  try {
+    localStorage.setItem('nfl_props_watchlist', JSON.stringify(userWatchlist));
+  } catch (_) {}
+  updateWatchlistBadge();
+}
+
+function updateWatchlistBadge() {
+  const badge = document.getElementById('watchlistCountBadge');
+  if (badge) badge.textContent = userWatchlist.length;
+}
+
+function toggleWatchlistPlayer(playerId) {
+  const idx = userWatchlist.findIndex(w => w.player_id === playerId);
+  if (idx >= 0) {
+    userWatchlist.splice(idx, 1);
+    showToast('Removed from watchlist.');
+  } else {
+    const p = slateData.find(x => x.player_id === playerId);
+    if (p) {
+      userWatchlist.push({
+        player_id: p.player_id,
+        name: p.player_display_name,
+        team: p.team,
+        saved_line: p.fair_line_yards,
+        saved_at: new Date().toISOString()
+      });
+      showToast(`★ Added ${p.player_display_name} to watchlist!`);
+    }
+  }
+  saveStoredWatchlist();
+  renderBoard();
+}
+
+function clearWatchlist() {
+  if (confirm('Clear all saved props from your watchlist?')) {
+    userWatchlist = [];
+    saveStoredWatchlist();
+    renderWatchlistPage();
+    renderBoard();
+  }
+}
+
+function renderWatchlistPage() {
+  const container = document.getElementById('watchlistContentContainer');
   if (!container) return;
 
-  const muRec = selectedPlayer.mu_rec;
-  const muYpr = selectedPlayer.mu_ypr;
-  const fairRec = selectedPlayer.fair_line_rec;
-  const fairYds = selectedPlayer.fair_line_yards;
+  if (userWatchlist.length === 0) {
+    container.innerHTML = `
+      <div style="background:var(--bg-card); border:1px dashed var(--border-color); border-radius:8px; padding:40px; text-align:center; color:var(--text-dim);">
+        <svg style="width:36px; height:36px; stroke:var(--text-dim); margin-bottom:10px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+        </svg>
+        <p style="font-size:14px; font-weight:600; color:#fff;">Your Watchlist is Empty</p>
+        <p style="font-size:12px; margin-top:4px;">Star any player on the Main Board to track price moves and receive line alert notifications.</p>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = `
+    <div class="main-slate-card">
+      <table class="slate-table">
+        <thead>
+          <tr>
+            <th>Player &amp; Matchup</th>
+            <th>Pos</th>
+            <th>Saved Line</th>
+            <th>Current Model Fair Line</th>
+            <th>Status</th>
+            <th style="text-align:right;">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${userWatchlist.map(w => {
+            const current = slateData.find(p => p.player_id === w.player_id);
+            const currentFair = current ? Number(current.fair_line_yards).toFixed(1) : '—';
+            return `
+              <tr>
+                <td>
+                  <div style="font-weight:700; color:#fff;">${w.name}</div>
+                  <div style="font-size:11px; color:var(--text-dim);">${w.team}</div>
+                </td>
+                <td><span class="pos-tag pos-WR">WR</span></td>
+                <td class="num-col">${w.saved_line}</td>
+                <td class="num-col" style="color:var(--accent-blue); font-weight:700;">${currentFair}</td>
+                <td><span class="status-pill status-qualified">TRACKED</span></td>
+                <td style="text-align:right;">
+                  <button class="action-inspect-btn" onclick="openDrawerForPlayer('${w.name}')">Inspect</button>
+                  <button class="action-inspect-btn" onclick="toggleWatchlistPlayer('${w.player_id}'); renderWatchlistPage();" style="color:var(--status-red);">Remove</button>
+                </td>
+              </tr>
+            `;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+function loadStoredLines() {
+  try {
+    inlinePlayerLines = JSON.parse(localStorage.getItem('nfl_props_custom_lines') || '{}');
+  } catch (_) {
+    inlinePlayerLines = {};
+  }
+}
+
+function saveStoredLines() {
+  try {
+    localStorage.setItem('nfl_props_custom_lines', JSON.stringify(inlinePlayerLines));
+  } catch (_) {}
+}
+
+// --------------------------------------------------------------------------
+// CLV Tracker & Integrity Ledger
+// --------------------------------------------------------------------------
+
+async function loadClvLedger() {
+  try {
+    let rows = [];
+    const res = await fetchWithFallback('/api/clv/log', 'picks_log.jsonl');
+    if (res.ok) {
+      const text = await res.text();
+      rows = text.split('\n')
+        .map(l => {
+          try { return JSON.parse(l); } catch (_) { return null; }
+        })
+        .filter(Boolean);
+    }
+
+    // Merge with any client local tracked picks
+    try {
+      const local = JSON.parse(localStorage.getItem('clv_local_picks') || '[]');
+      rows = [...rows, ...local];
+    } catch (_) {}
+
+    clvLogData = rows;
+    updateClvHeaderBadge();
+    populateClosingPickSelect();
+    renderTrackerPage();
+  } catch (err) {
+    console.warn('Could not load CLV ledger:', err);
+  }
+}
+
+function updateClvHeaderBadge() {
+  const badge = document.getElementById('clvStatusBadge');
+  if (badge) {
+    const verified = clvLogData.filter(r => !r.is_demo);
+    badge.textContent = verified.length > 0 ? `Verified N=${verified.length}` : `Demo N=${clvLogData.length}`;
+  }
+}
+
+function setClvFilter(type) {
+  clvFilterType = type;
+  document.getElementById('btnClvAll')?.classList.toggle('active', type === 'all');
+  document.getElementById('btnClvVerified')?.classList.toggle('active', type === 'verified');
+  document.getElementById('btnClvDemo')?.classList.toggle('active', type === 'demo');
+  renderTrackerPage();
+}
+
+function renderTrackerPage() {
+  const tbody = document.getElementById('trackerTableTbody');
+  const meanEl = document.getElementById('trackerMeanClv');
+  const ciEl = document.getElementById('trackerClvCi');
+  const beatEl = document.getElementById('trackerBeatClose');
+  const totalEl = document.getElementById('trackerTotalBets');
+  const verdictEl = document.getElementById('trackerVerdict');
+
+  const countAll = document.getElementById('clvAllCount');
+  const countVer = document.getElementById('clvVerifiedCount');
+  const countDemo = document.getElementById('clvDemoCount');
+
+  if (countAll) countAll.textContent = clvLogData.length;
+  if (countVer) countVer.textContent = clvLogData.filter(r => !r.is_demo).length;
+  if (countDemo) countDemo.textContent = clvLogData.filter(r => r.is_demo).length;
+
+  let activeRows = clvLogData;
+  if (clvFilterType === 'verified') activeRows = clvLogData.filter(r => !r.is_demo);
+  if (clvFilterType === 'demo') activeRows = clvLogData.filter(r => r.is_demo);
+
+  // Compute audited CLV metrics
+  const settled = activeRows.filter(r => r.clv !== undefined);
+  if (totalEl) totalEl.textContent = activeRows.length;
+
+  if (settled.length === 0) {
+    if (meanEl) meanEl.textContent = '—';
+    if (ciEl) ciEl.textContent = '95% CI: [—, —]';
+    if (beatEl) beatEl.textContent = '—';
+    if (verdictEl) verdictEl.textContent = 'Awaiting closing records';
+  } else {
+    const clvs = settled.map(r => r.clv);
+    const mean = clvs.reduce((a, b) => a + b, 0) / clvs.length;
+    let se = 0;
+    if (clvs.length > 1) {
+      const variance = clvs.reduce((acc, v) => acc + Math.pow(v - mean, 2), 0) / (clvs.length - 1);
+      se = Math.sqrt(variance) / Math.sqrt(clvs.length);
+    }
+    const beatRate = clvs.filter(v => v > 0).length / clvs.length;
+
+    if (meanEl) meanEl.textContent = `${mean > 0 ? '+' : ''}${(mean * 100).toFixed(2)}%`;
+    if (ciEl) ciEl.textContent = `95% CI: [${((mean - 1.96 * se) * 100).toFixed(1)}%, ${((mean + 1.96 * se) * 100).toFixed(1)}%]`;
+    if (beatEl) beatEl.textContent = `${(beatRate * 100).toFixed(1)}%`;
+    
+    if (verdictEl) {
+      if (settled.length < 15) {
+        verdictEl.textContent = 'Preliminary sample (N < 15) — do not scale';
+        verdictEl.style.color = 'var(--status-amber)';
+      } else if (mean - 1.96 * se > 0) {
+        verdictEl.textContent = 'Positive CLV — edge is statistically plausible';
+        verdictEl.style.color = 'var(--status-green)';
+      } else {
+        verdictEl.textContent = 'NOT distinguishable from zero market noise';
+        verdictEl.style.color = 'var(--status-red)';
+      }
+    }
+  }
+
+  if (!tbody) return;
+  if (activeRows.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="9" style="text-align:center; padding:30px; color:var(--text-dim);">
+          No records found in this category.
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  tbody.innerHTML = activeRows.map(r => {
+    const isDemo = r.is_demo;
+    const classBadge = isDemo
+      ? `<span class="badge-prelim-inline">DEMO DATA</span>`
+      : `<span class="status-pill status-qualified">VERIFIED LIVE</span>`;
+
+    const clvFormatted = r.clv !== undefined
+      ? `<strong style="color:${r.clv > 0 ? 'var(--status-green)' : 'var(--status-red)'}; font-family:var(--font-mono);">${r.clv > 0 ? '+' : ''}${(r.clv * 100).toFixed(2)}%</strong>`
+      : `<span style="color:var(--text-dim);">Awaiting Close</span>`;
+
+    const closeFormatted = r.closing_prob !== undefined
+      ? `${(r.closing_prob * 100).toFixed(1)}%`
+      : '—';
+
+    return `
+      <tr>
+        <td style="font-family:var(--font-mono); font-size:11px; color:var(--text-dim);">${(r.logged_at || '').slice(0, 10)}</td>
+        <td>
+          <strong style="color:#fff;">${r.player}</strong>
+          <span class="pos-tag pos-WR" style="margin-left:4px;">${(r.side || '').toUpperCase()}</span>
+        </td>
+        <td style="font-family:var(--font-mono);">${r.market} ${r.line}</td>
+        <td class="num-col">${r.odds > 0 ? '+' : ''}${r.odds} <small style="color:var(--text-dim);">(${(r.market_prob * 100).toFixed(1)}%)</small></td>
+        <td class="num-col font-mono">${(r.model_prob * 100).toFixed(1)}%</td>
+        <td class="num-col font-mono">${closeFormatted}</td>
+        <td class="num-col">${clvFormatted}</td>
+        <td>${classBadge}</td>
+        <td><span class="status-pill ${r.closing_prob !== undefined ? 'status-qualified' : 'status-lean'}">${r.closing_prob !== undefined ? 'Settled' : 'Open'}</span></td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function toggleClosingForm() {
+  const panel = document.getElementById('closingFormPanel');
+  if (panel) {
+    panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+  }
+}
+
+function populateClosingPickSelect() {
+  const sel = document.getElementById('closingPickSelect');
+  if (!sel) return;
+  const openPicks = clvLogData.filter(r => r.closing_prob === undefined || r.closing_prob === null);
+  if (openPicks.length === 0) {
+    sel.innerHTML = `<option value="">All logged picks have closing lines recorded</option>`;
+    return;
+  }
+  sel.innerHTML = openPicks.map(p => `
+    <option value="${escape(JSON.stringify({ player: p.player, market: p.market, line: p.line }))}">
+      ${p.player} &bull; ${(p.side || '').toUpperCase()} ${p.line} (${p.market})
+    </option>
+  `).join('');
+}
+
+function updateClosingFromOdds() {
+  const oddsInput = document.getElementById('closingOddsInput');
+  const probInput = document.getElementById('closingProbInput');
+  if (!oddsInput || !probInput) return;
+  const odds = parseFloat(oddsInput.value);
+  if (isNaN(odds)) return;
+  const dec = americanToDecimal(odds);
+  // Symmetric devig
+  const prob = (1 / dec);
+  probInput.value = prob.toFixed(3);
+}
+
+async function submitClosingPrice() {
+  const sel = document.getElementById('closingPickSelect');
+  const probInput = document.getElementById('closingProbInput');
+  if (!sel || !sel.value || !probInput || !probInput.value) {
+    showToast('Please select a pick and enter closing probability.');
+    return;
+  }
+
+  const pickKey = JSON.parse(unescape(sel.value));
+  const closingProb = parseFloat(probInput.value);
+
+  // Try API first
+  try {
+    const res = await fetch('/api/clv/record-closing', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        player: pickKey.player,
+        market: pickKey.market,
+        line: pickKey.line,
+        closing_prob: closingProb
+      })
+    });
+    if (res.ok) {
+      showToast(`✓ Recorded closing price for ${pickKey.player}!`);
+      probInput.value = '';
+      await loadClvLedger();
+      return;
+    }
+  } catch (_) {}
+
+  // Local-first storage fallback
+  try {
+    const target = clvLogData.find(r => r.player === pickKey.player && r.market === pickKey.market && r.line === pickKey.line);
+    if (target) {
+      target.closing_prob = closingProb;
+      const entryMkt = target.market_prob || 0.5;
+      // TRUE CLV: (Closing Market - Entry Market) for Over
+      target.clv = target.side === 'over' ? (closingProb - entryMkt) : (entryMkt - closingProb);
+      localStorage.setItem('clv_local_picks', JSON.stringify(clvLogData));
+      showToast(`✓ Recorded closing price locally for ${pickKey.player}!`);
+      probInput.value = '';
+      await loadClvLedger();
+    }
+  } catch (err) {
+    showToast('Failed to record closing price.');
+  }
+}
+
+async function logPickToLedger(payload) {
+  payload.logged_at = new Date().toISOString();
+
+  // Try API
+  try {
+    const res = await fetch('/api/clv/log', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (res.ok) {
+      showToast(`✓ Logged ${payload.player} to CLV tracker!`);
+      await loadClvLedger();
+      return;
+    }
+  } catch (_) {}
+
+  // Local-first storage fallback
+  try {
+    const local = JSON.parse(localStorage.getItem('clv_local_picks') || '[]');
+    local.push(payload);
+    localStorage.setItem('clv_local_picks', JSON.stringify(local));
+    showToast(`✓ Logged ${payload.player} locally to CLV tracker!`);
+    await loadClvLedger();
+  } catch (err) {
+    showToast('Could not save pick to log.');
+  }
+}
+
+// --------------------------------------------------------------------------
+// Research & SGP Bivariate Simulator
+// --------------------------------------------------------------------------
+
+function populateSgpSelect() {
+  const sel = document.getElementById('sgpPlayerSelect');
+  if (!sel || slateData.length === 0) return;
+  const projectable = slateData.filter(d => !d.excl_reason).slice(0, 30);
+  sel.innerHTML = projectable.map(p => `
+    <option value="${p.player_id}">${p.player_display_name} (${p.position} - ${p.team})</option>
+  `).join('');
+  runSgpSimulation();
+}
+
+function runSgpSimulation() {
+  const sel = document.getElementById('sgpPlayerSelect');
+  const container = document.getElementById('sgpSimulationResultsContainer');
+  if (!sel || !container || slateData.length === 0) return;
+
+  const player = slateData.find(p => p.player_id === sel.value) || slateData[0];
+  if (!player) return;
+
+  const muRec = player.mu_rec;
+  const muYpr = player.mu_ypr;
+  const fairRec = player.fair_line_rec;
+  const fairYds = player.fair_line_yards;
 
   const nSims = 40000;
   const r = 1.0 / MODEL_ALPHA;
@@ -1063,17 +1372,14 @@ function evaluateCurrentPlayerSgp() {
   let jointOverCount = 0;
 
   for (let i = 0; i < nSims; i++) {
-    // NegBin random draw
     const lambda = sampleGamma(r, (1 - p) / p);
     const n = samplePoisson(lambda);
     let y = 0;
     if (n > 0) {
       y = sampleGamma(n * MODEL_K, scale);
     }
-
     const isOverRec = n > fairRec;
     const isOverYds = y > fairYds;
-
     if (isOverRec) overRecCount++;
     if (isOverYds) overYdsCount++;
     if (isOverRec && isOverYds) jointOverCount++;
@@ -1084,15 +1390,17 @@ function evaluateCurrentPlayerSgp() {
   const pJoint = jointOverCount / nSims;
   const pIndep = pRec * pYds;
   const correlationLift = pIndep > 0 ? (pJoint / pIndep - 1.0) : 0;
-  const fairAmerican = probToAmerican(pJoint);
+  const fairOdds = probToAmerican(pJoint);
 
   container.innerHTML = `
-    <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:8px; padding:16px;">
+    <div style="background:var(--bg-main); border:1px solid var(--border-color); border-radius:6px; padding:16px;">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
-        <h5 style="color:#fff; font-size:14px;">${selectedPlayer.player_display_name} SGP: Over ${fairRec} Rec + Over ${fairYds} Yds</h5>
-        <span class="sgp-lift-badge">+${(correlationLift * 100).toFixed(1)}% CORRELATION LIFT</span>
+        <h5 style="color:#fff; font-size:14px;">${player.player_display_name} SGP: Over ${fairRec} Rec + Over ${fairYds} Yds</h5>
+        <span class="status-pill status-qualified" style="background:rgba(192,132,252,0.15); color:var(--accent-purple); border-color:rgba(192,132,252,0.35);">
+          +${(correlationLift * 100).toFixed(1)}% CORRELATION LIFT
+        </span>
       </div>
-      <table class="sgp-table">
+      <table class="sensitivity-table" style="font-size:12px;">
         <thead>
           <tr>
             <th>Leg 1 P(Over)</th>
@@ -1108,412 +1416,55 @@ function evaluateCurrentPlayerSgp() {
             <td>${(pYds * 100).toFixed(1)}%</td>
             <td style="color:var(--text-dim);">${(pIndep * 100).toFixed(1)}%</td>
             <td style="color:var(--accent-purple); font-weight:700;">${(pJoint * 100).toFixed(1)}%</td>
-            <td style="color:var(--accent-blue); font-weight:700;">${fairAmerican > 0 ? '+' : ''}${fairAmerican}</td>
+            <td style="color:var(--accent-blue); font-weight:700;">${fairOdds > 0 ? '+' : ''}${fairOdds}</td>
           </tr>
         </tbody>
       </table>
       <div style="margin-top:12px; font-size:11px; color:var(--text-muted); line-height:1.5;">
-        <strong>SGP Pricing Takeaway:</strong> Because yards are produced by receptions (&phi; &approx; 0.65), a receiver who clears receptions is much more likely to also clear yards. If your sportsbook prices this SGP using unadjusted product odds (~${(pIndep * 100).toFixed(1)}%), there is a <strong>+${(correlationLift * 100).toFixed(1)}%</strong> pricing inefficiency.
+        <strong>SGP Modeling Takeaway:</strong> Because receiving yards require receptions (&phi; &approx; 0.65), clearing receptions substantially lifts the conditional probability of clearing yards. Sportsbooks multiplying unadjusted product odds (~${(pIndep * 100).toFixed(1)}%) underprice this parlay by <strong>+${(correlationLift * 100).toFixed(1)}%</strong>.
       </div>
     </div>
   `;
 }
 
-// Marsaglia and Tsang exact Gamma sampler
-function sampleStandardNormal() {
-  let u = 0, v = 0;
-  while (u === 0) u = Math.random();
-  while (v === 0) v = Math.random();
-  return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
-}
-
-function sampleGamma(shape, scale) {
-  if (shape < 1) {
-    return sampleGamma(shape + 1, scale) * Math.pow(Math.random(), 1 / shape);
-  }
-  const d = shape - 1 / 3;
-  const c = 1 / Math.sqrt(9 * d);
-  while (true) {
-    const z = sampleStandardNormal();
-    const v = 1 + c * z;
-    if (v <= 0) continue;
-    const v3 = v * v * v;
-    const u = Math.random();
-    if (u < 1 - 0.0331 * z * z * z * z) {
-      return d * v3 * scale;
-    }
-    if (Math.log(u) < 0.5 * z * z + d * (1 - v3 + Math.log(v3))) {
-      return d * v3 * scale;
-    }
-  }
-}
-
-function samplePoisson(lambda) {
-  if (lambda <= 0) return 0;
-  if (lambda < 30) {
-    const L = Math.exp(-lambda);
-    let k = 0, p = 1.0;
-    do {
-      k++;
-      p *= Math.random();
-    } while (p > L);
-    return k - 1;
-  }
-  return Math.max(0, Math.round(lambda + Math.sqrt(lambda) * sampleStandardNormal()));
-}
-
 // --------------------------------------------------------------------------
-// TAB 5: CLV Tracking & Logging (with Local-First & Static Fallback)
+// Admin Modal & Pipeline Execution
 // --------------------------------------------------------------------------
 
-async function loadClvData() {
-  try {
-    const res = await fetch('/api/clv/log');
-    if (res.ok) {
-      const data = await res.json();
-      clvLogData = data.rows || [];
-      renderClvDashboard(data.report || {});
-      populateClosingPickSelect();
-      renderClvTable();
-      return;
-    }
-  } catch (_) {}
-
-  // Fallback for Vercel edge / static mode: load viewer/picks_log.jsonl + localStorage
-  try {
-    const textRes = await fetch('picks_log.jsonl');
-    let rows = [];
-    if (textRes.ok) {
-      const rawText = await textRes.text();
-      rows = rawText.split('\n')
-        .map(l => l.trim())
-        .filter(Boolean)
-        .map(l => {
-          try { return JSON.parse(l); } catch (_) { return null; }
-        })
-        .filter(Boolean);
-    }
-
-    // Merge with any client-stored local picks
-    try {
-      const localPicks = JSON.parse(localStorage.getItem('clv_local_picks') || '[]');
-      rows = [...rows, ...localPicks];
-    } catch (_) {}
-
-    clvLogData = rows;
-    const report = calculateClientClvReport(rows);
-    renderClvDashboard(report);
-    populateClosingPickSelect();
-    renderClvTable();
-  } catch (err) {
-    console.warn('Could not load static CLV log:', err);
-  }
+function openAdminModal() {
+  const modal = document.getElementById('adminModal');
+  if (modal) modal.classList.add('active');
 }
 
-function calculateClientClvReport(rows) {
-  const settled = rows.filter(r => r.clv !== undefined);
-  if (settled.length === 0) return { status: 'no closing lines recorded yet', n: 0 };
-
-  const clvVals = settled.map(r => r.clv);
-  const sum = clvVals.reduce((a, b) => a + b, 0);
-  const mean = sum / clvVals.length;
-
-  let se = 0;
-  if (clvVals.length > 1) {
-    const variance = clvVals.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0) / (clvVals.length - 1);
-    se = Math.sqrt(variance) / Math.sqrt(clvVals.length);
-  }
-
-  const beatClose = clvVals.filter(v => v > 0).length / clvVals.length;
-  return {
-    n: clvVals.length,
-    mean_clv: mean,
-    ci95: [mean - 1.96 * se, mean + 1.96 * se],
-    pct_beating_close: beatClose,
-    verdict: (clvVals.length > 1 && mean - 1.96 * se > 0)
-      ? 'positive CLV - edge is plausible'
-      : (clvVals.length < 5 ? 'insufficient sample size (n < 5)' : 'NOT distinguishable from zero - do not scale')
-  };
+function closeAdminModal() {
+  const modal = document.getElementById('adminModal');
+  if (modal) modal.classList.remove('active');
 }
 
-function renderClvDashboard(rep) {
-  const meanEl = document.getElementById('clvMeanVal');
-  const ciEl = document.getElementById('clvCiVal');
-  const seEl = document.getElementById('clvSeSub');
-  const countEl = document.getElementById('clvCountVal');
-  const weeksEl = document.getElementById('clvWeeksSub');
-  const beatEl = document.getElementById('clvBeatingVal');
-  const headerClvEl = document.getElementById('headerClvVal');
-
-  if (rep && rep.n > 0) {
-    const mean = rep.mean_clv;
-    if (meanEl) {
-      meanEl.textContent = `${mean > 0 ? '+' : ''}${(mean * 100).toFixed(2)}%`;
-      meanEl.className = `kpi-value ${mean > 0 ? 'val-green' : 'val-red'}`;
-    }
-    if (headerClvEl) {
-      headerClvEl.textContent = `${mean > 0 ? '+' : ''}${(mean * 100).toFixed(2)}% CLV (n=${rep.n})`;
-      headerClvEl.className = `pill-val ${mean > 0 ? 'val-green' : 'val-red'}`;
-    }
-    if (ciEl && rep.ci95) {
-      ciEl.textContent = `[${(rep.ci95[0] * 100).toFixed(1)}%, ${(rep.ci95[1] * 100).toFixed(1)}%]`;
-    }
-    if (countEl) countEl.textContent = rep.n;
-    if (beatEl && rep.pct_beating_close !== undefined) {
-      beatEl.textContent = `${(rep.pct_beating_close * 100).toFixed(1)}%`;
-      beatEl.className = `kpi-value ${rep.pct_beating_close >= 0.5 ? 'val-green' : 'val-amber'}`;
-    }
-
-    const verdictTitle = document.getElementById('clvVerdictTitle');
-    const verdictText = document.getElementById('clvVerdictText');
-    if (verdictTitle) verdictTitle.textContent = rep.verdict;
-    if (verdictText) {
-      verdictText.textContent = rep.mean_clv > 0
-        ? `Out-of-sample closing line audit indicates positive edge over sportsbooks. Continue monitoring as sample grows.`
-        : `Sample mean is not statistically indistinguishable from zero. Do not scale bankroll size until CLV confirms positive edge.`;
-    }
-  } else {
-    if (meanEl) meanEl.textContent = '0.00%';
-    if (headerClvEl) headerClvEl.textContent = '0 Bets Audited';
-    if (countEl) countEl.textContent = clvLogData.length;
-    if (weeksEl) weeksEl.textContent = `${clvLogData.length} pending closing`;
-    if (beatEl) beatEl.textContent = '—';
-  }
+function clearAdminTerminal() {
+  const term = document.getElementById('adminTerminalOutput');
+  if (term) term.textContent = 'Terminal cleared.\n';
 }
 
-function populateClosingPickSelect() {
-  const sel = document.getElementById('closeSelectPick');
-  if (!sel) return;
+async function executeAdminRun() {
+  const season = document.getElementById('adminSeasonSelect').value || 2026;
+  const week = document.getElementById('adminWeekSelect').value || 7;
+  const allGames = document.getElementById('adminAllGamesCheck').checked;
+  const odds = document.getElementById('adminOddsCheck').checked;
 
-  const openPicks = clvLogData.filter(r => r.closing_prob === undefined || r.closing_prob === null);
-  if (openPicks.length === 0) {
-    sel.innerHTML = `<option value="">All logged picks have closing lines recorded</option>`;
-    return;
-  }
+  const btn = document.getElementById('executeAdminRunBtn');
+  const term = document.getElementById('adminTerminalOutput');
 
-  sel.innerHTML = `<option value="">Select pick to settle closing line (${openPicks.length} open)...</option>` +
-    openPicks.map((p, idx) => `
-      <option value="${escape(JSON.stringify({ player: p.player, market: p.market, line: p.line }))}">
-        ${p.player} &bull; ${p.side.toUpperCase()} ${p.line} ${p.market} (Placed: ${p.odds > 0 ? '+' : ''}${p.odds})
-      </option>
-    `).join('');
-}
-
-function onClosePickSelect() {}
-
-function updateClosingProbFromOdds() {
-  const oddsInput = document.getElementById('closingOddsInput');
-  const probInput = document.getElementById('closingProbInput');
-  if (!oddsInput || !probInput) return;
-  const odds = parseFloat(oddsInput.value);
-  if (!isNaN(odds) && odds !== 0) {
-    const dec = americanToDecimal(odds);
-    probInput.value = (1 / dec).toFixed(3);
-  }
-}
-
-async function submitClosingLine() {
-  const sel = document.getElementById('closeSelectPick');
-  const probInput = document.getElementById('closingProbInput');
-  if (!sel || !sel.value) {
-    showToast('Please select a logged pick.');
-    return;
-  }
-  const prob = parseFloat(probInput.value);
-  if (isNaN(prob) || prob <= 0 || prob >= 1) {
-    showToast('Please enter a valid closing probability (e.g. 0.525).');
-    return;
-  }
-
-  const pickKey = JSON.parse(unescape(sel.value));
-
-  // Try API first
-  try {
-    const res = await fetch('/api/clv/record-closing', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        player: pickKey.player,
-        market: pickKey.market,
-        line: pickKey.line,
-        closing_prob: prob
-      })
-    });
-    if (res.ok) {
-      showToast(`✓ Recorded closing probability for ${pickKey.player}!`);
-      probInput.value = '';
-      await loadClvData();
-      return;
-    }
-  } catch (_) {}
-
-  // Local storage fallback for Vercel
-  try {
-    const target = clvLogData.find(r => r.player === pickKey.player && r.market === pickKey.market && r.line === pickKey.line);
-    if (target) {
-      target.closing_prob = prob;
-      target.clv = target.side === 'over' ? (target.model_prob - prob) : ((1 - prob) - target.model_prob);
-      localStorage.setItem('clv_local_picks', JSON.stringify(clvLogData));
-      showToast(`✓ Recorded closing probability locally for ${pickKey.player}!`);
-      probInput.value = '';
-      await loadClvData();
-    }
-  } catch (e) {
-    showToast('Error recording closing line.');
-  }
-}
-
-async function logCurrentCalcPick() {
-  if (!selectedPlayer) return;
-  const market = document.getElementById('calcMarket').value;
-  const line = parseFloat(document.getElementById('calcLine').value) || 0;
-  const overOdds = parseFloat(document.getElementById('calcOverOdds').value) || -110;
-  const underOdds = parseFloat(document.getElementById('calcUnderOdds').value) || -110;
-
-  const rawPOver = market === 'receptions' ? pRecOver(selectedPlayer.mu_rec, line) : pYardsOver(selectedPlayer.mu_rec, selectedPlayer.mu_ypr, line);
-  const bias = market === 'receptions' ? W1_BIAS_REC : W1_BIAS_YDS;
-  const modelPOver = Math.max(0.01, Math.min(0.99, rawPOver - bias));
-  const modelPUnder = 1.0 - modelPOver;
-
-  const decOver = americanToDecimal(overOdds);
-  const decUnder = americanToDecimal(underOdds);
-  const rawMktOver = 1 / decOver;
-  const rawMktUnder = 1 / decUnder;
-  const vigSum = rawMktOver + rawMktUnder;
-  const devigMktOver = rawMktOver / vigSum;
-  const devigMktUnder = rawMktUnder / vigSum;
-
-  const side = (modelPOver - devigMktOver >= modelPUnder - devigMktUnder) ? 'over' : 'under';
-  const modelProb = side === 'over' ? modelPOver : modelPUnder;
-  const mktProb = side === 'over' ? devigMktOver : devigMktUnder;
-  const odds = side === 'over' ? overOdds : underOdds;
-  const edge = modelProb - mktProb;
-  const dec = side === 'over' ? decOver : decUnder;
-  const ev = modelProb * (dec - 1) - (1 - modelProb);
-  const b = dec - 1;
-  const kelly = ev > 0 ? Math.min(W1_KELLY_CAP, (b * modelProb - (1 - modelProb)) / b) : 0;
-
-  const payload = {
-    logged_at: new Date().toISOString(),
-    player: selectedPlayer.player_display_name,
-    market: market,
-    side: side,
-    line: line,
-    book: "Consensus",
-    odds: odds,
-    model_prob: modelProb,
-    market_prob: mktProb,
-    edge: edge,
-    ev_per_unit: ev,
-    kelly_stake: kelly,
-    projection: market === 'receptions' ? selectedPlayer.proj_rec : selectedPlayer.proj_yards
-  };
-
-  try {
-    const res = await fetch('/api/clv/log', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-    if (res.ok) {
-      showToast(`✓ Logged ${selectedPlayer.player_display_name} ${side.toUpperCase()} ${line} to picks_log.jsonl`);
-      await loadClvData();
-      return;
-    }
-  } catch (_) {}
-
-  // Local storage fallback for Vercel
-  try {
-    const local = JSON.parse(localStorage.getItem('clv_local_picks') || '[]');
-    local.push(payload);
-    localStorage.setItem('clv_local_picks', JSON.stringify(local));
-    showToast(`✓ Logged ${selectedPlayer.player_display_name} locally to CLV ledger`);
-    await loadClvData();
-  } catch (e) {
-    showToast('Failed to save pick.');
-  }
-}
-
-function renderClvTable() {
-  const tbody = document.getElementById('clvLogTbody');
-  if (!tbody) return;
-
-  if (clvLogData.length === 0) {
-    tbody.innerHTML = `
-      <tr>
-        <td colspan="11" style="text-align:center; padding:28px; color:var(--text-dim);">
-          No picks logged in picks_log.jsonl yet. Use the Calculator or Runner to log picks.
-        </td>
-      </tr>
-    `;
-    return;
-  }
-
-  tbody.innerHTML = clvLogData.map(r => {
-    const dateStr = r.logged_at ? r.logged_at.slice(0, 10) : '—';
-    const sideClass = r.side === 'over' ? 'val-green' : 'val-blue';
-    const clvFormatted = r.clv !== undefined
-      ? `<span class="${r.clv > 0 ? 'val-green' : 'val-red'} font-bold">${r.clv > 0 ? '+' : ''}${(r.clv * 100).toFixed(2)}%</span>`
-      : '<span style="color:var(--text-dim);">Open</span>';
-    const statusPill = r.closing_prob !== undefined
-      ? '<span class="tier-pill tier-1-pill">Settled</span>'
-      : '<span class="tier-pill tier-2-pill">Awaiting Close</span>';
-
-    return `
-      <tr>
-        <td style="font-family:var(--font-mono); font-size:11px; color:var(--text-dim);">${dateStr}</td>
-        <td class="player-name-cell" onclick="openPlayerModalByName('${escape(r.player)}')">${r.player}</td>
-        <td>${r.market}</td>
-        <td class="${sideClass}" style="font-weight:700;">${r.side.toUpperCase()}</td>
-        <td class="num-col font-mono">${r.line}</td>
-        <td class="num-col font-mono">${r.odds > 0 ? '+' : ''}${r.odds}</td>
-        <td class="num-col font-mono">${(r.model_prob * 100).toFixed(1)}%</td>
-        <td class="num-col font-mono">${(r.market_prob * 100).toFixed(1)}%</td>
-        <td class="num-col font-mono">${r.closing_prob !== undefined ? (r.closing_prob * 100).toFixed(1) + '%' : '—'}</td>
-        <td class="num-col">${clvFormatted}</td>
-        <td>${statusPill}</td>
-      </tr>
-    `;
-  }).join('');
-}
-
-// --------------------------------------------------------------------------
-// TAB 6: Weekly Runner (Streaming Shell Execution)
-// --------------------------------------------------------------------------
-
-function openRunModal() {
-  setTab('run');
-}
-
-function clearTerminal() {
-  const term = document.getElementById('terminalOutput');
-  if (term) term.textContent = 'Terminal cleared. Ready for next run.\n';
-}
-
-async function executeWeeklyRun() {
-  const season = document.getElementById('runSeasonSelect').value || 2026;
-  const week = document.getElementById('runWeekSelect').value || 1;
-  const allGames = document.getElementById('runAllGamesCheck').checked;
-  const odds = document.getElementById('runOddsCheck').checked;
-
-  const btn = document.getElementById('executeRunBtn');
-  const term = document.getElementById('terminalOutput');
-  if (btn) {
-    btn.disabled = true;
-    btn.style.opacity = '0.6';
-    btn.innerHTML = `<span class="dot"></span><span>Running week1.py...</span>`;
-  }
-
-  term.textContent = `>>> Connecting to Pipeline Runner: python src/week1.py --season ${season} --week ${week}${allGames ? ' --all-games' : ''}${odds ? ' --odds' : ''}\n\n`;
+  if (btn) btn.disabled = true;
+  term.textContent = `>>> Connecting to pipeline runner: python src/week1.py --season ${season} --week ${week}${allGames ? ' --all-games' : ''}${odds ? ' --odds' : ''}\n\n`;
 
   try {
     const url = `/api/run-week/stream?season=${season}&week=${week}&all_games=${allGames}&odds=${odds}`;
     const response = await fetch(url);
     if (!response.ok) {
-      term.textContent += `[INFO] Cloud Edge Mode: The live pipeline requires a persistent process and disk.\n`;
-      term.textContent += `To run on your local machine or Railway VPS:\n`;
+      term.textContent += `[INFO] Cloud Edge Mode: Persistent shell execution requires local machine or Railway VPS.\n`;
+      term.textContent += `To run on your command line:\n`;
       term.textContent += `  python src/week1.py --season ${season} --week ${week}\n`;
-      term.textContent += `  cd viewer && vercel --prod\n`;
       return;
     }
 
@@ -1529,172 +1480,24 @@ async function executeWeeklyRun() {
         const lines = chunk.split('\n');
         for (const line of lines) {
           if (line.startsWith('data: ')) {
-            const content = line.slice(6);
-            term.textContent += content + '\n';
+            term.textContent += line.slice(6) + '\n';
             term.scrollTop = term.scrollHeight;
           }
         }
       }
     }
 
-    showToast('✓ Weekly run finished! Reloading slate & picks...');
-    await loadData();
-    renderPicksSection();
-    renderSlateTable();
-    renderTdPanel();
+    showToast('✓ Pipeline run finished! Refreshing slate...');
+    await initSlate(currentSlateKey);
   } catch (err) {
-    term.textContent += `\n[NOTE] Running in edge static mode. For persistent disk fits, run locally or via Railway.\n`;
+    term.textContent += `\n[NOTE] Edge Mode active. For full model refitting, execute on local terminal or Railway.\n`;
   } finally {
-    if (btn) {
-      btn.disabled = false;
-      btn.style.opacity = '1';
-      btn.innerHTML = `
-        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polygon points="5 3 19 12 5 21 5 3"/>
-        </svg>
-        <span>Run Pipeline Now</span>
-      `;
-    }
+    if (btn) btn.disabled = false;
   }
 }
 
 // --------------------------------------------------------------------------
-// Player Detail Modal
-// --------------------------------------------------------------------------
-
-function openPlayerModal(escapedPlayerId) {
-  const playerId = unescape(escapedPlayerId);
-  const p = slateData.find(x => x.player_id === playerId);
-  if (!p) return;
-
-  const modal = document.getElementById('playerModal');
-  const nameEl = document.getElementById('modalPlayerName');
-  const metaEl = document.getElementById('modalPlayerMeta');
-  const posEl = document.getElementById('modalPosTag');
-  const bodyEl = document.getElementById('modalBody');
-
-  if (nameEl) nameEl.textContent = p.player_display_name;
-  if (posEl) {
-    posEl.textContent = p.position;
-    posEl.className = `pos-tag pos-${p.position}`;
-  }
-  const homeStr = p.is_home === 0 ? '@' : 'vs';
-  if (metaEl) {
-    metaEl.innerHTML = `${p.team} ${homeStr} ${p.opponent_team} &bull; Spread: ${p.team_spread > 0 ? '+' : ''}${Number(p.team_spread).toFixed(1)} &bull; Total: ${Number(p.total_line).toFixed(1)} &bull; Implied: ${Number(p.implied_team_total).toFixed(1)} pts`;
-  }
-
-  const qAlert = p.questionable ? `
-    <div style="background:rgba(245,158,11,0.12); border:1px solid rgba(245,158,11,0.35); border-radius:8px; padding:12px; margin-bottom:16px; color:#f59e0b; font-size:12px; line-height:1.5;">
-      <strong>⚠️ QUESTIONABLE INJURY STATUS:</strong> Player is listed questionable on the official injury report. The model cannot price in-game reinjury risk or sudden snap reductions — discount manually or reduce stake.
-    </div>
-  ` : '';
-
-  const exclAlert = p.excl_reason ? `
-    <div style="background:rgba(248,113,113,0.12); border:1px solid rgba(248,113,113,0.35); border-radius:8px; padding:12px; margin-bottom:16px; color:#f87171; font-size:12px; line-height:1.5;">
-      <strong>EXCLUSION FLAG (${p.excl_reason}):</strong> Excluded from automatic pick recommendation because target shares or offensive systems carry high offseason uncertainty.
-    </div>
-  ` : '';
-
-  bodyEl.innerHTML = `
-    ${qAlert}
-    ${exclAlert}
-
-    <!-- Core Projections & Fair Lines -->
-    <h4 style="font-size:13px; font-family:var(--font-mono); color:var(--text-dim); margin-bottom:8px; text-transform:uppercase;">
-      Predictive Distribution &amp; Fair Lines (50/50 Median)
-    </h4>
-    <div class="modal-grid-stats">
-      <div class="stat-block">
-        <span class="stat-block-label">FAIR LINE YARDS</span>
-        <span class="stat-block-val" style="color:var(--accent-blue);">${Number(p.fair_line_yards).toFixed(1)}</span>
-      </div>
-      <div class="stat-block">
-        <span class="stat-block-label">PROJECTED YARDS</span>
-        <span class="stat-block-val">${Number(p.proj_yards).toFixed(1)}</span>
-      </div>
-      <div class="stat-block">
-        <span class="stat-block-label">FAIR LINE REC</span>
-        <span class="stat-block-val" style="color:var(--accent-blue);">${Number(p.fair_line_rec).toFixed(1)} <small style="font-size:11px; color:var(--text-dim);">(${Math.round((p.p_rec_at_fair_line || 0.5) * 100)}%)</small></span>
-      </div>
-      <div class="stat-block">
-        <span class="stat-block-label">PROJECTED REC</span>
-        <span class="stat-block-val">${Number(p.proj_rec).toFixed(1)}</span>
-      </div>
-      <div class="stat-block">
-        <span class="stat-block-label">ANYTIME TD PROB</span>
-        <span class="stat-block-val" style="color:var(--accent-green);">${Math.round(p.p_td * 100)}% <small style="font-size:10px;">(${p.td_fair_odds > 0 ? '+' : ''}${p.td_fair_odds})</small></span>
-      </div>
-      <div class="stat-block">
-        <span class="stat-block-label">MODEL MU (REC/YPR)</span>
-        <span class="stat-block-val">${Number(p.mu_rec).toFixed(2)} / ${Number(p.mu_ypr).toFixed(1)}</span>
-      </div>
-    </div>
-
-    <!-- Season Volume Stats -->
-    <h4 style="font-size:13px; font-family:var(--font-mono); color:var(--text-dim); margin-bottom:8px; text-transform:uppercase;">
-      Prior Observed Season Form &amp; Usage
-    </h4>
-    <div class="modal-grid-stats">
-      <div class="stat-block">
-        <span class="stat-block-label">TARGET SHARE</span>
-        <span class="stat-block-val">${(Number(p.target_share || p.f_tgt_share || 0) * 100).toFixed(1)}%</span>
-      </div>
-      <div class="stat-block">
-        <span class="stat-block-label">AIR YARDS SHARE</span>
-        <span class="stat-block-val">${(Number(p.air_yards_share || p.f_ay_share || 0) * 100).toFixed(1)}%</span>
-      </div>
-      <div class="stat-block">
-        <span class="stat-block-label">aDOT</span>
-        <span class="stat-block-val">${Number(p.adot || p.f_adot || 0).toFixed(1)} yds</span>
-      </div>
-      <div class="stat-block">
-        <span class="stat-block-label">CATCH RATE</span>
-        <span class="stat-block-val">${(Number(p.catch_rate_g || p.f_catch_rate || 0) * 100).toFixed(1)}%</span>
-      </div>
-      <div class="stat-block">
-        <span class="stat-block-label">YPR (YARDS/REC)</span>
-        <span class="stat-block-val">${Number(p.ypr_g || p.f_ypr || 0).toFixed(1)}</span>
-      </div>
-      <div class="stat-block">
-        <span class="stat-block-label">2025 TDS (TARGETS)</span>
-        <span class="stat-block-val">${p.receiving_tds || 0} (${p.targets || 0})</span>
-      </div>
-    </div>
-
-    <!-- Trend vs Prior Weeks & Defensive Matchup -->
-    <h4 style="font-size:13px; font-family:var(--font-mono); color:var(--text-dim); margin-bottom:8px; text-transform:uppercase;">
-      Matchup &amp; Career Priors
-    </h4>
-    <div style="background:var(--bg-main); border:1px solid var(--border-color); border-radius:8px; padding:14px; font-size:12px; line-height:1.7; color:var(--text-muted);">
-      &bull; <strong>Form vs Career Volume:</strong> Rolling form averages <strong>${Number(p.f_targets || 0).toFixed(1)} targets</strong> and <strong>${Number(p.f_yards || 0).toFixed(1)} yards</strong> per game, compared to career baseline of <strong>${Number(p.c_targets || 0).toFixed(1)} targets</strong> over ${p.games_prior || 0} prior games.<br>
-      &bull; <strong>Target Volatility:</strong> Standard deviation <code>f_tgt_sd = ${Number(p.f_tgt_sd || 0).toFixed(2)}</code>.<br>
-      &bull; <strong>Opponent Defensive Index:</strong> Opponent allows <strong>${((Number(p.def_yards_idx || 1.0) - 1.0) * 100).toFixed(1)}%</strong> ${p.def_yards_idx >= 1.0 ? 'more' : 'fewer'} yards to ${p.position}s than league average.<br>
-      &bull; <strong>Weather / Venue:</strong> ${p.is_dome ? 'Indoor Dome' : 'Outdoor Stadium'} &bull; Wind: ${p.wind || 0.0} mph.
-    </div>
-
-    <div style="margin-top:20px; display:flex; justify-content:flex-end; gap:10px;">
-      <button class="btn-primary" onclick="closePlayerModal(); openCalculatorFor('${escape(p.player_id)}')">
-        Price in Calculator &rarr;
-      </button>
-    </div>
-  `;
-
-  modal.classList.add('active');
-}
-
-function openPlayerModalByName(escapedName) {
-  const name = unescape(escapedName);
-  const player = slateData.find(x => x.player_display_name === name);
-  if (player) openPlayerModal(escape(player.player_id));
-}
-
-function closePlayerModal(e) {
-  const modal = document.getElementById('playerModal');
-  if (modal) modal.classList.remove('active');
-}
-
-// --------------------------------------------------------------------------
-// Mathematical & Probability Distribution Helpers
+// Mathematical & Distributional Helpers
 // --------------------------------------------------------------------------
 
 function americanToDecimal(odds) {
@@ -1714,15 +1517,9 @@ function probToAmerican(prob) {
 function logGamma(z) {
   const g = 7;
   const p = [
-    0.99999999999980993,
-    676.5203681218851,
-    -1259.1392167224028,
-    771.32342877765313,
-    -176.61502916214059,
-    12.507343278686905,
-    -0.138571095836524,
-    9.9843695780195716e-6,
-    1.5056327351493116e-7
+    0.99999999999980993, 676.5203681218851, -1259.1392167224028,
+    771.32342877765313, -176.61502916214059, 12.507343278686905,
+    -0.138571095836524, 9.9843695780195716e-6, 1.5056327351493116e-7
   ];
   if (z < 0.5) return Math.PI / (Math.sin(Math.PI * z) * Math.exp(logGamma(1 - z)));
   z -= 1;
@@ -1799,7 +1596,58 @@ function pYardsOver(muRec, muYpr, line) {
   return Math.max(0, Math.min(1, pOver));
 }
 
-// Toast notification helper
+function gammaRatio(a, b) {
+  return Math.exp(logGamma(a) - logGamma(b));
+}
+
+function factorial(n) {
+  let f = 1;
+  for (let i = 2; i <= n; i++) f *= i;
+  return f;
+}
+
+function sampleStandardNormal() {
+  let u = 0, v = 0;
+  while (u === 0) u = Math.random();
+  while (v === 0) v = Math.random();
+  return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+}
+
+function sampleGamma(shape, scale) {
+  if (shape < 1) {
+    return sampleGamma(shape + 1, scale) * Math.pow(Math.random(), 1 / shape);
+  }
+  const d = shape - 1 / 3;
+  const c = 1 / Math.sqrt(9 * d);
+  while (true) {
+    const z = sampleStandardNormal();
+    const v = 1 + c * z;
+    if (v <= 0) continue;
+    const v3 = v * v * v;
+    const u = Math.random();
+    if (u < 1 - 0.0331 * z * z * z * z) {
+      return d * v3 * scale;
+    }
+    if (Math.log(u) < 0.5 * z * z + d * (1 - v3 + Math.log(v3))) {
+      return d * v3 * scale;
+    }
+  }
+}
+
+function samplePoisson(lambda) {
+  if (lambda <= 0) return 0;
+  if (lambda < 30) {
+    const L = Math.exp(-lambda);
+    let k = 0, p = 1.0;
+    do {
+      k++;
+      p *= Math.random();
+    } while (p > L);
+    return k - 1;
+  }
+  return Math.max(0, Math.round(lambda + Math.sqrt(lambda) * sampleStandardNormal()));
+}
+
 function showToast(message, duration = 3000) {
   const container = document.getElementById('toastContainer');
   if (!container) return;

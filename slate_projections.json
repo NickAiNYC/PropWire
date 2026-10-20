@@ -58,8 +58,8 @@
     "proj_rec": 8.024195534971993,
     "proj_yards": 104.65509880839417,
     "fair_line_rec": 7.5,
-    "fair_line_yards": 96.0,
-    "p_rec_at_fair_line": 0.5067
+    "fair_line_yards": 83.5,
+    "p_rec_at_fair_line": 0.4497
   },
   {
     "player_id": "00-0039075",
@@ -119,9 +119,9 @@
     "mu_ypr": 13.775461461130103,
     "proj_rec": 7.454708680016538,
     "proj_yards": 102.69205212551988,
-    "fair_line_rec": 7.5,
-    "fair_line_yards": 94.0,
-    "p_rec_at_fair_line": 0.4471
+    "fair_line_rec": 6.5,
+    "fair_line_yards": 81.5,
+    "p_rec_at_fair_line": 0.5009
   },
   {
     "player_id": "00-0038543",
@@ -181,9 +181,9 @@
     "mu_ypr": 13.375951639635726,
     "proj_rec": 6.575337901412471,
     "proj_yards": 87.95140178355707,
-    "fair_line_rec": 6.5,
-    "fair_line_yards": 80.0,
-    "p_rec_at_fair_line": 0.4601
+    "fair_line_rec": 5.5,
+    "fair_line_yards": 69.0,
+    "p_rec_at_fair_line": 0.5255
   },
   {
     "player_id": "00-0036963",
@@ -244,8 +244,8 @@
     "proj_rec": 6.897052824473984,
     "proj_yards": 87.46502147560638,
     "fair_line_rec": 6.5,
-    "fair_line_yards": 79.5,
-    "p_rec_at_fair_line": 0.4973
+    "fair_line_yards": 69.0,
+    "p_rec_at_fair_line": 0.4403
   },
   {
     "player_id": "00-0037239",
@@ -306,8 +306,8 @@
     "proj_rec": 5.852864763784658,
     "proj_yards": 77.50265223142564,
     "fair_line_rec": 5.5,
-    "fair_line_yards": 70.0,
-    "p_rec_at_fair_line": 0.496
+    "fair_line_yards": 60.0,
+    "p_rec_at_fair_line": 0.439
   },
   {
     "player_id": "00-0036322",
@@ -367,9 +367,9 @@
     "mu_ypr": 13.672374936310696,
     "proj_rec": 5.556086528055638,
     "proj_yards": 75.96489819016142,
-    "fair_line_rec": 5.5,
-    "fair_line_yards": 68.5,
-    "p_rec_at_fair_line": 0.4574
+    "fair_line_rec": 4.5,
+    "fair_line_yards": 58.0,
+    "p_rec_at_fair_line": 0.5384
   },
   {
     "player_id": "00-0039337",
@@ -430,8 +430,8 @@
     "proj_rec": 5.305435429314095,
     "proj_yards": 73.06341928969155,
     "fair_line_rec": 4.5,
-    "fair_line_yards": 65.5,
-    "p_rec_at_fair_line": 0.5634
+    "fair_line_yards": 55.5,
+    "p_rec_at_fair_line": 0.5064
   },
   {
     "player_id": "00-0039067",
@@ -492,8 +492,8 @@
     "proj_rec": 6.122272637009528,
     "proj_yards": 72.24272957320939,
     "fair_line_rec": 5.5,
-    "fair_line_yards": 65.5,
-    "p_rec_at_fair_line": 0.5296
+    "fair_line_yards": 56.0,
+    "p_rec_at_fair_line": 0.4726
   },
   {
     "player_id": "00-0036358",
@@ -554,8 +554,8 @@
     "proj_rec": 5.145668694180495,
     "proj_yards": 69.11009341178408,
     "fair_line_rec": 4.5,
-    "fair_line_yards": 61.5,
-    "p_rec_at_fair_line": 0.542
+    "fair_line_yards": 52.5,
+    "p_rec_at_fair_line": 0.485
   },
   {
     "player_id": "00-0039064",
@@ -616,8 +616,8 @@
     "proj_rec": 4.847449022524825,
     "proj_yards": 65.81585029681924,
     "fair_line_rec": 4.5,
-    "fair_line_yards": 58.5,
-    "p_rec_at_fair_line": 0.5
+    "fair_line_yards": 49.5,
+    "p_rec_at_fair_line": 0.443
   },
   {
     "player_id": "00-0037740",
@@ -677,9 +677,9 @@
     "mu_ypr": 13.059019598355533,
     "proj_rec": 4.611049913969299,
     "proj_yards": 60.21579119552067,
-    "fair_line_rec": 4.5,
-    "fair_line_yards": 53.5,
-    "p_rec_at_fair_line": 0.4651
+    "fair_line_rec": 3.5,
+    "fair_line_yards": 44.5,
+    "p_rec_at_fair_line": 0.5659
   },
   {
     "player_id": "00-0037744",
@@ -739,9 +739,9 @@
     "mu_ypr": 10.011020567323106,
     "proj_rec": 5.795171646011397,
     "proj_yards": 58.01558253938779,
-    "fair_line_rec": 5.5,
-    "fair_line_yards": 52.5,
-    "p_rec_at_fair_line": 0.4887
+    "fair_line_rec": 4.5,
+    "fair_line_yards": 44.5,
+    "p_rec_at_fair_line": 0.5673
   },
   {
     "player_id": "00-0031381",
@@ -801,9 +801,9 @@
     "mu_ypr": 13.051945519175405,
     "proj_rec": 4.411498198293484,
     "proj_yards": 57.57863414206701,
-    "fair_line_rec": 4.5,
-    "fair_line_yards": 50.5,
-    "p_rec_at_fair_line": 0.4345
+    "fair_line_rec": 3.5,
+    "fair_line_yards": 42.5,
+    "p_rec_at_fair_line": 0.5378
   },
   {
     "player_id": "00-0037247",
@@ -864,8 +864,8 @@
     "proj_rec": 4.229218762614989,
     "proj_yards": 57.13660022403065,
     "fair_line_rec": 3.5,
-    "fair_line_yards": 50.0,
-    "p_rec_at_fair_line": 0.5676
+    "fair_line_yards": 41.5,
+    "p_rec_at_fair_line": 0.5106
   },
   {
     "player_id": "00-0040124",
@@ -926,8 +926,8 @@
     "proj_rec": 3.8595034399967676,
     "proj_yards": 55.60102508921807,
     "fair_line_rec": 3.5,
-    "fair_line_yards": 48.0,
-    "p_rec_at_fair_line": 0.5082
+    "fair_line_yards": 40.0,
+    "p_rec_at_fair_line": 0.4512
   },
   {
     "player_id": "00-0036912",
@@ -988,8 +988,8 @@
     "proj_rec": 4.044083356848791,
     "proj_yards": 55.375497806892994,
     "fair_line_rec": 3.5,
-    "fair_line_yards": 48.5,
-    "p_rec_at_fair_line": 0.5385
+    "fair_line_yards": 40.0,
+    "p_rec_at_fair_line": 0.4815
   },
   {
     "player_id": "00-0036554",
@@ -1050,8 +1050,8 @@
     "proj_rec": 4.002451507190543,
     "proj_yards": 55.160346337930136,
     "fair_line_rec": 3.5,
-    "fair_line_yards": 48.0,
-    "p_rec_at_fair_line": 0.5318
+    "fair_line_yards": 40.0,
+    "p_rec_at_fair_line": 0.4748
   },
   {
     "player_id": "00-0037238",
@@ -1112,8 +1112,8 @@
     "proj_rec": 4.270434856178058,
     "proj_yards": 53.65929348726063,
     "fair_line_rec": 3.5,
-    "fair_line_yards": 47.0,
-    "p_rec_at_fair_line": 0.5738
+    "fair_line_yards": 39.5,
+    "p_rec_at_fair_line": 0.5168
   },
   {
     "player_id": "00-0035659",
@@ -1174,8 +1174,8 @@
     "proj_rec": 3.931899659006359,
     "proj_yards": 53.277081447615586,
     "fair_line_rec": 3.5,
-    "fair_line_yards": 46.5,
-    "p_rec_at_fair_line": 0.5203
+    "fair_line_yards": 38.5,
+    "p_rec_at_fair_line": 0.4633
   },
   {
     "player_id": "00-0040129",
@@ -1236,8 +1236,8 @@
     "proj_rec": 3.7596873590915583,
     "proj_yards": 53.25351014537164,
     "fair_line_rec": 3.5,
-    "fair_line_yards": 46.0,
-    "p_rec_at_fair_line": 0.4912
+    "fair_line_yards": 38.0,
+    "p_rec_at_fair_line": 0.4342
   },
   {
     "player_id": "00-0036410",
@@ -1298,8 +1298,8 @@
     "proj_rec": 3.6711905082681775,
     "proj_yards": 52.27725530172602,
     "fair_line_rec": 3.5,
-    "fair_line_yards": 45.0,
-    "p_rec_at_fair_line": 0.4759
+    "fair_line_yards": 37.0,
+    "p_rec_at_fair_line": 0.4189
   },
   {
     "player_id": "00-0039919",
@@ -1359,9 +1359,9 @@
     "mu_ypr": 14.01072176395935,
     "proj_rec": 3.52837517551868,
     "proj_yards": 49.43508286305346,
-    "fair_line_rec": 3.5,
-    "fair_line_yards": 42.5,
-    "p_rec_at_fair_line": 0.4505
+    "fair_line_rec": 2.5,
+    "fair_line_yards": 34.5,
+    "p_rec_at_fair_line": 0.5816
   },
   {
     "player_id": "00-0039915",
@@ -1421,9 +1421,9 @@
     "mu_ypr": 13.94796670936262,
     "proj_rec": 3.531407212526859,
     "proj_yards": 49.25595023752767,
-    "fair_line_rec": 3.5,
-    "fair_line_yards": 42.5,
-    "p_rec_at_fair_line": 0.451
+    "fair_line_rec": 2.5,
+    "fair_line_yards": 34.5,
+    "p_rec_at_fair_line": 0.5821
   },
   {
     "player_id": "00-0035640",
@@ -1484,8 +1484,8 @@
     "proj_rec": 3.777991615422962,
     "proj_yards": 49.128566666304415,
     "fair_line_rec": 3.5,
-    "fair_line_yards": 42.5,
-    "p_rec_at_fair_line": 0.4944
+    "fair_line_yards": 35.0,
+    "p_rec_at_fair_line": 0.4374
   },
   {
     "player_id": "00-0033288",
@@ -1545,9 +1545,9 @@
     "mu_ypr": 10.865274359439779,
     "proj_rec": 4.504912076313548,
     "proj_yards": 48.94710567430021,
-    "fair_line_rec": 4.5,
-    "fair_line_yards": 43.0,
-    "p_rec_at_fair_line": 0.4489
+    "fair_line_rec": 3.5,
+    "fair_line_yards": 36.0,
+    "p_rec_at_fair_line": 0.5511
   },
   {
     "player_id": "00-0034348",
@@ -1608,8 +1608,8 @@
     "proj_rec": 3.8077032208730723,
     "proj_yards": 48.15931431338225,
     "fair_line_rec": 3.5,
-    "fair_line_yards": 41.5,
-    "p_rec_at_fair_line": 0.4995
+    "fair_line_yards": 34.5,
+    "p_rec_at_fair_line": 0.4425
   },
   {
     "player_id": "00-0038559",
@@ -1670,8 +1670,8 @@
     "proj_rec": 3.7720639192943257,
     "proj_yards": 47.64323341067144,
     "fair_line_rec": 3.5,
-    "fair_line_yards": 41.0,
-    "p_rec_at_fair_line": 0.4934
+    "fair_line_yards": 34.0,
+    "p_rec_at_fair_line": 0.4364
   },
   {
     "player_id": "00-0039893",
@@ -1731,9 +1731,9 @@
     "mu_ypr": 14.3184926909129,
     "proj_rec": 3.3114092489891904,
     "proj_yards": 47.41438912827309,
-    "fair_line_rec": 3.5,
-    "fair_line_yards": 40.5,
-    "p_rec_at_fair_line": 0.4106
+    "fair_line_rec": 2.5,
+    "fair_line_yards": 32.5,
+    "p_rec_at_fair_line": 0.5454
   },
   {
     "player_id": "00-0034960",
@@ -1794,8 +1794,8 @@
     "proj_rec": 3.8195509447877036,
     "proj_yards": 46.87878855828436,
     "fair_line_rec": 3.5,
-    "fair_line_yards": 40.5,
-    "p_rec_at_fair_line": 0.5015
+    "fair_line_yards": 33.5,
+    "p_rec_at_fair_line": 0.4445
   },
   {
     "player_id": "00-0037240",
@@ -1856,8 +1856,8 @@
     "proj_rec": 3.2523408756130934,
     "proj_yards": 46.79525983757312,
     "fair_line_rec": 2.5,
-    "fair_line_yards": 39.5,
-    "p_rec_at_fair_line": 0.592
+    "fair_line_yards": 32.0,
+    "p_rec_at_fair_line": 0.535
   },
   {
     "player_id": "00-0033921",
@@ -1918,8 +1918,8 @@
     "proj_rec": 3.9369016583649543,
     "proj_yards": 46.11796007063849,
     "fair_line_rec": 3.5,
-    "fair_line_yards": 40.0,
-    "p_rec_at_fair_line": 0.5211
+    "fair_line_yards": 33.0,
+    "p_rec_at_fair_line": 0.4641
   },
   {
     "player_id": "00-0030506",
@@ -1979,9 +1979,9 @@
     "mu_ypr": 10.519678785576472,
     "proj_rec": 4.376963153183248,
     "proj_yards": 46.04424642779172,
-    "fair_line_rec": 4.5,
-    "fair_line_yards": 40.5,
-    "p_rec_at_fair_line": 0.4291
+    "fair_line_rec": 3.5,
+    "fair_line_yards": 34.0,
+    "p_rec_at_fair_line": 0.5327
   },
   {
     "player_id": "00-0038124",
@@ -2042,8 +2042,8 @@
     "proj_rec": 3.0789716390621584,
     "proj_yards": 44.659191944896314,
     "fair_line_rec": 2.5,
-    "fair_line_yards": 37.5,
-    "p_rec_at_fair_line": 0.5603
+    "fair_line_yards": 30.0,
+    "p_rec_at_fair_line": 0.5033
   },
   {
     "player_id": "00-0038994",
@@ -2104,8 +2104,8 @@
     "proj_rec": 2.99378433307411,
     "proj_yards": 42.9071812945303,
     "fair_line_rec": 2.5,
-    "fair_line_yards": 36.0,
-    "p_rec_at_fair_line": 0.5439
+    "fair_line_yards": 29.0,
+    "p_rec_at_fair_line": 0.4869
   },
   {
     "player_id": "00-0038544",
@@ -2166,8 +2166,8 @@
     "proj_rec": 3.1278041846274456,
     "proj_yards": 42.600264206785006,
     "fair_line_rec": 2.5,
-    "fair_line_yards": 36.0,
-    "p_rec_at_fair_line": 0.5694
+    "fair_line_yards": 29.0,
+    "p_rec_at_fair_line": 0.5124
   },
   {
     "player_id": "00-0039065",
@@ -2228,8 +2228,8 @@
     "proj_rec": 3.839973817673772,
     "proj_yards": 42.563425180418,
     "fair_line_rec": 3.5,
-    "fair_line_yards": 37.0,
-    "p_rec_at_fair_line": 0.5049
+    "fair_line_yards": 30.5,
+    "p_rec_at_fair_line": 0.4479
   },
   {
     "player_id": "00-0040128",
@@ -2290,8 +2290,8 @@
     "proj_rec": 3.9554702182607024,
     "proj_yards": 42.47480670815267,
     "fair_line_rec": 3.5,
-    "fair_line_yards": 37.0,
-    "p_rec_at_fair_line": 0.5242
+    "fair_line_yards": 30.5,
+    "p_rec_at_fair_line": 0.4672
   },
   {
     "player_id": "00-0037664",
@@ -2352,8 +2352,8 @@
     "proj_rec": 2.797271902889952,
     "proj_yards": 41.95260482504789,
     "fair_line_rec": 2.5,
-    "fair_line_yards": 34.5,
-    "p_rec_at_fair_line": 0.5045
+    "fair_line_yards": 27.5,
+    "p_rec_at_fair_line": 0.4475
   },
   {
     "player_id": "00-0040663",
@@ -2414,8 +2414,8 @@
     "proj_rec": 3.9777183107524876,
     "proj_yards": 40.78149950501494,
     "fair_line_rec": 3.5,
-    "fair_line_yards": 35.5,
-    "p_rec_at_fair_line": 0.5278
+    "fair_line_yards": 29.5,
+    "p_rec_at_fair_line": 0.4708
   },
   {
     "player_id": "00-0038997",
@@ -2475,9 +2475,9 @@
     "mu_ypr": 12.052564409007024,
     "proj_rec": 3.363039306305551,
     "proj_yards": 40.533247849269955,
-    "fair_line_rec": 3.5,
-    "fair_line_yards": 34.5,
-    "p_rec_at_fair_line": 0.4203
+    "fair_line_rec": 2.5,
+    "fair_line_yards": 28.0,
+    "p_rec_at_fair_line": 0.5543
   },
   {
     "player_id": "00-0039849",
@@ -2538,8 +2538,8 @@
     "proj_rec": 3.0280160284602076,
     "proj_yards": 40.50683197158368,
     "fair_line_rec": 2.5,
-    "fair_line_yards": 34.0,
-    "p_rec_at_fair_line": 0.5506
+    "fair_line_yards": 27.5,
+    "p_rec_at_fair_line": 0.4936
   },
   {
     "player_id": "00-0036970",
@@ -2600,8 +2600,8 @@
     "proj_rec": 3.8801416606176433,
     "proj_yards": 40.148643074524294,
     "fair_line_rec": 3.5,
-    "fair_line_yards": 35.0,
-    "p_rec_at_fair_line": 0.5117
+    "fair_line_yards": 29.0,
+    "p_rec_at_fair_line": 0.4547
   },
   {
     "player_id": "00-0038606",
@@ -2662,8 +2662,8 @@
     "proj_rec": 3.0412469631466696,
     "proj_yards": 40.073637959839246,
     "fair_line_rec": 2.5,
-    "fair_line_yards": 33.5,
-    "p_rec_at_fair_line": 0.5531
+    "fair_line_yards": 27.0,
+    "p_rec_at_fair_line": 0.4961
   },
   {
     "player_id": "00-0037261",
@@ -2723,9 +2723,9 @@
     "mu_ypr": 11.279382599800815,
     "proj_rec": 3.504724517081167,
     "proj_yards": 39.53112873506063,
-    "fair_line_rec": 3.5,
-    "fair_line_yards": 34.0,
-    "p_rec_at_fair_line": 0.4462
+    "fair_line_rec": 2.5,
+    "fair_line_yards": 27.5,
+    "p_rec_at_fair_line": 0.5778
   },
   {
     "player_id": "00-0036407",
@@ -2786,8 +2786,8 @@
     "proj_rec": 3.1463958029181156,
     "proj_yards": 38.93700687781374,
     "fair_line_rec": 2.5,
-    "fair_line_yards": 33.0,
-    "p_rec_at_fair_line": 0.5728
+    "fair_line_yards": 26.5,
+    "p_rec_at_fair_line": 0.5158
   },
   {
     "player_id": "00-0033908",
@@ -2848,8 +2848,8 @@
     "proj_rec": 3.2411899134427578,
     "proj_yards": 38.73827975599392,
     "fair_line_rec": 2.5,
-    "fair_line_yards": 33.0,
-    "p_rec_at_fair_line": 0.59
+    "fair_line_yards": 26.5,
+    "p_rec_at_fair_line": 0.533
   },
   {
     "player_id": "00-0034351",
@@ -2909,9 +2909,9 @@
     "mu_ypr": 10.7959629332181,
     "proj_rec": 3.5739553593642697,
     "proj_yards": 38.58428958467283,
-    "fair_line_rec": 3.5,
-    "fair_line_yards": 33.0,
-    "p_rec_at_fair_line": 0.4587
+    "fair_line_rec": 2.5,
+    "fair_line_yards": 27.0,
+    "p_rec_at_fair_line": 0.5888
   },
   {
     "player_id": "00-0034837",
@@ -2972,8 +2972,8 @@
     "proj_rec": 3.0190269448453475,
     "proj_yards": 38.20534029543622,
     "fair_line_rec": 2.5,
-    "fair_line_yards": 32.0,
-    "p_rec_at_fair_line": 0.5488
+    "fair_line_yards": 25.5,
+    "p_rec_at_fair_line": 0.4918
   },
   {
     "player_id": "00-0040735",
@@ -3034,8 +3034,8 @@
     "proj_rec": 3.046490455178638,
     "proj_yards": 37.883227823549156,
     "fair_line_rec": 2.5,
-    "fair_line_yards": 32.0,
-    "p_rec_at_fair_line": 0.5541
+    "fair_line_yards": 25.5,
+    "p_rec_at_fair_line": 0.4971
   },
   {
     "player_id": "00-0039146",
@@ -3096,8 +3096,8 @@
     "proj_rec": 3.1283516006037595,
     "proj_yards": 37.70002969709347,
     "fair_line_rec": 2.5,
-    "fair_line_yards": 32.0,
-    "p_rec_at_fair_line": 0.5695
+    "fair_line_yards": 25.5,
+    "p_rec_at_fair_line": 0.5125
   },
   {
     "player_id": "00-0040189",
@@ -3158,8 +3158,8 @@
     "proj_rec": 3.0087538984159283,
     "proj_yards": 36.955750544441734,
     "fair_line_rec": 2.5,
-    "fair_line_yards": 31.0,
-    "p_rec_at_fair_line": 0.5468
+    "fair_line_yards": 25.0,
+    "p_rec_at_fair_line": 0.4898
   },
   {
     "player_id": "00-0038996",
@@ -3219,9 +3219,9 @@
     "mu_ypr": 10.957409563840084,
     "proj_rec": 3.2866191620628724,
     "proj_yards": 36.0128322390878,
-    "fair_line_rec": 3.5,
-    "fair_line_yards": 30.5,
-    "p_rec_at_fair_line": 0.406
+    "fair_line_rec": 2.5,
+    "fair_line_yards": 25.0,
+    "p_rec_at_fair_line": 0.5411
   },
   {
     "player_id": "00-0040126",
@@ -3282,8 +3282,8 @@
     "proj_rec": 2.9418723890388616,
     "proj_yards": 34.94228006468396,
     "fair_line_rec": 2.5,
-    "fair_line_yards": 29.0,
-    "p_rec_at_fair_line": 0.5338
+    "fair_line_yards": 23.5,
+    "p_rec_at_fair_line": 0.4768
   },
   {
     "player_id": "00-0039424",
@@ -3344,8 +3344,8 @@
     "proj_rec": 2.769196065933966,
     "proj_yards": 34.583945302276994,
     "fair_line_rec": 2.5,
-    "fair_line_yards": 28.5,
-    "p_rec_at_fair_line": 0.4987
+    "fair_line_yards": 22.5,
+    "p_rec_at_fair_line": 0.4417
   },
   {
     "player_id": "00-0039894",
@@ -3406,8 +3406,8 @@
     "proj_rec": 2.6083530458013815,
     "proj_yards": 34.527716370827335,
     "fair_line_rec": 2.5,
-    "fair_line_yards": 28.0,
-    "p_rec_at_fair_line": 0.4644
+    "fair_line_yards": 22.0,
+    "p_rec_at_fair_line": 0.4074
   },
   {
     "player_id": "00-0038563",
@@ -3468,8 +3468,8 @@
     "proj_rec": 2.9119820715877505,
     "proj_yards": 34.36708957768977,
     "fair_line_rec": 2.5,
-    "fair_line_yards": 28.5,
-    "p_rec_at_fair_line": 0.5278
+    "fair_line_yards": 23.0,
+    "p_rec_at_fair_line": 0.4708
   },
   {
     "player_id": "00-0035535",
@@ -3530,8 +3530,8 @@
     "proj_rec": 2.6025175021490545,
     "proj_yards": 34.31171572165119,
     "fair_line_rec": 2.5,
-    "fair_line_yards": 28.0,
-    "p_rec_at_fair_line": 0.4631
+    "fair_line_yards": 22.0,
+    "p_rec_at_fair_line": 0.4061
   },
   {
     "player_id": "00-0034753",
@@ -3592,8 +3592,8 @@
     "proj_rec": 2.986408274296313,
     "proj_yards": 33.78869376955195,
     "fair_line_rec": 2.5,
-    "fair_line_yards": 28.5,
-    "p_rec_at_fair_line": 0.5425
+    "fair_line_yards": 22.5,
+    "p_rec_at_fair_line": 0.4855
   },
   {
     "player_id": "00-0039491",
@@ -3654,8 +3654,8 @@
     "proj_rec": 2.609557114509779,
     "proj_yards": 33.72593644715697,
     "fair_line_rec": 2.5,
-    "fair_line_yards": 27.5,
-    "p_rec_at_fair_line": 0.4646
+    "fair_line_yards": 21.5,
+    "p_rec_at_fair_line": 0.4076
   },
   {
     "player_id": "00-0039868",
@@ -3716,8 +3716,8 @@
     "proj_rec": 2.887018309246081,
     "proj_yards": 33.404059157832556,
     "fair_line_rec": 2.5,
-    "fair_line_yards": 28.0,
-    "p_rec_at_fair_line": 0.5228
+    "fair_line_yards": 22.0,
+    "p_rec_at_fair_line": 0.4658
   },
   {
     "player_id": "00-0034383",
@@ -3777,9 +3777,9 @@
     "mu_ypr": 9.784162118327096,
     "proj_rec": 3.3876542205611266,
     "proj_yards": 33.14535809480508,
-    "fair_line_rec": 3.5,
-    "fair_line_yards": 28.5,
-    "p_rec_at_fair_line": 0.4248
+    "fair_line_rec": 2.5,
+    "fair_line_yards": 23.0,
+    "p_rec_at_fair_line": 0.5584
   },
   {
     "player_id": "00-0036040",
@@ -3840,8 +3840,8 @@
     "proj_rec": 3.21208356676547,
     "proj_yards": 33.117421091426806,
     "fair_line_rec": 2.5,
-    "fair_line_yards": 28.0,
-    "p_rec_at_fair_line": 0.5848
+    "fair_line_yards": 22.5,
+    "p_rec_at_fair_line": 0.5278
   },
   {
     "player_id": "00-0039901",
@@ -3902,8 +3902,8 @@
     "proj_rec": 2.578766245178649,
     "proj_yards": 33.02842290673026,
     "fair_line_rec": 2.5,
-    "fair_line_yards": 27.0,
-    "p_rec_at_fair_line": 0.4579
+    "fair_line_yards": 21.0,
+    "p_rec_at_fair_line": 0.4009
   },
   {
     "player_id": "00-0033280",
@@ -3964,8 +3964,8 @@
     "proj_rec": 4.172614886283297,
     "proj_yards": 32.50494847169177,
     "fair_line_rec": 3.5,
-    "fair_line_yards": 28.5,
-    "p_rec_at_fair_line": 0.5588
+    "fair_line_yards": 23.5,
+    "p_rec_at_fair_line": 0.5018
   },
   {
     "player_id": "00-0039890",
@@ -4026,8 +4026,8 @@
     "proj_rec": 2.507665257250225,
     "proj_yards": 32.46432944365931,
     "fair_line_rec": 2.5,
-    "fair_line_yards": 26.5,
-    "p_rec_at_fair_line": 0.4421
+    "fair_line_yards": 20.5,
+    "p_rec_at_fair_line": 0.3851
   },
   {
     "player_id": "00-0039847",
@@ -4088,8 +4088,8 @@
     "proj_rec": 2.8420123990213804,
     "proj_yards": 32.181266362106356,
     "fair_line_rec": 2.5,
-    "fair_line_yards": 26.5,
-    "p_rec_at_fair_line": 0.5137
+    "fair_line_yards": 21.0,
+    "p_rec_at_fair_line": 0.4567
   },
   {
     "player_id": "00-0037545",
@@ -4150,8 +4150,8 @@
     "proj_rec": 2.573066281337727,
     "proj_yards": 32.134070481527004,
     "fair_line_rec": 2.5,
-    "fair_line_yards": 26.0,
-    "p_rec_at_fair_line": 0.4566
+    "fair_line_yards": 20.5,
+    "p_rec_at_fair_line": 0.3996
   },
   {
     "player_id": "00-0040170",
@@ -4212,8 +4212,8 @@
     "proj_rec": 2.5468780665556014,
     "proj_yards": 31.83328758163251,
     "fair_line_rec": 2.5,
-    "fair_line_yards": 26.0,
-    "p_rec_at_fair_line": 0.4508
+    "fair_line_yards": 20.0,
+    "p_rec_at_fair_line": 0.3938
   },
   {
     "player_id": "00-0038933",
@@ -4274,8 +4274,8 @@
     "proj_rec": 2.662543359146719,
     "proj_yards": 31.262181445825878,
     "fair_line_rec": 2.5,
-    "fair_line_yards": 25.5,
-    "p_rec_at_fair_line": 0.4761
+    "fair_line_yards": 20.0,
+    "p_rec_at_fair_line": 0.4191
   },
   {
     "player_id": "00-0038542",
@@ -4336,8 +4336,8 @@
     "proj_rec": 4.118416721220196,
     "proj_yards": 30.949566079869594,
     "fair_line_rec": 3.5,
-    "fair_line_yards": 27.0,
-    "p_rec_at_fair_line": 0.5504
+    "fair_line_yards": 22.5,
+    "p_rec_at_fair_line": 0.4934
   },
   {
     "player_id": "00-0038129",
@@ -4398,8 +4398,8 @@
     "proj_rec": 3.0760721450386517,
     "proj_yards": 30.911160253988747,
     "fair_line_rec": 2.5,
-    "fair_line_yards": 26.0,
-    "p_rec_at_fair_line": 0.5597
+    "fair_line_yards": 21.0,
+    "p_rec_at_fair_line": 0.5027
   },
   {
     "player_id": "00-0033555",
@@ -4460,8 +4460,8 @@
     "proj_rec": 2.5589074739169915,
     "proj_yards": 30.813755687722136,
     "fair_line_rec": 2.5,
-    "fair_line_yards": 25.0,
-    "p_rec_at_fair_line": 0.4535
+    "fair_line_yards": 19.5,
+    "p_rec_at_fair_line": 0.3965
   },
   {
     "player_id": "00-0038935",
@@ -4522,8 +4522,8 @@
     "proj_rec": 2.8245048909699433,
     "proj_yards": 30.771897449492627,
     "fair_line_rec": 2.5,
-    "fair_line_yards": 25.5,
-    "p_rec_at_fair_line": 0.5101
+    "fair_line_yards": 20.5,
+    "p_rec_at_fair_line": 0.4531
   },
   {
     "player_id": "00-0035229",
@@ -4584,8 +4584,8 @@
     "proj_rec": 3.0909815803147342,
     "proj_yards": 30.615413641059877,
     "fair_line_rec": 2.5,
-    "fair_line_yards": 26.0,
-    "p_rec_at_fair_line": 0.5625
+    "fair_line_yards": 20.5,
+    "p_rec_at_fair_line": 0.5055
   },
   {
     "player_id": "00-0040736",
@@ -4646,8 +4646,8 @@
     "proj_rec": 2.9894416045790426,
     "proj_yards": 30.3297479401971,
     "fair_line_rec": 2.5,
-    "fair_line_yards": 25.5,
-    "p_rec_at_fair_line": 0.5431
+    "fair_line_yards": 20.5,
+    "p_rec_at_fair_line": 0.4861
   },
   {
     "player_id": "00-0038041",
@@ -4708,8 +4708,8 @@
     "proj_rec": 2.9743246464927386,
     "proj_yards": 30.297839037800735,
     "fair_line_rec": 2.5,
-    "fair_line_yards": 25.5,
-    "p_rec_at_fair_line": 0.5402
+    "fair_line_yards": 20.5,
+    "p_rec_at_fair_line": 0.4832
   },
   {
     "player_id": "00-0033090",
@@ -4770,8 +4770,8 @@
     "proj_rec": 2.938353939107109,
     "proj_yards": 30.2682277894886,
     "fair_line_rec": 2.5,
-    "fair_line_yards": 25.5,
-    "p_rec_at_fair_line": 0.5331
+    "fair_line_yards": 20.0,
+    "p_rec_at_fair_line": 0.4761
   },
   {
     "player_id": "00-0038619",
@@ -4832,8 +4832,8 @@
     "proj_rec": 2.17244722261678,
     "proj_yards": 28.77675688250515,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 22.5,
-    "p_rec_at_fair_line": 0.6075
+    "fair_line_yards": 17.0,
+    "p_rec_at_fair_line": 0.5505
   },
   {
     "player_id": "00-0040705",
@@ -4894,8 +4894,8 @@
     "proj_rec": 2.511530462768962,
     "proj_yards": 28.533630794072987,
     "fair_line_rec": 2.5,
-    "fair_line_yards": 23.0,
-    "p_rec_at_fair_line": 0.443
+    "fair_line_yards": 18.0,
+    "p_rec_at_fair_line": 0.386
   },
   {
     "player_id": "00-0037252",
@@ -4956,8 +4956,8 @@
     "proj_rec": 2.7855335036239777,
     "proj_yards": 28.416976185052455,
     "fair_line_rec": 2.5,
-    "fair_line_yards": 23.5,
-    "p_rec_at_fair_line": 0.5021
+    "fair_line_yards": 18.5,
+    "p_rec_at_fair_line": 0.4451
   },
   {
     "player_id": "00-0040134",
@@ -5017,9 +5017,9 @@
     "mu_ypr": 11.983652575034705,
     "proj_rec": 2.367577036583958,
     "proj_yards": 28.372220651052384,
-    "fair_line_rec": 2.5,
-    "fair_line_yards": 22.5,
-    "p_rec_at_fair_line": 0.4102
+    "fair_line_rec": 1.5,
+    "fair_line_yards": 17.5,
+    "p_rec_at_fair_line": 0.5921
   },
   {
     "player_id": "00-0039342",
@@ -5079,9 +5079,9 @@
     "mu_ypr": 12.12267021967566,
     "proj_rec": 2.3285508421048404,
     "proj_yards": 28.228253948585028,
-    "fair_line_rec": 2.5,
-    "fair_line_yards": 22.5,
-    "p_rec_at_fair_line": 0.4011
+    "fair_line_rec": 1.5,
+    "fair_line_yards": 17.5,
+    "p_rec_at_fair_line": 0.5841
   },
   {
     "player_id": "00-0038104",
@@ -5142,8 +5142,8 @@
     "proj_rec": 1.7232501744023336,
     "proj_yards": 28.179769954594637,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 20.5,
-    "p_rec_at_fair_line": 0.4947
+    "fair_line_yards": 14.5,
+    "p_rec_at_fair_line": 0.4377
   },
   {
     "player_id": "00-0039139",
@@ -5203,9 +5203,9 @@
     "mu_ypr": 7.998573184234483,
     "proj_rec": 3.520013153573951,
     "proj_yards": 28.155082818329262,
-    "fair_line_rec": 3.5,
-    "fair_line_yards": 24.0,
-    "p_rec_at_fair_line": 0.449
+    "fair_line_rec": 2.5,
+    "fair_line_yards": 19.5,
+    "p_rec_at_fair_line": 0.5802
   },
   {
     "player_id": "00-0039410",
@@ -5265,9 +5265,9 @@
     "mu_ypr": 11.99320520779151,
     "proj_rec": 2.342178781510246,
     "proj_yards": 28.090230759987456,
-    "fair_line_rec": 2.5,
-    "fair_line_yards": 22.5,
-    "p_rec_at_fair_line": 0.4043
+    "fair_line_rec": 1.5,
+    "fair_line_yards": 17.5,
+    "p_rec_at_fair_line": 0.5869
   },
   {
     "player_id": "00-0039793",
@@ -5328,8 +5328,8 @@
     "proj_rec": 2.7096701425161895,
     "proj_yards": 27.76615190800563,
     "fair_line_rec": 2.5,
-    "fair_line_yards": 23.0,
-    "p_rec_at_fair_line": 0.4862
+    "fair_line_yards": 18.0,
+    "p_rec_at_fair_line": 0.4292
   },
   {
     "player_id": "00-0037112",
@@ -5390,8 +5390,8 @@
     "proj_rec": 2.656622821002983,
     "proj_yards": 26.855465489623903,
     "fair_line_rec": 2.5,
-    "fair_line_yards": 22.0,
-    "p_rec_at_fair_line": 0.4748
+    "fair_line_yards": 17.5,
+    "p_rec_at_fair_line": 0.4178
   },
   {
     "player_id": "00-0034829",
@@ -5451,9 +5451,9 @@
     "mu_ypr": 11.227599578678618,
     "proj_rec": 2.386960206219916,
     "proj_yards": 26.799833405677354,
-    "fair_line_rec": 2.5,
-    "fair_line_yards": 21.5,
-    "p_rec_at_fair_line": 0.4147
+    "fair_line_rec": 1.5,
+    "fair_line_yards": 16.5,
+    "p_rec_at_fair_line": 0.596
   },
   {
     "player_id": "00-0036550",
@@ -5514,8 +5514,8 @@
     "proj_rec": 2.0474443550690777,
     "proj_yards": 26.6119243662161,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 20.5,
-    "p_rec_at_fair_line": 0.5786
+    "fair_line_yards": 15.5,
+    "p_rec_at_fair_line": 0.5216
   },
   {
     "player_id": "00-0036244",
@@ -5576,8 +5576,8 @@
     "proj_rec": 2.60851950211174,
     "proj_yards": 26.474300098557144,
     "fair_line_rec": 2.5,
-    "fair_line_yards": 21.5,
-    "p_rec_at_fair_line": 0.4644
+    "fair_line_yards": 17.0,
+    "p_rec_at_fair_line": 0.4074
   },
   {
     "player_id": "00-0036894",
@@ -5638,8 +5638,8 @@
     "proj_rec": 2.553293433341867,
     "proj_yards": 26.402374389223887,
     "fair_line_rec": 2.5,
-    "fair_line_yards": 21.5,
-    "p_rec_at_fair_line": 0.4523
+    "fair_line_yards": 17.0,
+    "p_rec_at_fair_line": 0.3953
   },
   {
     "player_id": "00-0033881",
@@ -5700,8 +5700,8 @@
     "proj_rec": 2.8641137506949708,
     "proj_yards": 26.346058954547207,
     "fair_line_rec": 2.5,
-    "fair_line_yards": 22.0,
-    "p_rec_at_fair_line": 0.5182
+    "fair_line_yards": 17.5,
+    "p_rec_at_fair_line": 0.4612
   },
   {
     "player_id": "00-0040667",
@@ -5762,8 +5762,8 @@
     "proj_rec": 1.9845414889247193,
     "proj_yards": 26.286404690826558,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 20.0,
-    "p_rec_at_fair_line": 0.5633
+    "fair_line_yards": 15.0,
+    "p_rec_at_fair_line": 0.5063
   },
   {
     "player_id": "00-0036988",
@@ -5824,8 +5824,8 @@
     "proj_rec": 2.090058398679461,
     "proj_yards": 26.218672732144622,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 20.5,
-    "p_rec_at_fair_line": 0.5887
+    "fair_line_yards": 15.5,
+    "p_rec_at_fair_line": 0.5317
   },
   {
     "player_id": "00-0039066",
@@ -5886,8 +5886,8 @@
     "proj_rec": 2.599359145338626,
     "proj_yards": 26.101609403958115,
     "fair_line_rec": 2.5,
-    "fair_line_yards": 21.5,
-    "p_rec_at_fair_line": 0.4624
+    "fair_line_yards": 16.5,
+    "p_rec_at_fair_line": 0.4054
   },
   {
     "player_id": "00-0037231",
@@ -5948,8 +5948,8 @@
     "proj_rec": 2.1276069645032303,
     "proj_yards": 26.054354273825176,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 20.5,
-    "p_rec_at_fair_line": 0.5974
+    "fair_line_yards": 15.5,
+    "p_rec_at_fair_line": 0.5404
   },
   {
     "player_id": "00-0040727",
@@ -6010,8 +6010,8 @@
     "proj_rec": 2.130088230158926,
     "proj_yards": 25.8317604671545,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 20.0,
-    "p_rec_at_fair_line": 0.598
+    "fair_line_yards": 15.0,
+    "p_rec_at_fair_line": 0.541
   },
   {
     "player_id": "00-0035689",
@@ -6071,9 +6071,9 @@
     "mu_ypr": 10.42096253567749,
     "proj_rec": 2.430038722472547,
     "proj_yards": 25.323342487132,
-    "fair_line_rec": 2.5,
-    "fair_line_yards": 20.5,
-    "p_rec_at_fair_line": 0.4245
+    "fair_line_rec": 1.5,
+    "fair_line_yards": 16.0,
+    "p_rec_at_fair_line": 0.6045
   },
   {
     "player_id": "00-0038621",
@@ -6134,8 +6134,8 @@
     "proj_rec": 2.0877473369377135,
     "proj_yards": 25.112378525796906,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 19.5,
-    "p_rec_at_fair_line": 0.5882
+    "fair_line_yards": 14.5,
+    "p_rec_at_fair_line": 0.5312
   },
   {
     "player_id": "00-0037742",
@@ -6196,8 +6196,8 @@
     "proj_rec": 1.9226669860540502,
     "proj_yards": 24.891629883477513,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 19.0,
-    "p_rec_at_fair_line": 0.5479
+    "fair_line_yards": 14.0,
+    "p_rec_at_fair_line": 0.4909
   },
   {
     "player_id": "00-0040669",
@@ -6258,8 +6258,8 @@
     "proj_rec": 1.839532795138077,
     "proj_yards": 24.748100164398338,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 18.5,
-    "p_rec_at_fair_line": 0.5263
+    "fair_line_yards": 13.5,
+    "p_rec_at_fair_line": 0.4693
   },
   {
     "player_id": "00-0037801",
@@ -6320,8 +6320,8 @@
     "proj_rec": 1.880548032651289,
     "proj_yards": 24.66068805476202,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 18.5,
-    "p_rec_at_fair_line": 0.537
+    "fair_line_yards": 13.5,
+    "p_rec_at_fair_line": 0.48
   },
   {
     "player_id": "00-0033110",
@@ -6381,9 +6381,9 @@
     "mu_ypr": 9.913534439794397,
     "proj_rec": 2.4716134984101346,
     "proj_yards": 24.502425538349584,
-    "fair_line_rec": 2.5,
-    "fair_line_yards": 20.0,
-    "p_rec_at_fair_line": 0.434
+    "fair_line_rec": 1.5,
+    "fair_line_yards": 15.5,
+    "p_rec_at_fair_line": 0.6125
   },
   {
     "player_id": "00-0040737",
@@ -6444,8 +6444,8 @@
     "proj_rec": 1.855264693609815,
     "proj_yards": 24.243744226017988,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 18.0,
-    "p_rec_at_fair_line": 0.5304
+    "fair_line_yards": 13.5,
+    "p_rec_at_fair_line": 0.4734
   },
   {
     "player_id": "00-0040782",
@@ -6506,8 +6506,8 @@
     "proj_rec": 1.7484334320629351,
     "proj_yards": 24.189906888007194,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 18.0,
-    "p_rec_at_fair_line": 0.5017
+    "fair_line_yards": 13.0,
+    "p_rec_at_fair_line": 0.4447
   },
   {
     "player_id": "00-0040237",
@@ -6568,8 +6568,8 @@
     "proj_rec": 1.9421420343560878,
     "proj_yards": 24.04722358558765,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 18.5,
-    "p_rec_at_fair_line": 0.5528
+    "fair_line_yards": 13.5,
+    "p_rec_at_fair_line": 0.4958
   },
   {
     "player_id": "00-0038976",
@@ -6630,8 +6630,8 @@
     "proj_rec": 2.1121480618327317,
     "proj_yards": 23.6769355874204,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 18.5,
-    "p_rec_at_fair_line": 0.5938
+    "fair_line_yards": 14.0,
+    "p_rec_at_fair_line": 0.5368
   },
   {
     "player_id": "00-0038597",
@@ -6692,8 +6692,8 @@
     "proj_rec": 2.9982387905231627,
     "proj_yards": 23.630917741971565,
     "fair_line_rec": 2.5,
-    "fair_line_yards": 20.0,
-    "p_rec_at_fair_line": 0.5448
+    "fair_line_yards": 16.0,
+    "p_rec_at_fair_line": 0.4878
   },
   {
     "player_id": "00-0039880",
@@ -6754,8 +6754,8 @@
     "proj_rec": 2.1021088198375697,
     "proj_yards": 23.50450261524151,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 18.5,
-    "p_rec_at_fair_line": 0.5915
+    "fair_line_yards": 14.0,
+    "p_rec_at_fair_line": 0.5345
   },
   {
     "player_id": "00-0040729",
@@ -6816,8 +6816,8 @@
     "proj_rec": 1.97437354636303,
     "proj_yards": 23.447955775904152,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 18.0,
-    "p_rec_at_fair_line": 0.5608
+    "fair_line_yards": 13.5,
+    "p_rec_at_fair_line": 0.5038
   },
   {
     "player_id": "00-0036290",
@@ -6878,8 +6878,8 @@
     "proj_rec": 2.1529334502536948,
     "proj_yards": 23.331346118975713,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 18.5,
-    "p_rec_at_fair_line": 0.6032
+    "fair_line_yards": 14.0,
+    "p_rec_at_fair_line": 0.5462
   },
   {
     "player_id": "00-0040131",
@@ -6940,8 +6940,8 @@
     "proj_rec": 1.652918295584233,
     "proj_yards": 23.235876475826906,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 16.5,
-    "p_rec_at_fair_line": 0.4748
+    "fair_line_yards": 12.0,
+    "p_rec_at_fair_line": 0.4178
   },
   {
     "player_id": "00-0035406",
@@ -7002,8 +7002,8 @@
     "proj_rec": 1.927944239052413,
     "proj_yards": 23.012322447478212,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 17.5,
-    "p_rec_at_fair_line": 0.5492
+    "fair_line_yards": 13.0,
+    "p_rec_at_fair_line": 0.4922
   },
   {
     "player_id": "00-0038359",
@@ -7064,8 +7064,8 @@
     "proj_rec": 1.6899763573005846,
     "proj_yards": 22.87893851673907,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 16.5,
-    "p_rec_at_fair_line": 0.4853
+    "fair_line_yards": 12.0,
+    "p_rec_at_fair_line": 0.4283
   },
   {
     "player_id": "00-0040590",
@@ -7126,8 +7126,8 @@
     "proj_rec": 1.7601211787176403,
     "proj_yards": 22.78902458973744,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 17.0,
-    "p_rec_at_fair_line": 0.5049
+    "fair_line_yards": 12.0,
+    "p_rec_at_fair_line": 0.4479
   },
   {
     "player_id": "00-0040584",
@@ -7187,9 +7187,9 @@
     "mu_ypr": 9.87439653845639,
     "proj_rec": 2.3058833638659366,
     "proj_yards": 22.76920670624198,
-    "fair_line_rec": 2.5,
-    "fair_line_yards": 18.0,
-    "p_rec_at_fair_line": 0.3958
+    "fair_line_rec": 1.5,
+    "fair_line_yards": 14.0,
+    "p_rec_at_fair_line": 0.5794
   },
   {
     "player_id": "00-0038558",
@@ -7250,8 +7250,8 @@
     "proj_rec": 2.168593975152955,
     "proj_yards": 22.659530870289686,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 18.0,
-    "p_rec_at_fair_line": 0.6067
+    "fair_line_yards": 13.5,
+    "p_rec_at_fair_line": 0.5497
   },
   {
     "player_id": "00-0040666",
@@ -7312,8 +7312,8 @@
     "proj_rec": 2.856899901075989,
     "proj_yards": 22.479530075912237,
     "fair_line_rec": 2.5,
-    "fair_line_yards": 18.5,
-    "p_rec_at_fair_line": 0.5167
+    "fair_line_yards": 15.0,
+    "p_rec_at_fair_line": 0.4597
   },
   {
     "player_id": "00-0039040",
@@ -7374,8 +7374,8 @@
     "proj_rec": 3.0944754257287532,
     "proj_yards": 22.443421755733368,
     "fair_line_rec": 2.5,
-    "fair_line_yards": 19.0,
-    "p_rec_at_fair_line": 0.5632
+    "fair_line_yards": 15.0,
+    "p_rec_at_fair_line": 0.5062
   },
   {
     "player_id": "00-0039739",
@@ -7436,8 +7436,8 @@
     "proj_rec": 1.640820691854619,
     "proj_yards": 22.424839394234503,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 16.0,
-    "p_rec_at_fair_line": 0.4713
+    "fair_line_yards": 11.5,
+    "p_rec_at_fair_line": 0.4143
   },
   {
     "player_id": "00-0040122",
@@ -7498,8 +7498,8 @@
     "proj_rec": 2.839350400613391,
     "proj_yards": 21.83700485674713,
     "fair_line_rec": 2.5,
-    "fair_line_yards": 18.0,
-    "p_rec_at_fair_line": 0.5132
+    "fair_line_yards": 14.5,
+    "p_rec_at_fair_line": 0.4562
   },
   {
     "player_id": "00-0040715",
@@ -7560,8 +7560,8 @@
     "proj_rec": 2.713544285731099,
     "proj_yards": 21.81817175300832,
     "fair_line_rec": 2.5,
-    "fair_line_yards": 18.0,
-    "p_rec_at_fair_line": 0.487
+    "fair_line_yards": 14.0,
+    "p_rec_at_fair_line": 0.43
   },
   {
     "player_id": "00-0038618",
@@ -7622,8 +7622,8 @@
     "proj_rec": 1.846422546050805,
     "proj_yards": 21.767992357160615,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 16.5,
-    "p_rec_at_fair_line": 0.5281
+    "fair_line_yards": 12.0,
+    "p_rec_at_fair_line": 0.4711
   },
   {
     "player_id": "00-0032775",
@@ -7684,8 +7684,8 @@
     "proj_rec": 1.7675081170007911,
     "proj_yards": 21.356466079453583,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 16.0,
-    "p_rec_at_fair_line": 0.5069
+    "fair_line_yards": 11.5,
+    "p_rec_at_fair_line": 0.4499
   },
   {
     "player_id": "00-0039356",
@@ -7746,8 +7746,8 @@
     "proj_rec": 2.1356142270281038,
     "proj_yards": 21.038917098717018,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 16.5,
-    "p_rec_at_fair_line": 0.5992
+    "fair_line_yards": 12.5,
+    "p_rec_at_fair_line": 0.5422
   },
   {
     "player_id": "00-0036754",
@@ -7808,8 +7808,8 @@
     "proj_rec": 2.100490597386639,
     "proj_yards": 20.992721544816828,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 16.5,
-    "p_rec_at_fair_line": 0.5911
+    "fair_line_yards": 12.5,
+    "p_rec_at_fair_line": 0.5341
   },
   {
     "player_id": "00-0039074",
@@ -7870,8 +7870,8 @@
     "proj_rec": 2.029603034309832,
     "proj_yards": 20.509931687937144,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 16.0,
-    "p_rec_at_fair_line": 0.5743
+    "fair_line_yards": 12.0,
+    "p_rec_at_fair_line": 0.5173
   },
   {
     "player_id": "00-0039361",
@@ -7931,9 +7931,9 @@
     "mu_ypr": 8.004950202093413,
     "proj_rec": 2.4672564974973628,
     "proj_yards": 19.7502653982578,
-    "fair_line_rec": 2.5,
-    "fair_line_yards": 16.0,
-    "p_rec_at_fair_line": 0.433
+    "fair_line_rec": 1.5,
+    "fair_line_yards": 12.5,
+    "p_rec_at_fair_line": 0.6116
   },
   {
     "player_id": "00-0039451",
@@ -7994,8 +7994,8 @@
     "proj_rec": 1.9047334471011823,
     "proj_yards": 19.735614595194832,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 15.0,
-    "p_rec_at_fair_line": 0.5433
+    "fair_line_yards": 11.0,
+    "p_rec_at_fair_line": 0.4863
   },
   {
     "player_id": "00-0039359",
@@ -8056,8 +8056,8 @@
     "proj_rec": 1.9591486300569472,
     "proj_yards": 19.184885016914635,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 14.5,
-    "p_rec_at_fair_line": 0.557
+    "fair_line_yards": 11.0,
+    "p_rec_at_fair_line": 0.5
   },
   {
     "player_id": "00-0033906",
@@ -8118,8 +8118,8 @@
     "proj_rec": 2.6006783975331325,
     "proj_yards": 18.95804066518059,
     "fair_line_rec": 2.5,
-    "fair_line_yards": 15.5,
-    "p_rec_at_fair_line": 0.4627
+    "fair_line_yards": 12.0,
+    "p_rec_at_fair_line": 0.4057
   },
   {
     "player_id": "00-0039041",
@@ -8180,8 +8180,8 @@
     "proj_rec": 1.8917979850835898,
     "proj_yards": 18.588796294568056,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 14.0,
-    "p_rec_at_fair_line": 0.5399
+    "fair_line_yards": 10.5,
+    "p_rec_at_fair_line": 0.4829
   },
   {
     "player_id": "00-0033293",
@@ -8242,8 +8242,8 @@
     "proj_rec": 2.5143799945477805,
     "proj_yards": 18.410995725503774,
     "fair_line_rec": 2.5,
-    "fair_line_yards": 15.0,
-    "p_rec_at_fair_line": 0.4436
+    "fair_line_yards": 11.5,
+    "p_rec_at_fair_line": 0.3866
   },
   {
     "player_id": "00-0040730",
@@ -8303,9 +8303,9 @@
     "mu_ypr": 7.721768637871115,
     "proj_rec": 2.349043895127556,
     "proj_yards": 18.138773478378567,
-    "fair_line_rec": 2.5,
-    "fair_line_yards": 14.5,
-    "p_rec_at_fair_line": 0.4059
+    "fair_line_rec": 1.5,
+    "fair_line_yards": 11.0,
+    "p_rec_at_fair_line": 0.5883
   },
   {
     "player_id": "00-0036223",
@@ -8365,9 +8365,9 @@
     "mu_ypr": 7.516581170777874,
     "proj_rec": 2.3834383560025367,
     "proj_yards": 17.91530786843844,
-    "fair_line_rec": 2.5,
-    "fair_line_yards": 14.5,
-    "p_rec_at_fair_line": 0.4139
+    "fair_line_rec": 1.5,
+    "fair_line_yards": 11.0,
+    "p_rec_at_fair_line": 0.5953
   },
   {
     "player_id": "00-0037805",
@@ -8428,8 +8428,8 @@
     "proj_rec": 1.804726086901911,
     "proj_yards": 17.233743355676737,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 13.0,
-    "p_rec_at_fair_line": 0.517
+    "fair_line_yards": 9.5,
+    "p_rec_at_fair_line": 0.46
   },
   {
     "player_id": "00-0039032",
@@ -8489,9 +8489,9 @@
     "mu_ypr": 7.178149280979007,
     "proj_rec": 2.372711197837076,
     "proj_yards": 17.03167517872504,
-    "fair_line_rec": 2.5,
-    "fair_line_yards": 13.5,
-    "p_rec_at_fair_line": 0.4114
+    "fair_line_rec": 1.5,
+    "fair_line_yards": 10.5,
+    "p_rec_at_fair_line": 0.5931
   },
   {
     "player_id": "00-0036275",
@@ -8552,8 +8552,8 @@
     "proj_rec": 2.218967623875253,
     "proj_yards": 16.592305724392176,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 13.0,
-    "p_rec_at_fair_line": 0.6178
+    "fair_line_yards": 10.0,
+    "p_rec_at_fair_line": 0.5608
   },
   {
     "player_id": "00-0036875",
@@ -8614,8 +8614,8 @@
     "proj_rec": 2.1157263849625148,
     "proj_yards": 16.438616383037296,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 13.0,
-    "p_rec_at_fair_line": 0.5947
+    "fair_line_yards": 9.5,
+    "p_rec_at_fair_line": 0.5377
   },
   {
     "player_id": "00-0038120",
@@ -8676,8 +8676,8 @@
     "proj_rec": 2.1760617153843524,
     "proj_yards": 16.257125111320047,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 13.0,
-    "p_rec_at_fair_line": 0.6084
+    "fair_line_yards": 9.5,
+    "p_rec_at_fair_line": 0.5514
   },
   {
     "player_id": "00-0040162",
@@ -8738,8 +8738,8 @@
     "proj_rec": 2.155901967955867,
     "proj_yards": 16.096609766038565,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 12.5,
-    "p_rec_at_fair_line": 0.6038
+    "fair_line_yards": 9.5,
+    "p_rec_at_fair_line": 0.5468
   },
   {
     "player_id": "00-0037840",
@@ -8800,8 +8800,8 @@
     "proj_rec": 2.048105814275553,
     "proj_yards": 15.959404425562706,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 12.5,
-    "p_rec_at_fair_line": 0.5788
+    "fair_line_yards": 9.0,
+    "p_rec_at_fair_line": 0.5218
   },
   {
     "player_id": "00-0037248",
@@ -8862,8 +8862,8 @@
     "proj_rec": 1.9810427423445391,
     "proj_yards": 15.907895880718572,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 12.0,
-    "p_rec_at_fair_line": 0.5625
+    "fair_line_yards": 9.0,
+    "p_rec_at_fair_line": 0.5055
   },
   {
     "player_id": "00-0040784",
@@ -8924,8 +8924,8 @@
     "proj_rec": 2.1035717461728725,
     "proj_yards": 15.74583076301325,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 12.5,
-    "p_rec_at_fair_line": 0.5918
+    "fair_line_yards": 9.0,
+    "p_rec_at_fair_line": 0.5348
   },
   {
     "player_id": "00-0037157",
@@ -8986,8 +8986,8 @@
     "proj_rec": 1.8346360985231516,
     "proj_yards": 14.361335025327241,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 10.5,
-    "p_rec_at_fair_line": 0.525
+    "fair_line_yards": 8.0,
+    "p_rec_at_fair_line": 0.468
   },
   {
     "player_id": "00-0036997",
@@ -9048,8 +9048,8 @@
     "proj_rec": 1.8880919566045953,
     "proj_yards": 13.950687070118065,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 10.5,
-    "p_rec_at_fair_line": 0.539
+    "fair_line_yards": 7.5,
+    "p_rec_at_fair_line": 0.482
   },
   {
     "player_id": "00-0035676",
@@ -9110,8 +9110,8 @@
     "proj_rec": 5.187231689238614,
     "proj_yards": 69.1253922843475,
     "fair_line_rec": 4.5,
-    "fair_line_yards": 62.0,
-    "p_rec_at_fair_line": 0.5476
+    "fair_line_yards": 52.5,
+    "p_rec_at_fair_line": 0.4906
   },
   {
     "player_id": "00-0038117",
@@ -9171,9 +9171,9 @@
     "mu_ypr": 11.604086467705251,
     "proj_rec": 5.383725333813566,
     "proj_yards": 62.47321429194794,
-    "fair_line_rec": 5.5,
-    "fair_line_yards": 56.0,
-    "p_rec_at_fair_line": 0.4343
+    "fair_line_rec": 4.5,
+    "fair_line_yards": 47.5,
+    "p_rec_at_fair_line": 0.5166
   },
   {
     "player_id": "00-0031408",
@@ -9234,8 +9234,8 @@
     "proj_rec": 4.209445557549998,
     "proj_yards": 56.72352572770218,
     "fair_line_rec": 3.5,
-    "fair_line_yards": 49.5,
-    "p_rec_at_fair_line": 0.5645
+    "fair_line_yards": 41.5,
+    "p_rec_at_fair_line": 0.5075
   },
   {
     "player_id": "00-0031588",
@@ -9295,9 +9295,9 @@
     "mu_ypr": 11.386678692166749,
     "proj_rec": 4.415136143540168,
     "proj_yards": 50.2737366486641,
-    "fair_line_rec": 4.5,
-    "fair_line_yards": 44.5,
-    "p_rec_at_fair_line": 0.4351
+    "fair_line_rec": 3.5,
+    "fair_line_yards": 37.0,
+    "p_rec_at_fair_line": 0.5383
   },
   {
     "player_id": "00-0035719",
@@ -9358,8 +9358,8 @@
     "proj_rec": 4.020247255404992,
     "proj_yards": 47.57628082726133,
     "fair_line_rec": 3.5,
-    "fair_line_yards": 41.5,
-    "p_rec_at_fair_line": 0.5347
+    "fair_line_yards": 34.5,
+    "p_rec_at_fair_line": 0.4777
   },
   {
     "player_id": "00-0030279",
@@ -9420,8 +9420,8 @@
     "proj_rec": 4.060780281863019,
     "proj_yards": 47.45417524822261,
     "fair_line_rec": 3.5,
-    "fair_line_yards": 41.5,
-    "p_rec_at_fair_line": 0.5412
+    "fair_line_yards": 34.5,
+    "p_rec_at_fair_line": 0.4842
   },
   {
     "player_id": "00-0036613",
@@ -9481,9 +9481,9 @@
     "mu_ypr": 13.737733124080385,
     "proj_rec": 3.33558223129221,
     "proj_yards": 45.823338506916954,
-    "fair_line_rec": 3.5,
-    "fair_line_yards": 39.0,
-    "p_rec_at_fair_line": 0.4152
+    "fair_line_rec": 2.5,
+    "fair_line_yards": 31.5,
+    "p_rec_at_fair_line": 0.5496
   },
   {
     "player_id": "00-0036252",
@@ -9544,8 +9544,8 @@
     "proj_rec": 3.7108039729282485,
     "proj_yards": 43.40852262606479,
     "fair_line_rec": 3.5,
-    "fair_line_yards": 37.5,
-    "p_rec_at_fair_line": 0.4828
+    "fair_line_yards": 31.0,
+    "p_rec_at_fair_line": 0.4258
   },
   {
     "player_id": "00-0034827",
@@ -9606,8 +9606,8 @@
     "proj_rec": 2.9413735167894774,
     "proj_yards": 37.63975646518843,
     "fair_line_rec": 2.5,
-    "fair_line_yards": 31.5,
-    "p_rec_at_fair_line": 0.5337
+    "fair_line_yards": 25.0,
+    "p_rec_at_fair_line": 0.4767
   },
   {
     "player_id": "00-0037816",
@@ -9668,8 +9668,8 @@
     "proj_rec": 2.809837837669588,
     "proj_yards": 35.91102676785528,
     "fair_line_rec": 2.5,
-    "fair_line_yards": 30.0,
-    "p_rec_at_fair_line": 0.5071
+    "fair_line_yards": 23.5,
+    "p_rec_at_fair_line": 0.4501
   },
   {
     "player_id": "00-0036259",
@@ -9730,8 +9730,8 @@
     "proj_rec": 2.8789337821977297,
     "proj_yards": 35.73683036206977,
     "fair_line_rec": 2.5,
-    "fair_line_yards": 29.5,
-    "p_rec_at_fair_line": 0.5212
+    "fair_line_yards": 23.5,
+    "p_rec_at_fair_line": 0.4642
   },
   {
     "player_id": "00-0036309",
@@ -9792,8 +9792,8 @@
     "proj_rec": 2.6237583406437386,
     "proj_yards": 34.17977576483725,
     "fair_line_rec": 2.5,
-    "fair_line_yards": 28.0,
-    "p_rec_at_fair_line": 0.4677
+    "fair_line_yards": 22.0,
+    "p_rec_at_fair_line": 0.4107
   },
   {
     "player_id": "00-0035662",
@@ -9854,8 +9854,8 @@
     "proj_rec": 2.7167766557503987,
     "proj_yards": 33.81597402304444,
     "fair_line_rec": 2.5,
-    "fair_line_yards": 28.0,
-    "p_rec_at_fair_line": 0.4877
+    "fair_line_yards": 22.0,
+    "p_rec_at_fair_line": 0.4307
   },
   {
     "player_id": "00-0031610",
@@ -9916,8 +9916,8 @@
     "proj_rec": 2.9159283256887054,
     "proj_yards": 33.57279594821208,
     "fair_line_rec": 2.5,
-    "fair_line_yards": 28.0,
-    "p_rec_at_fair_line": 0.5286
+    "fair_line_yards": 22.5,
+    "p_rec_at_fair_line": 0.4716
   },
   {
     "player_id": "00-0034775",
@@ -9978,8 +9978,8 @@
     "proj_rec": 2.8925078503495403,
     "proj_yards": 33.33664270539909,
     "fair_line_rec": 2.5,
-    "fair_line_yards": 28.0,
-    "p_rec_at_fair_line": 0.5239
+    "fair_line_yards": 22.0,
+    "p_rec_at_fair_line": 0.4669
   },
   {
     "player_id": "00-0038608",
@@ -10040,8 +10040,8 @@
     "proj_rec": 2.1061984842744006,
     "proj_yards": 29.935207797505207,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 23.5,
-    "p_rec_at_fair_line": 0.5924
+    "fair_line_yards": 17.5,
+    "p_rec_at_fair_line": 0.5354
   },
   {
     "player_id": "00-0039386",
@@ -10101,9 +10101,9 @@
     "mu_ypr": 12.94067778819413,
     "proj_rec": 2.2807433229095957,
     "proj_yards": 29.514364459348275,
-    "fair_line_rec": 2.5,
-    "fair_line_yards": 23.5,
-    "p_rec_at_fair_line": 0.3899
+    "fair_line_rec": 1.5,
+    "fair_line_yards": 18.0,
+    "p_rec_at_fair_line": 0.5741
   },
   {
     "player_id": "00-0037809",
@@ -10164,8 +10164,8 @@
     "proj_rec": 2.9012841087949712,
     "proj_yards": 28.899908271596615,
     "fair_line_rec": 2.5,
-    "fair_line_yards": 24.0,
-    "p_rec_at_fair_line": 0.5257
+    "fair_line_yards": 19.0,
+    "p_rec_at_fair_line": 0.4687
   },
   {
     "player_id": "00-0038393",
@@ -10225,9 +10225,9 @@
     "mu_ypr": 12.063652452610173,
     "proj_rec": 2.2853938843110306,
     "proj_yards": 27.570197537649054,
-    "fair_line_rec": 2.5,
-    "fair_line_yards": 22.0,
-    "p_rec_at_fair_line": 0.391
+    "fair_line_rec": 1.5,
+    "fair_line_yards": 17.0,
+    "p_rec_at_fair_line": 0.5751
   },
   {
     "player_id": "00-0037614",
@@ -10287,9 +10287,9 @@
     "mu_ypr": 11.275968648441593,
     "proj_rec": 2.3977676427696695,
     "proj_yards": 27.037152766118492,
-    "fair_line_rec": 2.5,
-    "fair_line_yards": 21.5,
-    "p_rec_at_fair_line": 0.4172
+    "fair_line_rec": 1.5,
+    "fair_line_yards": 17.0,
+    "p_rec_at_fair_line": 0.5981
   },
   {
     "player_id": "00-0033307",
@@ -10350,8 +10350,8 @@
     "proj_rec": 2.21095848385743,
     "proj_yards": 26.96847744743143,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 21.5,
-    "p_rec_at_fair_line": 0.6161
+    "fair_line_yards": 16.0,
+    "p_rec_at_fair_line": 0.5591
   },
   {
     "player_id": "00-0030035",
@@ -10411,9 +10411,9 @@
     "mu_ypr": 11.42470943638231,
     "proj_rec": 2.351411017880726,
     "proj_yards": 26.864187644795262,
-    "fair_line_rec": 2.5,
-    "fair_line_yards": 21.5,
-    "p_rec_at_fair_line": 0.4065
+    "fair_line_rec": 1.5,
+    "fair_line_yards": 16.5,
+    "p_rec_at_fair_line": 0.5888
   },
   {
     "player_id": "00-0038979",
@@ -10474,8 +10474,8 @@
     "proj_rec": 2.0413488086493863,
     "proj_yards": 26.38717984284546,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 20.5,
-    "p_rec_at_fair_line": 0.5772
+    "fair_line_yards": 15.5,
+    "p_rec_at_fair_line": 0.5202
   },
   {
     "player_id": "00-0031235",
@@ -10535,9 +10535,9 @@
     "mu_ypr": 11.518009066235308,
     "proj_rec": 2.2774589849530513,
     "proj_yards": 26.231793236668306,
-    "fair_line_rec": 2.5,
-    "fair_line_yards": 21.0,
-    "p_rec_at_fair_line": 0.3892
+    "fair_line_rec": 1.5,
+    "fair_line_yards": 16.0,
+    "p_rec_at_fair_line": 0.5734
   },
   {
     "player_id": "00-0033885",
@@ -10598,8 +10598,8 @@
     "proj_rec": 2.660022135485734,
     "proj_yards": 25.996935057479252,
     "fair_line_rec": 2.5,
-    "fair_line_yards": 21.5,
-    "p_rec_at_fair_line": 0.4756
+    "fair_line_yards": 17.0,
+    "p_rec_at_fair_line": 0.4186
   },
   {
     "player_id": "00-0036415",
@@ -10660,8 +10660,8 @@
     "proj_rec": 2.1238597412270344,
     "proj_yards": 25.76537222228537,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 20.0,
-    "p_rec_at_fair_line": 0.5965
+    "fair_line_yards": 15.0,
+    "p_rec_at_fair_line": 0.5395
   },
   {
     "player_id": "00-0037837",
@@ -10722,8 +10722,8 @@
     "proj_rec": 2.059108665930692,
     "proj_yards": 25.272234800923897,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 19.5,
-    "p_rec_at_fair_line": 0.5814
+    "fair_line_yards": 14.5,
+    "p_rec_at_fair_line": 0.5244
   },
   {
     "player_id": "00-0037838",
@@ -10783,9 +10783,9 @@
     "mu_ypr": 10.642627077301643,
     "proj_rec": 2.3523777888754456,
     "proj_yards": 25.035479551928784,
-    "fair_line_rec": 2.5,
-    "fair_line_yards": 20.0,
-    "p_rec_at_fair_line": 0.4067
+    "fair_line_rec": 1.5,
+    "fair_line_yards": 15.5,
+    "p_rec_at_fair_line": 0.589
   },
   {
     "player_id": "00-0035359",
@@ -10846,8 +10846,8 @@
     "proj_rec": 1.9821228828318143,
     "proj_yards": 25.029681230590686,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 19.0,
-    "p_rec_at_fair_line": 0.5628
+    "fair_line_yards": 14.0,
+    "p_rec_at_fair_line": 0.5058
   },
   {
     "player_id": "00-0036980",
@@ -10908,8 +10908,8 @@
     "proj_rec": 2.066633360126603,
     "proj_yards": 24.66163818128281,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 19.0,
-    "p_rec_at_fair_line": 0.5832
+    "fair_line_yards": 14.5,
+    "p_rec_at_fair_line": 0.5262
   },
   {
     "player_id": "00-0039394",
@@ -10970,8 +10970,8 @@
     "proj_rec": 1.7323769381041023,
     "proj_yards": 24.21638650568545,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 18.0,
-    "p_rec_at_fair_line": 0.4972
+    "fair_line_yards": 12.5,
+    "p_rec_at_fair_line": 0.4402
   },
   {
     "player_id": "00-0035208",
@@ -11032,8 +11032,8 @@
     "proj_rec": 2.1560944647896996,
     "proj_yards": 24.21335760674462,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 19.0,
-    "p_rec_at_fair_line": 0.6039
+    "fair_line_yards": 14.5,
+    "p_rec_at_fair_line": 0.5469
   },
   {
     "player_id": "00-0037291",
@@ -11094,8 +11094,8 @@
     "proj_rec": 1.8966794821194763,
     "proj_yards": 24.021338620654628,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 18.0,
-    "p_rec_at_fair_line": 0.5412
+    "fair_line_yards": 13.5,
+    "p_rec_at_fair_line": 0.4842
   },
   {
     "player_id": "00-0032398",
@@ -11156,8 +11156,8 @@
     "proj_rec": 1.8098610074009491,
     "proj_yards": 23.78245682996234,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 17.5,
-    "p_rec_at_fair_line": 0.5184
+    "fair_line_yards": 13.0,
+    "p_rec_at_fair_line": 0.4614
   },
   {
     "player_id": "00-0038839",
@@ -11218,8 +11218,8 @@
     "proj_rec": 1.799776538443543,
     "proj_yards": 23.74474028189642,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 17.5,
-    "p_rec_at_fair_line": 0.5157
+    "fair_line_yards": 13.0,
+    "p_rec_at_fair_line": 0.4587
   },
   {
     "player_id": "00-0037666",
@@ -11280,8 +11280,8 @@
     "proj_rec": 1.8906285232796256,
     "proj_yards": 22.873016686285293,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 17.5,
-    "p_rec_at_fair_line": 0.5396
+    "fair_line_yards": 12.5,
+    "p_rec_at_fair_line": 0.4826
   },
   {
     "player_id": "00-0034270",
@@ -11342,8 +11342,8 @@
     "proj_rec": 2.1877847542346434,
     "proj_yards": 22.44049148721883,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 17.5,
-    "p_rec_at_fair_line": 0.611
+    "fair_line_yards": 13.5,
+    "p_rec_at_fair_line": 0.554
   },
   {
     "player_id": "00-0036626",
@@ -11404,8 +11404,8 @@
     "proj_rec": 1.5603660224556744,
     "proj_yards": 22.047865242028184,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 15.5,
-    "p_rec_at_fair_line": 0.4476
+    "fair_line_yards": 10.5,
+    "p_rec_at_fair_line": 0.3906
   },
   {
     "player_id": "00-0035500",
@@ -11466,8 +11466,8 @@
     "proj_rec": 2.1364077306666593,
     "proj_yards": 21.946407737083902,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 17.0,
-    "p_rec_at_fair_line": 0.5994
+    "fair_line_yards": 13.0,
+    "p_rec_at_fair_line": 0.5424
   },
   {
     "player_id": "00-0035298",
@@ -11528,8 +11528,8 @@
     "proj_rec": 1.9370018410955077,
     "proj_yards": 21.91431769289719,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 16.5,
-    "p_rec_at_fair_line": 0.5515
+    "fair_line_yards": 12.5,
+    "p_rec_at_fair_line": 0.4945
   },
   {
     "player_id": "00-0035644",
@@ -11590,8 +11590,8 @@
     "proj_rec": 2.2251755133361777,
     "proj_yards": 21.513440359546575,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 17.0,
-    "p_rec_at_fair_line": 0.6192
+    "fair_line_yards": 13.0,
+    "p_rec_at_fair_line": 0.5622
   },
   {
     "player_id": "00-0039052",
@@ -11652,8 +11652,8 @@
     "proj_rec": 1.534335245337263,
     "proj_yards": 21.191073708919436,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 15.0,
-    "p_rec_at_fair_line": 0.4398
+    "fair_line_yards": 10.0,
+    "p_rec_at_fair_line": 0.3828
   },
   {
     "player_id": "00-0036919",
@@ -11714,8 +11714,8 @@
     "proj_rec": 2.752914557869669,
     "proj_yards": 20.82873463381778,
     "fair_line_rec": 2.5,
-    "fair_line_yards": 17.0,
-    "p_rec_at_fair_line": 0.4953
+    "fair_line_yards": 13.5,
+    "p_rec_at_fair_line": 0.4383
   },
   {
     "player_id": "00-0032464",
@@ -11776,8 +11776,8 @@
     "proj_rec": 1.8186623572032474,
     "proj_yards": 20.68161541022436,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 15.5,
-    "p_rec_at_fair_line": 0.5207
+    "fair_line_yards": 11.0,
+    "p_rec_at_fair_line": 0.4637
   },
   {
     "player_id": "00-0037741",
@@ -11838,8 +11838,8 @@
     "proj_rec": 1.619939652147861,
     "proj_yards": 20.459129844409404,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 14.5,
-    "p_rec_at_fair_line": 0.4652
+    "fair_line_yards": 10.0,
+    "p_rec_at_fair_line": 0.4082
   },
   {
     "player_id": "00-0037098",
@@ -11900,8 +11900,8 @@
     "proj_rec": 1.6481769581942176,
     "proj_yards": 20.04944076097483,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 14.5,
-    "p_rec_at_fair_line": 0.4734
+    "fair_line_yards": 10.0,
+    "p_rec_at_fair_line": 0.4164
   },
   {
     "player_id": "00-0033858",
@@ -11962,8 +11962,8 @@
     "proj_rec": 2.065694474629562,
     "proj_yards": 19.6079632886655,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 15.0,
-    "p_rec_at_fair_line": 0.583
+    "fair_line_yards": 11.5,
+    "p_rec_at_fair_line": 0.526
   },
   {
     "player_id": "00-0032392",
@@ -12024,8 +12024,8 @@
     "proj_rec": 1.9904954288539136,
     "proj_yards": 19.51841416057257,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 15.0,
-    "p_rec_at_fair_line": 0.5648
+    "fair_line_yards": 11.0,
+    "p_rec_at_fair_line": 0.5078
   },
   {
     "player_id": "00-0036345",
@@ -12086,8 +12086,8 @@
     "proj_rec": 1.6599938079027348,
     "proj_yards": 19.42918787947587,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 14.0,
-    "p_rec_at_fair_line": 0.4768
+    "fair_line_yards": 10.0,
+    "p_rec_at_fair_line": 0.4198
   },
   {
     "player_id": "00-0036182",
@@ -12148,8 +12148,8 @@
     "proj_rec": 1.7101801884323378,
     "proj_yards": 19.29768912491797,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 14.0,
-    "p_rec_at_fair_line": 0.491
+    "fair_line_yards": 10.0,
+    "p_rec_at_fair_line": 0.434
   },
   {
     "player_id": "00-0036534",
@@ -12210,8 +12210,8 @@
     "proj_rec": 1.8805465322018267,
     "proj_yards": 19.29590447062614,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 14.5,
-    "p_rec_at_fair_line": 0.537
+    "fair_line_yards": 10.5,
+    "p_rec_at_fair_line": 0.48
   },
   {
     "player_id": "00-0038115",
@@ -12272,8 +12272,8 @@
     "proj_rec": 1.8154156114304698,
     "proj_yards": 19.283982103307356,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 14.5,
-    "p_rec_at_fair_line": 0.5199
+    "fair_line_yards": 10.5,
+    "p_rec_at_fair_line": 0.4629
   },
   {
     "player_id": "00-0035891",
@@ -12334,8 +12334,8 @@
     "proj_rec": 1.5821380025350962,
     "proj_yards": 19.076381562149464,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 13.5,
-    "p_rec_at_fair_line": 0.4541
+    "fair_line_yards": 9.5,
+    "p_rec_at_fair_line": 0.3971
   },
   {
     "player_id": "00-0038090",
@@ -12396,8 +12396,8 @@
     "proj_rec": 1.431477008512808,
     "proj_yards": 19.003635632158066,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 13.0,
-    "p_rec_at_fair_line": 0.4081
+    "fair_line_yards": 8.5,
+    "p_rec_at_fair_line": 0.3511
   },
   {
     "player_id": "00-0038941",
@@ -12458,8 +12458,8 @@
     "proj_rec": 1.6315956098523712,
     "proj_yards": 18.975554740167247,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 13.5,
-    "p_rec_at_fair_line": 0.4686
+    "fair_line_yards": 9.5,
+    "p_rec_at_fair_line": 0.4116
   },
   {
     "player_id": "00-0038046",
@@ -12520,8 +12520,8 @@
     "proj_rec": 1.6630228467495927,
     "proj_yards": 18.966695632575828,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 13.5,
-    "p_rec_at_fair_line": 0.4777
+    "fair_line_yards": 9.5,
+    "p_rec_at_fair_line": 0.4207
   },
   {
     "player_id": "00-0037093",
@@ -12581,9 +12581,9 @@
     "mu_ypr": 14.020983917410081,
     "proj_rec": 1.3489230610863812,
     "proj_yards": 18.91322854531573,
-    "fair_line_rec": 1.5,
-    "fair_line_yards": 12.5,
-    "p_rec_at_fair_line": 0.3818
+    "fair_line_rec": 0.5,
+    "fair_line_yards": 8.0,
+    "p_rec_at_fair_line": 0.6588
   },
   {
     "player_id": "00-0037475",
@@ -12644,8 +12644,8 @@
     "proj_rec": 1.8033671917342673,
     "proj_yards": 18.878128438241706,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 14.0,
-    "p_rec_at_fair_line": 0.5166
+    "fair_line_yards": 10.0,
+    "p_rec_at_fair_line": 0.4596
   },
   {
     "player_id": "00-0037282",
@@ -12706,8 +12706,8 @@
     "proj_rec": 1.7982901902650787,
     "proj_yards": 18.48722703189041,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 13.5,
-    "p_rec_at_fair_line": 0.5153
+    "fair_line_yards": 10.0,
+    "p_rec_at_fair_line": 0.4583
   },
   {
     "player_id": "00-0036387",
@@ -12768,8 +12768,8 @@
     "proj_rec": 1.6232158478488365,
     "proj_yards": 18.119519388274508,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 13.0,
-    "p_rec_at_fair_line": 0.4662
+    "fair_line_yards": 9.0,
+    "p_rec_at_fair_line": 0.4092
   },
   {
     "player_id": "00-0034407",
@@ -12830,8 +12830,8 @@
     "proj_rec": 1.657650614034252,
     "proj_yards": 17.896417694356394,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 13.0,
-    "p_rec_at_fair_line": 0.4761
+    "fair_line_yards": 9.0,
+    "p_rec_at_fair_line": 0.4191
   },
   {
     "player_id": "00-0034854",
@@ -12891,9 +12891,9 @@
     "mu_ypr": 13.183100425443277,
     "proj_rec": 1.3252249731964272,
     "proj_yards": 17.470573907953874,
-    "fair_line_rec": 1.5,
-    "fair_line_yards": 11.5,
-    "p_rec_at_fair_line": 0.3741
+    "fair_line_rec": 0.5,
+    "fair_line_yards": 7.0,
+    "p_rec_at_fair_line": 0.6528
   },
   {
     "player_id": "00-0036139",
@@ -12953,9 +12953,9 @@
     "mu_ypr": 7.664894132325382,
     "proj_rec": 2.2687634090201336,
     "proj_yards": 17.389831341432952,
-    "fair_line_rec": 2.5,
-    "fair_line_yards": 14.0,
-    "p_rec_at_fair_line": 0.3871
+    "fair_line_rec": 1.5,
+    "fair_line_yards": 10.5,
+    "p_rec_at_fair_line": 0.5716
   },
   {
     "player_id": "00-0033246",
@@ -13016,8 +13016,8 @@
     "proj_rec": 1.5848675963930476,
     "proj_yards": 17.240679070540608,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 12.0,
-    "p_rec_at_fair_line": 0.4549
+    "fair_line_yards": 8.5,
+    "p_rec_at_fair_line": 0.3979
   },
   {
     "player_id": "00-0038720",
@@ -13078,8 +13078,8 @@
     "proj_rec": 1.7217860193493983,
     "proj_yards": 17.16924253875401,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 12.5,
-    "p_rec_at_fair_line": 0.4943
+    "fair_line_yards": 9.0,
+    "p_rec_at_fair_line": 0.4373
   },
   {
     "player_id": "00-0040432",
@@ -13139,9 +13139,9 @@
     "mu_ypr": 12.932393273810266,
     "proj_rec": 1.312194728150624,
     "proj_yards": 16.969818276264423,
-    "fair_line_rec": 1.5,
-    "fair_line_yards": 11.0,
-    "p_rec_at_fair_line": 0.3699
+    "fair_line_rec": 0.5,
+    "fair_line_yards": 6.5,
+    "p_rec_at_fair_line": 0.6495
   },
   {
     "player_id": "00-0034981",
@@ -13202,8 +13202,8 @@
     "proj_rec": 1.769958503060906,
     "proj_yards": 16.960331047539018,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 12.5,
-    "p_rec_at_fair_line": 0.5076
+    "fair_line_yards": 9.0,
+    "p_rec_at_fair_line": 0.4506
   },
   {
     "player_id": "00-0037004",
@@ -13264,8 +13264,8 @@
     "proj_rec": 1.745017448753411,
     "proj_yards": 16.864312740969414,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 12.5,
-    "p_rec_at_fair_line": 0.5007
+    "fair_line_yards": 9.0,
+    "p_rec_at_fair_line": 0.4437
   },
   {
     "player_id": "00-0034419",
@@ -13326,8 +13326,8 @@
     "proj_rec": 1.6352838875491513,
     "proj_yards": 16.78444218007719,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 12.0,
-    "p_rec_at_fair_line": 0.4697
+    "fair_line_yards": 8.5,
+    "p_rec_at_fair_line": 0.4127
   },
   {
     "player_id": "00-0036973",
@@ -13387,9 +13387,9 @@
     "mu_ypr": 7.486299955941947,
     "proj_rec": 2.239695988152149,
     "proj_yards": 16.76703597742679,
-    "fair_line_rec": 2.5,
-    "fair_line_yards": 13.5,
-    "p_rec_at_fair_line": 0.3803
+    "fair_line_rec": 1.5,
+    "fair_line_yards": 10.0,
+    "p_rec_at_fair_line": 0.5653
   },
   {
     "player_id": "00-0037078",
@@ -13450,8 +13450,8 @@
     "proj_rec": 1.7002190074462573,
     "proj_yards": 16.75612149034377,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 12.0,
-    "p_rec_at_fair_line": 0.4882
+    "fair_line_yards": 8.5,
+    "p_rec_at_fair_line": 0.4312
   },
   {
     "player_id": "00-0032394",
@@ -13512,8 +13512,8 @@
     "proj_rec": 1.6749518700530688,
     "proj_yards": 16.638287198545388,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 12.0,
-    "p_rec_at_fair_line": 0.4811
+    "fair_line_yards": 8.5,
+    "p_rec_at_fair_line": 0.4241
   },
   {
     "player_id": "00-0036331",
@@ -13573,9 +13573,9 @@
     "mu_ypr": 12.33388701639735,
     "proj_rec": 1.3472744188795964,
     "proj_yards": 16.61713046254334,
-    "fair_line_rec": 1.5,
-    "fair_line_yards": 11.0,
-    "p_rec_at_fair_line": 0.3813
+    "fair_line_rec": 0.5,
+    "fair_line_yards": 7.0,
+    "p_rec_at_fair_line": 0.6584
   },
   {
     "player_id": "00-0039907",
@@ -13635,9 +13635,9 @@
     "mu_ypr": 12.214981289818228,
     "proj_rec": 1.357709233499048,
     "proj_yards": 16.58439288420432,
-    "fair_line_rec": 1.5,
-    "fair_line_yards": 11.0,
-    "p_rec_at_fair_line": 0.3846
+    "fair_line_rec": 0.5,
+    "fair_line_yards": 7.0,
+    "p_rec_at_fair_line": 0.6609
   },
   {
     "player_id": "00-0037828",
@@ -13697,9 +13697,9 @@
     "mu_ypr": 13.305227257165082,
     "proj_rec": 1.2411913837829671,
     "proj_yards": 16.51433343086758,
-    "fair_line_rec": 1.5,
-    "fair_line_yards": 10.0,
-    "p_rec_at_fair_line": 0.3464
+    "fair_line_rec": 0.5,
+    "fair_line_yards": 6.0,
+    "p_rec_at_fair_line": 0.6307
   },
   {
     "player_id": "00-0033757",
@@ -13760,8 +13760,8 @@
     "proj_rec": 1.6432456937866993,
     "proj_yards": 16.46641809788237,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 12.0,
-    "p_rec_at_fair_line": 0.472
+    "fair_line_yards": 8.5,
+    "p_rec_at_fair_line": 0.415
   },
   {
     "player_id": "00-0038824",
@@ -13821,9 +13821,9 @@
     "mu_ypr": 12.60990154705558,
     "proj_rec": 1.305476678353091,
     "proj_yards": 16.46193238600962,
-    "fair_line_rec": 1.5,
-    "fair_line_yards": 10.5,
-    "p_rec_at_fair_line": 0.3677
+    "fair_line_rec": 0.5,
+    "fair_line_yards": 6.5,
+    "p_rec_at_fair_line": 0.6478
   },
   {
     "player_id": "00-0036924",
@@ -13884,8 +13884,8 @@
     "proj_rec": 2.05543389595933,
     "proj_yards": 16.016352318499088,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 12.5,
-    "p_rec_at_fair_line": 0.5805
+    "fair_line_yards": 9.5,
+    "p_rec_at_fair_line": 0.5235
   },
   {
     "player_id": "00-0039392",
@@ -13946,8 +13946,8 @@
     "proj_rec": 1.051053863851645,
     "proj_yards": 15.90389334087203,
     "fair_line_rec": 0.5,
-    "fair_line_yards": 8.5,
-    "p_rec_at_fair_line": 0.6302
+    "fair_line_yards": 3.5,
+    "p_rec_at_fair_line": 0.5732
   },
   {
     "player_id": "00-0039650",
@@ -14008,8 +14008,8 @@
     "proj_rec": 1.4298480907355409,
     "proj_yards": 15.882679765448303,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 10.5,
-    "p_rec_at_fair_line": 0.4076
+    "fair_line_yards": 7.0,
+    "p_rec_at_fair_line": 0.3506
   },
   {
     "player_id": "00-0034487",
@@ -14070,8 +14070,8 @@
     "proj_rec": 1.395050290746383,
     "proj_yards": 15.828747938075578,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 10.5,
-    "p_rec_at_fair_line": 0.3966
+    "fair_line_yards": 7.0,
+    "p_rec_at_fair_line": 0.3396
   },
   {
     "player_id": "00-0034798",
@@ -14132,8 +14132,8 @@
     "proj_rec": 1.585034692981079,
     "proj_yards": 15.763127730218283,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 11.0,
-    "p_rec_at_fair_line": 0.4549
+    "fair_line_yards": 7.5,
+    "p_rec_at_fair_line": 0.3979
   },
   {
     "player_id": "00-0038576",
@@ -14194,8 +14194,8 @@
     "proj_rec": 0.8982730947460097,
     "proj_yards": 15.521671859719044,
     "fair_line_rec": 0.5,
-    "fair_line_yards": 6.0,
-    "p_rec_at_fair_line": 0.5754
+    "fair_line_yards": 0.0,
+    "p_rec_at_fair_line": 0.5184
   },
   {
     "player_id": "00-0035345",
@@ -14256,8 +14256,8 @@
     "proj_rec": 1.5312821090747248,
     "proj_yards": 15.392271324150324,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 10.5,
-    "p_rec_at_fair_line": 0.4389
+    "fair_line_yards": 7.5,
+    "p_rec_at_fair_line": 0.3819
   },
   {
     "player_id": "00-0039631",
@@ -14318,8 +14318,8 @@
     "proj_rec": 1.6733017883328918,
     "proj_yards": 15.293466680972799,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 11.0,
-    "p_rec_at_fair_line": 0.4806
+    "fair_line_yards": 8.0,
+    "p_rec_at_fair_line": 0.4236
   },
   {
     "player_id": "00-0037277",
@@ -14380,8 +14380,8 @@
     "proj_rec": 1.420774281579576,
     "proj_yards": 15.281837317654999,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 10.5,
-    "p_rec_at_fair_line": 0.4047
+    "fair_line_yards": 6.5,
+    "p_rec_at_fair_line": 0.3477
   },
   {
     "player_id": "00-0036020",
@@ -14442,8 +14442,8 @@
     "proj_rec": 1.9645601562067987,
     "proj_yards": 15.259221322696684,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 11.5,
-    "p_rec_at_fair_line": 0.5584
+    "fair_line_yards": 8.5,
+    "p_rec_at_fair_line": 0.5014
   },
   {
     "player_id": "00-0038134",
@@ -14504,8 +14504,8 @@
     "proj_rec": 1.9829362745409889,
     "proj_yards": 15.023507981688738,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 11.5,
-    "p_rec_at_fair_line": 0.563
+    "fair_line_yards": 8.5,
+    "p_rec_at_fair_line": 0.506
   },
   {
     "player_id": "00-0038809",
@@ -14566,8 +14566,8 @@
     "proj_rec": 1.551943712468715,
     "proj_yards": 14.971473766053235,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 10.5,
-    "p_rec_at_fair_line": 0.4451
+    "fair_line_yards": 7.0,
+    "p_rec_at_fair_line": 0.3881
   },
   {
     "player_id": "00-0036630",
@@ -14628,8 +14628,8 @@
     "proj_rec": 1.157852342008014,
     "proj_yards": 14.93983406257845,
     "fair_line_rec": 0.5,
-    "fair_line_yards": 8.5,
-    "p_rec_at_fair_line": 0.6638
+    "fair_line_yards": 4.5,
+    "p_rec_at_fair_line": 0.6068
   },
   {
     "player_id": "00-0037197",
@@ -14690,8 +14690,8 @@
     "proj_rec": 1.889754697340241,
     "proj_yards": 14.937373110111967,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 11.5,
-    "p_rec_at_fair_line": 0.5394
+    "fair_line_yards": 8.5,
+    "p_rec_at_fair_line": 0.4824
   },
   {
     "player_id": "00-0037708",
@@ -14751,9 +14751,9 @@
     "mu_ypr": 11.073130084879162,
     "proj_rec": 1.348565066226221,
     "proj_yards": 14.932836406246627,
-    "fair_line_rec": 1.5,
-    "fair_line_yards": 9.5,
-    "p_rec_at_fair_line": 0.3817
+    "fair_line_rec": 0.5,
+    "fair_line_yards": 6.0,
+    "p_rec_at_fair_line": 0.6587
   },
   {
     "player_id": "00-0035602",
@@ -14813,9 +14813,9 @@
     "mu_ypr": 11.152903739329957,
     "proj_rec": 1.3337931095387145,
     "proj_yards": 14.875666158866862,
-    "fair_line_rec": 1.5,
-    "fair_line_yards": 9.5,
-    "p_rec_at_fair_line": 0.3769
+    "fair_line_rec": 0.5,
+    "fair_line_yards": 6.0,
+    "p_rec_at_fair_line": 0.655
   },
   {
     "player_id": "00-0037256",
@@ -14876,8 +14876,8 @@
     "proj_rec": 2.0541847755294045,
     "proj_yards": 14.8209320794002,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 11.5,
-    "p_rec_at_fair_line": 0.5802
+    "fair_line_yards": 8.5,
+    "p_rec_at_fair_line": 0.5232
   },
   {
     "player_id": "00-0035039",
@@ -14938,8 +14938,8 @@
     "proj_rec": 1.4557415804896299,
     "proj_yards": 14.676604366964597,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 10.0,
-    "p_rec_at_fair_line": 0.4157
+    "fair_line_yards": 6.5,
+    "p_rec_at_fair_line": 0.3587
   },
   {
     "player_id": "00-0038647",
@@ -14999,9 +14999,9 @@
     "mu_ypr": 11.4417322267021,
     "proj_rec": 1.2775972694097317,
     "proj_yards": 14.617925850151934,
-    "fair_line_rec": 1.5,
-    "fair_line_yards": 9.0,
-    "p_rec_at_fair_line": 0.3585
+    "fair_line_rec": 0.5,
+    "fair_line_yards": 5.5,
+    "p_rec_at_fair_line": 0.6405
   },
   {
     "player_id": "00-0037487",
@@ -15062,8 +15062,8 @@
     "proj_rec": 1.4405051634667612,
     "proj_yards": 14.536847558567002,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 10.0,
-    "p_rec_at_fair_line": 0.4109
+    "fair_line_yards": 6.5,
+    "p_rec_at_fair_line": 0.3539
   },
   {
     "player_id": "00-0033439",
@@ -15124,8 +15124,8 @@
     "proj_rec": 1.5310608219144195,
     "proj_yards": 14.472259479243668,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 10.0,
-    "p_rec_at_fair_line": 0.4388
+    "fair_line_yards": 7.0,
+    "p_rec_at_fair_line": 0.3818
   },
   {
     "player_id": "00-0037011",
@@ -15186,8 +15186,8 @@
     "proj_rec": 1.4842839614595058,
     "proj_yards": 14.190075456665314,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 10.0,
-    "p_rec_at_fair_line": 0.4245
+    "fair_line_yards": 6.5,
+    "p_rec_at_fair_line": 0.3675
   },
   {
     "player_id": "00-0036876",
@@ -15247,9 +15247,9 @@
     "mu_ypr": 10.288581114287396,
     "proj_rec": 1.352952188052939,
     "proj_yards": 13.919958330535277,
-    "fair_line_rec": 1.5,
-    "fair_line_yards": 9.0,
-    "p_rec_at_fair_line": 0.3831
+    "fair_line_rec": 0.5,
+    "fair_line_yards": 6.0,
+    "p_rec_at_fair_line": 0.6598
   },
   {
     "player_id": "00-0037509",
@@ -15310,8 +15310,8 @@
     "proj_rec": 1.7682643122897006,
     "proj_yards": 13.826662427283308,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 10.0,
-    "p_rec_at_fair_line": 0.5071
+    "fair_line_yards": 7.5,
+    "p_rec_at_fair_line": 0.4501
   },
   {
     "player_id": "00-0038389",
@@ -15372,8 +15372,8 @@
     "proj_rec": 1.7481268615937584,
     "proj_yards": 13.777445181874214,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 10.0,
-    "p_rec_at_fair_line": 0.5016
+    "fair_line_yards": 7.5,
+    "p_rec_at_fair_line": 0.4446
   },
   {
     "player_id": "00-0038454",
@@ -15434,8 +15434,8 @@
     "proj_rec": 1.6819085330474126,
     "proj_yards": 13.702116486674212,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 10.0,
-    "p_rec_at_fair_line": 0.483
+    "fair_line_yards": 7.0,
+    "p_rec_at_fair_line": 0.426
   },
   {
     "player_id": "00-0036893",
@@ -15496,8 +15496,8 @@
     "proj_rec": 1.7717962274560906,
     "proj_yards": 13.590534029282479,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 10.0,
-    "p_rec_at_fair_line": 0.5081
+    "fair_line_yards": 7.0,
+    "p_rec_at_fair_line": 0.4511
   },
   {
     "player_id": "00-0036635",
@@ -15557,9 +15557,9 @@
     "mu_ypr": 10.465734683638651,
     "proj_rec": 1.2761730346365399,
     "proj_yards": 13.356088390920025,
-    "fair_line_rec": 1.5,
-    "fair_line_yards": 8.5,
-    "p_rec_at_fair_line": 0.358
+    "fair_line_rec": 0.5,
+    "fair_line_yards": 5.0,
+    "p_rec_at_fair_line": 0.6401
   },
   {
     "player_id": "00-0038440",
@@ -15620,8 +15620,8 @@
     "proj_rec": 1.7437843722487016,
     "proj_yards": 13.285659630379396,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 10.0,
-    "p_rec_at_fair_line": 0.5004
+    "fair_line_yards": 7.0,
+    "p_rec_at_fair_line": 0.4434
   },
   {
     "player_id": "00-0038678",
@@ -15682,8 +15682,8 @@
     "proj_rec": 1.5909692771142814,
     "proj_yards": 13.122763285880497,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 9.5,
-    "p_rec_at_fair_line": 0.4567
+    "fair_line_yards": 6.5,
+    "p_rec_at_fair_line": 0.3997
   },
   {
     "player_id": "00-0035685",
@@ -15744,8 +15744,8 @@
     "proj_rec": 1.756311990666879,
     "proj_yards": 13.079467385604037,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 9.5,
-    "p_rec_at_fair_line": 0.5038
+    "fair_line_yards": 7.0,
+    "p_rec_at_fair_line": 0.4468
   },
   {
     "player_id": "00-0038705",
@@ -15806,8 +15806,8 @@
     "proj_rec": 1.629277237674961,
     "proj_yards": 12.602745257447868,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 9.0,
-    "p_rec_at_fair_line": 0.4679
+    "fair_line_yards": 6.5,
+    "p_rec_at_fair_line": 0.4109
   },
   {
     "player_id": "00-0038098",
@@ -15868,8 +15868,8 @@
     "proj_rec": 1.6381856261016299,
     "proj_yards": 12.45833305918893,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 9.0,
-    "p_rec_at_fair_line": 0.4705
+    "fair_line_yards": 6.5,
+    "p_rec_at_fair_line": 0.4135
   },
   {
     "player_id": "00-0036265",
@@ -15930,8 +15930,8 @@
     "proj_rec": 1.536538218522615,
     "proj_yards": 12.292937576274218,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 8.5,
-    "p_rec_at_fair_line": 0.4404
+    "fair_line_yards": 6.0,
+    "p_rec_at_fair_line": 0.3834
   },
   {
     "player_id": "00-0036670",
@@ -15992,8 +15992,8 @@
     "proj_rec": 1.5086470075751441,
     "proj_yards": 12.057203294774693,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 8.5,
-    "p_rec_at_fair_line": 0.432
+    "fair_line_yards": 5.5,
+    "p_rec_at_fair_line": 0.375
   },
   {
     "player_id": "00-0032104",
@@ -16054,8 +16054,8 @@
     "proj_rec": 1.5955482468283508,
     "proj_yards": 11.74978775516286,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 8.5,
-    "p_rec_at_fair_line": 0.458
+    "fair_line_yards": 6.0,
+    "p_rec_at_fair_line": 0.401
   },
   {
     "player_id": "00-0038622",
@@ -16116,8 +16116,8 @@
     "proj_rec": 1.5123221195430254,
     "proj_yards": 11.629630817410048,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 8.0,
-    "p_rec_at_fair_line": 0.4331
+    "fair_line_yards": 5.5,
+    "p_rec_at_fair_line": 0.3761
   },
   {
     "player_id": "00-0033854",
@@ -16178,8 +16178,8 @@
     "proj_rec": 1.5374825630056135,
     "proj_yards": 11.480197038430857,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 8.0,
-    "p_rec_at_fair_line": 0.4407
+    "fair_line_yards": 5.5,
+    "p_rec_at_fair_line": 0.3837
   },
   {
     "player_id": "00-0039325",
@@ -16240,8 +16240,8 @@
     "proj_rec": 1.3879328568719123,
     "proj_yards": 11.142607285107912,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 7.5,
-    "p_rec_at_fair_line": 0.3943
+    "fair_line_yards": 5.0,
+    "p_rec_at_fair_line": 0.3373
   },
   {
     "player_id": "00-0038040",
@@ -16302,8 +16302,8 @@
     "proj_rec": 1.4241000752903605,
     "proj_yards": 11.119951070470028,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 7.5,
-    "p_rec_at_fair_line": 0.4058
+    "fair_line_yards": 5.0,
+    "p_rec_at_fair_line": 0.3488
   },
   {
     "player_id": "00-0035924",
@@ -16363,9 +16363,9 @@
     "mu_ypr": 8.790518192257485,
     "proj_rec": 1.2604437138960645,
     "proj_yards": 11.079953397319944,
-    "fair_line_rec": 1.5,
-    "fair_line_yards": 7.0,
-    "p_rec_at_fair_line": 0.3528
+    "fair_line_rec": 0.5,
+    "fair_line_yards": 4.0,
+    "p_rec_at_fair_line": 0.6359
   },
   {
     "player_id": "00-0035567",
@@ -16426,8 +16426,8 @@
     "proj_rec": 1.3936645538353971,
     "proj_yards": 11.05980674625851,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 7.5,
-    "p_rec_at_fair_line": 0.3961
+    "fair_line_yards": 5.0,
+    "p_rec_at_fair_line": 0.3391
   },
   {
     "player_id": "00-0038797",
@@ -16488,8 +16488,8 @@
     "proj_rec": 1.4441753625879332,
     "proj_yards": 10.967412106709926,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 7.5,
-    "p_rec_at_fair_line": 0.4121
+    "fair_line_yards": 5.0,
+    "p_rec_at_fair_line": 0.3551
   },
   {
     "player_id": "00-0037263",
@@ -16550,8 +16550,8 @@
     "proj_rec": 1.4521343450015887,
     "proj_yards": 10.577178905090276,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 7.0,
-    "p_rec_at_fair_line": 0.4145
+    "fair_line_yards": 5.0,
+    "p_rec_at_fair_line": 0.3575
   },
   {
     "player_id": "00-0040586",
@@ -16611,9 +16611,9 @@
     "mu_ypr": 7.726925258953748,
     "proj_rec": 1.358754563317367,
     "proj_yards": 10.498994956015633,
-    "fair_line_rec": 1.5,
-    "fair_line_yards": 7.0,
-    "p_rec_at_fair_line": 0.385
+    "fair_line_rec": 0.5,
+    "fair_line_yards": 4.5,
+    "p_rec_at_fair_line": 0.6612
   },
   {
     "player_id": "00-0038611",
@@ -16673,9 +16673,9 @@
     "mu_ypr": 8.531690691304744,
     "proj_rec": 1.2188138158069328,
     "proj_yards": 10.398542486753623,
-    "fair_line_rec": 1.5,
-    "fair_line_yards": 6.5,
-    "p_rec_at_fair_line": 0.339
+    "fair_line_rec": 0.5,
+    "fair_line_yards": 3.5,
+    "p_rec_at_fair_line": 0.6244
   },
   {
     "player_id": "00-0037276",
@@ -16735,9 +16735,9 @@
     "mu_ypr": 7.589384667362308,
     "proj_rec": 1.338643475296676,
     "proj_yards": 10.159480266481188,
-    "fair_line_rec": 1.5,
-    "fair_line_yards": 6.5,
-    "p_rec_at_fair_line": 0.3785
+    "fair_line_rec": 0.5,
+    "fair_line_yards": 4.0,
+    "p_rec_at_fair_line": 0.6562
   },
   {
     "player_id": "00-0038397",
@@ -16797,9 +16797,9 @@
     "mu_ypr": 7.546851948747318,
     "proj_rec": 1.335648556383649,
     "proj_yards": 10.079941910585484,
-    "fair_line_rec": 1.5,
-    "fair_line_yards": 6.5,
-    "p_rec_at_fair_line": 0.3775
+    "fair_line_rec": 0.5,
+    "fair_line_yards": 4.0,
+    "p_rec_at_fair_line": 0.6555
   },
   {
     "player_id": "00-0036984",
@@ -16859,9 +16859,9 @@
     "mu_ypr": 7.629641316507888,
     "proj_rec": 1.318473594633785,
     "proj_yards": 10.059480612342599,
-    "fair_line_rec": 1.5,
-    "fair_line_yards": 6.5,
-    "p_rec_at_fair_line": 0.3719
+    "fair_line_rec": 0.5,
+    "fair_line_yards": 4.0,
+    "p_rec_at_fair_line": 0.6511
   },
   {
     "player_id": "00-0035594",
@@ -16921,9 +16921,9 @@
     "mu_ypr": 7.857032060348583,
     "proj_rec": 1.276685940464042,
     "proj_yards": 10.03096236522226,
-    "fair_line_rec": 1.5,
-    "fair_line_yards": 6.5,
-    "p_rec_at_fair_line": 0.3582
+    "fair_line_rec": 0.5,
+    "fair_line_yards": 4.0,
+    "p_rec_at_fair_line": 0.6402
   },
   {
     "player_id": "00-0037746",
@@ -16983,9 +16983,9 @@
     "mu_ypr": 7.324786882198233,
     "proj_rec": 1.3646628510517227,
     "proj_yards": 9.9958645500069,
-    "fair_line_rec": 1.5,
-    "fair_line_yards": 6.5,
-    "p_rec_at_fair_line": 0.3869
+    "fair_line_rec": 0.5,
+    "fair_line_yards": 4.0,
+    "p_rec_at_fair_line": 0.6626
   },
   {
     "player_id": "00-0037617",
@@ -17045,9 +17045,9 @@
     "mu_ypr": 7.452813993215354,
     "proj_rec": 1.3216682638104758,
     "proj_yards": 9.850147730915356,
-    "fair_line_rec": 1.5,
-    "fair_line_yards": 6.5,
-    "p_rec_at_fair_line": 0.373
+    "fair_line_rec": 0.5,
+    "fair_line_yards": 4.0,
+    "p_rec_at_fair_line": 0.6519
   },
   {
     "player_id": "00-0040142",
@@ -17107,9 +17107,9 @@
     "mu_ypr": 7.589268323207314,
     "proj_rec": 1.2850300301303845,
     "proj_yards": 9.752437702038668,
-    "fair_line_rec": 1.5,
-    "fair_line_yards": 6.0,
-    "p_rec_at_fair_line": 0.361
+    "fair_line_rec": 0.5,
+    "fair_line_yards": 3.5,
+    "p_rec_at_fair_line": 0.6425
   },
   {
     "player_id": "00-0038794",
@@ -17169,9 +17169,9 @@
     "mu_ypr": 7.060128304455397,
     "proj_rec": 1.3660183730408775,
     "proj_yards": 9.644264979912009,
-    "fair_line_rec": 1.5,
-    "fair_line_yards": 6.5,
-    "p_rec_at_fair_line": 0.3873
+    "fair_line_rec": 0.5,
+    "fair_line_yards": 4.0,
+    "p_rec_at_fair_line": 0.663
   },
   {
     "player_id": "00-0037120",
@@ -17231,9 +17231,9 @@
     "mu_ypr": 7.345050287572789,
     "proj_rec": 1.2710623016939862,
     "proj_yards": 9.336016524580344,
-    "fair_line_rec": 1.5,
-    "fair_line_yards": 6.0,
-    "p_rec_at_fair_line": 0.3564
+    "fair_line_rec": 0.5,
+    "fair_line_yards": 3.5,
+    "p_rec_at_fair_line": 0.6388
   },
   {
     "player_id": "00-0036187",
@@ -17293,9 +17293,9 @@
     "mu_ypr": 7.525524710527026,
     "proj_rec": 1.2367586439892604,
     "proj_yards": 9.307257736299077,
-    "fair_line_rec": 1.5,
-    "fair_line_yards": 5.5,
-    "p_rec_at_fair_line": 0.345
+    "fair_line_rec": 0.5,
+    "fair_line_yards": 3.5,
+    "p_rec_at_fair_line": 0.6294
   },
   {
     "player_id": "00-0036425",
@@ -17355,9 +17355,9 @@
     "mu_ypr": 7.536943612153443,
     "proj_rec": 1.232201208940947,
     "proj_yards": 9.287031030615221,
-    "fair_line_rec": 1.5,
-    "fair_line_yards": 5.5,
-    "p_rec_at_fair_line": 0.3434
+    "fair_line_rec": 0.5,
+    "fair_line_yards": 3.5,
+    "p_rec_at_fair_line": 0.6282
   },
   {
     "player_id": "00-0037258",
@@ -17417,9 +17417,9 @@
     "mu_ypr": 7.717062163877691,
     "proj_rec": 1.1883391746489602,
     "proj_yards": 9.170487282537135,
-    "fair_line_rec": 1.5,
-    "fair_line_yards": 5.5,
-    "p_rec_at_fair_line": 0.3287
+    "fair_line_rec": 0.5,
+    "fair_line_yards": 3.0,
+    "p_rec_at_fair_line": 0.6157
   },
   {
     "player_id": "00-0033376",
@@ -17480,8 +17480,8 @@
     "proj_rec": 1.1646203772345831,
     "proj_yards": 8.987831591906978,
     "fair_line_rec": 0.5,
-    "fair_line_yards": 5.5,
-    "p_rec_at_fair_line": 0.6658
+    "fair_line_yards": 3.0,
+    "p_rec_at_fair_line": 0.6088
   },
   {
     "player_id": "00-0035045",
@@ -17541,9 +17541,9 @@
     "mu_ypr": 13.128376642949323,
     "proj_rec": 2.2414443480398654,
     "proj_yards": 29.426525625277343,
-    "fair_line_rec": 2.5,
-    "fair_line_yards": 23.5,
-    "p_rec_at_fair_line": 0.3807
+    "fair_line_rec": 1.5,
+    "fair_line_yards": 18.0,
+    "p_rec_at_fair_line": 0.5657
   },
   {
     "player_id": "00-0038891",
@@ -17604,8 +17604,8 @@
     "proj_rec": 1.5209838756083311,
     "proj_yards": 21.792924509025486,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 15.0,
-    "p_rec_at_fair_line": 0.4357
+    "fair_line_yards": 10.5,
+    "p_rec_at_fair_line": 0.3787
   },
   {
     "player_id": "00-0040024",
@@ -17666,8 +17666,8 @@
     "proj_rec": 1.727726478780683,
     "proj_yards": 20.851701991807502,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 15.5,
-    "p_rec_at_fair_line": 0.4959
+    "fair_line_yards": 11.0,
+    "p_rec_at_fair_line": 0.4389
   },
   {
     "player_id": "00-0040277",
@@ -17728,8 +17728,8 @@
     "proj_rec": 1.526083853232268,
     "proj_yards": 19.574760892711748,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 13.5,
-    "p_rec_at_fair_line": 0.4373
+    "fair_line_yards": 9.5,
+    "p_rec_at_fair_line": 0.3803
   },
   {
     "player_id": "00-0038953",
@@ -17790,8 +17790,8 @@
     "proj_rec": 1.6447062140400617,
     "proj_yards": 18.146038665443648,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 13.0,
-    "p_rec_at_fair_line": 0.4724
+    "fair_line_yards": 9.0,
+    "p_rec_at_fair_line": 0.4154
   },
   {
     "player_id": "00-0039754",
@@ -17852,8 +17852,8 @@
     "proj_rec": 1.6089609580780178,
     "proj_yards": 17.990681613537358,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 13.0,
-    "p_rec_at_fair_line": 0.462
+    "fair_line_yards": 9.0,
+    "p_rec_at_fair_line": 0.405
   },
   {
     "player_id": "00-0038492",
@@ -17913,9 +17913,9 @@
     "mu_ypr": 12.069769256332023,
     "proj_rec": 1.3416838299521756,
     "proj_yards": 16.19381424247457,
-    "fair_line_rec": 1.5,
-    "fair_line_yards": 10.5,
-    "p_rec_at_fair_line": 0.3795
+    "fair_line_rec": 0.5,
+    "fair_line_yards": 6.5,
+    "p_rec_at_fair_line": 0.657
   },
   {
     "player_id": "00-0040509",
@@ -17975,9 +17975,9 @@
     "mu_ypr": 9.9725259599326,
     "proj_rec": 1.3315048694061866,
     "proj_yards": 13.278466875929862,
-    "fair_line_rec": 1.5,
-    "fair_line_yards": 8.5,
-    "p_rec_at_fair_line": 0.3762
+    "fair_line_rec": 0.5,
+    "fair_line_yards": 5.5,
+    "p_rec_at_fair_line": 0.6544
   },
   {
     "player_id": "00-0039338",
@@ -18038,8 +18038,8 @@
     "proj_rec": 5.140452591294451,
     "proj_yards": 54.68001675970928,
     "fair_line_rec": 4.5,
-    "fair_line_yards": 49.0,
-    "p_rec_at_fair_line": 0.5412
+    "fair_line_yards": 41.5,
+    "p_rec_at_fair_line": 0.4842
   },
   {
     "player_id": "00-0039855",
@@ -18100,8 +18100,8 @@
     "proj_rec": 2.692437749098226,
     "proj_yards": 34.275165252079454,
     "fair_line_rec": 2.5,
-    "fair_line_yards": 28.0,
-    "p_rec_at_fair_line": 0.4825
+    "fair_line_yards": 22.0,
+    "p_rec_at_fair_line": 0.4255
   },
   {
     "player_id": "00-0033375",
@@ -18162,8 +18162,8 @@
     "proj_rec": 1.8365467051447968,
     "proj_yards": 21.756834765011305,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 16.5,
-    "p_rec_at_fair_line": 0.5255
+    "fair_line_yards": 12.0,
+    "p_rec_at_fair_line": 0.4685
   },
   {
     "player_id": "00-0040734",
@@ -18224,8 +18224,8 @@
     "proj_rec": 1.9497315865877365,
     "proj_yards": 14.768834973214808,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 11.5,
-    "p_rec_at_fair_line": 0.5547
+    "fair_line_yards": 8.5,
+    "p_rec_at_fair_line": 0.4977
   },
   {
     "player_id": "00-0039373",
@@ -18286,8 +18286,8 @@
     "proj_rec": 1.7161797176367084,
     "proj_yards": 13.235552317989839,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 9.5,
-    "p_rec_at_fair_line": 0.4927
+    "fair_line_yards": 7.0,
+    "p_rec_at_fair_line": 0.4357
   },
   {
     "player_id": "00-0037563",
@@ -18347,9 +18347,9 @@
     "mu_ypr": 8.576332295417465,
     "proj_rec": 1.3291829151226282,
     "proj_yards": 11.399514361483329,
-    "fair_line_rec": 1.5,
-    "fair_line_yards": 7.5,
-    "p_rec_at_fair_line": 0.3754
+    "fair_line_rec": 0.5,
+    "fair_line_yards": 4.5,
+    "p_rec_at_fair_line": 0.6538
   },
   {
     "player_id": "00-0038951",
@@ -18409,9 +18409,9 @@
     "mu_ypr": 8.119471742585988,
     "proj_rec": 1.3345245721002716,
     "proj_yards": 10.835634552954813,
-    "fair_line_rec": 1.5,
-    "fair_line_yards": 7.0,
-    "p_rec_at_fair_line": 0.3771
+    "fair_line_rec": 0.5,
+    "fair_line_yards": 4.5,
+    "p_rec_at_fair_line": 0.6552
   },
   {
     "player_id": "00-0036842",
@@ -18472,8 +18472,8 @@
     "proj_rec": 1.1513559462666794,
     "proj_yards": 9.036984268673182,
     "fair_line_rec": 0.5,
-    "fair_line_yards": 5.0,
-    "p_rec_at_fair_line": 0.6618
+    "fair_line_yards": 3.0,
+    "p_rec_at_fair_line": 0.6048
   },
   {
     "player_id": "00-0039792",
@@ -18534,8 +18534,8 @@
     "proj_rec": 1.4517314198596802,
     "proj_yards": 25.24435908186504,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 17.0,
-    "p_rec_at_fair_line": 0.4144
+    "fair_line_yards": 11.5,
+    "p_rec_at_fair_line": 0.3574
   },
   {
     "player_id": "00-0037091",
@@ -18596,8 +18596,8 @@
     "proj_rec": 1.6177574329067779,
     "proj_yards": 23.786163981093495,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 17.0,
-    "p_rec_at_fair_line": 0.4646
+    "fair_line_yards": 12.0,
+    "p_rec_at_fair_line": 0.4076
   },
   {
     "player_id": "00-0039814",
@@ -18658,8 +18658,8 @@
     "proj_rec": 2.1303156866981823,
     "proj_yards": 22.755805411420013,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 18.0,
-    "p_rec_at_fair_line": 0.598
+    "fair_line_yards": 13.5,
+    "p_rec_at_fair_line": 0.541
   },
   {
     "player_id": "00-0039355",
@@ -18720,8 +18720,8 @@
     "proj_rec": 1.7036385297834615,
     "proj_yards": 22.66686596915521,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 16.5,
-    "p_rec_at_fair_line": 0.4892
+    "fair_line_yards": 11.5,
+    "p_rec_at_fair_line": 0.4322
   },
   {
     "player_id": "00-0039062",
@@ -18782,8 +18782,8 @@
     "proj_rec": 1.5701867432977852,
     "proj_yards": 22.161595677668338,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 15.5,
-    "p_rec_at_fair_line": 0.4505
+    "fair_line_yards": 11.0,
+    "p_rec_at_fair_line": 0.3935
   },
   {
     "player_id": "00-0034613",
@@ -18844,8 +18844,8 @@
     "proj_rec": 2.105505201820871,
     "proj_yards": 21.831157661891062,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 17.0,
-    "p_rec_at_fair_line": 0.5923
+    "fair_line_yards": 13.0,
+    "p_rec_at_fair_line": 0.5353
   },
   {
     "player_id": "00-0040164",
@@ -18906,8 +18906,8 @@
     "proj_rec": 1.5646654831732023,
     "proj_yards": 21.371884953701237,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 15.0,
-    "p_rec_at_fair_line": 0.4489
+    "fair_line_yards": 10.5,
+    "p_rec_at_fair_line": 0.3919
   },
   {
     "player_id": "00-0038640",
@@ -18968,8 +18968,8 @@
     "proj_rec": 1.641854512533932,
     "proj_yards": 20.197964959375426,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 14.5,
-    "p_rec_at_fair_line": 0.4716
+    "fair_line_yards": 10.0,
+    "p_rec_at_fair_line": 0.4146
   },
   {
     "player_id": "00-0035021",
@@ -19030,8 +19030,8 @@
     "proj_rec": 1.69811937990657,
     "proj_yards": 19.879553375266788,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 14.5,
-    "p_rec_at_fair_line": 0.4876
+    "fair_line_yards": 10.5,
+    "p_rec_at_fair_line": 0.4306
   },
   {
     "player_id": "00-0040138",
@@ -19092,8 +19092,8 @@
     "proj_rec": 1.7355934034414426,
     "proj_yards": 19.856226842615737,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 14.5,
-    "p_rec_at_fair_line": 0.4981
+    "fair_line_yards": 10.5,
+    "p_rec_at_fair_line": 0.4411
   },
   {
     "player_id": "00-0039751",
@@ -19154,8 +19154,8 @@
     "proj_rec": 1.6731569818769023,
     "proj_yards": 19.76137050012904,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 14.5,
-    "p_rec_at_fair_line": 0.4805
+    "fair_line_yards": 10.0,
+    "p_rec_at_fair_line": 0.4235
   },
   {
     "player_id": "00-0035544",
@@ -19216,8 +19216,8 @@
     "proj_rec": 1.585795369211176,
     "proj_yards": 19.405013304863242,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 13.5,
-    "p_rec_at_fair_line": 0.4552
+    "fair_line_yards": 9.5,
+    "p_rec_at_fair_line": 0.3982
   },
   {
     "player_id": "00-0040194",
@@ -19278,8 +19278,8 @@
     "proj_rec": 1.8109104722112779,
     "proj_yards": 19.315706938986963,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 14.5,
-    "p_rec_at_fair_line": 0.5187
+    "fair_line_yards": 10.5,
+    "p_rec_at_fair_line": 0.4617
   },
   {
     "player_id": "00-0040187",
@@ -19340,8 +19340,8 @@
     "proj_rec": 1.8633627885223727,
     "proj_yards": 19.067203545422306,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 14.5,
-    "p_rec_at_fair_line": 0.5326
+    "fair_line_yards": 10.5,
+    "p_rec_at_fair_line": 0.4756
   },
   {
     "player_id": "00-0037005",
@@ -19402,8 +19402,8 @@
     "proj_rec": 1.9314206514889727,
     "proj_yards": 19.027054279363323,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 14.5,
-    "p_rec_at_fair_line": 0.5501
+    "fair_line_yards": 10.5,
+    "p_rec_at_fair_line": 0.4931
   },
   {
     "player_id": "00-0040218",
@@ -19464,8 +19464,8 @@
     "proj_rec": 1.7308695249403794,
     "proj_yards": 18.978855750675226,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 14.0,
-    "p_rec_at_fair_line": 0.4968
+    "fair_line_yards": 10.0,
+    "p_rec_at_fair_line": 0.4398
   },
   {
     "player_id": "00-0037755",
@@ -19526,8 +19526,8 @@
     "proj_rec": 1.8564669938805205,
     "proj_yards": 18.792954857775147,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 14.0,
-    "p_rec_at_fair_line": 0.5308
+    "fair_line_yards": 10.5,
+    "p_rec_at_fair_line": 0.4738
   },
   {
     "player_id": "00-0035249",
@@ -19588,8 +19588,8 @@
     "proj_rec": 1.8612661204716596,
     "proj_yards": 18.6882679094761,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 14.0,
-    "p_rec_at_fair_line": 0.532
+    "fair_line_yards": 10.5,
+    "p_rec_at_fair_line": 0.475
   },
   {
     "player_id": "00-0036637",
@@ -19650,8 +19650,8 @@
     "proj_rec": 1.8281644347404074,
     "proj_yards": 18.614258476935643,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 14.0,
-    "p_rec_at_fair_line": 0.5233
+    "fair_line_yards": 10.0,
+    "p_rec_at_fair_line": 0.4663
   },
   {
     "player_id": "00-0039912",
@@ -19712,8 +19712,8 @@
     "proj_rec": 1.687612868484579,
     "proj_yards": 18.49801945315788,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 13.5,
-    "p_rec_at_fair_line": 0.4847
+    "fair_line_yards": 9.5,
+    "p_rec_at_fair_line": 0.4277
   },
   {
     "player_id": "00-0039365",
@@ -19773,9 +19773,9 @@
     "mu_ypr": 15.272621998616266,
     "proj_rec": 1.2106757442256018,
     "proj_yards": 18.490193004451044,
-    "fair_line_rec": 1.5,
-    "fair_line_yards": 11.0,
-    "p_rec_at_fair_line": 0.3362
+    "fair_line_rec": 0.5,
+    "fair_line_yards": 6.5,
+    "p_rec_at_fair_line": 0.6221
   },
   {
     "player_id": "00-0040739",
@@ -19836,8 +19836,8 @@
     "proj_rec": 1.6266734367815459,
     "proj_yards": 18.387512657202176,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 13.0,
-    "p_rec_at_fair_line": 0.4672
+    "fair_line_yards": 9.0,
+    "p_rec_at_fair_line": 0.4102
   },
   {
     "player_id": "00-0036556",
@@ -19898,8 +19898,8 @@
     "proj_rec": 1.848059895536302,
     "proj_yards": 18.305631765042225,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 13.5,
-    "p_rec_at_fair_line": 0.5285
+    "fair_line_yards": 10.0,
+    "p_rec_at_fair_line": 0.4715
   },
   {
     "player_id": "00-0040184",
@@ -19959,9 +19959,9 @@
     "mu_ypr": 13.732772126342864,
     "proj_rec": 1.3037312772325464,
     "proj_yards": 17.903844544220494,
-    "fair_line_rec": 1.5,
-    "fair_line_yards": 11.5,
-    "p_rec_at_fair_line": 0.3671
+    "fair_line_rec": 0.5,
+    "fair_line_yards": 7.0,
+    "p_rec_at_fair_line": 0.6473
   },
   {
     "player_id": "00-0038547",
@@ -20022,8 +20022,8 @@
     "proj_rec": 1.6703066587674706,
     "proj_yards": 17.72430472321352,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 13.0,
-    "p_rec_at_fair_line": 0.4797
+    "fair_line_yards": 9.0,
+    "p_rec_at_fair_line": 0.4227
   },
   {
     "player_id": "00-0038519",
@@ -20083,9 +20083,9 @@
     "mu_ypr": 13.560935021453695,
     "proj_rec": 1.3047180965285672,
     "proj_yards": 17.69319732833865,
-    "fair_line_rec": 1.5,
-    "fair_line_yards": 11.5,
-    "p_rec_at_fair_line": 0.3674
+    "fair_line_rec": 0.5,
+    "fair_line_yards": 7.0,
+    "p_rec_at_fair_line": 0.6476
   },
   {
     "player_id": "00-0034365",
@@ -20146,8 +20146,8 @@
     "proj_rec": 1.8603295096976096,
     "proj_yards": 17.469840981658656,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 13.0,
-    "p_rec_at_fair_line": 0.5318
+    "fair_line_yards": 9.5,
+    "p_rec_at_fair_line": 0.4748
   },
   {
     "player_id": "00-0035631",
@@ -20208,8 +20208,8 @@
     "proj_rec": 1.842230128640429,
     "proj_yards": 17.356143538218184,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 13.0,
-    "p_rec_at_fair_line": 0.527
+    "fair_line_yards": 9.5,
+    "p_rec_at_fair_line": 0.47
   },
   {
     "player_id": "00-0036422",
@@ -20270,8 +20270,8 @@
     "proj_rec": 1.7972221057780209,
     "proj_yards": 17.348241980576603,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 13.0,
-    "p_rec_at_fair_line": 0.515
+    "fair_line_yards": 9.5,
+    "p_rec_at_fair_line": 0.458
   },
   {
     "player_id": "00-0038840",
@@ -20332,8 +20332,8 @@
     "proj_rec": 1.4198436888996202,
     "proj_yards": 17.070306847296106,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 11.5,
-    "p_rec_at_fair_line": 0.4044
+    "fair_line_yards": 7.5,
+    "p_rec_at_fair_line": 0.3474
   },
   {
     "player_id": "00-0033217",
@@ -20394,8 +20394,8 @@
     "proj_rec": 1.696813063762137,
     "proj_yards": 17.00337581238606,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 12.5,
-    "p_rec_at_fair_line": 0.4873
+    "fair_line_yards": 9.0,
+    "p_rec_at_fair_line": 0.4303
   },
   {
     "player_id": "00-0038589",
@@ -20456,8 +20456,8 @@
     "proj_rec": 1.6404943984006999,
     "proj_yards": 16.994855827385255,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 12.0,
-    "p_rec_at_fair_line": 0.4712
+    "fair_line_yards": 8.5,
+    "p_rec_at_fair_line": 0.4142
   },
   {
     "player_id": "00-0036862",
@@ -20518,8 +20518,8 @@
     "proj_rec": 1.39987748739057,
     "proj_yards": 16.942889078581075,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 11.5,
-    "p_rec_at_fair_line": 0.3981
+    "fair_line_yards": 7.5,
+    "p_rec_at_fair_line": 0.3411
   },
   {
     "player_id": "00-0036628",
@@ -20580,8 +20580,8 @@
     "proj_rec": 1.6259776023158117,
     "proj_yards": 16.538752248817126,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 12.0,
-    "p_rec_at_fair_line": 0.467
+    "fair_line_yards": 8.5,
+    "p_rec_at_fair_line": 0.41
   },
   {
     "player_id": "00-0032951",
@@ -20642,8 +20642,8 @@
     "proj_rec": 1.4790369070277887,
     "proj_yards": 16.527633307981255,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 11.5,
-    "p_rec_at_fair_line": 0.4229
+    "fair_line_yards": 7.5,
+    "p_rec_at_fair_line": 0.3659
   },
   {
     "player_id": "00-0039384",
@@ -20704,8 +20704,8 @@
     "proj_rec": 2.034650181968381,
     "proj_yards": 15.963216295570387,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 12.5,
-    "p_rec_at_fair_line": 0.5756
+    "fair_line_yards": 9.0,
+    "p_rec_at_fair_line": 0.5186
   },
   {
     "player_id": "00-0034844",
@@ -20766,8 +20766,8 @@
     "proj_rec": 2.0517675601159757,
     "proj_yards": 15.951745697364377,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 12.5,
-    "p_rec_at_fair_line": 0.5797
+    "fair_line_yards": 9.0,
+    "p_rec_at_fair_line": 0.5227
   },
   {
     "player_id": "00-0039391",
@@ -20828,8 +20828,8 @@
     "proj_rec": 1.8674722682684939,
     "proj_yards": 15.929195680351476,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 12.0,
-    "p_rec_at_fair_line": 0.5336
+    "fair_line_yards": 9.0,
+    "p_rec_at_fair_line": 0.4766
   },
   {
     "player_id": "00-0039589",
@@ -20889,9 +20889,9 @@
     "mu_ypr": 13.292819467136828,
     "proj_rec": 1.1973023519944628,
     "proj_yards": 15.915524012640706,
-    "fair_line_rec": 1.5,
-    "fair_line_yards": 9.5,
-    "p_rec_at_fair_line": 0.3317
+    "fair_line_rec": 0.5,
+    "fair_line_yards": 5.5,
+    "p_rec_at_fair_line": 0.6183
   },
   {
     "player_id": "00-0039050",
@@ -20952,8 +20952,8 @@
     "proj_rec": 1.5691301971911087,
     "proj_yards": 15.901826784290652,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 11.0,
-    "p_rec_at_fair_line": 0.4502
+    "fair_line_yards": 7.5,
+    "p_rec_at_fair_line": 0.3932
   },
   {
     "player_id": "00-0040582",
@@ -21013,9 +21013,9 @@
     "mu_ypr": 12.351631182572206,
     "proj_rec": 1.2829494346893595,
     "proj_yards": 15.846518243172476,
-    "fair_line_rec": 1.5,
-    "fair_line_yards": 10.0,
-    "p_rec_at_fair_line": 0.3603
+    "fair_line_rec": 0.5,
+    "fair_line_yards": 6.0,
+    "p_rec_at_fair_line": 0.6419
   },
   {
     "player_id": "00-0036646",
@@ -21075,9 +21075,9 @@
     "mu_ypr": 12.302126055937222,
     "proj_rec": 1.2803326381405264,
     "proj_yards": 15.750813507935414,
-    "fair_line_rec": 1.5,
-    "fair_line_yards": 10.0,
-    "p_rec_at_fair_line": 0.3594
+    "fair_line_rec": 0.5,
+    "fair_line_yards": 6.0,
+    "p_rec_at_fair_line": 0.6412
   },
   {
     "player_id": "00-0040154",
@@ -21138,8 +21138,8 @@
     "proj_rec": 1.4236552339902113,
     "proj_yards": 15.517706506932933,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 10.5,
-    "p_rec_at_fair_line": 0.4056
+    "fair_line_yards": 7.0,
+    "p_rec_at_fair_line": 0.3486
   },
   {
     "player_id": "00-0036590",
@@ -21200,8 +21200,8 @@
     "proj_rec": 1.5047028399720797,
     "proj_yards": 15.498473424463846,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 10.5,
-    "p_rec_at_fair_line": 0.4308
+    "fair_line_yards": 7.0,
+    "p_rec_at_fair_line": 0.3738
   },
   {
     "player_id": "00-0039920",
@@ -21262,8 +21262,8 @@
     "proj_rec": 1.566174074317495,
     "proj_yards": 15.497924569493822,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 11.0,
-    "p_rec_at_fair_line": 0.4493
+    "fair_line_yards": 7.5,
+    "p_rec_at_fair_line": 0.3923
   },
   {
     "player_id": "00-0039530",
@@ -21324,8 +21324,8 @@
     "proj_rec": 1.4250136320702176,
     "proj_yards": 15.363229822828128,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 10.5,
-    "p_rec_at_fair_line": 0.4061
+    "fair_line_yards": 7.0,
+    "p_rec_at_fair_line": 0.3491
   },
   {
     "player_id": "00-0037292",
@@ -21386,8 +21386,8 @@
     "proj_rec": 1.4549835684054457,
     "proj_yards": 15.201254792827244,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 10.5,
-    "p_rec_at_fair_line": 0.4154
+    "fair_line_yards": 7.0,
+    "p_rec_at_fair_line": 0.3584
   },
   {
     "player_id": "00-0038573",
@@ -21448,8 +21448,8 @@
     "proj_rec": 1.1767139732218765,
     "proj_yards": 15.058546401533551,
     "fair_line_rec": 0.5,
-    "fair_line_yards": 9.0,
-    "p_rec_at_fair_line": 0.6694
+    "fair_line_yards": 5.0,
+    "p_rec_at_fair_line": 0.6124
   },
   {
     "player_id": "00-0037228",
@@ -21510,8 +21510,8 @@
     "proj_rec": 1.9929295174275097,
     "proj_yards": 14.840284551644068,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 11.5,
-    "p_rec_at_fair_line": 0.5654
+    "fair_line_yards": 8.5,
+    "p_rec_at_fair_line": 0.5084
   },
   {
     "player_id": "00-0036555",
@@ -21572,8 +21572,8 @@
     "proj_rec": 2.044731890879936,
     "proj_yards": 14.838345266900197,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 11.5,
-    "p_rec_at_fair_line": 0.578
+    "fair_line_yards": 8.5,
+    "p_rec_at_fair_line": 0.521
   },
   {
     "player_id": "00-0038783",
@@ -21634,8 +21634,8 @@
     "proj_rec": 1.4879616356555518,
     "proj_yards": 14.765933733141795,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 10.0,
-    "p_rec_at_fair_line": 0.4256
+    "fair_line_yards": 7.0,
+    "p_rec_at_fair_line": 0.3686
   },
   {
     "player_id": "00-0034975",
@@ -21696,8 +21696,8 @@
     "proj_rec": 1.8297921628968197,
     "proj_yards": 14.455799939163239,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 11.0,
-    "p_rec_at_fair_line": 0.5237
+    "fair_line_yards": 8.0,
+    "p_rec_at_fair_line": 0.4667
   },
   {
     "player_id": "00-0040236",
@@ -21758,8 +21758,8 @@
     "proj_rec": 1.801585657962679,
     "proj_yards": 14.370319250039916,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 10.5,
-    "p_rec_at_fair_line": 0.5162
+    "fair_line_yards": 7.5,
+    "p_rec_at_fair_line": 0.4592
   },
   {
     "player_id": "00-0036887",
@@ -21820,8 +21820,8 @@
     "proj_rec": 1.4675782920566864,
     "proj_yards": 14.352570890889577,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 10.0,
-    "p_rec_at_fair_line": 0.4193
+    "fair_line_yards": 6.5,
+    "p_rec_at_fair_line": 0.3623
   },
   {
     "player_id": "00-0040583",
@@ -21882,8 +21882,8 @@
     "proj_rec": 1.7757045388592123,
     "proj_yards": 14.246462067775177,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 10.5,
-    "p_rec_at_fair_line": 0.5092
+    "fair_line_yards": 7.5,
+    "p_rec_at_fair_line": 0.4522
   },
   {
     "player_id": "00-0033576",
@@ -21944,8 +21944,8 @@
     "proj_rec": 1.3784674535467056,
     "proj_yards": 14.107752308785578,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 9.5,
-    "p_rec_at_fair_line": 0.3913
+    "fair_line_yards": 6.0,
+    "p_rec_at_fair_line": 0.3343
   },
   {
     "player_id": "00-0035537",
@@ -22006,8 +22006,8 @@
     "proj_rec": 1.8947733196064525,
     "proj_yards": 14.09651142756299,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 10.5,
-    "p_rec_at_fair_line": 0.5407
+    "fair_line_yards": 8.0,
+    "p_rec_at_fair_line": 0.4837
   },
   {
     "player_id": "00-0037132",
@@ -22067,9 +22067,9 @@
     "mu_ypr": 10.688434636077389,
     "proj_rec": 1.2960751098917473,
     "proj_yards": 13.85301409552476,
-    "fair_line_rec": 1.5,
-    "fair_line_yards": 9.0,
-    "p_rec_at_fair_line": 0.3646
+    "fair_line_rec": 0.5,
+    "fair_line_yards": 5.5,
+    "p_rec_at_fair_line": 0.6453
   },
   {
     "player_id": "00-0036429",
@@ -22130,8 +22130,8 @@
     "proj_rec": 1.5279782634131633,
     "proj_yards": 13.81270448068546,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 9.5,
-    "p_rec_at_fair_line": 0.4379
+    "fair_line_yards": 6.5,
+    "p_rec_at_fair_line": 0.3809
   },
   {
     "player_id": "00-0040078",
@@ -22192,8 +22192,8 @@
     "proj_rec": 1.7872588906558626,
     "proj_yards": 13.806983860600049,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 10.0,
-    "p_rec_at_fair_line": 0.5123
+    "fair_line_yards": 7.5,
+    "p_rec_at_fair_line": 0.4553
   },
   {
     "player_id": "00-0031484",
@@ -22254,8 +22254,8 @@
     "proj_rec": 1.4304424421792528,
     "proj_yards": 13.65993768518445,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 9.0,
-    "p_rec_at_fair_line": 0.4078
+    "fair_line_yards": 6.0,
+    "p_rec_at_fair_line": 0.3508
   },
   {
     "player_id": "00-0039796",
@@ -22316,8 +22316,8 @@
     "proj_rec": 1.665827440145143,
     "proj_yards": 13.57190813904598,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 10.0,
-    "p_rec_at_fair_line": 0.4785
+    "fair_line_yards": 7.0,
+    "p_rec_at_fair_line": 0.4215
   },
   {
     "player_id": "00-0035250",
@@ -22378,8 +22378,8 @@
     "proj_rec": 1.8406855914764386,
     "proj_yards": 13.209178537343712,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 10.0,
-    "p_rec_at_fair_line": 0.5266
+    "fair_line_yards": 7.0,
+    "p_rec_at_fair_line": 0.4696
   },
   {
     "player_id": "00-0039648",
@@ -22439,9 +22439,9 @@
     "mu_ypr": 9.59678579177488,
     "proj_rec": 1.3684703261205824,
     "proj_yards": 13.13291658217954,
-    "fair_line_rec": 1.5,
-    "fair_line_yards": 8.5,
-    "p_rec_at_fair_line": 0.3881
+    "fair_line_rec": 0.5,
+    "fair_line_yards": 5.5,
+    "p_rec_at_fair_line": 0.6636
   },
   {
     "player_id": "00-0039686",
@@ -22501,9 +22501,9 @@
     "mu_ypr": 10.230006553242562,
     "proj_rec": 1.2797170422541282,
     "proj_yards": 13.09151372855592,
-    "fair_line_rec": 1.5,
-    "fair_line_yards": 8.5,
-    "p_rec_at_fair_line": 0.3592
+    "fair_line_rec": 0.5,
+    "fair_line_yards": 5.0,
+    "p_rec_at_fair_line": 0.6411
   },
   {
     "player_id": "00-0033526",
@@ -22564,8 +22564,8 @@
     "proj_rec": 1.7207014924642443,
     "proj_yards": 12.97509510016985,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 9.5,
-    "p_rec_at_fair_line": 0.494
+    "fair_line_yards": 7.0,
+    "p_rec_at_fair_line": 0.437
   },
   {
     "player_id": "00-0037311",
@@ -22625,9 +22625,9 @@
     "mu_ypr": 10.139461699446983,
     "proj_rec": 1.2784921443240316,
     "proj_yards": 12.963222130417362,
-    "fair_line_rec": 1.5,
-    "fair_line_yards": 8.0,
-    "p_rec_at_fair_line": 0.3588
+    "fair_line_rec": 0.5,
+    "fair_line_yards": 5.0,
+    "p_rec_at_fair_line": 0.6407
   },
   {
     "player_id": "00-0035261",
@@ -22688,8 +22688,8 @@
     "proj_rec": 1.7446522596320257,
     "proj_yards": 12.893679333476053,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 9.5,
-    "p_rec_at_fair_line": 0.5006
+    "fair_line_yards": 7.0,
+    "p_rec_at_fair_line": 0.4436
   },
   {
     "player_id": "00-0038738",
@@ -22750,8 +22750,8 @@
     "proj_rec": 1.5693045044609502,
     "proj_yards": 12.656880769468454,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 9.0,
-    "p_rec_at_fair_line": 0.4503
+    "fair_line_yards": 6.0,
+    "p_rec_at_fair_line": 0.3933
   },
   {
     "player_id": "00-0039798",
@@ -22812,8 +22812,8 @@
     "proj_rec": 1.6354634510957442,
     "proj_yards": 12.565879791973178,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 9.0,
-    "p_rec_at_fair_line": 0.4697
+    "fair_line_yards": 6.5,
+    "p_rec_at_fair_line": 0.4127
   },
   {
     "player_id": "00-0039875",
@@ -22874,8 +22874,8 @@
     "proj_rec": 1.5081497198408578,
     "proj_yards": 12.106522433789085,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 8.5,
-    "p_rec_at_fair_line": 0.4318
+    "fair_line_yards": 5.5,
+    "p_rec_at_fair_line": 0.3748
   },
   {
     "player_id": "00-0038551",
@@ -22936,8 +22936,8 @@
     "proj_rec": 1.5249168746759385,
     "proj_yards": 12.068351049253316,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 8.5,
-    "p_rec_at_fair_line": 0.4369
+    "fair_line_yards": 5.5,
+    "p_rec_at_fair_line": 0.3799
   },
   {
     "player_id": "00-0032764",
@@ -22998,8 +22998,8 @@
     "proj_rec": 1.5242522846344366,
     "proj_yards": 12.03668209323684,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 8.5,
-    "p_rec_at_fair_line": 0.4367
+    "fair_line_yards": 5.5,
+    "p_rec_at_fair_line": 0.3797
   },
   {
     "player_id": "00-0038710",
@@ -23059,9 +23059,9 @@
     "mu_ypr": 9.661240763334577,
     "proj_rec": 1.2452507132269652,
     "proj_yards": 12.030666951199812,
-    "fair_line_rec": 1.5,
-    "fair_line_yards": 7.5,
-    "p_rec_at_fair_line": 0.3478
+    "fair_line_rec": 0.5,
+    "fair_line_yards": 4.5,
+    "p_rec_at_fair_line": 0.6318
   },
   {
     "player_id": "00-0038685",
@@ -23122,8 +23122,8 @@
     "proj_rec": 1.4879112161924457,
     "proj_yards": 11.720021153022861,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 8.0,
-    "p_rec_at_fair_line": 0.4256
+    "fair_line_yards": 5.5,
+    "p_rec_at_fair_line": 0.3686
   },
   {
     "player_id": "00-0039364",
@@ -23183,9 +23183,9 @@
     "mu_ypr": 8.553688714805944,
     "proj_rec": 1.3683947146638193,
     "proj_yards": 11.70482242822001,
-    "fair_line_rec": 1.5,
-    "fair_line_yards": 7.5,
-    "p_rec_at_fair_line": 0.3881
+    "fair_line_rec": 0.5,
+    "fair_line_yards": 5.0,
+    "p_rec_at_fair_line": 0.6635
   },
   {
     "player_id": "00-0040719",
@@ -23246,8 +23246,8 @@
     "proj_rec": 1.4073681085585323,
     "proj_yards": 11.655713361542741,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 8.0,
-    "p_rec_at_fair_line": 0.4005
+    "fair_line_yards": 5.0,
+    "p_rec_at_fair_line": 0.3435
   },
   {
     "player_id": "00-0037085",
@@ -23308,8 +23308,8 @@
     "proj_rec": 1.576345025670169,
     "proj_yards": 11.534314036243666,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 8.0,
-    "p_rec_at_fair_line": 0.4524
+    "fair_line_yards": 5.5,
+    "p_rec_at_fair_line": 0.3954
   },
   {
     "player_id": "00-0039738",
@@ -23370,8 +23370,8 @@
     "proj_rec": 1.393632300879042,
     "proj_yards": 11.34900884383485,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 7.5,
-    "p_rec_at_fair_line": 0.3961
+    "fair_line_yards": 5.0,
+    "p_rec_at_fair_line": 0.3391
   },
   {
     "player_id": "00-0036158",
@@ -23432,8 +23432,8 @@
     "proj_rec": 1.538840701060408,
     "proj_yards": 11.195637013061825,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 8.0,
-    "p_rec_at_fair_line": 0.4411
+    "fair_line_yards": 5.5,
+    "p_rec_at_fair_line": 0.3841
   },
   {
     "player_id": "00-0039021",
@@ -23493,9 +23493,9 @@
     "mu_ypr": 8.243057534653484,
     "proj_rec": 1.350872589461829,
     "proj_yards": 11.135320476920192,
-    "fair_line_rec": 1.5,
-    "fair_line_yards": 7.5,
-    "p_rec_at_fair_line": 0.3824
+    "fair_line_rec": 0.5,
+    "fair_line_yards": 4.5,
+    "p_rec_at_fair_line": 0.6593
   },
   {
     "player_id": "00-0039794",
@@ -23556,8 +23556,8 @@
     "proj_rec": 1.3802482621766068,
     "proj_yards": 10.982063274064961,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 7.5,
-    "p_rec_at_fair_line": 0.3919
+    "fair_line_yards": 4.5,
+    "p_rec_at_fair_line": 0.3349
   },
   {
     "player_id": "00-0039746",
@@ -23617,9 +23617,9 @@
     "mu_ypr": 8.090748552235851,
     "proj_rec": 1.3500377240256458,
     "proj_yards": 10.922815761124278,
-    "fair_line_rec": 1.5,
-    "fair_line_yards": 7.0,
-    "p_rec_at_fair_line": 0.3822
+    "fair_line_rec": 0.5,
+    "fair_line_yards": 4.5,
+    "p_rec_at_fair_line": 0.659
   },
   {
     "player_id": "00-0040238",
@@ -23680,8 +23680,8 @@
     "proj_rec": 1.3906153267449326,
     "proj_yards": 10.779726033789856,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 7.0,
-    "p_rec_at_fair_line": 0.3952
+    "fair_line_yards": 4.5,
+    "p_rec_at_fair_line": 0.3382
   },
   {
     "player_id": "00-0037525",
@@ -23742,8 +23742,8 @@
     "proj_rec": 1.4704379806461711,
     "proj_yards": 10.755856644899543,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 7.5,
-    "p_rec_at_fair_line": 0.4202
+    "fair_line_yards": 5.0,
+    "p_rec_at_fair_line": 0.3632
   },
   {
     "player_id": "00-0039874",
@@ -23804,8 +23804,8 @@
     "proj_rec": 1.4562439893732282,
     "proj_yards": 10.665931455848018,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 7.5,
-    "p_rec_at_fair_line": 0.4158
+    "fair_line_yards": 5.0,
+    "p_rec_at_fair_line": 0.3588
   },
   {
     "player_id": "00-0037745",
@@ -23865,9 +23865,9 @@
     "mu_ypr": 8.71323884249336,
     "proj_rec": 1.1989769851273806,
     "proj_yards": 10.446972838067476,
-    "fair_line_rec": 1.5,
-    "fair_line_yards": 6.5,
-    "p_rec_at_fair_line": 0.3323
+    "fair_line_rec": 0.5,
+    "fair_line_yards": 3.5,
+    "p_rec_at_fair_line": 0.6188
   },
   {
     "player_id": "00-0040242",
@@ -23927,9 +23927,9 @@
     "mu_ypr": 7.709386376164609,
     "proj_rec": 1.3401161036089024,
     "proj_yards": 10.331472831641273,
-    "fair_line_rec": 1.5,
-    "fair_line_yards": 6.5,
-    "p_rec_at_fair_line": 0.3789
+    "fair_line_rec": 0.5,
+    "fair_line_yards": 4.0,
+    "p_rec_at_fair_line": 0.6566
   },
   {
     "player_id": "00-0039299",
@@ -23989,9 +23989,9 @@
     "mu_ypr": 7.791275013453725,
     "proj_rec": 1.3153065858740118,
     "proj_yards": 10.247915337551314,
-    "fair_line_rec": 1.5,
-    "fair_line_yards": 6.5,
-    "p_rec_at_fair_line": 0.3709
+    "fair_line_rec": 0.5,
+    "fair_line_yards": 4.0,
+    "p_rec_at_fair_line": 0.6503
   },
   {
     "player_id": "00-0037557",
@@ -24051,9 +24051,9 @@
     "mu_ypr": 7.211875465445192,
     "proj_rec": 1.373588679376225,
     "proj_yards": 9.90615049640666,
-    "fair_line_rec": 1.5,
-    "fair_line_yards": 6.5,
-    "p_rec_at_fair_line": 0.3897
+    "fair_line_rec": 0.5,
+    "fair_line_yards": 4.0,
+    "p_rec_at_fair_line": 0.6648
   },
   {
     "player_id": "00-0040198",
@@ -24113,9 +24113,9 @@
     "mu_ypr": 7.253319472431846,
     "proj_rec": 1.3078754822220098,
     "proj_yards": 9.486438702717095,
-    "fair_line_rec": 1.5,
-    "fair_line_yards": 6.0,
-    "p_rec_at_fair_line": 0.3685
+    "fair_line_rec": 0.5,
+    "fair_line_yards": 3.5,
+    "p_rec_at_fair_line": 0.6484
   },
   {
     "player_id": "00-0038555",
@@ -24175,9 +24175,9 @@
     "mu_ypr": 7.8962547971838575,
     "proj_rec": 1.198411863595247,
     "proj_yards": 9.462965426916016,
-    "fair_line_rec": 1.5,
-    "fair_line_yards": 5.5,
-    "p_rec_at_fair_line": 0.3321
+    "fair_line_rec": 0.5,
+    "fair_line_yards": 3.0,
+    "p_rec_at_fair_line": 0.6186
   },
   {
     "player_id": "00-0039407",
@@ -24237,9 +24237,9 @@
     "mu_ypr": 7.392363195842405,
     "proj_rec": 1.2514310557995594,
     "proj_yards": 9.251032879026866,
-    "fair_line_rec": 1.5,
-    "fair_line_yards": 5.5,
-    "p_rec_at_fair_line": 0.3498
+    "fair_line_rec": 0.5,
+    "fair_line_yards": 3.5,
+    "p_rec_at_fair_line": 0.6335
   },
   {
     "player_id": "00-0037594",
@@ -24300,8 +24300,8 @@
     "proj_rec": 0.9954232268154529,
     "proj_yards": 8.920293385004461,
     "fair_line_rec": 0.5,
-    "fair_line_yards": 4.5,
-    "p_rec_at_fair_line": 0.6112
+    "fair_line_yards": 1.5,
+    "p_rec_at_fair_line": 0.5542
   },
   {
     "player_id": "00-0038977",
@@ -24362,8 +24362,8 @@
     "proj_rec": 3.130263227120926,
     "proj_yards": 43.821053393171404,
     "fair_line_rec": 2.5,
-    "fair_line_yards": 37.0,
-    "p_rec_at_fair_line": 0.5699
+    "fair_line_yards": 30.0,
+    "p_rec_at_fair_line": 0.5129
   },
   {
     "player_id": "00-0039916",
@@ -24424,8 +24424,8 @@
     "proj_rec": 3.0861380552794917,
     "proj_yards": 41.11336404021206,
     "fair_line_rec": 2.5,
-    "fair_line_yards": 34.5,
-    "p_rec_at_fair_line": 0.5616
+    "fair_line_yards": 28.0,
+    "p_rec_at_fair_line": 0.5046
   },
   {
     "player_id": "00-0040130",
@@ -24485,9 +24485,9 @@
     "mu_ypr": 12.903589653874635,
     "proj_rec": 2.3801045667049494,
     "proj_yards": 30.711892662073755,
-    "fair_line_rec": 2.5,
-    "fair_line_yards": 24.5,
-    "p_rec_at_fair_line": 0.4131
+    "fair_line_rec": 1.5,
+    "fair_line_yards": 19.0,
+    "p_rec_at_fair_line": 0.5946
   },
   {
     "player_id": "00-0036849",
@@ -24548,8 +24548,8 @@
     "proj_rec": 1.8098140870581598,
     "proj_yards": 28.116316175090624,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 21.0,
-    "p_rec_at_fair_line": 0.5184
+    "fair_line_yards": 15.0,
+    "p_rec_at_fair_line": 0.4614
   },
   {
     "player_id": "00-0036423",
@@ -24610,8 +24610,8 @@
     "proj_rec": 2.685042675887786,
     "proj_yards": 26.423033715818953,
     "fair_line_rec": 2.5,
-    "fair_line_yards": 21.5,
-    "p_rec_at_fair_line": 0.4809
+    "fair_line_yards": 17.0,
+    "p_rec_at_fair_line": 0.4239
   },
   {
     "player_id": "00-0038679",
@@ -24672,8 +24672,8 @@
     "proj_rec": 1.855252421319307,
     "proj_yards": 25.53778740349458,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 19.0,
-    "p_rec_at_fair_line": 0.5304
+    "fair_line_yards": 14.0,
+    "p_rec_at_fair_line": 0.4734
   },
   {
     "player_id": "00-0040648",
@@ -24734,8 +24734,8 @@
     "proj_rec": 1.8088778652639614,
     "proj_yards": 24.796981065047994,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 18.5,
-    "p_rec_at_fair_line": 0.5181
+    "fair_line_yards": 13.5,
+    "p_rec_at_fair_line": 0.4611
   },
   {
     "player_id": "00-0037382",
@@ -24796,8 +24796,8 @@
     "proj_rec": 2.00233186830517,
     "proj_yards": 23.483938712515805,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 18.0,
-    "p_rec_at_fair_line": 0.5677
+    "fair_line_yards": 13.5,
+    "p_rec_at_fair_line": 0.5107
   },
   {
     "player_id": "00-0039144",
@@ -24858,8 +24858,8 @@
     "proj_rec": 2.123583058742487,
     "proj_yards": 23.177108141269997,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 18.0,
-    "p_rec_at_fair_line": 0.5965
+    "fair_line_yards": 13.5,
+    "p_rec_at_fair_line": 0.5395
   },
   {
     "player_id": "00-0040581",
@@ -24920,8 +24920,8 @@
     "proj_rec": 1.7163043854607858,
     "proj_yards": 21.807270935113706,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 16.0,
-    "p_rec_at_fair_line": 0.4927
+    "fair_line_yards": 11.5,
+    "p_rec_at_fair_line": 0.4357
   },
   {
     "player_id": "00-0038938",
@@ -24982,8 +24982,8 @@
     "proj_rec": 1.5161747707038877,
     "proj_yards": 21.720245862276055,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 15.0,
-    "p_rec_at_fair_line": 0.4343
+    "fair_line_yards": 10.0,
+    "p_rec_at_fair_line": 0.3773
   },
   {
     "player_id": "00-0033589",
@@ -25044,8 +25044,8 @@
     "proj_rec": 1.752852147183684,
     "proj_yards": 19.969292183828475,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 14.5,
-    "p_rec_at_fair_line": 0.5029
+    "fair_line_yards": 10.5,
+    "p_rec_at_fair_line": 0.4459
   },
   {
     "player_id": "00-0039623",
@@ -25106,8 +25106,8 @@
     "proj_rec": 1.7137296035377458,
     "proj_yards": 19.525362035791378,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 14.5,
-    "p_rec_at_fair_line": 0.492
+    "fair_line_yards": 10.0,
+    "p_rec_at_fair_line": 0.435
   },
   {
     "player_id": "00-0038394",
@@ -25168,8 +25168,8 @@
     "proj_rec": 1.609886366191882,
     "proj_yards": 18.704887809528596,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 13.5,
-    "p_rec_at_fair_line": 0.4623
+    "fair_line_yards": 9.5,
+    "p_rec_at_fair_line": 0.4053
   },
   {
     "player_id": "00-0036841",
@@ -25230,8 +25230,8 @@
     "proj_rec": 1.4133241999978339,
     "proj_yards": 18.573062626669945,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 12.5,
-    "p_rec_at_fair_line": 0.4024
+    "fair_line_yards": 8.0,
+    "p_rec_at_fair_line": 0.3454
   },
   {
     "player_id": "00-0039521",
@@ -25292,8 +25292,8 @@
     "proj_rec": 1.5087248181983612,
     "proj_yards": 18.41697522280696,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 13.0,
-    "p_rec_at_fair_line": 0.432
+    "fair_line_yards": 8.5,
+    "p_rec_at_fair_line": 0.375
   },
   {
     "player_id": "00-0036959",
@@ -25354,8 +25354,8 @@
     "proj_rec": 1.6132698971249457,
     "proj_yards": 17.986459754714325,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 13.0,
-    "p_rec_at_fair_line": 0.4632
+    "fair_line_yards": 9.0,
+    "p_rec_at_fair_line": 0.4062
   },
   {
     "player_id": "00-0037086",
@@ -25416,8 +25416,8 @@
     "proj_rec": 1.6388700927762916,
     "proj_yards": 17.807931822149538,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 13.0,
-    "p_rec_at_fair_line": 0.4707
+    "fair_line_yards": 9.0,
+    "p_rec_at_fair_line": 0.4137
   },
   {
     "player_id": "00-0039379",
@@ -25478,8 +25478,8 @@
     "proj_rec": 1.6022820105638027,
     "proj_yards": 17.780265287888245,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 12.5,
-    "p_rec_at_fair_line": 0.46
+    "fair_line_yards": 9.0,
+    "p_rec_at_fair_line": 0.403
   },
   {
     "player_id": "00-0040009",
@@ -25540,8 +25540,8 @@
     "proj_rec": 1.5220807425260061,
     "proj_yards": 17.764484799829347,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 12.5,
-    "p_rec_at_fair_line": 0.4361
+    "fair_line_yards": 8.5,
+    "p_rec_at_fair_line": 0.3791
   },
   {
     "player_id": "00-0037539",
@@ -25602,8 +25602,8 @@
     "proj_rec": 1.750979505025953,
     "proj_yards": 17.39594023294303,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 13.0,
-    "p_rec_at_fair_line": 0.5024
+    "fair_line_yards": 9.0,
+    "p_rec_at_fair_line": 0.4454
   },
   {
     "player_id": "00-0035639",
@@ -25664,8 +25664,8 @@
     "proj_rec": 1.5439631387175021,
     "proj_yards": 17.282346899620745,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 12.0,
-    "p_rec_at_fair_line": 0.4427
+    "fair_line_yards": 8.5,
+    "p_rec_at_fair_line": 0.3857
   },
   {
     "player_id": "00-0035645",
@@ -25725,9 +25725,9 @@
     "mu_ypr": 12.453592807246189,
     "proj_rec": 1.3652966539312457,
     "proj_yards": 17.002848589155448,
-    "fair_line_rec": 1.5,
-    "fair_line_yards": 11.0,
-    "p_rec_at_fair_line": 0.3871
+    "fair_line_rec": 0.5,
+    "fair_line_yards": 7.0,
+    "p_rec_at_fair_line": 0.6628
   },
   {
     "player_id": "00-0036497",
@@ -25788,8 +25788,8 @@
     "proj_rec": 1.4539662088905305,
     "proj_yards": 16.73591436853289,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 11.5,
-    "p_rec_at_fair_line": 0.4151
+    "fair_line_yards": 7.5,
+    "p_rec_at_fair_line": 0.3581
   },
   {
     "player_id": "00-0039921",
@@ -25850,8 +25850,8 @@
     "proj_rec": 2.1832709091127502,
     "proj_yards": 16.163390718315988,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 12.5,
-    "p_rec_at_fair_line": 0.61
+    "fair_line_yards": 9.5,
+    "p_rec_at_fair_line": 0.553
   },
   {
     "player_id": "00-0038752",
@@ -25912,8 +25912,8 @@
     "proj_rec": 1.423828542818904,
     "proj_yards": 15.919468210152125,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 10.5,
-    "p_rec_at_fair_line": 0.4057
+    "fair_line_yards": 7.0,
+    "p_rec_at_fair_line": 0.3487
   },
   {
     "player_id": "00-0033553",
@@ -25974,8 +25974,8 @@
     "proj_rec": 2.176367388109115,
     "proj_yards": 15.689008561223925,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 12.5,
-    "p_rec_at_fair_line": 0.6084
+    "fair_line_yards": 9.5,
+    "p_rec_at_fair_line": 0.5514
   },
   {
     "player_id": "00-0039737",
@@ -26036,8 +26036,8 @@
     "proj_rec": 1.5481672897178558,
     "proj_yards": 15.511357409412643,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 11.0,
-    "p_rec_at_fair_line": 0.4439
+    "fair_line_yards": 7.5,
+    "p_rec_at_fair_line": 0.3869
   },
   {
     "player_id": "00-0040259",
@@ -26097,9 +26097,9 @@
     "mu_ypr": 11.443459906777267,
     "proj_rec": 1.3526986713274727,
     "proj_yards": 15.479553011286814,
-    "fair_line_rec": 1.5,
-    "fair_line_yards": 10.0,
-    "p_rec_at_fair_line": 0.383
+    "fair_line_rec": 0.5,
+    "fair_line_yards": 6.5,
+    "p_rec_at_fair_line": 0.6597
   },
   {
     "player_id": "00-0039236",
@@ -26159,9 +26159,9 @@
     "mu_ypr": 11.962428549791708,
     "proj_rec": 1.2883731701020795,
     "proj_yards": 15.412071992814765,
-    "fair_line_rec": 1.5,
-    "fair_line_yards": 10.0,
-    "p_rec_at_fair_line": 0.3621
+    "fair_line_rec": 0.5,
+    "fair_line_yards": 6.0,
+    "p_rec_at_fair_line": 0.6433
   },
   {
     "player_id": "00-0040202",
@@ -26222,8 +26222,8 @@
     "proj_rec": 1.9712615534942135,
     "proj_yards": 15.014562613017484,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 11.5,
-    "p_rec_at_fair_line": 0.5601
+    "fair_line_yards": 8.5,
+    "p_rec_at_fair_line": 0.5031
   },
   {
     "player_id": "00-0035700",
@@ -26284,8 +26284,8 @@
     "proj_rec": 2.0396227661182755,
     "proj_yards": 14.75662491883848,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 11.5,
-    "p_rec_at_fair_line": 0.5767
+    "fair_line_yards": 8.5,
+    "p_rec_at_fair_line": 0.5197
   },
   {
     "player_id": "00-0038496",
@@ -26346,8 +26346,8 @@
     "proj_rec": 1.4656808387341196,
     "proj_yards": 14.484292784782522,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 10.0,
-    "p_rec_at_fair_line": 0.4188
+    "fair_line_yards": 6.5,
+    "p_rec_at_fair_line": 0.3618
   },
   {
     "player_id": "00-0039816",
@@ -26407,9 +26407,9 @@
     "mu_ypr": 10.424977808377061,
     "proj_rec": 1.3683516795571515,
     "proj_yards": 14.265035893438785,
-    "fair_line_rec": 1.5,
-    "fair_line_yards": 9.5,
-    "p_rec_at_fair_line": 0.388
+    "fair_line_rec": 0.5,
+    "fair_line_yards": 6.0,
+    "p_rec_at_fair_line": 0.6635
   },
   {
     "player_id": "00-0033955",
@@ -26470,8 +26470,8 @@
     "proj_rec": 1.8751555153463264,
     "proj_yards": 14.000935232841186,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 10.5,
-    "p_rec_at_fair_line": 0.5356
+    "fair_line_yards": 7.5,
+    "p_rec_at_fair_line": 0.4786
   },
   {
     "player_id": "00-0039165",
@@ -26532,8 +26532,8 @@
     "proj_rec": 1.748439952789414,
     "proj_yards": 13.58631203983851,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 10.0,
-    "p_rec_at_fair_line": 0.5017
+    "fair_line_yards": 7.0,
+    "p_rec_at_fair_line": 0.4447
   },
   {
     "player_id": "00-0039363",
@@ -26594,8 +26594,8 @@
     "proj_rec": 1.4511031562543812,
     "proj_yards": 12.43513326555418,
     "fair_line_rec": 1.5,
-    "fair_line_yards": 8.5,
-    "p_rec_at_fair_line": 0.4142
+    "fair_line_yards": 5.5,
+    "p_rec_at_fair_line": 0.3572
   },
   {
     "player_id": "00-0038396",
@@ -26655,9 +26655,9 @@
     "mu_ypr": 7.809007567914229,
     "proj_rec": 1.3546882069014148,
     "proj_yards": 10.578770459857305,
-    "fair_line_rec": 1.5,
-    "fair_line_yards": 7.0,
-    "p_rec_at_fair_line": 0.3837
+    "fair_line_rec": 0.5,
+    "fair_line_yards": 4.5,
+    "p_rec_at_fair_line": 0.6602
   },
   {
     "player_id": "00-0040644",
@@ -26717,8 +26717,8 @@
     "mu_ypr": 7.87320607906446,
     "proj_rec": 1.2976275287462136,
     "proj_yards": 10.21648894768608,
-    "fair_line_rec": 1.5,
-    "fair_line_yards": 6.5,
-    "p_rec_at_fair_line": 0.3651
+    "fair_line_rec": 0.5,
+    "fair_line_yards": 4.0,
+    "p_rec_at_fair_line": 0.6458
   }
 ]
