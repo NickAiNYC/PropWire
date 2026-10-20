@@ -4,13 +4,16 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#0d1117">
-  <meta name="build-hash" content="a81f3b2">
+  <meta name="build-hash" content="c489b10">
   <meta name="description" content="PROP·WIRE NFL receiving-props research terminal.">
   <title>PROP·WIRE — NFL receiving props</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="manifest" href="manifest.json">
-  <link rel="stylesheet" href="style.css?v=a81f3b2">
-  <script src="app.js?v=a81f3b2" defer></script>
+  <link rel="stylesheet" href="style.css?v=c489b10">
+  <script src="app.js?v=c489b10" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#slateBoard">Skip to slate</a>
@@ -53,6 +56,9 @@
   <main class="shell page" id="slateBoard">
     <section class="injury-strip" aria-labelledby="injuryTitle">
       <div class="injury-line">
+        <span class="injury-icon-wrap" aria-hidden="true">
+          <svg class="prop-icon icon-warn" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2.5L1.5 13.5h13L8 2.5z"/><path d="M8 6.5v3M8 11.5v.5"/></svg>
+        </span>
         <span class="eyebrow amber" id="injuryTitle">Availability</span>
         <div class="injury-summary" id="injurySummary">Checking injury notes…</div>
         <button class="text-button" id="injuryToggle" type="button" aria-expanded="false" aria-controls="injuryDetails">Details</button>
@@ -61,12 +67,14 @@
     </section>
 
     <section class="board-heading">
-      <div>
-        <div class="eyebrow" id="slateState">Upcoming slate</div>
-        <h1>Receiving props, priced with receipts.</h1>
+      <div class="board-heading-lead">
+        <div class="board-title-line">
+          <h1>Receiving props, priced with receipts.</h1>
+          <span class="status-badge-inline" id="slateState">Upcoming slate</span>
+        </div>
         <p class="lede" id="marketState">Loading price state…</p>
       </div>
-      <div class="view-switch" role="group" aria-label="View">
+      <div class="view-switch" role="group" aria-label="View layout switcher">
         <button type="button" data-view="table" class="active">Table</button>
         <button type="button" data-view="cards">Grid</button>
       </div>

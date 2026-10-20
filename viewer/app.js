@@ -487,9 +487,9 @@
     return `<tr>
       <th style="width:28%">Player / Driver</th>
       <th style="width:11%">Matchup</th>
-      <th style="width:18%">Book & Status <span class="help-bubble" title="Sportsbook line, odds, and quote verification status">?</span></th>
-      <th style="width:21%">Model (Fair | Proj) <span class="help-bubble" title="Model fair line is calibrated median; Proj is expected mean with 80% prediction interval. Hover ⓘ for summary.">?</span></th>
-      ${hasPrices ? '<th style="width:14%">Price Check / Edge <span class="help-bubble" title="Mathematical edge vs de-vigged market line. Bright green = verified edge clearing gate.">?</span></th><th style="width:8%">Hurdle <span class="help-bubble" title="Visual gauge: Fair vs Target hurdle vs Book offer">?</span></th>' : ''}
+      <th class="th-num" style="width:18%">Book & Status <span class="help-bubble" title="Sportsbook line, odds, and quote verification status">?</span></th>
+      <th class="th-num" style="width:21%">Model (Fair | Proj) <span class="help-bubble" title="Model fair line is calibrated median; Proj is expected mean with 80% prediction interval. Hover ⓘ for summary.">?</span></th>
+      ${hasPrices ? '<th class="th-num" style="width:14%">Price Check / Edge <span class="help-bubble" title="Mathematical edge vs de-vigged market line. Bright green = verified edge clearing gate.">?</span></th><th class="th-num" style="width:8%">Hurdle <span class="help-bubble" title="Visual gauge: Fair vs Target hurdle vs Book offer">?</span></th>' : ''}
     </tr>`;
   }
 
@@ -515,8 +515,8 @@
         </div>
       </td>
       <td><span class="number-main">${esc(row.team)}</span><span class="cell-sub">${row.is_home ? 'vs' : '@'} ${esc(row.opponent_team)}</span></td>
-      <td>${bookCell(evaluation, injury)}</td>
-      <td>
+      <td class="td-num">${bookCell(evaluation, injury)}</td>
+      <td class="td-num">
         <div class="split-cell">
           <div class="model-num-row">
             <span class="label-dim">Fair</span> <strong class="num-bold">${fair.toFixed(1)}</strong>
@@ -527,7 +527,7 @@
           <span class="ci-range">${esc(predictionInterval(row))}</span>
         </div>
       </td>
-      ${hasPrices ? `<td>${priceCheckCell(evaluation)}</td><td>${gaugeCell(row, evaluation)}</td>` : ''}
+      ${hasPrices ? `<td class="td-num">${priceCheckCell(evaluation)}</td><td class="td-num">${gaugeCell(row, evaluation)}</td>` : ''}
     </tr>`;
   }
 
@@ -652,7 +652,7 @@
             : '<span class="meta-pill">Active</span>';
 
     return `<div class="book-cell">
-      <span class="number-main">${evaluation.side} ${evaluation.line.toFixed(1)} <small class="odds-val">${oddsText(evaluation.odds)}</small></span>
+      <span class="number-main"><span class="book-side">${evaluation.side}</span> ${evaluation.line.toFixed(1)} <small class="odds-val">${oddsText(evaluation.odds)}</small></span>
       <div class="book-meta">
         <span class="book-tag">${esc(bookShort(evaluation.book))}</span>
         ${statusPill}
