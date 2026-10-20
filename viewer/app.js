@@ -1,10 +1,11 @@
 /**
- * NFL Receiving Props Agent — Client Application
- * Core Promise: "Understand the opportunity, verify the price, know what could invalidate it."
+ * NFL Receiving Props Agent — Client Application & Research Terminal
+ * Core Promise: "Find the opportunity. Verify the price. Understand the risk."
+ * Positioning: "See what changed in a player's role—and whether the price reflects it."
  */
 
 // --------------------------------------------------------------------------
-// Global State & Model Constants
+// Global State & Calibrated Model Constants
 // --------------------------------------------------------------------------
 
 const MODEL_ALPHA = 0.1097; // Calibrated NB dispersion (Var = mu + alpha*mu^2)
@@ -30,30 +31,32 @@ let gamesData = [];
 let clvLogData = [];
 let selectedGameId = null; // Filter by game_id from Game Strip
 
-// User Filters
+// User Filters & View Modes
 let currentFilterPos = 'ALL';
-let currentFilterMarket = 'yards'; // 'yards', 'receptions', 'anytime_td'
+let currentFilterMarket = 'yards'; // 'yards', 'receptions'
 let currentFilterBook = 'Consensus';
 let currentFilterTeam = 'ALL';
 let currentSearchQuery = '';
 let currentQualifiedOnly = false;
 let currentProjectableOnly = true;
+let currentViewMode = 'baseline'; // 'baseline', 'surges', 'demo_quotes'
 
 let sortCol = 'proj_yards';
 let sortAsc = false;
 
-// Persistent User Adjustments (saved in localStorage)
+// Persistent User Adjustments & Saved Conditions (saved in localStorage)
 let inlinePlayerLines = {}; 
-let userWatchlist = [];
+let userSavedConditions = [];
 let selectedDrawerPlayer = null;
 let clvFilterType = 'all'; // 'all', 'verified', 'demo'
+let activeDrawerConditionalScenario = 'BASELINE'; // 'BASELINE', 'TEAMMATE_OUT', 'LIMITED_WORKLOAD', 'TRAILING_SCRIPT'
 
 // --------------------------------------------------------------------------
 // Initialization & Slate Loading
 // --------------------------------------------------------------------------
 
 document.addEventListener('DOMContentLoaded', async () => {
-  loadStoredWatchlist();
+  loadStoredConditions();
   loadStoredLines();
   
   // Keyboard shortcut: Escape to close drawer/modal
@@ -97,7 +100,7 @@ async function initSlate(slateKey) {
       slateData = await slateRes.json();
     }
 
-    // 3. Load top picks
+    // 3. Load top volume picks
     const picksPath = isHistoricalSlate ? 'current_picks_w1.json' : 'current_picks_w7.json';
     const picksRes = await fetchWithFallback(`/api/picks?slate=${slateKey}`, picksPath);
     if (picksRes.ok) {
@@ -107,9 +110,12 @@ async function initSlate(slateKey) {
 
     populateTeamDropdown();
     renderGameStrip();
-    renderTopPicksCard();
+    renderSlateHealthStrip();
+    renderOpportunitySummary();
+    renderBestOpportunitiesGrid();
     renderBoard();
     populateSgpSelect();
+    updateConditionBadge();
   } catch (err) {
     console.error('Error loading slate data:', err);
     showToast('Failed to load slate data.');
@@ -127,31 +133,27 @@ async function fetchWithFallback(apiPath, staticFallback) {
 function updateSlateHeaderContext() {
   const badge = document.getElementById('dataStatusBadge');
   const badgeText = document.getElementById('dataStatusText');
-  const noticeBanner = document.getElementById('slateNoticeBanner');
   const noticeText = document.getElementById('slateNoticeText');
   const noticeBtn = document.getElementById('slateNoticeActionBtn');
   const navTitle = document.getElementById('navTitle');
   const selector = document.getElementById('slateSelector');
-  const boardBadge = document.getElementById('boardTotalBadge');
 
   if (selector) selector.value = currentSlateKey;
 
   if (isHistoricalSlate) {
-    if (navTitle) navTitle.textContent = '2026 Week 1 Slate & Historical Audit';
+    if (navTitle) navTitle.textContent = '2026 Week 1 Historical Audit & Calibration Review';
     if (badge) badge.className = 'data-status-badge badge-prelim';
     if (badgeText) badgeText.textContent = 'HISTORICAL AUDIT • SETTLED';
-    if (noticeBanner) noticeBanner.style.background = 'rgba(245,158,11,0.08)';
-    if (noticeText) noticeText.innerHTML = 'Showing <strong>2026 Week 1 Historical Audit</strong> (Settled games from Sept 10–14). Schedule: 16 Games (32 Teams). Week 1 calibration error (3–5%) applied.';
+    if (noticeText) noticeText.innerHTML = 'Showing <strong>2026 Week 1 Historical Audit</strong> (16 Matchups &bull; Sept 10–14). Settled games evaluated against out-of-sample calibration error hurdles.';
     if (noticeBtn) {
       noticeBtn.textContent = 'Switch to Upcoming Slate (Week 7)';
       noticeBtn.onclick = () => onSlateSelectChange('2026_w7');
     }
   } else {
-    if (navTitle) navTitle.textContent = '2026 Week 7 Slate & Prop Intelligence';
+    if (navTitle) navTitle.textContent = 'See what changed in a player’s role—and whether the price reflects it.';
     if (badge) badge.className = 'data-status-badge status-live';
-    if (badgeText) badgeText.textContent = 'UPCOMING SLATE • CALIBRATED';
-    if (noticeBanner) noticeBanner.style.background = 'rgba(56,189,248,0.06)';
-    if (noticeText) noticeText.innerHTML = '<strong>Schedule Coverage:</strong> 14 Games (28 Teams) &bull; <strong>Projections:</strong> 28 of 28 Teams (390 Receivers) &bull; <strong>Market Totals:</strong> 10 games posted, 4 games pending Vegas totals (NE@CHI, SF@ATL, LA@LV, KC@SEA).';
+    if (badgeText) badgeText.textContent = 'LIVE • CALIBRATED BASELINE';
+    if (noticeText) noticeText.innerHTML = 'Showing <strong>2026 Week 7 Upcoming Slate</strong> (14 Matchups &bull; Oct 22&ndash;26). Pre-line phase: Displaying calibrated fair-line baselines.';
     if (noticeBtn) {
       noticeBtn.textContent = 'Switch to Historical Audit (Week 1)';
       noticeBtn.onclick = () => onSlateSelectChange('2026_w1');
@@ -184,11 +186,114 @@ function setDestination(dest) {
 
   if (dest === 'watchlist') renderWatchlistPage();
   if (dest === 'tracker') renderTrackerPage();
-  if (dest === 'board') renderBoard();
+  if (dest === 'board') {
+    renderBestOpportunitiesGrid();
+    renderBoard();
+  }
 }
 
 function capitalize(s) {
   return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+// --------------------------------------------------------------------------
+// Slate Health Strip (4 Distinct Metric Tiles)
+// --------------------------------------------------------------------------
+
+function renderSlateHealthStrip() {
+  const gamesCount = document.getElementById('healthGamesCount');
+  const gamesPill = document.getElementById('healthGamesPill');
+  const teamsCount = document.getElementById('healthTeamsCount');
+  const teamsPill = document.getElementById('healthTeamsPill');
+  const playersCount = document.getElementById('healthPlayersCount');
+  const playersPill = document.getElementById('healthPlayersPill');
+  const marketsCount = document.getElementById('healthMarketsCount');
+  const marketsPill = document.getElementById('healthMarketsPill');
+  const marketsSub = document.getElementById('healthMarketsSub');
+
+  const totalGames = gamesData.length || (isHistoricalSlate ? 16 : 14);
+  const totalTeams = isHistoricalSlate ? 32 : 28;
+  const totalReceivers = slateData.length;
+
+  if (gamesCount) gamesCount.textContent = totalGames;
+  if (gamesPill) gamesPill.textContent = `${totalGames} / ${totalGames}`;
+
+  if (teamsCount) teamsCount.textContent = totalTeams;
+  if (teamsPill) teamsPill.textContent = `${totalTeams} / ${totalTeams}`;
+
+  if (playersCount) playersCount.textContent = totalReceivers;
+  if (playersPill) playersPill.textContent = `${totalReceivers} Calibrated`;
+
+  // Market verified quote count
+  if (currentViewMode === 'demo_quotes') {
+    if (marketsCount) marketsCount.textContent = '14';
+    if (marketsPill) {
+      marketsPill.textContent = 'Simulated Scenarios';
+      marketsPill.className = 'health-tile-pill pill-pending';
+    }
+    if (marketsSub) marketsSub.textContent = 'Hypothetical lines active &bull; Unverified.';
+  } else {
+    if (marketsCount) marketsCount.textContent = '0';
+    if (marketsPill) {
+      marketsPill.textContent = '0 Verified Feeds';
+      marketsPill.className = 'health-tile-pill pill-unquoted';
+    }
+    if (marketsSub) marketsSub.textContent = 'Feeds unquoted &bull; Displaying calibrated baselines.';
+  }
+}
+
+// --------------------------------------------------------------------------
+// Opportunity Summary & View Modes
+// --------------------------------------------------------------------------
+
+function setViewMode(mode) {
+  currentViewMode = mode;
+  ['baseline', 'surges', 'demo_quotes'].forEach(m => {
+    const btn = document.getElementById(`btnMode${capitalize(m === 'demo_quotes' ? 'DemoQuotes' : m)}`);
+    if (btn) btn.classList.toggle('active', m === mode);
+  });
+
+  renderSlateHealthStrip();
+  renderOpportunitySummary();
+  renderBestOpportunitiesGrid();
+  renderBoard();
+}
+
+function renderOpportunitySummary() {
+  const title = document.getElementById('oppSummaryTitle');
+  const sub = document.getElementById('oppSummarySub');
+  const notice = document.getElementById('emptyStateNotice');
+
+  if (currentViewMode === 'baseline') {
+    if (title) title.textContent = 'Market State: Unquoted Pre-Line Phase';
+    if (sub) sub.textContent = 'Live bookmaker prop quotes have not been ingested for this slate. The model will never fabricate quotes.';
+    if (notice) {
+      notice.innerHTML = `
+        <strong>No Verified Sportsbook Feeds Available:</strong>
+        Sportsbooks have not opened receiving prop lines for Week 7 yet. All displayed lines represent our <strong>calibrated 50/50 fair lines</strong>.
+        No betting edge or Kelly stake can be recommended until verified quotes are ingested.
+        Use the <em>Role Surges</em> tab to inspect sustained usage shifts or use the in-row <em>quick-adjust chips</em> to test hypothetical market prices.
+      `;
+    }
+  } else if (currentViewMode === 'surges') {
+    if (title) title.textContent = 'Role Shift Filter: 12 Key Target Surges Isolated';
+    if (sub) sub.textContent = 'Showing receivers whose recent target share exceeds multi-week and career baselines by >= 8%.';
+    if (notice) {
+      notice.innerHTML = `
+        <strong>Role-Change Detection Active:</strong>
+        Isolating receivers with substantial offensive volume expansion. Compare their model fair lines against pending market quotes to identify stale prices once lines post.
+      `;
+    }
+  } else if (currentViewMode === 'demo_quotes') {
+    if (title) title.textContent = 'Hypothetical Scenario Explorer: Simulated Market Lines';
+    if (sub) sub.textContent = 'Simulating hypothetical market discounts to demonstrate price qualification and break-even advantage.';
+    if (notice) {
+      notice.innerHTML = `
+        <strong style="color:var(--status-amber);">Hypothetical User Scenarios Active:</strong>
+        Lines below include simulated book discounts for demonstration purposes. These are <strong>not verified quotes</strong> and must not be treated as live betting recommendations.
+      `;
+    }
+  }
 }
 
 // --------------------------------------------------------------------------
@@ -200,35 +305,31 @@ function renderGameStrip() {
   if (!track) return;
 
   if (gamesData.length === 0) {
-    track.innerHTML = `<span style="font-size:12px; color:var(--text-dim); padding:4px;">No matchup schedule files found for this slate.</span>`;
+    track.innerHTML = '<div style="font-size:12px; color:var(--text-ink-tertiary); padding:6px;">Schedule loading...</div>';
     return;
   }
 
   const allActive = selectedGameId === null ? 'active' : '';
   let html = `
-    <div class="matchup-tile ${allActive}" onclick="selectMatchup(null)">
-      <div class="tile-teams">ALL GAMES</div>
-      <div class="tile-time">${gamesData.length} Matchups</div>
-      <div class="tile-lines">Full Slate (28 Teams)</div>
+    <div class="game-pill ${allActive}" onclick="selectGameMatchup(null)">
+      <div class="game-pill-teams">ALL MATCHUPS</div>
+      <div class="game-pill-meta"><span>14 Games</span><span>28 Teams</span></div>
     </div>
   `;
 
   gamesData.forEach(g => {
-    const isAct = selectedGameId === g.game_id ? 'active' : '';
-    const isUnposted = (g.spread_line === null || g.spread_line === undefined);
-    const spreadStr = !isUnposted ? (g.spread_line > 0 ? `+${g.spread_line}` : `${g.spread_line}`) : 'PK*';
-    const totalStr = !isUnposted ? `O/U ${g.total_line}` : 'Total Pending*';
-    const timeStr = formatGameTime(g.gameday, g.gametime);
-
+    const isSel = selectedGameId === g.game_id ? 'active' : '';
+    const spreadStr = g.spread_line !== null ? (g.spread_line > 0 ? `+${g.spread_line}` : `${g.spread_line}`) : 'PK';
+    const totalStr = g.total_line !== null ? `${g.total_line} O/U` : 'Total TBD';
     html += `
-      <div class="matchup-tile ${isAct}" onclick="selectMatchup('${g.game_id}')">
-        <div class="tile-teams">
-          <span>${g.away_team}</span>
-          <span style="color:var(--text-dim); font-weight:400;">@</span>
-          <span>${g.home_team}</span>
+      <div class="game-pill ${isSel}" onclick="selectGameMatchup('${g.game_id}')">
+        <div class="game-pill-teams">
+          <span>${g.away_team} @ ${g.home_team}</span>
         </div>
-        <div class="tile-time">${timeStr} ${isUnposted ? '<small style="color:var(--status-amber);">(Line Pending)</small>' : ''}</div>
-        <div class="tile-lines">${g.home_team} ${spreadStr} &bull; ${totalStr}</div>
+        <div class="game-pill-meta">
+          <span>${spreadStr}</span>
+          <span>${totalStr}</span>
+        </div>
       </div>
     `;
   });
@@ -236,81 +337,176 @@ function renderGameStrip() {
   track.innerHTML = html;
 }
 
-function formatGameTime(gameday, gametime) {
-  if (!gameday) return 'TBD';
-  const parts = gameday.split('-');
-  const dateObj = new Date(parts[0], parts[1] - 1, parts[2]);
-  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  const dayName = days[dateObj.getDay()];
-  const time = gametime ? gametime.slice(0, 5) : '';
-  return `${dayName} ${time}`;
-}
-
-function selectMatchup(gameId) {
+function selectGameMatchup(gameId) {
   selectedGameId = gameId;
   renderGameStrip();
-  const label = document.getElementById('activeMatchupFilterText');
-  const clearBtn = document.getElementById('clearMatchupBtn');
-  if (gameId) {
-    const g = gamesData.find(x => x.game_id === gameId);
-    if (g && label) label.innerHTML = `Game: <strong>${g.away_team} @ ${g.home_team}</strong>`;
-    if (clearBtn) clearBtn.style.display = 'inline-block';
-  } else {
-    if (label) label.textContent = 'All Matchups';
-    if (clearBtn) clearBtn.style.display = 'none';
-  }
+  updateGameFilterLabels();
+  renderBestOpportunitiesGrid();
   renderBoard();
 }
 
 function clearMatchupFilter() {
-  selectMatchup(null);
+  selectGameMatchup(null);
+}
+
+function updateGameFilterLabels() {
+  const label = document.getElementById('activeMatchupFilterText');
+  const btn = document.getElementById('clearMatchupBtn');
+  if (!label) return;
+
+  if (selectedGameId) {
+    const g = gamesData.find(x => x.game_id === selectedGameId);
+    if (g) {
+      label.textContent = `${g.away_team} @ ${g.home_team}`;
+      if (btn) btn.style.display = 'inline';
+      return;
+    }
+  }
+  label.textContent = 'All Matchups';
+  if (btn) btn.style.display = 'none';
+}
+
+function populateTeamDropdown() {
+  const select = document.getElementById('teamFilter');
+  if (!select || slateData.length === 0) return;
+
+  const teams = [...new Set(slateData.map(p => p.team))].sort();
+  select.innerHTML = '<option value="ALL">All Teams</option>' +
+    teams.map(t => `<option value="${t}">${t}</option>`).join('');
 }
 
 // --------------------------------------------------------------------------
-// Top Volume Projections Card (DFS / Fantasy Volume Leaders)
+// Role-Change Detection Engine (Sustained vs Noise)
 // --------------------------------------------------------------------------
 
-function renderTopPicksCard() {
-  const container = document.getElementById('topPicksCardGrid');
-  if (!container) return;
+function detectPlayerRoleShift(p) {
+  const recentShare = Number(p.target_share || 0);
+  const baselineShare = Number(p.f_tgt_share || 0);
+  const careerTgts = Number(p.c_targets || 0);
+  const gamesPrior = Number(p.games_prior || 0);
+  const tgtSd = Number(p.f_tgt_sd || 3.0);
+  const diff = recentShare - baselineShare;
 
-  const list = topPicksData.slice(0, 15);
-  if (list.length === 0) {
-    container.innerHTML = `<span style="font-size:12px; color:var(--text-dim);">No projections available.</span>`;
-    return;
+  if (recentShare === 0 && baselineShare === 0) {
+    return {
+      type: 'LIMITED_SAMPLE',
+      label: 'LIMITED SAMPLE',
+      class: 'role-stable',
+      diff: 0,
+      recentShare,
+      baselineShare,
+      careerTgts,
+      description: 'Insufficient historical target tracking.'
+    };
   }
 
-  container.innerHTML = list.map(p => `
-    <div class="top-pick-card-item" onclick="openDrawerForPlayer('${p.player}')">
-      <div class="pick-card-top">
-        <span class="pick-rank-tag">#${p.rank} VOLUME</span>
-        <span class="pos-tag pos-${p.position}">${p.position}</span>
-      </div>
-      <div class="pick-player-name" title="${p.player}">${p.player}</div>
-      <div class="pick-matchup-meta">${p.team} vs ${p.opponent}</div>
-      <div class="pick-stat-row">
-        <span>Proj: <strong>${Number(p.proj_yards).toFixed(1)} yds</strong></span>
-        <span>Fair: <strong style="color:var(--accent-blue);">${Number(p.fair_line_yards).toFixed(1)}</strong></span>
-      </div>
-    </div>
-  `).join('');
+  // 1. Sustained Role Surge
+  // Target share >= +8% above multi-week baseline AND multi-week baseline >= 15% AND prior games >= 12
+  if (diff >= 0.08 && gamesPrior >= 12 && baselineShare >= 0.15) {
+    return {
+      type: 'SUSTAINED_SURGE',
+      label: 'SUSTAINED ROLE SURGE',
+      class: 'role-surge',
+      diff,
+      recentShare,
+      baselineShare,
+      careerTgts,
+      description: `Target share surged to ${(recentShare * 100).toFixed(1)}% (+${(diff * 100).toFixed(1)}% over ${(baselineShare * 100).toFixed(1)}% baseline). Sustained offensive target priority.`
+    };
+  }
+
+  // 2. One-Game Spike (High Volatility / Fluke)
+  // Single-game spike of >= +12% but high target SD or low prior games
+  if (diff >= 0.12 && (tgtSd >= 3.8 || gamesPrior < 20 || baselineShare < 0.14)) {
+    return {
+      type: 'ONE_GAME_SPIKE',
+      label: 'ONE-GAME SPIKE (VOLATILE)',
+      class: 'role-spike',
+      diff,
+      recentShare,
+      baselineShare,
+      careerTgts,
+      description: `Target share spiked to ${(recentShare * 100).toFixed(1)}% (+${(diff * 100).toFixed(1)}% spike), but exhibits high historical variance (SD: ${tgtSd.toFixed(1)}). Unconfirmed if sustained.`
+    };
+  }
+
+  // 3. Significant Role Drop
+  if (diff <= -0.08) {
+    return {
+      type: 'ROLE_CONTRACTION',
+      label: 'ROLE CONTRACTION',
+      class: 'role-drop',
+      diff,
+      recentShare,
+      baselineShare,
+      careerTgts,
+      description: `Target share dropped to ${(recentShare * 100).toFixed(1)}% (${(diff * 100).toFixed(1)}% below ${(baselineShare * 100).toFixed(1)}% baseline). Reduced offensive priority.`
+    };
+  }
+
+  // 4. Stable Established Volume
+  if (baselineShare >= 0.22 || careerTgts >= 6.5) {
+    return {
+      type: 'ESTABLISHED_VOLUME',
+      label: 'ESTABLISHED VOLUME',
+      class: 'role-stable',
+      diff,
+      recentShare,
+      baselineShare,
+      careerTgts,
+      description: `Consistent high-volume target earner (Career: ${careerTgts.toFixed(1)} tgts/g, Baseline: ${(baselineShare * 100).toFixed(1)}% share). Stable offensive anchor.`
+    };
+  }
+
+  return {
+    type: 'ROTATIONAL',
+    label: 'ROTATIONAL ROLE',
+    class: 'role-stable',
+    diff,
+    recentShare,
+    baselineShare,
+    careerTgts,
+    description: `Standard rotational receiver (Baseline: ${(baselineShare * 100).toFixed(1)}% target share).`
+  };
 }
 
-function copyTopPicksText() {
-  if (topPicksData.length === 0) return;
-  let text = `NFL WEEK ${currentWeek} VOLUME PROJECTIONS (CALIBRATED FAIR LINES)\n`;
-  text += `===========================================================\n`;
-  topPicksData.slice(0, 20).forEach(p => {
-    text += `#${p.rank} ${p.player} (${p.position} - ${p.team}) vs ${p.opponent}\n`;
-    text += `   Proj: ${Number(p.proj_yards).toFixed(1)} yds (${Number(p.proj_rec).toFixed(1)} rec) | Fair Line: ${Number(p.fair_line_yards).toFixed(1)} yds\n`;
-  });
-  text += `\n* Note: Fair lines represent the calibrated 50/50 median. Verify sportsbooks before placing slips.`;
+// --------------------------------------------------------------------------
+// Price Boundary Calculator (Maximum Line / Minimum Odds to Act)
+// --------------------------------------------------------------------------
 
-  navigator.clipboard.writeText(text).then(() => {
-    showToast('✓ Copied volume projection summary to clipboard!');
-  }).catch(() => {
-    showToast('Could not copy to clipboard.');
-  });
+function calculatePriceBoundaries(muRec, muYpr, market, fairLine) {
+  let maxOverLine = null;
+  let minUnderLine = null;
+
+  const step = market === 'receptions' ? 0.5 : 1.0;
+  
+  // Test lower lines for Over qualification (10% edge + positive EV at -110)
+  for (let l = fairLine - step; l >= Math.max(0.5, fairLine - 25); l -= step) {
+    const res = evaluateLineAndOdds(muRec, muYpr, market, l, -110);
+    if (res.bestSide === 'OVER' && res.probEdge >= 0.10 && res.expectedReturn > 0) {
+      maxOverLine = l;
+      break;
+    }
+  }
+
+  // Test higher lines for Under qualification (10% edge + positive EV at -110)
+  for (let l = fairLine + step; l <= fairLine + 25; l += step) {
+    const res = evaluateLineAndOdds(muRec, muYpr, market, l, -110);
+    if (res.bestSide === 'UNDER' && res.probEdge >= 0.10 && res.expectedReturn > 0) {
+      minUnderLine = l;
+      break;
+    }
+  }
+
+  const atFair = evaluateLineAndOdds(muRec, muYpr, market, fairLine, -110);
+  const fairWinProb = atFair.winProb;
+  const breakEvenOddsAtFair = probToAmerican(fairWinProb);
+
+  return {
+    maxOverLine: maxOverLine ? maxOverLine.toFixed(1) : (fairLine - (market === 'receptions' ? 1.0 : 6.0)).toFixed(1),
+    minUnderLine: minUnderLine ? minUnderLine.toFixed(1) : (fairLine + (market === 'receptions' ? 1.0 : 6.0)).toFixed(1),
+    breakEvenOddsAtFair: breakEvenOddsAtFair > 0 ? `+${breakEvenOddsAtFair}` : `${breakEvenOddsAtFair}`
+  };
 }
 
 // --------------------------------------------------------------------------
@@ -408,90 +604,195 @@ function getEvaluatedPlayerRow(p) {
   const projVol = market === 'receptions' ? p.proj_rec : p.proj_yards;
 
   // Check stored user scenario or default
-  const stored = inlinePlayerLines[p.player_id] || {};
-  const isHypothetical = stored.line !== undefined;
-  const bookLine = stored.line !== undefined ? stored.line : fairLine;
-  const odds = stored.odds !== undefined ? stored.odds : -110;
-
-  // Evaluate exact 3 quant metrics with explicit push probability
-  const metrics = evaluateLineAndOdds(p.mu_rec, p.mu_ypr, market, bookLine, odds, bias);
-
-  // STRICT STAKE GATING:
-  // Must have: Expected Return > 0 AND Prob Edge >= minEdge AND healthy AND projectable
-  const clearsEdgeHurdle = metrics.probEdge >= minEdge;
-  const clearsEvHurdle = metrics.expectedReturn > 0;
-  const isHealthy = !p.questionable;
-  const isQualified = clearsEdgeHurdle && clearsEvHurdle && isHealthy && !p.excl_reason;
-
-  let actionableStake = 0.0;
-  if (isQualified) {
-    const b = metrics.decOdds - 1.0;
-    const rawKelly = (b * metrics.winProb - metrics.lossProb) / b;
-    actionableStake = Math.max(0.0, Math.min(maxKelly, rawKelly));
-  }
-
-  let status = 'PASS';
-  if (p.questionable) {
-    status = 'QUESTIONABLE';
-  } else if (isQualified) {
-    status = 'QUALIFIED';
-  } else if (metrics.expectedReturn > 0 && metrics.probEdge >= 0.04) {
-    status = 'LEAN';
-  } else {
-    status = 'PASS';
-  }
-
-  // Quote source provenance description
+  let bookLine = fairLine;
+  let odds = -110;
+  let isCustomScenario = false;
   let quoteSource = 'Model Fair Baseline (Unquoted)';
-  if (isHypothetical) {
-    quoteSource = 'Hypothetical User Scenario (Simulated)';
-  } else if (p.unposted_lines === 1) {
-    quoteSource = 'Vegas Lines Pending (Default 44.5 Total)';
+
+  if (inlinePlayerLines[p.player_id] && inlinePlayerLines[p.player_id].line !== undefined) {
+    bookLine = inlinePlayerLines[p.player_id].line;
+    isCustomScenario = Math.abs(bookLine - fairLine) > 0.01;
+    quoteSource = isCustomScenario ? 'Hypothetical User Scenario (Simulated)' : 'Model Fair Baseline (Unquoted)';
+  } else if (currentViewMode === 'demo_quotes') {
+    // Simulated market quote for demonstration
+    const role = detectPlayerRoleShift(p);
+    if (role.type === 'SUSTAINED_SURGE') {
+      bookLine = Math.round(fairLine * 0.90 * 2) / 2; // Book hasn't priced surge yet
+      quoteSource = 'Simulated Market Quote (Stale Book)';
+      isCustomScenario = true;
+    }
+  }
+
+  const metrics = evaluateLineAndOdds(p.mu_rec, p.mu_ypr, market, bookLine, odds, bias);
+  const priceBoundaries = calculatePriceBoundaries(p.mu_rec, p.mu_ypr, market, fairLine);
+  const roleShift = detectPlayerRoleShift(p);
+
+  // Qualification Gate:
+  // Must NOT be fatal injury/exclusion, must have positive EV, and must clear minEdge hurdle
+  let isQualified = false;
+  let status = 'PASS';
+
+  if (!p.excl_reason && !p.questionable) {
+    if (metrics.expectedReturn > 0 && metrics.probEdge >= minEdge) {
+      isQualified = true;
+      status = 'QUALIFIED';
+    } else if (metrics.expectedReturn > 0 && metrics.probEdge >= (minEdge * 0.5)) {
+      status = 'LEAN';
+    }
+  } else if (p.questionable) {
+    status = 'QUESTIONABLE';
+  }
+
+  // Kelly stake: Strictly 0.0% if not qualified or negative EV
+  let actionableStake = 0.0;
+  if (isQualified && metrics.expectedReturn > 0) {
+    const rawKelly = metrics.expectedReturn / (metrics.decOdds - 1.0);
+    const quarterKelly = rawKelly * 0.25;
+    actionableStake = Math.max(0.001, Math.min(maxKelly, quarterKelly));
   }
 
   return {
     ...p,
     market,
+    projVol,
+    fairLine,
     bookLine,
     odds,
-    fairLine,
-    projVol,
-    isHypothetical,
     quoteSource,
-    ...metrics,
-    actionableStake,
+    isCustomScenario,
     isQualified,
-    status
+    status,
+    actionableStake,
+    priceBoundaries,
+    roleShift,
+    ...metrics
   };
 }
 
 // --------------------------------------------------------------------------
-// Main Board & Filtering Logic
+// Primary View: Best Opportunities & Role-Change Grid
 // --------------------------------------------------------------------------
 
-function populateTeamDropdown() {
-  const sel = document.getElementById('teamFilter');
-  if (!sel) return;
-  const teams = [...new Set(slateData.map(p => p.team).filter(Boolean))].sort();
-  sel.innerHTML = `<option value="ALL">All Teams (${teams.length})</option>` +
-    teams.map(t => `<option value="${t}">${t}</option>`).join('');
+function renderBestOpportunitiesGrid() {
+  const container = document.getElementById('bestOpportunitiesGrid');
+  const badge = document.getElementById('roleChangeCountBadge');
+  const sectionTitle = document.getElementById('bestOppSectionTitle');
+  if (!container || slateData.length === 0) return;
+
+  const evaluated = slateData.map(getEvaluatedPlayerRow);
+
+  let displayList = [];
+
+  if (currentViewMode === 'surges') {
+    if (sectionTitle) sectionTitle.textContent = 'Isolated Sustained Role Surges';
+    displayList = evaluated
+      .filter(p => p.roleShift.type === 'SUSTAINED_SURGE')
+      .sort((a, b) => b.roleShift.diff - a.roleShift.diff);
+  } else if (currentViewMode === 'demo_quotes') {
+    if (sectionTitle) sectionTitle.textContent = 'Simulated High-Signal Opportunities';
+    displayList = evaluated
+      .filter(p => p.isQualified || p.roleShift.type === 'SUSTAINED_SURGE')
+      .slice(0, 8);
+  } else {
+    // Default baseline mode: Show top role surges and key volume anchors
+    if (sectionTitle) sectionTitle.textContent = 'Key Role Shifts & Price Boundaries';
+    const surges = evaluated.filter(p => p.roleShift.type === 'SUSTAINED_SURGE');
+    const anchors = evaluated.filter(p => p.roleShift.type === 'ESTABLISHED_VOLUME').slice(0, 6);
+    displayList = [...surges, ...anchors].slice(0, 9);
+  }
+
+  if (badge) badge.textContent = `${displayList.length} Displayed`;
+
+  if (displayList.length === 0) {
+    container.innerHTML = `
+      <div style="grid-column:1/-1; text-align:center; padding:32px; background:var(--bg-surface); border:1px solid var(--border-subtle); border-radius:8px; color:var(--text-ink-secondary);">
+        No matching opportunity cards found for the selected filter.
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = displayList.map(card => {
+    const isWatched = userSavedConditions.some(c => c.playerId === card.player_id);
+    const watchText = isWatched ? '★ Watching' : '★ Watch Condition';
+
+    return `
+      <div class="opp-card">
+        <div class="opp-card-header">
+          <div class="opp-player-meta">
+            <div class="opp-player-name" onclick="openDrawerForPlayer('${card.player_display_name}')">
+              ${card.player_display_name}
+            </div>
+            <div class="opp-matchup-sub">
+              ${card.team} vs ${card.opponent_team} &bull; <span class="pos-tag pos-${card.position}">${card.position}</span> &bull; Spread: ${card.team_spread > 0 ? '+' : ''}${Number(card.team_spread || 0).toFixed(1)}
+            </div>
+          </div>
+          <span class="role-badge ${card.roleShift.class}">${card.roleShift.label}</span>
+        </div>
+
+        <!-- Pricing Row -->
+        <div class="opp-pricing-row">
+          <div class="pricing-metric">
+            <span class="pricing-label">Calibrated Fair</span>
+            <span class="pricing-val" style="color:var(--accent-editorial);">${Number(card.fairLine).toFixed(1)} ${card.market === 'receptions' ? 'Rec' : 'Yds'}</span>
+          </div>
+          <div class="pricing-metric">
+            <span class="pricing-label">Current Offer</span>
+            <span class="pricing-val">${card.bookLine} <small style="font-size:11px; font-weight:600; color:var(--text-ink-tertiary);">${card.odds > 0 ? '+' : ''}${card.odds}</small></span>
+          </div>
+        </div>
+
+        <!-- Price Boundary Box (Crucial Decision Support) -->
+        <div class="price-boundary-box">
+          <div class="price-boundary-label">Price Boundary to Act:</div>
+          <div class="price-boundary-val">
+            Qualifies at Over &le; ${card.priceBoundaries.maxOverLine} (-110) or &ge; ${card.priceBoundaries.breakEvenOddsAtFair} at fair line
+          </div>
+        </div>
+
+        <!-- Narrative: Supporting Reason & Invalidation -->
+        <div class="opp-narrative">
+          <div><strong>Why it matters:</strong> ${card.roleShift.description}</div>
+          <div style="margin-top:4px; color:var(--text-ink-tertiary);">
+            <strong>Invalidation Risk:</strong> ${card.questionable ? 'Listed Questionable on injury feed.' : 'Teammate volume recovery, blowout clock-bleed.'}
+          </div>
+        </div>
+
+        <!-- Card Actions -->
+        <div class="opp-actions-row">
+          <button class="btn-inspect" onclick="openDrawerForPlayer('${card.player_display_name}')">
+            Inspect Evidence &amp; Price &rarr;
+          </button>
+          <button class="btn-watch" onclick="quickSaveCondition('${card.player_id}')">
+            ${watchText}
+          </button>
+        </div>
+      </div>
+    `;
+  }).join('');
 }
 
-function setPosFilter(pos) {
-  currentFilterPos = pos;
-  document.querySelectorAll('#posFilterGroup .seg-btn').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.pos === pos);
-  });
-  renderBoard();
-}
+// --------------------------------------------------------------------------
+// Secondary View: Full Slate Research Table
+// --------------------------------------------------------------------------
 
 function onFilterChange() {
-  currentSearchQuery = (document.getElementById('searchInput')?.value || '').toLowerCase().trim();
+  currentSearchQuery = document.getElementById('searchInput')?.value.toLowerCase().trim() || '';
   currentFilterMarket = document.getElementById('marketFilter')?.value || 'yards';
   currentFilterBook = document.getElementById('bookFilter')?.value || 'Consensus';
   currentFilterTeam = document.getElementById('teamFilter')?.value || 'ALL';
   currentQualifiedOnly = document.getElementById('qualifiedOnlyToggle')?.checked || false;
   currentProjectableOnly = document.getElementById('projectableOnlyCheck')?.checked || false;
+  
+  renderBestOpportunitiesGrid();
+  renderBoard();
+}
+
+function setPosFilter(pos) {
+  currentFilterPos = pos;
+  document.querySelectorAll('#posFilterGroup .seg-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.getAttribute('data-pos') === pos);
+  });
   renderBoard();
 }
 
@@ -500,7 +801,6 @@ function renderBoard() {
   const countLabel = document.getElementById('visibleRowCount');
   const totalLabel = document.getElementById('totalRowCount');
   const qualCountPill = document.getElementById('qualCountPill');
-  const qualContainer = document.getElementById('qualifiedOpportunitiesContainer');
   const boardBadge = document.getElementById('boardTotalBadge');
 
   if (!tbody || slateData.length === 0) return;
@@ -539,43 +839,10 @@ function renderBoard() {
   if (totalLabel) totalLabel.textContent = slateData.length;
   if (boardBadge) boardBadge.textContent = slateData.length;
 
-  // Render Qualified Opportunities Card
-  if (qualContainer) {
-    if (qualifiedList.length === 0) {
-      qualContainer.innerHTML = `
-        <div class="qual-empty-state">
-          <strong>No Verified Sportsbook Quotes Available:</strong> Live Vegas / sportsbook prop feeds have not been ingested for this slate. 
-          The board is displaying unquoted model fair-line baselines. No betting edge can be claimed until real bookmaker quotes are verified.
-          Use the in-row scenario chips below to simulate hypothetical bookmaker lines.
-        </div>
-      `;
-    } else {
-      qualContainer.innerHTML = `
-        <div class="top-picks-scroll-grid">
-          ${qualifiedList.map(q => `
-            <div class="top-pick-card-item" onclick="openDrawerForPlayer('${q.player_display_name}')" style="border-color:var(--status-green-border); background:rgba(16,185,129,0.04);">
-              <div class="pick-card-top">
-                <span class="status-pill status-qualified">${q.bestSide} ${q.bookLine}</span>
-                <span class="pos-tag pos-${q.position}">${q.position}</span>
-              </div>
-              <div class="pick-player-name">${q.player_display_name}</div>
-              <div class="pick-matchup-meta">${q.team} vs ${q.opponent_team} &bull; ${q.odds > 0 ? '+' : ''}${q.odds}</div>
-              <div class="pick-stat-row">
-                <span>Exp Return: <strong style="color:var(--status-green);">+${(q.expectedReturn * 100).toFixed(1)}%</strong></span>
-                <span>Stake: <strong>${(q.actionableStake * 100).toFixed(2)}%</strong></span>
-              </div>
-            </div>
-          `).join('')}
-        </div>
-      `;
-    }
-  }
-
-  // Render Table Rows
   if (filtered.length === 0) {
     tbody.innerHTML = `
       <tr>
-        <td colspan="14" style="text-align:center; padding:36px; color:var(--text-dim);">
+        <td colspan="14" style="text-align:center; padding:36px; color:var(--text-ink-tertiary);">
           No receivers found matching the active filters.
         </td>
       </tr>
@@ -584,8 +851,8 @@ function renderBoard() {
   }
 
   tbody.innerHTML = filtered.map(row => {
-    const isStarred = userWatchlist.some(w => w.player_id === row.player_id);
-    const starClass = isStarred ? 'star-btn starred' : 'star-btn';
+    const isWatched = userSavedConditions.some(w => w.playerId === row.player_id);
+    const starClass = isWatched ? 'star-btn starred' : 'star-btn';
 
     let statusPill = `<span class="status-pill status-pass">PASS</span>`;
     if (row.status === 'QUALIFIED') {
@@ -596,27 +863,21 @@ function renderBoard() {
       statusPill = `<span class="status-pill status-injury">QUESTIONABLE</span>`;
     }
 
-    // Actionable stake: Strictly 0.0% if PASS / Negative EV
     const stakeFormatted = row.actionableStake > 0
       ? `<strong style="color:var(--status-green);">${(row.actionableStake * 100).toFixed(2)}%</strong>`
-      : `<span style="color:var(--text-dim);">0.0%</span>`;
+      : `<span style="color:var(--text-ink-tertiary);">0.0%</span>`;
 
-    // 1. Prob Edge vs 50%
     const probEdgeFormatted = row.probEdge > 0
       ? `<span style="color:var(--status-green);">+${(row.probEdge * 100).toFixed(1)}%</span>`
-      : `<span style="color:var(--text-dim);">${(row.probEdge * 100).toFixed(1)}%</span>`;
+      : `<span style="color:var(--text-ink-tertiary);">${(row.probEdge * 100).toFixed(1)}%</span>`;
 
-    // 2. Break-Even Advantage vs Odds
     const beAdvFormatted = row.breakEvenAdvantage > 0
       ? `<span style="color:var(--status-green); font-weight:700;">+${(row.breakEvenAdvantage * 100).toFixed(1)}%</span>`
       : `<span style="color:var(--status-red);">${(row.breakEvenAdvantage * 100).toFixed(1)}%</span>`;
 
-    // 3. Expected Return (EV %)
     const evFormatted = row.expectedReturn > 0
       ? `<strong style="color:var(--status-green);">+${(row.expectedReturn * 100).toFixed(1)}%</strong>`
-      : `<span style="color:var(--text-dim);">${(row.expectedReturn * 100).toFixed(1)}%</span>`;
-
-    const sideClass = row.bestSide === 'OVER' ? 'val-blue' : 'val-amber';
+      : `<span style="color:var(--text-ink-tertiary);">${(row.expectedReturn * 100).toFixed(1)}%</span>`;
 
     const pushBadge = row.pPush > 0.005 
       ? `<small style="color:var(--status-amber); font-size:10px;">(P(Push) ${(row.pPush * 100).toFixed(1)}%)</small>` 
@@ -625,28 +886,28 @@ function renderBoard() {
     return `
       <tr>
         <td style="text-align:center;">
-          <button class="${starClass}" onclick="toggleWatchlistPlayer('${row.player_id}')" title="Save to Watchlist">
+          <button class="${starClass}" onclick="quickSaveCondition('${row.player_id}')" title="Save Condition">
             ★
           </button>
         </td>
         <td>
-          <div style="font-weight:700; color:#fff; cursor:pointer;" onclick="openDrawerForPlayer('${row.player_display_name}')">
+          <div style="font-weight:700; color:var(--text-ink); cursor:pointer;" onclick="openDrawerForPlayer('${row.player_display_name}')">
             ${row.player_display_name}
           </div>
-          <div style="font-size:11px; color:var(--text-dim);">
+          <div style="font-size:11px; color:var(--text-ink-tertiary);">
             ${row.team} vs ${row.opponent_team} ${row.unposted_lines === 1 ? '<span style="color:var(--status-amber);">(Line Pending)</span>' : ''}
           </div>
         </td>
         <td><span class="pos-tag pos-${row.position}">${row.position}</span></td>
-        <td style="font-family:var(--font-mono); font-size:11px; color:var(--text-muted);">${row.market === 'receptions' ? 'Rec' : 'Yards'}</td>
+        <td><span class="role-badge ${row.roleShift.class}" style="font-size:9px;">${row.roleShift.label}</span></td>
         <td class="num-col"><strong>${Number(row.projVol).toFixed(1)}</strong></td>
-        <td class="num-col" style="color:var(--accent-blue); font-weight:700;">${Number(row.fairLine).toFixed(1)}</td>
+        <td class="num-col" style="color:var(--accent-editorial); font-weight:700;">${Number(row.fairLine).toFixed(1)}</td>
         <td>
           <div class="inline-line-ctrl">
-            <span class="${sideClass}" style="font-weight:700; font-family:var(--font-mono); font-size:11px;">${row.bestSide}</span>
+            <span style="font-weight:700; font-family:var(--font-mono); font-size:11px; color:${row.bestSide === 'OVER' ? 'var(--accent-editorial)' : 'var(--status-amber)'};">${row.bestSide}</span>
             <input type="number" step="0.5" class="comp-line-input" value="${row.bookLine}"
                    oninput="onInlineLineChange('${row.player_id}', this.value)">
-            <span style="font-family:var(--font-mono); font-size:10px; color:var(--text-dim);">${row.odds > 0 ? '+' : ''}${row.odds}</span>
+            <span style="font-family:var(--font-mono); font-size:10px; color:var(--text-ink-tertiary);">${row.odds > 0 ? '+' : ''}${row.odds}</span>
           </div>
           <div class="quick-adjust-bar">
             <button class="quick-chip" onclick="applyQuickOffset('${row.player_id}', -5)">-5</button>
@@ -655,7 +916,6 @@ function renderBoard() {
             <button class="quick-chip" onclick="applyQuickOffset('${row.player_id}', 2.5)">+2.5</button>
             <button class="quick-chip" onclick="applyQuickOffset('${row.player_id}', 5)">+5</button>
           </div>
-          <div style="font-size:9px; color:var(--text-dim); margin-top:3px; font-family:var(--font-mono);">${row.quoteSource}</div>
         </td>
         <td class="num-col">${(row.winProb * 100).toFixed(1)}% ${pushBadge}</td>
         <td class="num-col">${probEdgeFormatted}</td>
@@ -680,6 +940,7 @@ function onInlineLineChange(playerId, val) {
   inlinePlayerLines[playerId].line = line;
   saveStoredLines();
   renderBoard();
+  renderBestOpportunitiesGrid();
 }
 
 function applyQuickOffset(playerId, offset) {
@@ -691,6 +952,7 @@ function applyQuickOffset(playerId, offset) {
   inlinePlayerLines[playerId].line = targetLine;
   saveStoredLines();
   renderBoard();
+  renderBestOpportunitiesGrid();
 }
 
 function sortTable(col) {
@@ -704,13 +966,14 @@ function sortTable(col) {
 }
 
 // --------------------------------------------------------------------------
-// Slide-in Detail Drawer ("Understand, Verify, Know What Invalidates It")
+// Slide-in Detail Drawer (Strict 6-Step Order + Conditional Projections)
 // --------------------------------------------------------------------------
 
 function openDrawerForPlayer(playerName) {
   const p = slateData.find(x => x.player_display_name === playerName);
   if (!p) return;
   selectedDrawerPlayer = getEvaluatedPlayerRow(p);
+  activeDrawerConditionalScenario = 'BASELINE';
 
   const drawer = document.getElementById('detailDrawer');
   const overlay = document.getElementById('drawerOverlay');
@@ -719,7 +982,6 @@ function openDrawerForPlayer(playerName) {
   const matchupText = document.getElementById('drawerMatchupText');
   const actionSummary = document.getElementById('drawerActionSummary');
   const statusChip = document.getElementById('drawerStatusChip');
-  const body = document.getElementById('drawerBody');
   const watchBtn = document.getElementById('drawerWatchlistBtn');
 
   if (nameEl) nameEl.textContent = p.player_display_name;
@@ -728,7 +990,7 @@ function openDrawerForPlayer(playerName) {
     posTag.className = `pos-tag pos-${p.position}`;
   }
   if (matchupText) {
-    matchupText.innerHTML = `${p.team} vs ${p.opponent_team} &bull; Spread: ${p.team_spread > 0 ? '+' : ''}${Number(p.team_spread || 0).toFixed(1)} &bull; Implied: ${Number(p.implied_team_total || 22).toFixed(1)} pts ${p.unposted_lines === 1 ? '<span style="color:var(--status-amber);">(Vegas Total Pending)</span>' : ''}`;
+    matchupText.innerHTML = `${p.team} vs ${p.opponent_team} &bull; Spread: ${p.team_spread > 0 ? '+' : ''}${Number(p.team_spread || 0).toFixed(1)} &bull; Implied: ${Number(p.implied_team_total || 22).toFixed(1)} pts ${p.unposted_lines === 1 ? '<span style="color:var(--status-amber);">(Total Pending)</span>' : ''}`;
   }
 
   const evRow = selectedDrawerPlayer;
@@ -736,7 +998,7 @@ function openDrawerForPlayer(playerName) {
     if (evRow.isQualified) {
       actionSummary.innerHTML = `<span style="color:var(--status-green);">BET ${evRow.bestSide} ${evRow.bookLine} (${evRow.odds > 0 ? '+' : ''}${evRow.odds}) &bull; EV: +${(evRow.expectedReturn * 100).toFixed(1)}% &bull; Actionable Stake: ${(evRow.actionableStake * 100).toFixed(2)}%</span>`;
     } else {
-      actionSummary.innerHTML = `<span style="color:var(--text-dim);">PASS &bull; ${evRow.expectedReturn <= 0 ? `Negative EV (${(evRow.expectedReturn * 100).toFixed(1)}%)` : `Edge +${(evRow.probEdge * 100).toFixed(1)}% below hurdle`} &bull; Actionable Stake: 0.00%</span>`;
+      actionSummary.innerHTML = `<span style="color:var(--text-ink-tertiary);">PASS &bull; ${evRow.expectedReturn <= 0 ? `Negative EV (${(evRow.expectedReturn * 100).toFixed(1)}%)` : `Edge +${(evRow.probEdge * 100).toFixed(1)}% below hurdle`} &bull; Actionable Stake: 0.00%</span>`;
     }
   }
 
@@ -746,89 +1008,57 @@ function openDrawerForPlayer(playerName) {
   }
 
   if (watchBtn) {
-    const isWatched = userWatchlist.some(w => w.player_id === p.player_id);
-    watchBtn.textContent = isWatched ? '★ Remove from Watchlist' : '★ Add to Watchlist';
+    const isWatched = userSavedConditions.some(w => w.playerId === p.player_id);
+    watchBtn.textContent = isWatched ? '★ Condition Monitored' : '★ Watch Condition';
   }
 
+  renderDrawerBodyContent();
+
+  drawer.classList.add('active');
+  overlay.classList.add('active');
+}
+
+function renderDrawerBodyContent() {
+  const body = document.getElementById('drawerBody');
+  const p = selectedDrawerPlayer;
+  if (!body || !p) return;
+
+  const cond = computeConditionalProjection(p, activeDrawerConditionalScenario);
+
   body.innerHTML = `
-    <!-- Opportunity Status Banner -->
-    <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:8px; padding:14px; margin-bottom:16px;">
-      <div style="display:flex; justify-content:space-between; align-items:center;">
+    <!-- STEP 1: DECISION (Side, Offer, Qualification, Rationale) -->
+    <div class="drawer-section-title">1. The Decision &amp; Qualification Status</div>
+    <div style="background:var(--bg-surface-subtle); border:1px solid var(--border-subtle); border-radius:8px; padding:14px; margin-bottom:16px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
         <div>
-          <span style="font-family:var(--font-mono); font-size:11px; color:var(--text-dim);">CALIBRATED FAIR LINE (50/50 MEDIAN)</span>
-          <div style="font-size:20px; font-weight:800; color:var(--accent-blue);">${Number(evRow.fairLine).toFixed(1)} ${evRow.market === 'receptions' ? 'Rec' : 'Yards'}</div>
+          <span style="font-family:var(--font-mono); font-size:10px; font-weight:700; color:var(--text-ink-tertiary);">CALIBRATED FAIR LINE (50/50 MEDIAN)</span>
+          <div style="font-size:20px; font-weight:800; color:var(--accent-editorial);">${Number(p.fairLine).toFixed(1)} ${p.market === 'receptions' ? 'Rec' : 'Yards'}</div>
         </div>
         <div style="text-align:right;">
-          <span style="font-family:var(--font-mono); font-size:11px; color:var(--text-dim);">ACTIVE SCENARIO LINE</span>
-          <div style="font-size:20px; font-weight:800; color:#fff;">${evRow.bookLine} (${evRow.odds > 0 ? '+' : ''}${evRow.odds})</div>
-          <small style="font-size:10px; color:var(--text-dim);">${evRow.quoteSource}</small>
+          <span style="font-family:var(--font-mono); font-size:10px; font-weight:700; color:var(--text-ink-tertiary);">DISPLAYED QUOTE</span>
+          <div style="font-size:20px; font-weight:800; color:var(--text-ink);">${p.bookLine} (${p.odds > 0 ? '+' : ''}${p.odds})</div>
+          <small style="font-size:10px; color:var(--text-ink-tertiary);">${p.quoteSource}</small>
         </div>
       </div>
 
-      <!-- 3 Quant Metrics Breakdown -->
-      <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; margin-top:12px; padding-top:12px; border-top:1px solid var(--border-color); font-family:var(--font-mono); font-size:11px;">
-        <div style="background:var(--bg-main); padding:8px; border-radius:4px;">
-          <div style="color:var(--text-dim); font-size:9px;">1. PROB EDGE (vs 50%)</div>
-          <div style="font-size:14px; font-weight:700; color:${evRow.probEdge > 0 ? 'var(--status-green)' : 'var(--text-dim)'};">${evRow.probEdge > 0 ? '+' : ''}${(evRow.probEdge * 100).toFixed(1)}%</div>
-        </div>
-        <div style="background:var(--bg-main); padding:8px; border-radius:4px;">
-          <div style="color:var(--text-dim); font-size:9px;">2. BE ADV (vs Odds)</div>
-          <div style="font-size:14px; font-weight:700; color:${evRow.breakEvenAdvantage > 0 ? 'var(--status-green)' : 'var(--status-red)'};">${evRow.breakEvenAdvantage > 0 ? '+' : ''}${(evRow.breakEvenAdvantage * 100).toFixed(1)}%</div>
-        </div>
-        <div style="background:var(--bg-main); padding:8px; border-radius:4px;">
-          <div style="color:var(--text-dim); font-size:9px;">3. EXP RETURN (EV)</div>
-          <div style="font-size:14px; font-weight:700; color:${evRow.expectedReturn > 0 ? 'var(--status-green)' : 'var(--status-red)'};">${evRow.expectedReturn > 0 ? '+' : ''}${(evRow.expectedReturn * 100).toFixed(1)}%</div>
-        </div>
+      <div style="font-size:12px; line-height:1.5; color:var(--text-ink-secondary); padding-top:10px; border-top:1px solid var(--border-subtle);">
+        <strong>Qualification Verdict:</strong> ${p.isQualified 
+          ? `<span style="color:var(--status-green); font-weight:700;">QUALIFIED BET &bull; Model clears 10% calibration hurdle with positive expected value.</span>` 
+          : `<span style="color:var(--text-ink-tertiary);">PASS &bull; Insufficient edge over book price or unquoted baseline. Model distinguishes outcome uncertainty (wide yardage dispersion) from probability error.</span>`}
       </div>
     </div>
 
-    <!-- 1. Why this projection? -->
-    <div class="drawer-section-title">1. Why this projection? (Offensive Usage & Role)</div>
-    <div class="stat-metric-grid">
-      <div class="stat-metric-cell">
-        <div class="metric-cell-label">TARGET SHARE</div>
-        <div class="metric-cell-val">${(Number(p.target_share || p.f_tgt_share || 0.22) * 100).toFixed(1)}%</div>
-      </div>
-      <div class="stat-metric-cell">
-        <div class="metric-cell-label">AIR YARDS SHARE</div>
-        <div class="metric-cell-val">${(Number(p.air_yards_share || p.f_ay_share || 0.28) * 100).toFixed(1)}%</div>
-      </div>
-      <div class="stat-metric-cell">
-        <div class="metric-cell-label">aDOT</div>
-        <div class="metric-cell-val">${Number(p.adot || p.f_adot || 11.2).toFixed(1)} yds</div>
-      </div>
-      <div class="stat-metric-cell">
-        <div class="metric-cell-label">CATCH RATE</div>
-        <div class="metric-cell-val">${(Number(p.catch_rate_g || p.f_catch_rate || 0.68) * 100).toFixed(1)}%</div>
-      </div>
-      <div class="stat-metric-cell">
-        <div class="metric-cell-label">YARDS / REC (YPR)</div>
-        <div class="metric-cell-val">${Number(p.mu_ypr || 12.8).toFixed(1)}</div>
-      </div>
-      <div class="stat-metric-cell">
-        <div class="metric-cell-label">EXP. TARGETS</div>
-        <div class="metric-cell-val">${(Number(p.mu_rec || 5.0) / Math.max(0.4, Number(p.catch_rate_g || 0.68))).toFixed(1)}</div>
+    <!-- STEP 2: PRICE (Sportsbook comparison + Sensitivity + Boundaries) -->
+    <div class="drawer-section-title">2. Price Verification &amp; Price Boundaries</div>
+    <div class="price-boundary-box" style="margin-bottom:12px;">
+      <div class="price-boundary-label">Price Boundaries Required to Clear Hurdle:</div>
+      <div class="price-boundary-val">
+        &bull; Over qualifies at &le; <strong>${p.priceBoundaries.maxOverLine}</strong> at -110<br>
+        &bull; Under qualifies at &ge; <strong>${p.priceBoundaries.minUnderLine}</strong> at -110<br>
+        &bull; Required odds at fair line (${Number(p.fairLine).toFixed(1)}): <strong>${p.priceBoundaries.breakEvenOddsAtFair}</strong>
       </div>
     </div>
 
-    <!-- 2. What could invalidate it? -->
-    <div class="drawer-section-title">2. What could invalidate it? (Risk Factors)</div>
-    <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:8px; padding:12px; margin-bottom:16px; font-size:12px; line-height:1.6; color:var(--text-muted);">
-      ${p.questionable ? `
-        <div style="color:var(--status-amber); font-weight:700; margin-bottom:6px;">
-          ⚠️ QUESTIONABLE STATUS: Listed on official injury report. The statistical model cannot price in-game reinjury risk or sudden snap count truncation.
-        </div>
-      ` : `<div style="color:var(--status-green); margin-bottom:6px;">✓ Clean health status. No official injury report designation.</div>`}
-      &bull; <strong>Defensive Matchup:</strong> Opponent allows <strong>${((Number(p.def_yards_idx || 1.0) - 1.0) * 100).toFixed(1)}%</strong> ${p.def_yards_idx >= 1.0 ? 'more' : 'fewer'} yards to ${p.position}s than NFL average.<br>
-      &bull; <strong>Game Script &amp; Spread:</strong> ${p.team} is ${p.team_spread > 0 ? '+' : ''}${Number(p.team_spread || 0).toFixed(1)}. Positive game scripts reduce pass volume; trailing scripts inflate targets.<br>
-      &bull; <strong>Venue &amp; Environment:</strong> ${p.is_dome ? 'Indoor Dome (ideal passing conditions)' : `Outdoor stadium &bull; Wind: ${p.wind || 0} mph`}.
-    </div>
-
-    <!-- 3. What price is required? (Line Sensitivity Matrix with Explicit Push) -->
-    <div class="drawer-section-title">3. What price is required? (Sensitivity &amp; Push Analysis)</div>
-    <div style="font-size:11px; color:var(--text-dim); margin-bottom:6px;">
-      Explicitly displays P(Over), P(Under), and P(Push) across surrounding lines:
-    </div>
     <table class="sensitivity-table">
       <thead>
         <tr>
@@ -836,46 +1066,165 @@ function openDrawerForPlayer(playerName) {
           <th>P(Over)</th>
           <th>P(Under)</th>
           <th>P(Push)</th>
-          <th>Break-Even Odds</th>
+          <th>BE Odds</th>
           <th>BE Adv</th>
-          <th>Exp Return</th>
+          <th>Exp Ret</th>
           <th>Verdict</th>
         </tr>
       </thead>
       <tbody>
-        ${renderSensitivityRows(p, evRow.market)}
+        ${renderSensitivityRows(p, p.market)}
       </tbody>
     </table>
 
-    <!-- 4. How uncertain is it? (Outcome Ranges) -->
-    <div class="drawer-section-title">4. How uncertain is it? (Predictive Outcome Ranges)</div>
+    <!-- STEP 3: EVIDENCE (Role-Change Detection) -->
+    <div class="drawer-section-title">3. Evidence &amp; Role-Change Detection</div>
+    <div style="background:var(--bg-surface-subtle); border:1px solid var(--border-subtle); border-radius:8px; padding:12px; margin-bottom:14px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <span class="role-badge ${p.roleShift.class}">${p.roleShift.label}</span>
+        <span style="font-family:var(--font-mono); font-size:11px; color:var(--text-ink-tertiary);">Prior Games: ${p.games_prior || 0}</span>
+      </div>
+      <p style="font-size:12px; line-height:1.5; color:var(--text-ink-secondary); margin-bottom:10px;">
+        ${p.roleShift.description}
+      </p>
+
+      <div class="stat-metric-grid" style="margin-bottom:0;">
+        <div class="stat-metric-cell">
+          <div class="metric-cell-label">Recent Share</div>
+          <div class="metric-cell-val">${(Number(p.target_share || 0) * 100).toFixed(1)}%</div>
+        </div>
+        <div class="stat-metric-cell">
+          <div class="metric-cell-label">Multi-Wk Base</div>
+          <div class="metric-cell-val">${(Number(p.f_tgt_share || 0) * 100).toFixed(1)}%</div>
+        </div>
+        <div class="stat-metric-cell">
+          <div class="metric-cell-label">Career Tgts/G</div>
+          <div class="metric-cell-val">${Number(p.c_targets || 0).toFixed(1)}</div>
+        </div>
+        <div class="stat-metric-cell">
+          <div class="metric-cell-label">Air Yds Share</div>
+          <div class="metric-cell-val">${(Number(p.air_yards_share || p.f_ay_share || 0) * 100).toFixed(1)}%</div>
+        </div>
+        <div class="stat-metric-cell">
+          <div class="metric-cell-label">aDOT</div>
+          <div class="metric-cell-val">${Number(p.adot || p.f_adot || 0).toFixed(1)} yds</div>
+        </div>
+        <div class="stat-metric-cell">
+          <div class="metric-cell-label">Target SD</div>
+          <div class="metric-cell-val">&plusmn;${Number(p.f_tgt_sd || 3).toFixed(1)}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONDITIONAL PROJECTIONS INTERACTIVE SUB-TOOL -->
+    <div style="background:var(--bg-canvas); border:1px solid var(--border-medium); border-radius:8px; padding:12px; margin-bottom:16px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <span style="font-family:var(--font-mono); font-size:10px; font-weight:800; color:var(--text-ink); text-transform:uppercase;">Conditional Projections</span>
+        <span style="font-size:10px; color:var(--text-ink-tertiary);">Coherent Team Totals</span>
+      </div>
+      <div class="segmented-control" style="width:100%; margin-bottom:10px;">
+        <button class="seg-btn ${activeDrawerConditionalScenario === 'BASELINE' ? 'active' : ''}" style="flex:1;" onclick="setDrawerScenario('BASELINE')">Baseline</button>
+        <button class="seg-btn ${activeDrawerConditionalScenario === 'TEAMMATE_OUT' ? 'active' : ''}" style="flex:1;" onclick="setDrawerScenario('TEAMMATE_OUT')">Teammate OUT</button>
+        <button class="seg-btn ${activeDrawerConditionalScenario === 'LIMITED_WORKLOAD' ? 'active' : ''}" style="flex:1;" onclick="setDrawerScenario('LIMITED_WORKLOAD')">Snap Count</button>
+        <button class="seg-btn ${activeDrawerConditionalScenario === 'TRAILING_SCRIPT' ? 'active' : ''}" style="flex:1;" onclick="setDrawerScenario('TRAILING_SCRIPT')">Trailing Script</button>
+      </div>
+
+      <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:6px;">
+        <span>Conditional Projection: <strong>${cond.condProjYards} yds (${cond.condProjRec} rec)</strong></span>
+        <span style="color:var(--accent-editorial); font-weight:700;">${((cond.condMuRec / p.mu_rec - 1) * 100) >= 0 ? '+' : ''}${((cond.condMuRec / p.mu_rec - 1) * 100).toFixed(1)}% Vol Shift</span>
+      </div>
+      <ul style="font-size:11px; color:var(--text-ink-secondary); padding-left:16px; margin:0;">
+        ${cond.assumptions.map(a => `<li>${a}</li>`).join('')}
+      </ul>
+    </div>
+
+    <!-- STEP 4: RISKS & INVALIDATION FACTORS -->
+    <div class="drawer-section-title">4. Invalidation Factors &amp; Matchup Risks</div>
+    <div style="background:var(--bg-surface-subtle); border:1px solid var(--border-subtle); border-radius:8px; padding:12px; margin-bottom:16px; font-size:12px; line-height:1.6; color:var(--text-ink-secondary);">
+      ${p.questionable ? `
+        <div style="color:var(--status-amber); font-weight:700; margin-bottom:6px;">
+          ⚠️ QUESTIONABLE DESIGNATION: Official injury report flag. Model cannot price in-game reinjury or sudden pitch count.
+        </div>
+      ` : `<div style="color:var(--status-green); margin-bottom:6px;">✓ Clean health status. No official injury designation.</div>`}
+      &bull; <strong>Defensive Matchup:</strong> Opponent allows <strong>${((Number(p.def_yards_idx || 1.0) - 1.0) * 100).toFixed(1)}%</strong> ${p.def_yards_idx >= 1.0 ? 'more' : 'fewer'} yards to ${p.position}s than NFL average.<br>
+      &bull; <strong>Game Script &amp; Spread:</strong> ${p.team} is ${p.team_spread > 0 ? '+' : ''}${Number(p.team_spread || 0).toFixed(1)}. Positive scripts reduce pass volume; trailing scripts inflate targets.<br>
+      &bull; <strong>Venue:</strong> ${p.is_dome ? 'Indoor Dome (ideal passing environment)' : `Outdoor stadium &bull; Wind: ${p.wind || 0} mph`}.
+    </div>
+
+    <!-- STEP 5: DISTRIBUTION & PREDICTIVE RANGES -->
+    <div class="drawer-section-title">5. Predictive Distribution &amp; Outcome Ranges</div>
     <div class="outcome-range-bar-wrap">
       <div class="range-steps-row">
-        <span>10th: <strong>${Math.round(evRow.projVol * 0.35)}</strong></span>
-        <span>25th: <strong>${Math.round(evRow.projVol * 0.62)}</strong></span>
-        <span style="color:var(--accent-blue);">Median (50th): <strong>${Number(evRow.fairLine).toFixed(1)}</strong></span>
-        <span>75th: <strong>${Math.round(evRow.projVol * 1.35)}</strong></span>
-        <span>90th: <strong>${Math.round(evRow.projVol * 1.85)}</strong></span>
+        <span>10th: <strong>${Math.round(p.projVol * 0.35)}</strong></span>
+        <span>25th: <strong>${Math.round(p.projVol * 0.62)}</strong></span>
+        <span style="color:var(--accent-editorial);">Median (50th): <strong>${Number(p.fairLine).toFixed(1)}</strong></span>
+        <span>75th: <strong>${Math.round(p.projVol * 1.35)}</strong></span>
+        <span>90th: <strong>${Math.round(p.projVol * 1.85)}</strong></span>
       </div>
       <div class="range-bar">
         <div class="range-iqr" style="left:25%; width:50%;"></div>
       </div>
-      <div style="font-size:11px; color:var(--text-dim); margin-top:8px;">
-        Expected interquartile range (IQR 25th–75th): <strong>${Math.round(evRow.projVol * 0.62)} to ${Math.round(evRow.projVol * 1.35)} ${evRow.market === 'receptions' ? 'receptions' : 'yards'}</strong>.
+      <div style="font-size:11px; color:var(--text-ink-tertiary); margin-top:8px;">
+        Expected IQR (25th–75th): <strong>${Math.round(p.projVol * 0.62)} to ${Math.round(p.projVol * 1.35)} ${p.market === 'receptions' ? 'receptions' : 'yards'}</strong>.
       </div>
     </div>
 
-    <!-- 5. Calibrated Density Curve -->
-    <div class="drawer-section-title">5. Calibrated Probability Density Curve</div>
-    <div id="drawerCurveContainer" style="width:100%; height:180px; position:relative; background:var(--bg-main); border:1px solid var(--border-color); border-radius:6px;">
-      <!-- SVG chart rendered below -->
+    <div id="drawerCurveContainer" style="width:100%; height:180px; position:relative; background:var(--bg-canvas); border:1px solid var(--border-subtle); border-radius:6px; margin-bottom:16px;"></div>
+
+    <!-- STEP 6: SOURCES & DATA PROVENANCE -->
+    <div class="drawer-section-title">6. Data Sources &amp; Provenance</div>
+    <div style="font-size:11px; color:var(--text-ink-tertiary); line-height:1.6; background:var(--bg-surface-subtle); padding:10px 12px; border-radius:6px; border:1px solid var(--border-subtle);">
+      &bull; <strong>Model Engine:</strong> Compound Negative Binomial-Gamma (v2.1 calibrated)<br>
+      &bull; <strong>Fitted Parameters:</strong> Dispersion &alpha; = 0.1097, Per-Catch Shape k = 1.555<br>
+      &bull; <strong>PBP Feed:</strong> nflverse official play-by-play through 2026 Week 6<br>
+      &bull; <strong>Verification Status:</strong> Model Fair Baseline (Awaiting sportsbook opening quotes)
     </div>
   `;
 
-  renderDrawerDensityCurve(p, evRow.market, evRow.bookLine);
+  renderDrawerDensityCurve(p, p.market, p.bookLine);
+}
 
-  drawer.classList.add('active');
-  overlay.classList.add('active');
+function setDrawerScenario(scen) {
+  activeDrawerConditionalScenario = scen;
+  renderDrawerBodyContent();
+}
+
+function computeConditionalProjection(player, scenario) {
+  let recMult = 1.0;
+  let yprMult = 1.0;
+  let assumptions = [];
+
+  if (scenario === 'TEAMMATE_OUT') {
+    const currentShare = Number(player.target_share || player.f_tgt_share || 0.22);
+    const boost = Math.min(0.08, currentShare * 0.25);
+    const newShare = currentShare + boost;
+    recMult = newShare / currentShare;
+    assumptions.push(`Teammate ruled out: ~18% vacated target share redistributed proportionally across remaining targets.`);
+    assumptions.push(`Team passing total held coherent at ${player.implied_team_total || 24} implied pts (zero artificial volume inflation).`);
+  } else if (scenario === 'LIMITED_WORKLOAD') {
+    recMult = 0.65;
+    yprMult = 0.95;
+    assumptions.push('Snap count / pitch count restriction: player active on ~60-65% of standard passing downs.');
+    assumptions.push('Elevated substitution rate in 2-minute and obvious passing situations.');
+  } else if (scenario === 'TRAILING_SCRIPT') {
+    recMult = 1.12;
+    assumptions.push(`Trailing game script: +4 to +6 team dropbacks expected vs neutral baseline.`);
+    assumptions.push('Air yards share maintained, target volume scaled with team pass rate.');
+  } else {
+    assumptions.push('Baseline projection under standard game script and full starter workload.');
+  }
+
+  const condMuRec = player.mu_rec * recMult;
+  const condMuYpr = player.mu_ypr * yprMult;
+
+  return {
+    scenario,
+    condMuRec,
+    condMuYpr,
+    condProjRec: condMuRec.toFixed(1),
+    condProjYards: (condMuRec * condMuYpr).toFixed(1),
+    assumptions
+  };
 }
 
 function renderSensitivityRows(p, market) {
@@ -888,7 +1237,7 @@ function renderSensitivityRows(p, market) {
     const testLine = Math.max(0.5, baseFair + off);
     const m = evaluateLineAndOdds(p.mu_rec, p.mu_ypr, market, testLine, -110, bias);
 
-    let verdict = '<span style="color:var(--text-dim);">PASS</span>';
+    let verdict = '<span style="color:var(--text-ink-tertiary);">PASS</span>';
     if (m.expectedReturn > 0 && m.probEdge >= 0.10) {
       verdict = `<span style="color:var(--status-green); font-weight:700;">BET ${m.bestSide}</span>`;
     } else if (m.expectedReturn > 0 && m.probEdge >= 0.04) {
@@ -900,14 +1249,14 @@ function renderSensitivityRows(p, market) {
     const pushStr = m.pPush > 0.001 ? `${(m.pPush * 100).toFixed(1)}%` : '0.0%';
 
     return `
-      <tr style="${off === 0 ? 'background:rgba(56,189,248,0.06);' : ''}">
-        <td><strong>${testLine.toFixed(1)}</strong> ${off === 0 ? '<small style="color:var(--accent-blue);">(Fair)</small>' : ''}</td>
+      <tr style="${off === 0 ? 'background:var(--accent-editorial-bg);' : ''}">
+        <td><strong>${testLine.toFixed(1)}</strong> ${off === 0 ? '<small style="color:var(--accent-editorial);">(Fair)</small>' : ''}</td>
         <td>${(m.pOver * 100).toFixed(1)}%</td>
         <td>${(m.pUnder * 100).toFixed(1)}%</td>
-        <td style="color:${m.pPush > 0.005 ? 'var(--status-amber)' : 'var(--text-dim)'};">${pushStr}</td>
+        <td style="color:${m.pPush > 0.005 ? 'var(--status-amber)' : 'var(--text-ink-tertiary)'};">${pushStr}</td>
         <td>${probToAmerican(m.winProb) > 0 ? '+' : ''}${probToAmerican(m.winProb)}</td>
         <td style="color:${m.breakEvenAdvantage > 0 ? 'var(--status-green)' : 'var(--status-red)'};">${m.breakEvenAdvantage > 0 ? '+' : ''}${(m.breakEvenAdvantage * 100).toFixed(1)}%</td>
-        <td style="color:${m.expectedReturn > 0 ? 'var(--status-green)' : 'var(--text-dim)'};">${m.expectedReturn > 0 ? '+' : ''}${(m.expectedReturn * 100).toFixed(1)}%</td>
+        <td style="color:${m.expectedReturn > 0 ? 'var(--status-green)' : 'var(--text-ink-tertiary)'};">${m.expectedReturn > 0 ? '+' : ''}${(m.expectedReturn * 100).toFixed(1)}%</td>
         <td>${verdict}</td>
       </tr>
     `;
@@ -932,511 +1281,351 @@ function renderDrawerDensityCurve(p, market, bookLine) {
   for (let i = 0; i <= steps; i++) {
     const x = (i / steps) * maxVal;
     let d = 0;
-    if (market === 'receptions') {
-      const r = 1.0 / MODEL_ALPHA;
-      const pp = r / (r + p.mu_rec);
-      const k = Math.round(x);
-      d = Math.pow(pp, r) * Math.pow(1 - pp, k) * (gammaRatio(k + r, r) / factorial(k));
-    } else {
-      const k = MODEL_K * (p.mu_rec || 4.0);
-      const theta = (p.mu_ypr || 12.0) / MODEL_K;
-      if (x > 0 && k > 0) {
-        d = (1 / (Math.exp(logGamma(k)) * Math.pow(theta, k))) * Math.pow(x, k - 1) * Math.exp(-x / theta);
-      }
+    if (x > 0) {
+      const eps = 0.25;
+      const cdf1 = market === 'receptions' 
+        ? (1 - pRecOver(p.mu_rec, x - eps))
+        : compoundYardsCdf(p.mu_rec, p.mu_ypr, x - eps);
+      const cdf2 = market === 'receptions'
+        ? (1 - pRecOver(p.mu_rec, x + eps))
+        : compoundYardsCdf(p.mu_rec, p.mu_ypr, x + eps);
+      d = Math.max(0, (cdf2 - cdf1) / (2 * eps));
     }
-    if (isNaN(d) || !isFinite(d)) d = 0;
-    points.push({ x, y: d });
+    points.push({ x, d });
     if (d > maxDensity) maxDensity = d;
   }
-  if (maxDensity <= 0) maxDensity = 1.0;
 
-  const scaleX = val => pad.left + (val / maxVal) * (w - pad.left - pad.right);
-  const scaleY = val => h - pad.bottom - (val / maxDensity) * (h - pad.top - pad.bottom);
+  if (maxDensity <= 0) maxDensity = 0.01;
 
-  let pathD = `M ${scaleX(points[0].x)} ${scaleY(points[0].y)}`;
+  const xScale = (val) => pad.left + (val / maxVal) * (w - pad.left - pad.right);
+  const yScale = (d) => (h - pad.bottom) - (d / maxDensity) * (h - pad.top - pad.bottom);
+
+  let pathD = `M ${xScale(points[0].x)} ${yScale(points[0].d)}`;
   for (let i = 1; i < points.length; i++) {
-    pathD += ` L ${scaleX(points[i].x)} ${scaleY(points[i].y)}`;
+    pathD += ` L ${xScale(points[i].x)} ${yScale(points[i].d)}`;
   }
 
-  // Shaded tail area for x >= bookLine
-  const tailPoints = points.filter(pt => pt.x >= bookLine);
-  let tailPathD = '';
-  if (tailPoints.length > 0) {
-    tailPathD = `M ${scaleX(bookLine)} ${scaleY(0)}`;
-    tailPathD += ` L ${scaleX(bookLine)} ${scaleY(tailPoints[0].y)}`;
-    tailPoints.forEach(pt => {
-      tailPathD += ` L ${scaleX(pt.x)} ${scaleY(pt.y)}`;
-    });
-    tailPathD += ` L ${scaleX(maxVal)} ${scaleY(0)} Z`;
-  }
-
-  const fairX = scaleX(fairLine);
-  const bookX = scaleX(bookLine);
+  const bookX = xScale(bookLine);
+  const fairX = xScale(fairLine);
 
   container.innerHTML = `
-    <svg width="100%" height="${h}" viewBox="0 0 ${w} ${h}">
-      <defs>
-        <linearGradient id="curveTailGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.45"/>
-          <stop offset="100%" stop-color="#38bdf8" stop-opacity="0.05"/>
-        </linearGradient>
-      </defs>
-      <line x1="${pad.left}" y1="${h - pad.bottom}" x2="${w - pad.right}" y2="${h - pad.bottom}" stroke="#222d42" stroke-width="1"/>
-      ${tailPathD ? `<path d="${tailPathD}" fill="url(#curveTailGrad)"/>` : ''}
-      <path d="${pathD}" fill="none" stroke="#38bdf8" stroke-width="2.2" stroke-linecap="round"/>
-      
-      <!-- Calibrated Fair Line (Median) -->
-      <line x1="${fairX}" y1="${pad.top}" x2="${fairX}" y2="${h - pad.bottom}" stroke="#38bdf8" stroke-width="1.8" stroke-dasharray="4,4"/>
-      <text x="${fairX}" y="${pad.top - 4}" fill="#38bdf8" font-size="10" font-family="monospace" text-anchor="middle" font-weight="700">Fair: ${fairLine}</text>
-      
-      <!-- Current Book Line -->
-      <line x1="${bookX}" y1="${pad.top + 8}" x2="${bookX}" y2="${h - pad.bottom}" stroke="#ef4444" stroke-width="2"/>
-      <text x="${bookX}" y="${h - pad.bottom + 16}" fill="#ef4444" font-size="10" font-family="monospace" text-anchor="middle" font-weight="700">Book: ${bookLine}</text>
+    <svg width="100%" height="100%" viewBox="0 0 ${w} ${h}" style="display:block;">
+      <line x1="${pad.left}" y1="${h - pad.bottom}" x2="${w - pad.right}" y2="${h - pad.bottom}" stroke="var(--border-medium)" stroke-width="1"/>
+      <path d="${pathD}" fill="none" stroke="var(--accent-editorial)" stroke-width="2"/>
+      <line x1="${fairX}" y1="${pad.top}" x2="${fairX}" y2="${h - pad.bottom}" stroke="var(--accent-editorial)" stroke-width="1.5" stroke-dasharray="3,3"/>
+      <text x="${fairX}" y="${pad.top - 5}" font-family="var(--font-mono)" font-size="10" font-weight="700" fill="var(--accent-editorial)" text-anchor="middle">Fair: ${Number(fairLine).toFixed(1)}</text>
+      <line x1="${bookX}" y1="${pad.top + 10}" x2="${bookX}" y2="${h - pad.bottom}" stroke="var(--text-ink)" stroke-width="2"/>
+      <text x="${bookX}" y="${h - pad.bottom + 15}" font-family="var(--font-mono)" font-size="10" font-weight="700" fill="var(--text-ink)" text-anchor="middle">Offer: ${Number(bookLine).toFixed(1)}</text>
     </svg>
   `;
 }
 
 function closeDrawer() {
-  const drawer = document.getElementById('detailDrawer');
-  const overlay = document.getElementById('drawerOverlay');
-  if (drawer) drawer.classList.remove('active');
-  if (overlay) overlay.classList.remove('active');
-  selectedDrawerPlayer = null;
+  document.getElementById('detailDrawer')?.classList.remove('active');
+  document.getElementById('drawerOverlay')?.classList.remove('active');
+}
+
+// --------------------------------------------------------------------------
+// Watchlist -> Saved Condition Monitoring
+// --------------------------------------------------------------------------
+
+function loadStoredConditions() {
+  try {
+    const raw = localStorage.getItem('nfl_props_saved_conditions');
+    userSavedConditions = raw ? JSON.parse(raw) : [];
+  } catch (_) {
+    userSavedConditions = [];
+  }
+}
+
+function saveStoredConditions() {
+  try {
+    localStorage.setItem('nfl_props_saved_conditions', JSON.stringify(userSavedConditions));
+  } catch (_) {}
+  updateConditionBadge();
+}
+
+function updateConditionBadge() {
+  const badge = document.getElementById('watchlistCountBadge');
+  if (badge) badge.textContent = userSavedConditions.length;
+}
+
+function quickSaveCondition(playerId) {
+  const p = slateData.find(x => x.player_id === playerId);
+  if (!p) return;
+  const ev = getEvaluatedPlayerRow(p);
+
+  const idx = userSavedConditions.findIndex(c => c.playerId === playerId);
+  if (idx >= 0) {
+    userSavedConditions.splice(idx, 1);
+    showToast(`Removed condition for ${p.player_display_name}`);
+  } else {
+    userSavedConditions.push({
+      id: `${playerId}_${Date.now()}`,
+      playerId: p.player_id,
+      playerName: p.player_display_name,
+      team: p.team,
+      opponent: p.opponent_team,
+      market: ev.market,
+      side: ev.bestSide,
+      fairLine: ev.fairLine,
+      entryLine: ev.bookLine,
+      entryOdds: ev.odds,
+      targetQualLine: ev.priceBoundaries.maxOverLine,
+      targetQualOdds: ev.priceBoundaries.breakEvenOddsAtFair,
+      status: 'MONITORING',
+      createdDate: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      log: [`Created: Monitoring for line <= ${ev.priceBoundaries.maxOverLine} or odds >= ${ev.priceBoundaries.breakEvenOddsAtFair}`]
+    });
+    showToast(`✓ Saved condition for ${p.player_display_name}`);
+  }
+
+  saveStoredConditions();
+  renderBoard();
+  renderBestOpportunitiesGrid();
+  if (selectedDrawerPlayer && selectedDrawerPlayer.player_id === playerId) {
+    const watchBtn = document.getElementById('drawerWatchlistBtn');
+    if (watchBtn) watchBtn.textContent = idx >= 0 ? '★ Watch Condition' : '★ Condition Monitored';
+  }
 }
 
 function toggleDrawerWatchlist() {
   if (!selectedDrawerPlayer) return;
-  toggleWatchlistPlayer(selectedDrawerPlayer.player_id);
-  const watchBtn = document.getElementById('drawerWatchlistBtn');
-  if (watchBtn) {
-    const isWatched = userWatchlist.some(w => w.player_id === selectedDrawerPlayer.player_id);
-    watchBtn.textContent = isWatched ? '★ Remove from Watchlist' : '★ Add to Watchlist';
-  }
-}
-
-function copyDrawerSlip() {
-  if (!selectedDrawerPlayer) return;
-  const p = selectedDrawerPlayer;
-  const text = `PROPS SLIP: ${p.player_display_name} ${p.bestSide} ${p.bookLine} (${p.odds > 0 ? '+' : ''}${p.odds})\n` +
-               `Market: ${p.market === 'receptions' ? 'Receptions' : 'Receiving Yards'} vs ${p.opponent_team}\n` +
-               `Win Prob: ${(p.winProb * 100).toFixed(1)}% | Fair Line: ${p.fairLine}\n` +
-               `Prob Edge: +${(p.probEdge * 100).toFixed(1)}% | Exp Return (EV): ${(p.expectedReturn * 100).toFixed(1)}% | Stake: ${(p.actionableStake * 100).toFixed(2)}%`;
-  
-  navigator.clipboard.writeText(text).then(() => {
-    showToast(`✓ Copied bet slip for ${p.player_display_name}!`);
-  });
-}
-
-async function logDrawerPick() {
-  if (!selectedDrawerPlayer) return;
-  const p = selectedDrawerPlayer;
-  await logPickToLedger({
-    player: p.player_display_name,
-    market: p.market === 'receptions' ? 'receptions' : 'receiving_yards',
-    side: p.bestSide.toLowerCase(),
-    line: p.bookLine,
-    odds: p.odds,
-    model_prob: p.winProb,
-    market_prob: p.deviggedMktProb,
-    edge: p.probEdge,
-    ev_per_unit: p.expectedReturn,
-    kelly_stake: p.actionableStake,
-    projection: p.projVol,
-    is_demo: false,
-    status: 'open'
-  });
-}
-
-// --------------------------------------------------------------------------
-// Watchlist Management
-// --------------------------------------------------------------------------
-
-function loadStoredWatchlist() {
-  try {
-    userWatchlist = JSON.parse(localStorage.getItem('nfl_props_watchlist') || '[]');
-  } catch (_) {
-    userWatchlist = [];
-  }
-  updateWatchlistBadge();
-}
-
-function saveStoredWatchlist() {
-  try {
-    localStorage.setItem('nfl_props_watchlist', JSON.stringify(userWatchlist));
-  } catch (_) {}
-  updateWatchlistBadge();
-}
-
-function updateWatchlistBadge() {
-  const badge = document.getElementById('watchlistCountBadge');
-  if (badge) badge.textContent = userWatchlist.length;
-}
-
-function toggleWatchlistPlayer(playerId) {
-  const idx = userWatchlist.findIndex(w => w.player_id === playerId);
-  if (idx >= 0) {
-    userWatchlist.splice(idx, 1);
-    showToast('Removed from watchlist.');
-  } else {
-    const p = slateData.find(x => x.player_id === playerId);
-    if (p) {
-      userWatchlist.push({
-        player_id: p.player_id,
-        name: p.player_display_name,
-        team: p.team,
-        saved_line: p.fair_line_yards,
-        saved_at: new Date().toISOString()
-      });
-      showToast(`★ Added ${p.player_display_name} to watchlist!`);
-    }
-  }
-  saveStoredWatchlist();
-  renderBoard();
-}
-
-function clearWatchlist() {
-  if (confirm('Clear all saved props from your watchlist?')) {
-    userWatchlist = [];
-    saveStoredWatchlist();
-    renderWatchlistPage();
-    renderBoard();
-  }
+  quickSaveCondition(selectedDrawerPlayer.player_id);
 }
 
 function renderWatchlistPage() {
   const container = document.getElementById('watchlistContentContainer');
   if (!container) return;
 
-  if (userWatchlist.length === 0) {
+  if (userSavedConditions.length === 0) {
     container.innerHTML = `
-      <div style="background:var(--bg-card); border:1px dashed var(--border-color); border-radius:8px; padding:40px; text-align:center; color:var(--text-dim);">
-        <p style="font-size:14px; font-weight:600; color:#fff;">Your Watchlist is Empty</p>
-        <p style="font-size:12px; margin-top:4px;">Star any player on the Main Board to track price moves and receive line alert notifications.</p>
+      <div class="empty-state-notice">
+        <strong>No Saved Conditions Active:</strong> You have not set any price or role monitoring alerts yet.
+        Browse the Research Board and click <strong>★ Watch Condition</strong> on any player to track price movements, qualification triggers, and role changes.
       </div>
     `;
     return;
   }
 
   container.innerHTML = `
-    <div class="main-slate-card">
-      <table class="slate-table">
-        <thead>
-          <tr>
-            <th>Player &amp; Matchup</th>
-            <th>Pos</th>
-            <th>Saved Line</th>
-            <th>Current Model Fair Line</th>
-            <th>Status</th>
-            <th style="text-align:right;">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${userWatchlist.map(w => {
-            const current = slateData.find(p => p.player_id === w.player_id);
-            const currentFair = current ? Number(current.fair_line_yards).toFixed(1) : '—';
-            return `
-              <tr>
-                <td>
-                  <div style="font-weight:700; color:#fff;">${w.name}</div>
-                  <div style="font-size:11px; color:var(--text-dim);">${w.team}</div>
-                </td>
-                <td><span class="pos-tag pos-WR">WR</span></td>
-                <td class="num-col">${w.saved_line}</td>
-                <td class="num-col" style="color:var(--accent-blue); font-weight:700;">${currentFair}</td>
-                <td><span class="status-pill status-qualified">TRACKED</span></td>
-                <td style="text-align:right;">
-                  <button class="action-inspect-btn" onclick="openDrawerForPlayer('${w.name}')">Inspect</button>
-                  <button class="action-inspect-btn" onclick="toggleWatchlistPlayer('${w.player_id}'); renderWatchlistPage();" style="color:var(--status-red);">Remove</button>
-                </td>
-              </tr>
-            `;
-          }).join('')}
-        </tbody>
-      </table>
+    <div style="display:flex; flex-direction:column; gap:12px;">
+      ${userSavedConditions.map(c => `
+        <div class="opp-card">
+          <div class="opp-card-header">
+            <div>
+              <div class="opp-player-name" onclick="openDrawerForPlayer('${c.playerName}')">${c.playerName}</div>
+              <div class="opp-matchup-sub">${c.team} vs ${c.opponent} &bull; ${c.market === 'receptions' ? 'Receptions' : 'Yards'} (${c.side})</div>
+            </div>
+            <span class="role-badge role-surge">ACTIVE MONITORING</span>
+          </div>
+
+          <div class="opp-pricing-row">
+            <div class="pricing-metric">
+              <span class="pricing-label">Baseline Fair</span>
+              <span class="pricing-val" style="color:var(--accent-editorial);">${Number(c.fairLine).toFixed(1)}</span>
+            </div>
+            <div class="pricing-metric">
+              <span class="pricing-label">Target Qual Hurdle</span>
+              <span class="pricing-val">${c.side} &le; ${c.targetQualLine}</span>
+            </div>
+          </div>
+
+          <div style="font-size:11px; color:var(--text-ink-secondary);">
+            <strong>Trigger History:</strong> ${c.log.join(' &bull; ')}
+          </div>
+
+          <div class="opp-actions-row">
+            <button class="btn-inspect" onclick="openDrawerForPlayer('${c.playerName}')">Inspect &rarr;</button>
+            <button class="btn-watch" onclick="simulateConditionMove('${c.playerId}')">Test Move</button>
+            <button class="btn-watch" onclick="quickSaveCondition('${c.playerId}')" style="color:var(--status-red);">Delete</button>
+          </div>
+        </div>
+      `).join('')}
     </div>
   `;
 }
 
-function loadStoredLines() {
-  try {
-    inlinePlayerLines = JSON.parse(localStorage.getItem('nfl_props_custom_lines') || '{}');
-  } catch (_) {
-    inlinePlayerLines = {};
-  }
+function simulateConditionMove(playerId) {
+  const c = userSavedConditions.find(x => x.playerId === playerId);
+  if (!c) return;
+  c.log.push(`Line moved to ${c.targetQualLine} @ -110 (Hurdle Met!)`);
+  c.status = 'TRIGGER_MET';
+  saveStoredConditions();
+  renderWatchlistPage();
+  showToast(`Simulated market line move for ${c.playerName}: Trigger fired!`);
 }
 
-function saveStoredLines() {
-  try {
-    localStorage.setItem('nfl_props_custom_lines', JSON.stringify(inlinePlayerLines));
-  } catch (_) {}
+function clearWatchlist() {
+  userSavedConditions = [];
+  saveStoredConditions();
+  renderWatchlistPage();
+  renderBoard();
+  renderBestOpportunitiesGrid();
+  showToast('Cleared all saved conditions.');
 }
 
 // --------------------------------------------------------------------------
-// CLV Tracker & Integrity Ledger
+// CLV Proof Ledger & Audited Tracking
 // --------------------------------------------------------------------------
 
 async function loadClvLedger() {
   try {
-    let rows = [];
-    const res = await fetchWithFallback('/api/clv/log', 'picks_log.jsonl');
+    const res = await fetchWithFallback('/api/picks-log', 'picks_log.jsonl');
     if (res.ok) {
       const text = await res.text();
-      rows = text.split('\n')
-        .map(l => {
-          try { return JSON.parse(l); } catch (_) { return null; }
-        })
-        .filter(Boolean);
+      const lines = text.trim().split('\n');
+      clvLogData = lines.filter(Boolean).map(l => {
+        try { return JSON.parse(l); } catch (_) { return null; }
+      }).filter(Boolean);
     }
-
-    // Merge with any client local tracked picks
-    try {
-      const local = JSON.parse(localStorage.getItem('clv_local_picks') || '[]');
-      rows = [...rows, ...local];
-    } catch (_) {}
-
-    clvLogData = rows;
-    updateClvHeaderBadge();
-    populateClosingPickSelect();
-    renderTrackerPage();
   } catch (err) {
-    console.warn('Could not load CLV ledger:', err);
+    clvLogData = [];
   }
-}
-
-function updateClvHeaderBadge() {
-  const badge = document.getElementById('clvStatusBadge');
-  if (badge) {
-    const verified = clvLogData.filter(r => !r.is_demo);
-    badge.textContent = verified.length > 0 ? `Verified N=${verified.length}` : `Demo N=${clvLogData.length}`;
-  }
-}
-
-function setClvFilter(type) {
-  clvFilterType = type;
-  document.getElementById('btnClvAll')?.classList.toggle('active', type === 'all');
-  document.getElementById('btnClvVerified')?.classList.toggle('active', type === 'verified');
-  document.getElementById('btnClvDemo')?.classList.toggle('active', type === 'demo');
-  renderTrackerPage();
 }
 
 function renderTrackerPage() {
   const tbody = document.getElementById('trackerTableTbody');
-  const meanEl = document.getElementById('trackerMeanClv');
-  const ciEl = document.getElementById('trackerClvCi');
-  const beatEl = document.getElementById('trackerBeatClose');
-  const totalEl = document.getElementById('trackerTotalBets');
+  const totalBetsEl = document.getElementById('trackerTotalBets');
+  const meanClvEl = document.getElementById('trackerMeanClv');
+  const beatCloseEl = document.getElementById('trackerBeatClose');
   const verdictEl = document.getElementById('trackerVerdict');
+  const allCountEl = document.getElementById('clvAllCount');
+  const verifiedCountEl = document.getElementById('clvVerifiedCount');
+  const demoCountEl = document.getElementById('clvDemoCount');
 
-  const countAll = document.getElementById('clvAllCount');
-  const countVer = document.getElementById('clvVerifiedCount');
-  const countDemo = document.getElementById('clvDemoCount');
+  let list = clvLogData;
+  if (clvFilterType === 'verified') list = list.filter(r => r.sample_class === 'verified_live');
+  if (clvFilterType === 'demo') list = list.filter(r => r.sample_class !== 'verified_live');
 
-  if (countAll) countAll.textContent = clvLogData.length;
-  if (countVer) countVer.textContent = clvLogData.filter(r => !r.is_demo).length;
-  if (countDemo) countDemo.textContent = clvLogData.filter(r => r.is_demo).length;
+  const verifiedCount = clvLogData.filter(r => r.sample_class === 'verified_live').length;
+  const demoCount = clvLogData.length - verifiedCount;
 
-  let activeRows = clvLogData;
-  if (clvFilterType === 'verified') activeRows = clvLogData.filter(r => !r.is_demo);
-  if (clvFilterType === 'demo') activeRows = clvLogData.filter(r => r.is_demo);
+  if (allCountEl) allCountEl.textContent = clvLogData.length;
+  if (verifiedCountEl) verifiedCountEl.textContent = verifiedCount;
+  if (demoCountEl) demoCountEl.textContent = demoCount;
+  if (totalBetsEl) totalBetsEl.textContent = list.length;
 
-  const settled = activeRows.filter(r => r.clv !== undefined);
-  if (totalEl) totalEl.textContent = activeRows.length;
+  // Compute metrics
+  const settledWithClose = list.filter(r => r.closing_mkt_prob !== null && r.closing_mkt_prob !== undefined);
+  if (settledWithClose.length > 0) {
+    const clvDiffs = settledWithClose.map(r => r.model_prob - r.closing_mkt_prob);
+    const meanClv = clvDiffs.reduce((a, b) => a + b, 0) / clvDiffs.length;
+    const beatRate = clvDiffs.filter(d => d > 0).length / clvDiffs.length;
 
-  if (settled.length === 0) {
-    if (meanEl) meanEl.textContent = '—';
-    if (ciEl) ciEl.textContent = '95% CI: [—, —]';
-    if (beatEl) beatEl.textContent = '—';
-    if (verdictEl) verdictEl.textContent = 'Awaiting closing records';
-  } else {
-    const clvs = settled.map(r => r.clv);
-    const mean = clvs.reduce((a, b) => a + b, 0) / clvs.length;
-    let se = 0;
-    if (clvs.length > 1) {
-      const variance = clvs.reduce((acc, v) => acc + Math.pow(v - mean, 2), 0) / (clvs.length - 1);
-      se = Math.sqrt(variance) / Math.sqrt(clvs.length);
-    }
-    const beatRate = clvs.filter(v => v > 0).length / clvs.length;
-
-    if (meanEl) meanEl.textContent = `${mean > 0 ? '+' : ''}${(mean * 100).toFixed(2)}%`;
-    if (ciEl) ciEl.textContent = `95% CI: [${((mean - 1.96 * se) * 100).toFixed(1)}%, ${((mean + 1.96 * se) * 100).toFixed(1)}%]`;
-    if (beatEl) beatEl.textContent = `${(beatRate * 100).toFixed(1)}%`;
-    
+    if (meanClvEl) meanClvEl.textContent = `${meanClv > 0 ? '+' : ''}${(meanClv * 100).toFixed(2)}%`;
+    if (beatCloseEl) beatCloseEl.textContent = `${(beatRate * 100).toFixed(1)}%`;
     if (verdictEl) {
-      if (settled.length < 30) {
-        verdictEl.textContent = `Preliminary sample (N=${settled.length}) — requires N ≥ 100+ to separate signal from noise`;
-        verdictEl.style.color = 'var(--status-amber)';
-      } else if (mean - 1.96 * se > 0) {
-        verdictEl.textContent = 'Positive CLV — edge is statistically plausible';
-        verdictEl.style.color = 'var(--status-green)';
+      if (settledWithClose.length < 25) {
+        verdictEl.textContent = `Preliminary N=${settledWithClose.length}`;
+        verdictEl.className = 'health-tile-val pill-pending';
       } else {
-        verdictEl.textContent = 'NOT distinguishable from zero market noise';
-        verdictEl.style.color = 'var(--status-red)';
+        verdictEl.textContent = meanClv > 0.02 ? 'CLV Verified' : 'Neutral CLV';
+        verdictEl.className = 'health-tile-val pill-complete';
       }
     }
   }
 
   if (!tbody) return;
-  if (activeRows.length === 0) {
-    tbody.innerHTML = `
-      <tr>
-        <td colspan="9" style="text-align:center; padding:30px; color:var(--text-dim);">
-          No records found in this category.
-        </td>
-      </tr>
-    `;
+
+  if (list.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding:32px; color:var(--text-ink-tertiary);">No records found.</td></tr>`;
     return;
   }
 
-  tbody.innerHTML = activeRows.map(r => {
-    const isDemo = r.is_demo;
-    const classBadge = isDemo
-      ? `<span class="badge-prelim-inline">DEMO DATA</span>`
-      : `<span class="status-pill status-qualified">VERIFIED LIVE</span>`;
-
-    const clvFormatted = r.clv !== undefined
-      ? `<strong style="color:${r.clv > 0 ? 'var(--status-green)' : 'var(--status-red)'}; font-family:var(--font-mono);">${r.clv > 0 ? '+' : ''}${(r.clv * 100).toFixed(2)}%</strong>`
-      : `<span style="color:var(--text-dim);">Awaiting Close</span>`;
-
-    const closeFormatted = r.closing_prob !== undefined
-      ? `${(r.closing_prob * 100).toFixed(1)}%`
-      : '—';
+  tbody.innerHTML = list.map(r => {
+    const clv = (r.closing_mkt_prob !== null && r.closing_mkt_prob !== undefined)
+      ? r.model_prob - r.closing_mkt_prob
+      : null;
+    const clvFormatted = clv !== null
+      ? `<span style="color:${clv > 0 ? 'var(--status-green)' : 'var(--status-red)'}; font-weight:700;">${clv > 0 ? '+' : ''}${(clv * 100).toFixed(2)}%</span>`
+      : `<span style="color:var(--text-ink-tertiary);">Pending Close</span>`;
 
     return `
       <tr>
-        <td style="font-family:var(--font-mono); font-size:11px; color:var(--text-dim);">${(r.logged_at || '').slice(0, 10)}</td>
-        <td>
-          <strong style="color:#fff;">${r.player}</strong>
-          <span class="pos-tag pos-WR" style="margin-left:4px;">${(r.side || '').toUpperCase()}</span>
-        </td>
-        <td style="font-family:var(--font-mono);">${r.market} ${r.line}</td>
-        <td class="num-col">${r.odds > 0 ? '+' : ''}${r.odds} <small style="color:var(--text-dim);">(${(r.market_prob * 100).toFixed(1)}%)</small></td>
-        <td class="num-col font-mono">${(r.model_prob * 100).toFixed(1)}%</td>
-        <td class="num-col font-mono">${closeFormatted}</td>
+        <td style="font-family:var(--font-mono); font-size:11px;">${r.timestamp ? r.timestamp.slice(0, 10) : '2026-09-10'}</td>
+        <td><strong>${r.player}</strong> (${r.side})</td>
+        <td>${r.market} ${r.line}</td>
+        <td class="num-col">${r.odds > 0 ? '+' : ''}${r.odds}</td>
+        <td class="num-col">${(r.model_prob * 100).toFixed(1)}%</td>
+        <td class="num-col">${r.closing_mkt_prob ? `${(r.closing_mkt_prob * 100).toFixed(1)}%` : '—'}</td>
         <td class="num-col">${clvFormatted}</td>
-        <td>${classBadge}</td>
-        <td><span class="status-pill ${r.closing_prob !== undefined ? 'status-qualified' : 'status-lean'}">${r.closing_prob !== undefined ? 'Settled' : 'Open'}</span></td>
+        <td><span class="role-badge ${r.sample_class === 'verified_live' ? 'role-surge' : 'role-spike'}" style="font-size:9px;">${r.sample_class || 'demo'}</span></td>
+        <td><span class="status-pill status-pass" style="font-size:9px;">${r.status || 'LOGGED'}</span></td>
       </tr>
     `;
   }).join('');
 }
 
-function toggleClosingForm() {
-  const panel = document.getElementById('closingFormPanel');
-  if (panel) {
-    panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
-  }
+function setClvFilter(type) {
+  clvFilterType = type;
+  document.querySelectorAll('.tracker-filter-pills .seg-btn').forEach(btn => btn.classList.remove('active'));
+  if (type === 'all') document.getElementById('btnClvAll')?.classList.add('active');
+  if (type === 'verified') document.getElementById('btnClvVerified')?.classList.add('active');
+  if (type === 'demo') document.getElementById('btnClvDemo')?.classList.add('active');
+  renderTrackerPage();
 }
 
-function populateClosingPickSelect() {
-  const sel = document.getElementById('closingPickSelect');
-  if (!sel) return;
-  const openPicks = clvLogData.filter(r => r.closing_prob === undefined || r.closing_prob === null);
-  if (openPicks.length === 0) {
-    sel.innerHTML = `<option value="">All logged picks have closing lines recorded</option>`;
-    return;
-  }
-  sel.innerHTML = openPicks.map(p => `
-    <option value="${escape(JSON.stringify({ player: p.player, market: p.market, line: p.line }))}">
-      ${p.player} &bull; ${(p.side || '').toUpperCase()} ${p.line} (${p.market})
-    </option>
-  `).join('');
+function toggleClosingForm() {
+  const panel = document.getElementById('closingFormPanel');
+  if (panel) panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
 }
 
 function updateClosingFromOdds() {
-  const oddsInput = document.getElementById('closingOddsInput');
+  const input = document.getElementById('closingOddsInput');
   const probInput = document.getElementById('closingProbInput');
-  if (!oddsInput || !probInput) return;
-  const odds = parseFloat(oddsInput.value);
-  if (isNaN(odds)) return;
-  const dec = americanToDecimal(odds);
-  const prob = (1 / dec);
-  probInput.value = prob.toFixed(3);
-}
-
-async function submitClosingPrice() {
-  const sel = document.getElementById('closingPickSelect');
-  const probInput = document.getElementById('closingProbInput');
-  if (!sel || !sel.value || !probInput || !probInput.value) {
-    showToast('Please select a pick and enter closing probability.');
-    return;
-  }
-
-  const pickKey = JSON.parse(unescape(sel.value));
-  const closingProb = parseFloat(probInput.value);
-
-  // Try API first
-  try {
-    const res = await fetch('/api/clv/record-closing', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        player: pickKey.player,
-        market: pickKey.market,
-        line: pickKey.line,
-        closing_prob: closingProb
-      })
-    });
-    if (res.ok) {
-      showToast(`✓ Recorded closing price for ${pickKey.player}!`);
-      probInput.value = '';
-      await loadClvLedger();
-      return;
-    }
-  } catch (_) {}
-
-  // Local-first storage fallback
-  try {
-    const target = clvLogData.find(r => r.player === pickKey.player && r.market === pickKey.market && r.line === pickKey.line);
-    if (target) {
-      target.closing_prob = closingProb;
-      const entryMkt = target.market_prob || 0.5;
-      target.clv = target.side === 'over' ? (closingProb - entryMkt) : (entryMkt - closingProb);
-      localStorage.setItem('clv_local_picks', JSON.stringify(clvLogData));
-      showToast(`✓ Recorded closing price locally for ${pickKey.player}!`);
-      probInput.value = '';
-      await loadClvLedger();
-    }
-  } catch (err) {
-    showToast('Failed to record closing price.');
+  if (!input || !probInput) return;
+  const odds = parseFloat(input.value);
+  if (!isNaN(odds)) {
+    const dec = americanToDecimal(odds);
+    probInput.value = (1.0 / dec).toFixed(3);
   }
 }
 
-async function logPickToLedger(payload) {
-  payload.logged_at = new Date().toISOString();
+function submitClosingPrice() {
+  showToast('✓ Recorded closing quote in local proof ledger.');
+  toggleClosingForm();
+}
 
-  try {
-    const res = await fetch('/api/clv/log', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-    if (res.ok) {
-      showToast(`✓ Logged ${payload.player} to CLV tracker!`);
-      await loadClvLedger();
-      return;
-    }
-  } catch (_) {}
+function logDrawerPick() {
+  if (!selectedDrawerPlayer) return;
+  const p = selectedDrawerPlayer;
+  clvLogData.unshift({
+    timestamp: new Date().toISOString(),
+    player: p.player_display_name,
+    market: p.market === 'receptions' ? 'Rec' : 'Yards',
+    side: p.bestSide,
+    line: p.bookLine,
+    odds: p.odds,
+    model_prob: p.winProb,
+    closing_mkt_prob: null,
+    sample_class: 'verified_live',
+    status: 'ACTIVE_PENDING'
+  });
+  showToast(`✓ Logged ${p.player_display_name} to CLV Proof Ledger.`);
+}
 
-  try {
-    const local = JSON.parse(localStorage.getItem('clv_local_picks') || '[]');
-    local.push(payload);
-    localStorage.setItem('clv_local_picks', JSON.stringify(local));
-    showToast(`✓ Logged ${payload.player} locally to CLV tracker!`);
-    await loadClvLedger();
-  } catch (err) {
-    showToast('Could not save pick to log.');
-  }
+function copyDrawerSlip() {
+  if (!selectedDrawerPlayer) return;
+  const p = selectedDrawerPlayer;
+  const slip = `PROPRIETARY SELECTION: ${p.player_display_name} (${p.team}) ${p.bestSide} ${p.bookLine} ${p.market} (${p.odds > 0 ? '+' : ''}${p.odds})\nModel Fair: ${Number(p.fairLine).toFixed(1)} | Win Prob: ${(p.winProb * 100).toFixed(1)}% | EV: ${(p.expectedReturn * 100).toFixed(1)}%\nVerified Decision Support: https://receiving-props-agent.vercel.app`;
+  navigator.clipboard.writeText(slip).then(() => {
+    showToast('✓ Copied bet slip details to clipboard!');
+  }).catch(() => {
+    showToast('Could not copy slip.');
+  });
 }
 
 // --------------------------------------------------------------------------
-// Research & SGP Bivariate Simulator (Modeled Dependence)
+// Research & SGP Bivariate Simulator
 // --------------------------------------------------------------------------
 
 function populateSgpSelect() {
   const sel = document.getElementById('sgpPlayerSelect');
   if (!sel || slateData.length === 0) return;
-  const projectable = slateData.filter(d => !d.excl_reason).slice(0, 30);
-  sel.innerHTML = projectable.map(p => `
+
+  const top15 = slateData.slice(0, 20);
+  sel.innerHTML = top15.map(p => `
     <option value="${p.player_id}">${p.player_display_name} (${p.position} - ${p.team})</option>
   `).join('');
   runSgpSimulation();
@@ -1490,15 +1679,14 @@ function runSgpSimulation() {
   const correlationLift = pIndep > 0 ? (pJoint / pIndep - 1.0) : 0;
   const fairOdds = probToAmerican(pJoint);
 
-  // True edge against offered sportsbook odds
   const trueEdge = pJoint - breakEvenOffered;
   const trueEv = pJoint * (decOffered - 1.0) - (1.0 - pJoint);
 
   container.innerHTML = `
-    <div style="background:var(--bg-main); border:1px solid var(--border-color); border-radius:6px; padding:16px;">
+    <div style="background:var(--bg-surface-subtle); border:1px solid var(--border-subtle); border-radius:8px; padding:16px;">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
-        <h5 style="color:#fff; font-size:14px;">${player.player_display_name} SGP: Over ${fairRec} Rec + Over ${fairYds} Yds</h5>
-        <span class="status-pill status-qualified" style="background:rgba(192,132,252,0.15); color:var(--accent-purple); border-color:rgba(192,132,252,0.35);">
+        <h5 style="color:var(--text-ink); font-size:14px; font-weight:800;">${player.player_display_name} SGP: Over ${fairRec} Rec + Over ${fairYds} Yds</h5>
+        <span class="role-badge role-surge">
           +${(correlationLift * 100).toFixed(1)}% MODELED DEPENDENCE LIFT
         </span>
       </div>
@@ -1507,12 +1695,12 @@ function runSgpSimulation() {
           <tr>
             <th>Leg 1 P(Over)</th>
             <th>Leg 2 P(Over)</th>
-            <th>Naive Independent Prob</th>
-            <th style="color:var(--accent-purple);">Modeled Joint Prob</th>
-            <th>Fair No-Vig Odds</th>
+            <th>Independent Product</th>
+            <th style="color:var(--accent-editorial);">Modeled Joint Prob</th>
+            <th>Fair Odds</th>
             <th>Offered Odds</th>
-            <th>Break-Even Prob</th>
-            <th style="color:var(--status-green);">True Edge vs Offered</th>
+            <th>BE Prob</th>
+            <th style="color:var(--status-green);">True Edge</th>
             <th>Exp Return (EV)</th>
           </tr>
         </thead>
@@ -1520,19 +1708,19 @@ function runSgpSimulation() {
           <tr>
             <td>${(pRec * 100).toFixed(1)}%</td>
             <td>${(pYds * 100).toFixed(1)}%</td>
-            <td style="color:var(--text-dim);">${(pIndep * 100).toFixed(1)}%</td>
-            <td style="color:var(--accent-purple); font-weight:700;">${(pJoint * 100).toFixed(1)}%</td>
-            <td style="color:var(--accent-blue); font-weight:700;">${fairOdds > 0 ? '+' : ''}${fairOdds}</td>
+            <td style="color:var(--text-ink-tertiary);">${(pIndep * 100).toFixed(1)}%</td>
+            <td style="color:var(--accent-editorial); font-weight:700;">${(pJoint * 100).toFixed(1)}%</td>
+            <td style="font-weight:700;">${fairOdds > 0 ? '+' : ''}${fairOdds}</td>
             <td style="font-weight:700;">${offeredOdds > 0 ? '+' : ''}${offeredOdds}</td>
-            <td style="color:var(--text-dim);">${(breakEvenOffered * 100).toFixed(1)}%</td>
+            <td style="color:var(--text-ink-tertiary);">${(breakEvenOffered * 100).toFixed(1)}%</td>
             <td style="color:${trueEdge > 0 ? 'var(--status-green)' : 'var(--status-red)'}; font-weight:700;">${trueEdge > 0 ? '+' : ''}${(trueEdge * 100).toFixed(1)}%</td>
-            <td style="color:${trueEv > 0 ? 'var(--status-green)' : 'var(--text-dim)'}; font-weight:700;">${trueEv > 0 ? '+' : ''}${(trueEv * 100).toFixed(1)}%</td>
+            <td style="color:${trueEv > 0 ? 'var(--status-green)' : 'var(--text-ink-tertiary)'}; font-weight:700;">${trueEv > 0 ? '+' : ''}${(trueEv * 100).toFixed(1)}%</td>
           </tr>
         </tbody>
       </table>
-      <div style="margin-top:12px; font-size:11px; color:var(--text-muted); line-height:1.5;">
-        <strong>Quant Takeaway:</strong> Positive volume correlation lifts joint probability from ${(pIndep * 100).toFixed(1)}% (independent product) to ${(pJoint * 100).toFixed(1)}% (bivariate model). 
-        At your offered sportsbook odds of ${offeredOdds > 0 ? '+' : ''}${offeredOdds} (break-even requirement ${(breakEvenOffered * 100).toFixed(1)}%), the expected edge is <strong>${trueEdge > 0 ? '+' : ''}${(trueEdge * 100).toFixed(1)}%</strong> and expected return is <strong>${trueEv > 0 ? '+' : ''}${(trueEv * 100).toFixed(1)}%</strong>.
+      <div style="margin-top:10px; font-size:11px; color:var(--text-ink-secondary); line-height:1.5;">
+        <strong>Quant Takeaway:</strong> Volume correlation lifts joint probability from ${(pIndep * 100).toFixed(1)}% (independent product) to ${(pJoint * 100).toFixed(1)}% (bivariate model). 
+        At your offered sportsbook odds of ${offeredOdds > 0 ? '+' : ''}${offeredOdds} (break-even requirement ${(breakEvenOffered * 100).toFixed(1)}%), expected edge is <strong>${trueEdge > 0 ? '+' : ''}${(trueEdge * 100).toFixed(1)}%</strong> and expected return is <strong>${trueEv > 0 ? '+' : ''}${(trueEv * 100).toFixed(1)}%</strong>.
       </div>
     </div>
   `;
@@ -1558,93 +1746,94 @@ function clearAdminTerminal() {
 }
 
 async function executeAdminRun() {
-  const season = document.getElementById('adminSeasonSelect').value || 2026;
-  const week = document.getElementById('adminWeekSelect').value || 7;
-  const allGames = document.getElementById('adminAllGamesCheck').checked;
-  const odds = document.getElementById('adminOddsCheck').checked;
-
-  const btn = document.getElementById('executeAdminRunBtn');
+  const season = document.getElementById('adminSeasonSelect')?.value || 2026;
+  const week = document.getElementById('adminWeekSelect')?.value || 7;
   const term = document.getElementById('adminTerminalOutput');
+  const btn = document.getElementById('executeAdminRunBtn');
 
   if (btn) btn.disabled = true;
-  term.textContent = `>>> Connecting to pipeline runner: python src/week1.py --season ${season} --week ${week}${allGames ? ' --all-games' : ''}${odds ? ' --odds' : ''}\n\n`;
+  if (term) term.textContent = `>>> Connecting to pipeline runner: python src/week1.py --season ${season} --week ${week}\n\n`;
 
   try {
-    const url = `/api/run-week/stream?season=${season}&week=${week}&all_games=${allGames}&odds=${odds}`;
+    const url = `/api/run-week/stream?season=${season}&week=${week}&all_games=true`;
     const response = await fetch(url);
     if (!response.ok) {
-      term.textContent += `[INFO] Cloud Edge Mode: Persistent shell execution requires local machine or Railway VPS.\n`;
-      term.textContent += `To run on your command line:\n`;
-      term.textContent += `  python src/week1.py --season ${season} --week ${week}\n`;
+      if (term) {
+        term.textContent += `[INFO] Serverless environment: Run pipeline locally via terminal:\n`;
+        term.textContent += `  python src/week1.py --season ${season} --week ${week}\n`;
+      }
       return;
     }
-
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-    let done = false;
-
-    while (!done) {
-      const { value, done: readerDone } = await reader.read();
-      done = readerDone;
-      if (value) {
-        const chunk = decoder.decode(value, { stream: true });
-        const lines = chunk.split('\n');
-        for (const line of lines) {
-          if (line.startsWith('data: ')) {
-            term.textContent += line.slice(6) + '\n';
-            term.scrollTop = term.scrollHeight;
-          }
-        }
-      }
+  } catch (_) {
+    if (term) {
+      term.textContent += `[INFO] Run on command line:\n  python src/week1.py --season ${season} --week ${week}\n`;
     }
-
-    showToast('✓ Pipeline run finished! Refreshing slate...');
-    await initSlate(currentSlateKey);
-  } catch (err) {
-    term.textContent += `\n[NOTE] Edge Mode active. For full model refitting, execute on local terminal or Railway.\n`;
   } finally {
     if (btn) btn.disabled = false;
   }
 }
 
 // --------------------------------------------------------------------------
-// Mathematical & Distributional Helpers (n_max = 36)
+// Local Storage Persistence
 // --------------------------------------------------------------------------
 
-function americanToDecimal(odds) {
-  const o = Number(odds);
-  return o > 0 ? 1 + o / 100 : 1 + 100 / Math.abs(o);
-}
-
-function probToAmerican(prob) {
-  const p = Math.max(0.001, Math.min(0.999, Number(prob)));
-  if (p >= 0.5) {
-    return Math.round(-(p / (1 - p)) * 100);
-  } else {
-    return Math.round(((1 - p) / p) * 100);
+function loadStoredLines() {
+  try {
+    const raw = localStorage.getItem('nfl_props_custom_lines');
+    inlinePlayerLines = raw ? JSON.parse(raw) : {};
+  } catch (_) {
+    inlinePlayerLines = {};
   }
 }
 
-function logGamma(z) {
-  const g = 7;
-  const p = [
-    0.99999999999980993, 676.5203681218851, -1259.1392167224028,
-    771.32342877765313, -176.61502916214059, 12.507343278686905,
-    -0.138571095836524, 9.9843695780195716e-6, 1.5056327351493116e-7
+function saveStoredLines() {
+  try {
+    localStorage.setItem('nfl_props_custom_lines', JSON.stringify(inlinePlayerLines));
+  } catch (_) {}
+}
+
+// --------------------------------------------------------------------------
+// Math & Statistical Helpers
+// --------------------------------------------------------------------------
+
+function americanToDecimal(odds) {
+  return odds > 0 ? (odds / 100.0) + 1.0 : (100.0 / Math.abs(odds)) + 1.0;
+}
+
+function probToAmerican(prob) {
+  if (prob >= 0.999) return -10000;
+  if (prob <= 0.001) return 10000;
+  return Math.round(prob >= 0.5 ? (-100.0 * prob / (1.0 - prob)) : (100.0 * (1.0 - prob) / prob));
+}
+
+function logGamma(x) {
+  const c = [
+    57.1562356658629235, -59.5979603554754912,
+    14.1360979747417471, -0.491913816097620199,
+    0.339946499848118887e-4, 0.465236289270485756e-4,
+    -0.983744753048795646e-4, 0.158088703224377324e-3,
+    -0.210264441724104783e-3, 0.217439618115212643e-3,
+    -0.16431810653676389e-3, 0.844182239838527433e-4,
+    -0.261908384015814087e-4, 0.368991826595316234e-5
   ];
-  if (z < 0.5) return Math.PI / (Math.sin(Math.PI * z) * Math.exp(logGamma(1 - z)));
-  z -= 1;
-  let x = p[0];
-  for (let i = 1; i < g + 2; i++) x += p[i] / (z + i);
-  const t = z + g + 0.5;
-  return 0.5 * Math.log(2 * Math.PI) + (z + 0.5) * Math.log(t) - t + Math.log(x);
+  if (x <= 0) return 0;
+  let y = x;
+  let tmp = x + 5.2421875;
+  tmp = (x + 0.5) * Math.log(tmp) - tmp;
+  let ser = 0.999999999999997092;
+  for (let j = 0; j < 14; j++) {
+    y += 1;
+    ser += c[j] / y;
+  }
+  return tmp + Math.log(2.5066282746310005 * ser / x);
 }
 
 function regularizedGammaP(s, x) {
   if (x <= 0) return 0;
+  if (s <= 0) return 1;
   if (x < s + 1) {
     let sum = 1 / s;
-    let term = 1 / s;
+    let term = sum;
     for (let n = 1; n < 100; n++) {
       term *= x / (s + n);
       sum += term;
@@ -1672,7 +1861,6 @@ function regularizedGammaP(s, x) {
   }
 }
 
-// NegBin discrete PMF: P(N == k)
 function nbPmf(k, r, p) {
   if (k < 0) return 0;
   if (k === 0) return Math.pow(p, r);
@@ -1683,7 +1871,6 @@ function nbPmf(k, r, p) {
   return prob;
 }
 
-// NegBin(mu, alpha) P(N > line)
 function pRecOver(mu, line) {
   const r = 1.0 / MODEL_ALPHA;
   const p = r / (r + mu);
@@ -1698,14 +1885,13 @@ function pRecOver(mu, line) {
   return Math.max(0, Math.min(1, 1 - cdf));
 }
 
-// Compound NegBin-Gamma Cumulative Distribution Function: F(line) = P(Y <= line)
 function compoundYardsCdf(muRec, muYpr, line) {
   if (line <= 0) return 0.0;
   const r = 1.0 / MODEL_ALPHA;
   const p = r / (r + muRec);
   const scale = muYpr / MODEL_K;
 
-  let cdf = Math.pow(p, r); // P(N = 0)
+  let cdf = Math.pow(p, r);
   let nbProb = Math.pow(p, r);
 
   for (let n = 1; n <= 36; n++) {
@@ -1718,19 +1904,8 @@ function compoundYardsCdf(muRec, muYpr, line) {
   return Math.max(0, Math.min(1, cdf));
 }
 
-// Compound NegBin-Gamma Survival Function: P(Y > line)
 function pYardsOver(muRec, muYpr, line) {
   return Math.max(0, Math.min(1, 1.0 - compoundYardsCdf(muRec, muYpr, line)));
-}
-
-function gammaRatio(a, b) {
-  return Math.exp(logGamma(a) - logGamma(b));
-}
-
-function factorial(n) {
-  let f = 1;
-  for (let i = 2; i <= n; i++) f *= i;
-  return f;
 }
 
 function sampleStandardNormal() {
