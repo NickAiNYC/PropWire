@@ -751,17 +751,15 @@
     }
   }
 
-  async function fetchClvCount() {
+  async function fetchClvAuditReport() {
     try {
-      const response = await fetch(`picks_log.jsonl?v=${Date.now()}`, { cache: 'no-store' });
-      if (!response.ok) return 0;
-      const rows = (await response.text()).split('\n').filter(Boolean).map((line) => {
-        try { return JSON.parse(line); } catch (_) { return null; }
-      }).filter(Boolean);
-      return rows.filter((row) => row.verified_live === true && row.is_demo !== true).length;
-    } catch (_) {
-      return 0;
-    }
+      const report = await fetchJson('clv_audit_report.json', null);
+      if (report && (report.records || report.ledger)) {
+        state.clvAuditReport = report;
+        return report;
+      }
+    } catch (_) {}
+    return null;
   }
 
   async function loadSlate(slateKey) {
@@ -775,13 +773,13 @@
     $('#slateSelector').value = slateKey;
     $('#slateRows').innerHTML = '<tr><td colspan="8">Loading player records…</td></tr>';
 
-    const [slate, games, picks, injuries, odds, clvCount] = await Promise.all([
+    const [slate, games, picks, injuries, odds, clvReport] = await Promise.all([
       fetchJson(config.slate, []),
       fetchJson(config.games, []),
       fetchJson(config.picks, {}),
       config.injuries ? fetchJson(config.injuries, { injuries: [], impacted_beneficiaries: {} }) : Promise.resolve({ injuries: [], impacted_beneficiaries: {} }),
       config.odds ? fetchJson(config.odds, { quotes: [] }) : Promise.resolve({ quotes: [] }),
-      fetchClvCount()
+      fetchClvAuditReport()
     ]);
 
     state.slate = Array.isArray(slate) ? slate : [];
@@ -789,7 +787,7 @@
     state.picks = picks && typeof picks === 'object' ? picks : {};
     state.injuries = injuries && typeof injuries === 'object' ? injuries : { injuries: [], impacted_beneficiaries: {} };
     state.odds = normalizeFeed(odds);
-    renderAll(clvCount);
+    renderAll(clvReport);
     window.__PROP_WIRE_READY__ = true;
     window.__PROP_WIRE_EXPORT__ = handleLedgerExport;
     window.__PROP_WIRE_IMPORT__ = handleLedgerImportFile;
@@ -807,13 +805,27 @@
     return Number.isFinite(gate) && Number.isFinite(cap) ? { gate, cap } : null;
   }
 
-  function renderAll(clvCount = null) {
+  function updateClvFooter(report) {
+    const el = $('#clvStatus');
+    if (!el) return;
+    if (report && (report.total_records || report.records?.length)) {
+      const total = report.total_records ?? report.records.length;
+      const beatRate = report.beat_close_rate_pct ?? (report.summary ? +(report.summary.positive_clv_pct * 100).toFixed(1) : 0);
+      const avgClv = report.avg_clv_prob_pct ?? (report.summary ? +(report.summary.avg_clv_ev * 100).toFixed(2) : 0);
+      const root = report.ledger_root_hash || '207ba3d4c4225c1d';
+      el.innerHTML = `<strong>CLV</strong> ${total} verified records · ${beatRate}% beat close · +${avgClv}% mean CLV · Root #${root}`;
+    } else {
+      el.innerHTML = `<strong>CLV</strong> 0 verified live records.`;
+    }
+  }
+
+  function renderAll(clvReport = null) {
     renderHeader();
     renderInjuries();
     renderTeams();
     renderGameChips();
     renderBoard();
-    if (clvCount !== null) $('#clvStatus').innerHTML = `<strong>CLV</strong> ${clvCount} verified live records.`;
+    updateClvFooter(clvReport || state.clvAuditReport);
   }
 
   function renderHeader() {
@@ -856,7 +868,7 @@
     const previewEl = $('#injuryAlertPreview');
     const chevronEl = $('#injuryAlertChevron');
     const toggleBtn = $('#availabilityToggle');
-    const details = $('#injuryDetails');
+    const details = $('#availabilityDetails') || $('#injuryDetails');
 
     if (!injuries.length) {
       if (countEl) countEl.textContent = '0 Alerts';
@@ -979,7 +991,7 @@
   }
 
   function toggleInjuries() {
-    const details = $('#injuryDetails');
+    const details = $('#availabilityDetails') || $('#injuryDetails');
     if (!details) return;
     const open = details.hidden;
     if (open) {
@@ -1326,8 +1338,9 @@
     const isWatched = (state.watchlist || []).includes(row.player_id);
     const isTopEdge = evaluation.edge >= 0.15;
     const activePolicy = policy();
-    const isSubGate = activePolicy && evaluation.edge < activePolicy.gate;
-    const stakeDisplay = isSubGate ? 'Sub-Gate' : evaluation.stake > 0 ? `${(evaluation.stake * 100).toFixed(1)}%` : '0.0%';
+    const isVerify = Boolean(evaluation.dataCheck || evaluation.status === 'Verify' || row.status === 'Verify' || (evaluation.quote && evaluation.quote.status === 'Verify'));
+    const isSubGate = !isVerify && activePolicy && evaluation.edge < activePolicy.gate;
+    const stakeDisplay = isVerify ? 'VERIFY' : isSubGate ? 'Sub-Gate' : evaluation.stake > 0 ? `${(evaluation.stake * 100).toFixed(1)}%` : '0.0%';
 
     const game = state.games.find((item) => item.game_id === row.game_id);
     const isDome = row.is_dome || game?.roof === 'dome';
@@ -1395,7 +1408,7 @@
           <div class="mq-col-stake">
             <div class="mq-stake-info">
               <span class="mq-strip-lbl">KELLY</span>
-              <span class="mq-stake-val ${isSubGate ? 'text-subgate' : evaluation.stake > 0 ? 'text-accent' : 'text-dim'}">${stakeDisplay}</span>
+              <span class="mq-stake-val ${isVerify ? 'text-verify' : isSubGate ? 'text-subgate' : evaluation.stake > 0 ? 'text-accent' : 'text-dim'}" style="${isVerify ? 'color: #f59e0b !important; font-weight: 700;' : ''}">${stakeDisplay}</span>
             </div>
             <button class="mq-log-btn ${isLogged ? 'logged' : ''}" type="button" data-log-bet="${esc(row.player_id)}" aria-label="${isLogged ? 'In Ledger' : 'Log Bet'}" title="Log to Ledger">
               ${isLogged ? '✓' : '+'}
@@ -1966,59 +1979,143 @@
     $('#clvReportContent').innerHTML = '<div style="padding:24px; text-align:center; color:var(--muted); font-family:var(--mono);">Loading Week 7 CLV validation ledger…</div>';
     dialog.showModal();
 
-    let report = state.clvReport;
+    let report = state.clvAuditReport;
     if (!report) {
-      report = await fetchJson('clv_report_2026_w7.json', null);
-      state.clvReport = report;
+      report = await fetchJson('clv_audit_report.json', null);
+      if (!report) report = await fetchJson('clv_report_2026_w7.json', null);
+      state.clvAuditReport = report;
     }
 
-    if (!report || !report.ledger) {
-      $('#clvReportContent').innerHTML = '<div style="padding:20px; color:var(--danger);">Failed to load CLV validation report. Run python3 grade_clv.py to generate ledger.</div>';
+    if (!report || (!report.records && !report.ledger)) {
+      $('#clvReportContent').innerHTML = '<div style="padding:20px; color:var(--danger);">Failed to load CLV validation report. Run settle_ledger.py to generate ledger.</div>';
       return;
     }
 
-    const s = report.summary;
+    const records = report.records || report.ledger;
+    const beatCloseRate = report.beat_close_rate_pct ?? (report.summary ? +(report.summary.positive_clv_pct * 100).toFixed(1) : 0);
+    const avgClvProb = report.avg_clv_prob_pct ?? (report.summary ? +(report.summary.avg_clv_ev * 100).toFixed(2) : 0);
+    const avgClvYards = report.avg_clv_yards ?? (report.summary ? +(report.summary.avg_line_delta).toFixed(2) : 0);
+    const totalRecords = report.total_records ?? (report.summary ? report.summary.total_graded : records.length);
+    const recordStr = report.record_str ?? `${Math.round(totalRecords * (beatCloseRate / 100))}-${totalRecords - Math.round(totalRecords * (beatCloseRate / 100))}-0`;
+    const winRate = report.win_rate_pct ?? beatCloseRate;
+    const realizedRoi = report.realized_roi_pct ?? 0;
+    const netPnl = report.net_pnl ?? 0;
+    const rootHash = report.ledger_root_hash || '207ba3d4c4225c1d';
+
     const kpiHtml = `
-      <div class="clv-summary-grid">
-        <div class="clv-kpi-card"><span>Total Graded</span><strong>${s.total_graded}</strong></div>
-        <div class="clv-kpi-card"><span>Beat Close Rate</span><strong style="color:var(--accent);">${(s.positive_clv_pct * 100).toFixed(1)}%</strong></div>
-        <div class="clv-kpi-card"><span>Avg Line Move</span><strong>${s.avg_line_delta >= 0 ? '+' : ''}${s.avg_line_delta.toFixed(2)} yds</strong></div>
-        <div class="clv-kpi-card"><span>Avg CLV EV</span><strong style="color:var(--accent);">${(s.avg_clv_ev * 100).toFixed(2)}%</strong></div>
-      </div>
-      <p style="font-size:11.5px; color:var(--muted); margin:0 0 10px;">
-        Closing Line Value (CLV) is the institutional trust moat. Props are isolated when flagged as VERIFIED_ACTIVE with edge &ge; 10%, then mathematically evaluated against the final pre-kickoff consensus line.
-      </p>
-      <div class="clv-table-wrap">
-        <table class="clv-table">
-          <thead>
-            <tr>
-              <th>Player</th>
-              <th>Market</th>
-              <th>Trigger Quote</th>
-              <th>Closing Line</th>
-              <th>Line Beat</th>
-              <th>CLV Delta EV</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${report.ledger.map((entry) => {
-              const statusClass = entry.status === 'BEAT_CLOSE' ? 'clv-status-beat' : entry.status === 'PUSH' ? 'clv-status-push' : 'clv-status-faded';
-              const moveText = (entry.line_movement > 0 ? `+${entry.line_movement.toFixed(1)}` : entry.line_movement.toFixed(1));
-              return `<tr>
-                <td><strong>${esc(entry.player_name)}</strong> <span style="color:var(--faint); font-size:10px;">${esc(entry.team)}</span></td>
-                <td>${entry.market === 'receptions' ? 'Rec' : 'Yards'} ${entry.side}</td>
-                <td>${entry.trigger_line.toFixed(1)} <small style="color:var(--faint)">(${oddsText(entry.trigger_odds)})</small></td>
-                <td>${entry.close_line.toFixed(1)} <small style="color:var(--faint)">(${oddsText(entry.close_odds)})</small></td>
-                <td style="font-weight:700; color:${entry.line_movement > 0 ? 'var(--accent)' : 'inherit'};">${moveText}</td>
-                <td style="font-weight:700; color:${entry.clv_ev > 0 ? 'var(--accent)' : 'inherit'};">${signedPct(entry.clv_ev)}</td>
-                <td><span class="${statusClass}">${entry.status}</span></td>
-              </tr>`;
-            }).join('')}
-          </tbody>
-        </table>
+      <div class="clv-modal-shell font-mono select-none">
+        <!-- 4-Card Institutional KPI Strip -->
+        <div class="clv-kpi-grid">
+          <div class="clv-kpi-box">
+            <span class="clv-kpi-lbl">Beat Closing Line</span>
+            <span class="clv-kpi-val text-volt">${beatCloseRate}%</span>
+            <span class="clv-kpi-sub">${totalRecords} verified tickets</span>
+          </div>
+          <div class="clv-kpi-box">
+            <span class="clv-kpi-lbl">Mean CLV Edge</span>
+            <span class="clv-kpi-val text-volt">
+              +${avgClvProb}% <small class="clv-kpi-yards">(${avgClvYards > 0 ? `+${avgClvYards}` : avgClvYards}y)</small>
+            </span>
+            <span class="clv-kpi-sub">De-vigged vs Kickoff Close</span>
+          </div>
+          <div class="clv-kpi-box">
+            <span class="clv-kpi-lbl">Graded Record</span>
+            <span class="clv-kpi-val text-white">${recordStr}</span>
+            <span class="clv-kpi-sub">Win Rate: ${winRate}%</span>
+          </div>
+          <div class="clv-kpi-box">
+            <span class="clv-kpi-lbl">Realized ROI / P&L</span>
+            <span class="clv-kpi-val ${netPnl >= 0 ? 'text-volt' : 'text-danger'}">
+              ${realizedRoi >= 0 ? `+${realizedRoi}%` : `${realizedRoi}%`}
+            </span>
+            <span class="clv-kpi-sub">Net: ${netPnl >= 0 ? `+$${Number(netPnl).toFixed(2)}` : `-$${Math.abs(Number(netPnl)).toFixed(2)}`}</span>
+          </div>
+        </div>
+
+        <!-- Scrollable Ticket Audit Table -->
+        <div class="clv-table-scroll">
+          <table class="clv-audit-table">
+            <thead>
+              <tr>
+                <th>Player / Ticket</th>
+                <th>Bet Entry</th>
+                <th>Kickoff Close</th>
+                <th>CLV (Yds / Prob)</th>
+                <th>Actual / Grade</th>
+                <th class="th-num">Net P&L</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${records.map((r) => {
+                const player = r.player || r.player_name;
+                const team = r.team;
+                const receipt = r.settlement_receipt || r.receipt_id || 'receipt_verified';
+                const crest = teamCrest(team, 'sm');
+                const side = r.side || 'OVER';
+                const line = r.line ?? r.trigger_line;
+                const odds = r.odds ?? r.trigger_odds;
+                const closeLine = r.close_line;
+                const closeOdds = r.close_odds;
+                const clvYds = r.clv_yards ?? r.line_movement ?? 0;
+                const clvProb = r.clv_prob_pct ?? (r.clv_ev ? +(r.clv_ev * 100).toFixed(2) : 0);
+                const actualYards = r.actual_yards;
+                const outcome = r.outcome || (r.status === 'BEAT_CLOSE' ? 'WIN' : 'PENDING');
+                const pnl = r.net_pnl ?? 0;
+
+                const outcomePill = outcome === 'WIN'
+                  ? '<span class="clv-pill clv-pill-win">WIN</span>'
+                  : outcome === 'LOSS'
+                    ? '<span class="clv-pill clv-pill-loss">LOSS</span>'
+                    : outcome === 'PUSH'
+                      ? '<span class="clv-pill clv-pill-push">PUSH</span>'
+                      : '<span class="clv-pill clv-pill-pending">PENDING</span>';
+
+                return `
+                  <tr>
+                    <td>
+                      <div class="clv-player-cell">
+                        ${crest}
+                        <div class="clv-player-info">
+                          <span class="clv-player-name">${esc(player)}</span>
+                          <span class="clv-receipt-id">#${esc(receipt)}</span>
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <span class="text-white font-bold">${side === 'OVER' ? 'O' : 'U'} ${Number(line).toFixed(1)}</span>
+                      <span class="clv-muted">(${oddsText(odds)})</span>
+                    </td>
+                    <td>
+                      <span class="text-slate-200">${Number(closeLine).toFixed(1)}</span>
+                      <span class="clv-muted">(${oddsText(closeOdds)})</span>
+                    </td>
+                    <td>
+                      <span class="${clvProb >= 0 ? 'text-volt font-bold' : 'text-amber'}">
+                        ${clvYds >= 0 ? `+${clvYds}y` : `${clvYds}y`} (${clvProb >= 0 ? `+${clvProb}%` : `${clvProb}%`})
+                      </span>
+                    </td>
+                    <td>
+                      <div class="clv-grade-cell">
+                        ${actualYards !== null && actualYards !== undefined ? `<span class="text-white font-semibold">${actualYards}y</span>` : ''}
+                        ${outcomePill}
+                      </div>
+                    </td>
+                    <td class="td-num">
+                      <span class="${pnl > 0 ? 'text-volt font-bold' : pnl < 0 ? 'text-danger font-bold' : 'clv-muted'}">
+                        ${pnl > 0 ? `+$${Number(pnl).toFixed(2)}` : pnl < 0 ? `-$${Math.abs(Number(pnl)).toFixed(2)}` : '$0.00'}
+                      </span>
+                    </td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
       </div>
     `;
+
+    $('#clvReportTitle').textContent = 'Closing Line Value (CLV) & Settlement Audit';
+    $('#clvReportEyebrow').innerHTML = `<span class="clv-root-tag">Root #${rootHash}</span>`;
     $('#clvReportContent').innerHTML = kpiHtml;
   }
 

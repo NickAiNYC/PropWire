@@ -93,6 +93,37 @@ button { color: inherit; }
   user-select: none;
 }
 
+/* 1. Stop PROP·WIRE brand and Slate dropdown from overlapping */
+header, .topbar, .header-bar, .pw-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: nowrap;
+}
+.brand, .logo-link, .pw-brand, #slateSelect, #slateSelector {
+  position: static !important;
+  flex-shrink: 0;
+}
+/* 2. Remove duplicate native arrow on Mkt / Intent selects */
+select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+/* 3. Hide the legacy Light/Dark Moon Toggle permanently */
+#themeToggle, .theme-toggle, [aria-label*="theme" i] {
+  display: none !important;
+}
+/* 4. Rebalance 1% from Player to Edge column so "PRICE CHECK / EDGE ?" never clips */
+.slate-table th:nth-child(1), .propwire-table th:nth-child(1), .propwire-table td:nth-child(1) {
+  width: 26% !important;
+}
+.slate-table th:nth-child(5), .propwire-table th:nth-child(5), .propwire-table td:nth-child(5) {
+  width: 20% !important;
+  padding-right: 16px !important;
+}
+
 /* TIER 1: Global Top Bar (46px) */
 .pw-topbar {
   display: flex;
@@ -3597,6 +3628,154 @@ tr[data-focused="true"], article[data-focused="true"] {
 .clv-status-faded {
   color: var(--text-muted);
   font: 600 10px/1 var(--mono);
+}
+
+/* ─── INSTITUTIONAL CLV AUDIT REPORT MODAL ─── */
+.clv-modal-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.clv-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+@media (max-width: 640px) {
+  .clv-kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+.clv-kpi-box {
+  background: #090d16;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-variant-numeric: tabular-nums;
+}
+.clv-kpi-lbl {
+  font-size: 10px;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 600;
+}
+.clv-kpi-val {
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1.1;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+.clv-kpi-yards {
+  font-size: 12px;
+  color: #cbd5e1;
+  font-weight: 600;
+}
+.clv-kpi-sub {
+  font-size: 10px;
+  color: #64748b;
+}
+.text-volt {
+  color: var(--brand-green-bright) !important;
+}
+.clv-table-scroll {
+  overflow-y: auto;
+  max-height: 380px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  background: #070a12;
+}
+.clv-audit-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11.5px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-variant-numeric: tabular-nums;
+  text-align: left;
+}
+.clv-audit-table th {
+  background: #0b101b;
+  padding: 8px 12px;
+  font-size: 10px;
+  text-transform: uppercase;
+  color: #94a3b8;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  font-weight: 700;
+}
+.clv-audit-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  vertical-align: middle;
+}
+.clv-player-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.clv-player-info {
+  display: flex;
+  flex-direction: column;
+}
+.clv-player-name {
+  font-weight: 700;
+  color: #f8fafc;
+  font-family: inherit;
+}
+.clv-receipt-id {
+  font-size: 9.5px;
+  color: #64748b;
+}
+.clv-grade-cell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.clv-pill {
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.clv-pill-win {
+  background: rgba(132, 204, 22, 0.15);
+  border: 1px solid rgba(132, 204, 22, 0.4);
+  color: var(--brand-green-bright);
+}
+.clv-pill-loss {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #f87171;
+}
+.clv-pill-push {
+  background: rgba(148, 163, 184, 0.15);
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  color: #cbd5e1;
+}
+.clv-pill-pending {
+  background: rgba(255, 255, 255, 0.05);
+  color: #94a3b8;
+}
+.clv-root-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(132, 204, 22, 0.12);
+  border: 1px solid rgba(132, 204, 22, 0.35);
+  color: var(--brand-green-bright);
+  font-size: 10.5px;
+  font-weight: 600;
+}
+.clv-muted {
+  color: #64748b;
+  font-size: 11px;
 }
 
 /* ─── LIGHT THEME OVERRIDES FOR NEW COMPONENTS ─── */

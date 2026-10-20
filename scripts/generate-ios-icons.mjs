@@ -2,26 +2,72 @@ import sharp from 'sharp';
 import fs from 'fs';
 import path from 'path';
 
-const svgIcon = `
-<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- Solid Obsidian Background (Required by iOS - No Transparency) -->
-  <rect width="512" height="512" fill="#090d16"/>
-  <!-- Subtle Inner Quant Grid Border -->
-  <rect x="24" y="24" width="464" height="464" rx="96" stroke="#10b981" stroke-opacity="0.18" stroke-width="6"/>
-  <!-- Neon Green PropWire P + Upward Trend Mark -->
-  <path d="M148 384V140H268C316 140 348 168 348 214C348 260 316 288 268 288H204V384H148ZM204 240H262C282 240 294 230 294 214C294 198 282 188 262 188H204V240Z" fill="#84cc16"/>
-  <!-- Upward Breakout Arrow Accent -->
-  <path d="M276 340L376 240M376 240H308M376 240V308" stroke="#22c55e" stroke-width="36" stroke-linecap="round" stroke-linejoin="round"/>
-</svg>`;
-
-const dirs = ['viewer', 'public'];
-for (const dir of dirs) {
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-  await sharp(Buffer.from(svgIcon)).resize(180, 180).png().toFile(path.join(dir, 'apple-touch-icon.png'));
-  await sharp(Buffer.from(svgIcon)).resize(180, 180).png().toFile(path.join(dir, 'apple-touch-icon-precomposed.png'));
-  await sharp(Buffer.from(svgIcon)).resize(192, 192).png().toFile(path.join(dir, 'icon-192.png'));
-  await sharp(Buffer.from(svgIcon)).resize(512, 512).png().toFile(path.join(dir, 'icon-512.png'));
-  await sharp(Buffer.from(svgIcon)).resize(32, 32).png().toFile(path.join(dir, 'favicon-32x32.png'));
+const sourceImgPath = '/Users/nick/.gemini/antigravity-ide/brain/864b77c4-bb96-486d-b389-ad501875d808/.user_uploaded/media_1792527894248.png';
+if (!fs.existsSync(sourceImgPath)) {
+  console.error('Source logo file not found:', sourceImgPath);
+  process.exit(1);
 }
 
-console.log('✔ Generated iOS apple-touch-icon.png (180x180) and PWA icons in viewer/ and public/');
+// 1. Load source image and blend background seamlessly into #090d16
+const img = sharp(sourceImgPath);
+const { data, info } = await img.raw().toBuffer({ resolveWithObject: true });
+const targetR = 9, targetG = 13, targetB = 22; // #090d16
+
+for (let i = 0; i < data.length; i += info.channels) {
+  const r = data[i], g = data[i + 1], b = data[i + 2];
+  const brightness = Math.max(r, g, b);
+  if (brightness < 35) {
+    data[i] = targetR;
+    data[i + 1] = targetG;
+    data[i + 2] = targetB;
+  } else if (brightness < 80) {
+    const t = (brightness - 35) / (80 - 35);
+    data[i] = Math.round(targetR * (1 - t) + r * t);
+    data[i + 1] = Math.round(targetG * (1 - t) + g * t);
+    data[i + 2] = Math.round(targetB * (1 - t) + b * t);
+  }
+}
+
+// 2. Extract bounding region with balanced margins so iOS squircle mask never clips the mark
+// Bounding box of content: X: 201 to 876 (width 675), Y: 132 to 835 (height 703)
+const master512 = await sharp(data, {
+  raw: { width: info.width, height: info.height, channels: info.channels }
+})
+  .extract({ left: 180, top: 110, width: 720, height: 740 })
+  .resize(410, 420, { fit: 'contain', background: '#090d16' })
+  .extend({
+    top: 46,
+    bottom: 46,
+    left: 51,
+    right: 51,
+    background: '#090d16'
+  })
+  .resize(512, 512)
+  .png()
+  .toBuffer();
+
+const targetDirs = ['viewer', 'public'];
+
+for (const dir of targetDirs) {
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+
+  // Standard iOS Apple Touch Icons (180x180, 152x152, 167x167, 120x120)
+  await sharp(master512).resize(180, 180).png().toFile(path.join(dir, 'apple-touch-icon.png'));
+  await sharp(master512).resize(180, 180).png().toFile(path.join(dir, 'apple-touch-icon-precomposed.png'));
+  await sharp(master512).resize(180, 180).png().toFile(path.join(dir, 'apple-touch-icon-180x180.png'));
+  await sharp(master512).resize(180, 180).png().toFile(path.join(dir, 'apple-touch-icon-180x180-precomposed.png'));
+  await sharp(master512).resize(152, 152).png().toFile(path.join(dir, 'apple-touch-icon-152x152.png'));
+  await sharp(master512).resize(167, 167).png().toFile(path.join(dir, 'apple-touch-icon-167x167.png'));
+  await sharp(master512).resize(120, 120).png().toFile(path.join(dir, 'apple-touch-icon-120x120.png'));
+
+  // PWA & Android Icons
+  await sharp(master512).resize(192, 192).png().toFile(path.join(dir, 'icon-192.png'));
+  await sharp(master512).resize(512, 512).png().toFile(path.join(dir, 'icon-512.png'));
+
+  // Desktop Favicons
+  await sharp(master512).resize(32, 32).png().toFile(path.join(dir, 'favicon-32x32.png'));
+  await sharp(master512).resize(16, 16).png().toFile(path.join(dir, 'favicon-16x16.png'));
+  await sharp(master512).resize(32, 32).png().toFile(path.join(dir, 'favicon.png'));
+}
+
+console.log('✔ Successfully generated all authentic iOS, PWA, and desktop favicons from user mark');
