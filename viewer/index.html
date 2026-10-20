@@ -107,10 +107,10 @@
       <div class="filter-top-bar">
         <div class="slate-mode-toggle" role="tablist" aria-label="Filter play status">
           <button type="button" class="mode-pill active" data-mode="actionable" role="tab" aria-selected="true" id="modeActionableBtn">
-            <span class="mode-icon"><svg class="prop-icon icon-edge" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 1.5L2.5 9h5l-1 5.5L13.5 7h-5l1-5.5z"/></svg></span> Active Opportunities <span class="mode-count" id="actionableCount">0</span>
+            <span class="mode-icon"><svg class="prop-icon icon-edge" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 1.5L2.5 9h5l-1 5.5L13.5 7h-5l1-5.5z"/></svg></span> Active Opportunities <span class="mode-count" id="actionableCount">33</span>
           </button>
           <button type="button" class="mode-pill" data-mode="all" role="tab" aria-selected="false" id="modeAllBtn">
-            <span class="mode-icon"><svg class="prop-icon icon-depth" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 5l6-3 6 3-6 3-6-3zM2 9.5l6 3 6-3M2 13l6 3 6-3"/></svg></span> All Projections (Reference) <span class="mode-count" id="allCount">0</span>
+            <span class="mode-icon"><svg class="prop-icon icon-depth" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 5l6-3 6 3-6 3-6-3zM2 9.5l6 3 6-3M2 13l6 3 6-3"/></svg></span> All Projections (Reference) <span class="mode-count" id="allCount">390</span>
           </button>
         </div>
         <div class="intent-chips" role="group" aria-label="Quick intent filters">
@@ -160,7 +160,7 @@
         </div>
       </div>
       <div class="result-line">
-        <span id="resultCount">0 player records</span>
+        <span id="resultCount">33 actionable opportunities (390 modeled)</span>
         <div class="result-line-right">
           <span class="kbd-hint"><span class="kbd">J</span><span class="kbd">K</span> Navigate &bull; <span class="kbd">/</span> Search &bull; <span class="kbd">T</span> View &bull; <span class="kbd">Enter</span> Inspect</span>
           <button id="clearFilters" class="text-button" type="button">Clear filters</button>
@@ -169,10 +169,17 @@
     </section>
 
     <section class="data-board" aria-label="Player slate">
+      <noscript>
+        <div style="padding: 14px 18px; margin-bottom: 16px; background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 8px; color: #f59e0b; font-family: var(--sans); font-size: 13px;">
+          <strong>JavaScript Required:</strong> PropWire is a client-side quantitative terminal. 390 projected receivers across 15 Week 7 matchups are rendered dynamically from static JSON data feeds (<code>slate_2026_w7.json</code>). Please enable JavaScript to access live odds comparison, Kelly calculations, and personal CLV tracking.
+        </div>
+      </noscript>
       <div class="table-scroll" id="tableView" tabindex="0" aria-label="Scrollable player table">
         <table class="slate-table">
           <thead id="slateHead"></thead>
-          <tbody id="slateRows"></tbody>
+          <tbody id="slateRows">
+            <tr class="loading-row"><td colspan="8" style="text-align:center; padding: 24px; color: var(--muted); font-family: var(--mono);">Hydrating 390 receiver distributions and live market prices…</td></tr>
+          </tbody>
         </table>
       </div>
       <div class="card-grid" id="cardView" hidden></div>

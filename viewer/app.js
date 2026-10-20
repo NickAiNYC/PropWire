@@ -409,6 +409,8 @@
     state.odds = normalizeFeed(odds);
     renderAll(clvCount);
     window.__PROP_WIRE_READY__ = true;
+    window.__PROP_WIRE_EXPORT__ = handleLedgerExport;
+    window.__PROP_WIRE_IMPORT__ = handleLedgerImportFile;
   }
 
   function normalizeFeed(feed) {
@@ -1023,6 +1025,100 @@
     }
   }
 
+  function handleLedgerExport() {
+    const portfolio = state.portfolio || [];
+    if (portfolio.length === 0) {
+      toast('No logged bets to export');
+      return;
+    }
+    const payload = {
+      app: 'PropWire Institutional Terminal',
+      schema_version: '1.0',
+      exported_at: new Date().toISOString(),
+      total_bets: portfolio.length,
+      portfolio: portfolio
+    };
+    const jsonStr = JSON.stringify(payload, null, 2);
+    const blob = new Blob([jsonStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const dateStr = new Date().toISOString().slice(0, 10);
+    a.href = url;
+    a.download = `propwire_clv_ledger_${dateStr}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast(`Exported ${portfolio.length} bets to JSON`);
+  }
+
+  function handleLedgerImportFile(file) {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const rawText = e.target.result;
+        const data = JSON.parse(rawText);
+        const incoming = Array.isArray(data) ? data : (data && Array.isArray(data.portfolio) ? data.portfolio : null);
+        if (!incoming || !Array.isArray(incoming)) {
+          toast('Invalid ledger file: missing bet list');
+          return;
+        }
+
+        const current = [...(state.portfolio || [])];
+        let added = 0;
+        let updated = 0;
+
+        incoming.forEach((item) => {
+          if (!item || !item.player_name || !item.market || item.line === undefined) return;
+          const lineVal = Number(item.line);
+          if (isNaN(lineVal)) return;
+
+          const entry = {
+            id: item.id || `bet_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+            player_id: item.player_id || '',
+            player_name: String(item.player_name),
+            team: item.team || '',
+            opponent: item.opponent || '',
+            market: item.market,
+            book: item.book || 'Manual',
+            line: lineVal,
+            odds: Number(item.odds || -110),
+            side: String(item.side || 'OVER').toUpperCase(),
+            model_fair: Number(item.model_fair || lineVal),
+            edge: Number(item.edge || 0),
+            ev: Number(item.ev || 0),
+            logged_at: item.logged_at || new Date().toISOString()
+          };
+
+          const existingIdx = current.findIndex((b) => (b.id && b.id === entry.id) || (b.player_id && b.player_id === entry.player_id && b.market === entry.market && b.side === entry.side));
+          if (existingIdx >= 0) {
+            current[existingIdx] = { ...current[existingIdx], ...entry };
+            updated++;
+          } else {
+            current.unshift(entry);
+            added++;
+          }
+        });
+
+        if (added === 0 && updated === 0) {
+          toast('No valid bets found in file');
+          return;
+        }
+
+        state.portfolio = current;
+        savePortfolio(state.portfolio);
+        updatePortfolioBadge();
+        renderBoard();
+        openPortfolioDialog();
+        toast(`Imported ledger: +${added} added, ${updated} updated`);
+      } catch (err) {
+        toast('Failed to parse JSON backup file');
+      }
+    };
+    reader.readAsText(file);
+  }
+
   function openPortfolioDialog() {
     const dialog = $('#portfolioDialog');
     if (!dialog) return;
@@ -1049,7 +1145,7 @@
         <td class="num"><strong>${bet.line.toFixed(1)}</strong><br><small class="cell-sub">${oddsText(bet.odds)}</small></td>
         <td class="num"><strong>${currentQuote ? currentQuote.line.toFixed(1) : bet.line.toFixed(1)}</strong><br><small class="cell-sub">${currentQuote ? currentQuote.book : 'At entry'}</small></td>
         <td class="num ${clvClass}"><strong>${clvText}</strong></td>
-        <td><button type="button" class="text-button" data-remove-bet="${esc(bet.id)}" style="color:var(--muted); font-size:16px;">×</button></td>
+        <td><button type="button" class="text-button" data-remove-bet="${esc(bet.id)}" style="color:var(--muted); font-size:16px;" aria-label="Remove bet">×</button></td>
       </tr>`;
     }).join('');
 
@@ -1062,7 +1158,17 @@
         <div class="portfolio-summary-stat"><span>Beat Close Rate</span><strong>${beatRate}</strong></div>
         <div class="portfolio-summary-stat"><span>Avg CLV Delta</span><strong>${Number(avgClv) > 0 ? '+' : ''}${avgClv}</strong></div>
       </div>
-      ${portfolio.length === 0 ? '<div class="portfolio-empty">No bets logged yet. Click "+ Log" on any player card or inside the Inspect drawer to record your play and grade closing line value.</div>' : `
+      ${portfolio.length === 0 ? `
+        <div class="portfolio-empty">
+          <p>No bets logged yet. Click "+ Log" on any player card or inside the Inspect drawer to record your play and track closing line value.</p>
+          <div style="margin-top:16px; display:flex; justify-content:center;">
+            <button type="button" class="portfolio-action-btn" id="emptyImportLedgerBtn">
+              <svg class="prop-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 10v3.5h11V10M8 2.5v8M5 5.5l3-3 3 3"/></svg>
+              Restore from JSON Backup
+            </button>
+          </div>
+        </div>
+      ` : `
         <div class="portfolio-table-wrap">
           <table class="portfolio-table">
             <thead>
@@ -1080,11 +1186,21 @@
             </tbody>
           </table>
         </div>
-        <div style="margin-top:14px; display:flex; justify-content:space-between; align-items:center;">
-          <small class="cell-sub" style="font-family:var(--mono);">CLV compares bought entry line to live sharp quote.</small>
+        <div class="portfolio-actions-bar">
+          <div class="portfolio-actions-left">
+            <button type="button" class="portfolio-action-btn" id="exportLedgerBtn" title="Download backup of your personal CLV records">
+              <svg class="prop-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 10v3.5h11V10M8 10.5V2.5M5 7.5l3 3 3-3"/></svg>
+              Export JSON
+            </button>
+            <button type="button" class="portfolio-action-btn" id="importLedgerBtn" title="Restore or merge bets from a JSON backup">
+              <svg class="prop-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 10v3.5h11V10M8 2.5v8M5 5.5l3-3 3 3"/></svg>
+              Import JSON
+            </button>
+          </div>
           <button type="button" class="text-button" id="clearPortfolioBtn" style="font-size:11px; color:#f87171;">Clear all bets</button>
         </div>
       `}
+      <input type="file" id="ledgerFileInput" accept=".json,application/json" style="display:none">
     `;
 
     $('#portfolioContent').querySelectorAll('[data-remove-bet]').forEach((btn) => {
@@ -1101,12 +1217,38 @@
     const clearBtn = $('#clearPortfolioBtn');
     if (clearBtn) {
       clearBtn.addEventListener('click', () => {
+        if (!confirm('Clear all bets from your personal ledger?')) return;
         state.portfolio = [];
         savePortfolio(state.portfolio);
         updatePortfolioBadge();
         renderBoard();
         openPortfolioDialog();
       });
+    }
+
+    const exportBtn = $('#exportLedgerBtn');
+    if (exportBtn) {
+      exportBtn.addEventListener('click', handleLedgerExport);
+    }
+
+    const fileInput = $('#ledgerFileInput');
+    if (fileInput) {
+      fileInput.addEventListener('change', (e) => {
+        if (e.target.files && e.target.files[0]) {
+          handleLedgerImportFile(e.target.files[0]);
+          e.target.value = '';
+        }
+      });
+    }
+
+    const importBtn = $('#importLedgerBtn');
+    if (importBtn && fileInput) {
+      importBtn.addEventListener('click', () => fileInput.click());
+    }
+
+    const emptyImportBtn = $('#emptyImportLedgerBtn');
+    if (emptyImportBtn && fileInput) {
+      emptyImportBtn.addEventListener('click', () => fileInput.click());
     }
 
     dialog.showModal();

@@ -1158,6 +1158,45 @@ tr.terminal-focused, article.terminal-focused {
 .portfolio-table th.num, .portfolio-table td.num { text-align: right; }
 .portfolio-table td { padding: 9px 10px; border-bottom: 1px solid rgba(255, 255, 255, 0.04); font-variant-numeric: tabular-nums; }
 .portfolio-empty { padding: 32px 16px; text-align: center; color: var(--muted); font-size: 13px; }
+.portfolio-actions-bar {
+  margin-top: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+.portfolio-actions-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.portfolio-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font: 700 11.5px/1 var(--mono);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.portfolio-action-btn:hover {
+  background: var(--surface-3);
+  border-color: var(--line-strong);
+  color: var(--accent);
+}
+.portfolio-action-btn svg {
+  width: 14px;
+  height: 14px;
+  stroke: currentColor;
+}
 
 /* ─── RESPONSIVE BREAKPOINTS ─── */
 @media (max-width: 920px) {

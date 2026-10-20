@@ -18,7 +18,7 @@ import os
 import subprocess
 import sys
 from datetime import datetime, timezone
-from typing import AsyncGenerator
+from typing import AsyncGenerator, Optional
 
 from fastapi import FastAPI, Header, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -411,15 +411,28 @@ def get_holdout_eval(
 
 @app.get("/api/run-week/stream")
 async def run_week_stream(
+    request: Request,
     season: int = Query(2026, description="NFL Season"),
     week: int = Query(1, description="Week Number"),
     odds: bool = Query(False, description="Pull live odds via The Odds API"),
     all_games: bool = Query(True, description="Include all games regardless of kickoff"),
+    admin_token: Optional[str] = Query(None, description="Admin token query parameter"),
+    x_admin_key: Optional[str] = Header(None, description="Admin token HTTP header"),
 ):
     """
     Executes src/week1.py in a separate process, streaming stdout line-by-line
-    via Server-Sent Events (SSE).
+    via Server-Sent Events (SSE). Strictly gated behind ADMIN_TOKEN in production.
     """
+    admin_secret = os.environ.get("ADMIN_TOKEN")
+    provided_key = x_admin_key or admin_token
+    client_host = request.client.host if request.client else ""
+    is_localhost = client_host in ("127.0.0.1", "::1", "localhost", "testclient")
+    if admin_secret:
+        if provided_key != admin_secret:
+            raise HTTPException(403, "Forbidden: Invalid or missing admin credentials")
+    elif not is_localhost:
+        raise HTTPException(403, "Forbidden: Pipeline runner requires ADMIN_TOKEN configured for external access")
+
     cmd = [
         sys.executable,
         os.path.join(SRC_DIR, "week1.py"),
