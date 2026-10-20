@@ -1,5 +1,5 @@
 // NFL Receiving Props Agent — Weekly Web App Logic
-// Compound NegBin / Gamma Distributional Model Engine
+// Compound NegBin / Gamma Distributional Model Engine & Correlation-Aware SGP Pricer
 
 const MODEL_ALPHA = 0.1097; // NegBin dispersion for receptions
 const MODEL_K = 1.555;      // Gamma shape per reception
@@ -24,6 +24,7 @@ let inlinePlayerLines = {}; // Store inline entered lines: { playerId: { market,
 // --------------------------------------------------------------------------
 
 document.addEventListener('DOMContentLoaded', async () => {
+  loadSavedLines();
   await loadData();
   populateTeamFilter();
   renderPicksSection();
@@ -33,37 +34,50 @@ document.addEventListener('DOMContentLoaded', async () => {
   loadClvData();
 });
 
-async function loadData() {
-  // Fetch slate projections
+// Resilient fetch helper: handles Railway API routes and static Vercel edge deployment cleanly
+async function fetchWithFallback(apiPath, staticFallback) {
   try {
-    const slateRes = await fetch('/api/slate').catch(() => fetch('slate_projections.json'));
-    slateData = await slateRes.json();
-  } catch (err) {
-    try {
-      const fallback = await fetch('slate_projections.json');
-      slateData = await fallback.json();
-    } catch (e) {
-      console.error('Failed to load slate_projections.json:', e);
+    const res = await fetch(apiPath);
+    if (res.ok) {
+      return await res.json();
     }
+  } catch (_) {}
+  const fallbackRes = await fetch(staticFallback);
+  return await fallbackRes.json();
+}
+
+async function loadData() {
+  try {
+    slateData = await fetchWithFallback('/api/slate', 'slate_projections.json');
+  } catch (err) {
+    console.error('Failed to load slate data:', err);
+    slateData = [];
   }
 
   // Augment each player with TD probability model
   augmentPlayersWithTdModel();
 
-  // Fetch picks
   try {
-    const picksRes = await fetch('/api/picks').catch(() => fetch('current_picks.json'));
-    picksData = await picksRes.json();
+    picksData = await fetchWithFallback('/api/picks', 'current_picks.json');
   } catch (err) {
-    try {
-      const fallback = await fetch('current_picks.json');
-      picksData = await fallback.json();
-    } catch (e) {
-      console.error('Failed to load current_picks.json:', e);
-    }
+    console.error('Failed to load picks data:', err);
+    picksData = { picks: [] };
   }
 
   updateSummaryStats();
+}
+
+function loadSavedLines() {
+  try {
+    const saved = localStorage.getItem('inline_lines');
+    if (saved) inlinePlayerLines = JSON.parse(saved);
+  } catch (_) {}
+}
+
+function saveLocalLines() {
+  try {
+    localStorage.setItem('inline_lines', JSON.stringify(inlinePlayerLines));
+  } catch (_) {}
 }
 
 // --------------------------------------------------------------------------
@@ -72,7 +86,7 @@ async function loadData() {
 
 function augmentPlayersWithTdModel() {
   const posMeans = { 'WR': 0.052, 'TE': 0.076, 'RB': 0.038 };
-  const M = 25.0; // Shrinkage weight
+  const M = 25.0; // Shrinkage prior weight
   const avgTotal = 22.0;
 
   slateData.forEach(p => {
@@ -250,7 +264,7 @@ function renderPicksSection() {
                 <td class="num-col highlight-val">${Number(p.proj_yards).toFixed(1)}</td>
                 <td class="num-col fair-val">${Number(p.fair_line_rec).toFixed(1)}${recProb}</td>
                 <td class="num-col highlight-val">${Number(p.proj_rec).toFixed(1)}</td>
-                <td class="num-col"><span class="tier-pill ${tdTierClass}">${tdProb}</span></td>
+                <td class="num-col"><span class="tier-pill ${tdTierClass}" title="Anytime TD Probability">${tdProb}</span></td>
                 <td class="game-context-cell">${p.implied_total !== undefined ? Number(p.implied_total).toFixed(1) + ' pts' : '—'}</td>
                 <td class="action-col">
                   <button class="action-btn" onclick="openCalculatorForName('${escape(p.player)}')">Price</button>
@@ -471,6 +485,13 @@ function renderSlateTable() {
               ${renderInlineBadgeHtml(compResult)}
             </div>
           </div>
+          <div class="quick-adjust-bar">
+            <button class="quick-chip" onclick="applyQuickAdjust('${escape(row.player_id)}', -5)">-5</button>
+            <button class="quick-chip" onclick="applyQuickAdjust('${escape(row.player_id)}', -2.5)">-2.5</button>
+            <button class="quick-chip quick-chip-fair" onclick="applyQuickAdjust('${escape(row.player_id)}', 0)">Fair</button>
+            <button class="quick-chip" onclick="applyQuickAdjust('${escape(row.player_id)}', 2.5)">+2.5</button>
+            <button class="quick-chip" onclick="applyQuickAdjust('${escape(row.player_id)}', 5)">+5</button>
+          </div>
         </td>
         <td class="action-col">
           <button class="action-btn" onclick="openPlayerModal('${escape(row.player_id)}')">Detail</button>
@@ -478,6 +499,19 @@ function renderSlateTable() {
       </tr>
     `;
   }).join('');
+}
+
+function applyQuickAdjust(escapedId, offset) {
+  const id = unescape(escapedId);
+  const player = slateData.find(p => p.player_id === id);
+  if (!player) return;
+
+  const current = inlinePlayerLines[id] || { market: 'yards', line: player.fair_line_yards, odds: -115 };
+  const baseFair = current.market === 'rec' ? player.fair_line_rec : player.fair_line_yards;
+  current.line = offset === 0 ? baseFair : Math.max(0.5, baseFair + offset);
+  inlinePlayerLines[id] = current;
+  saveLocalLines();
+  renderSlateTable();
 }
 
 // Inline line comparison evaluator
@@ -580,7 +614,7 @@ function onInlineMarketChange(escapedId, market) {
   current.market = market;
   current.line = market === 'rec' ? player.fair_line_rec : player.fair_line_yards;
   inlinePlayerLines[id] = current;
-
+  saveLocalLines();
   renderSlateTable();
 }
 
@@ -592,6 +626,7 @@ function onInlineLineInput(escapedId, lineVal) {
   const current = inlinePlayerLines[id] || { market: 'yards', line: player.fair_line_yards, odds: -115 };
   current.line = parseFloat(lineVal) || 0;
   inlinePlayerLines[id] = current;
+  saveLocalLines();
 
   const badgeEl = document.getElementById(`comp-badge-${id}`);
   if (badgeEl) {
@@ -677,7 +712,7 @@ function renderTdPanel() {
 }
 
 // --------------------------------------------------------------------------
-// TAB 4: Prop Pricing Calculator
+// TAB 4: Prop Pricing Calculator, Distribution Visualizer, & SGP
 // --------------------------------------------------------------------------
 
 function populateCalculator() {
@@ -842,6 +877,8 @@ function calculateEdge() {
     bestOdds,
     clearsGate
   });
+
+  drawDistributionSvg(selectedPlayer, market, line);
 }
 
 function renderCalcResults(res) {
@@ -901,22 +938,302 @@ function renderCalcResults(res) {
   `;
 }
 
+// Visual Probability Density SVG Generator
+function drawDistributionSvg(player, market, bookLine) {
+  const container = document.getElementById('distChartContainer');
+  if (!container) return;
+
+  const w = container.clientWidth || 600;
+  const h = 200;
+  const pad = { left: 40, right: 30, top: 20, bottom: 30 };
+
+  const fairLine = market === 'receptions' ? player.fair_line_rec : player.fair_line_yards;
+  const maxVal = market === 'receptions' ? Math.max(14, fairLine * 2.2) : Math.max(160, fairLine * 2.4);
+
+  // Generate density points
+  const points = [];
+  const steps = 120;
+  let maxDensity = 0;
+
+  for (let i = 0; i <= steps; i++) {
+    const x = (i / steps) * maxVal;
+    let d = 0;
+    if (market === 'receptions') {
+      // NegBin PMF approximation
+      const r = 1.0 / MODEL_ALPHA;
+      const p = r / (r + player.mu_rec);
+      const k = Math.round(x);
+      d = Math.pow(p, r) * Math.pow(1 - p, k) * (gammaRatio(k + r, r) / factorial(k));
+    } else {
+      // Compound Gamma density approximation
+      const k = MODEL_K * (player.mu_rec || 4.0);
+      const theta = (player.mu_ypr || 12.0) / MODEL_K;
+      if (x > 0 && k > 0) {
+        d = (1 / (Math.exp(logGamma(k)) * Math.pow(theta, k))) * Math.pow(x, k - 1) * Math.exp(-x / theta);
+      }
+    }
+    if (isNaN(d) || !isFinite(d)) d = 0;
+    maxDensity = Math.max(maxDensity, d);
+    points.push({ x, y: d });
+  }
+
+  if (maxDensity <= 0) maxDensity = 1.0;
+
+  // Scale functions
+  const scaleX = val => pad.left + (val / maxVal) * (w - pad.left - pad.right);
+  const scaleY = val => h - pad.bottom - (val / maxDensity) * (h - pad.top - pad.bottom);
+
+  // Build SVG path
+  let pathD = `M ${scaleX(points[0].x)} ${scaleY(points[0].y)}`;
+  for (let i = 1; i < points.length; i++) {
+    pathD += ` L ${scaleX(points[i].x)} ${scaleY(points[i].y)}`;
+  }
+
+  // Shaded tail area for x >= bookLine
+  const tailPoints = points.filter(pt => pt.x >= bookLine);
+  let tailPathD = '';
+  if (tailPoints.length > 0) {
+    tailPathD = `M ${scaleX(bookLine)} ${scaleY(0)}`;
+    tailPathD += ` L ${scaleX(bookLine)} ${scaleY(tailPoints[0].y)}`;
+    tailPoints.forEach(pt => {
+      tailPathD += ` L ${scaleX(pt.x)} ${scaleY(pt.y)}`;
+    });
+    tailPathD += ` L ${scaleX(maxVal)} ${scaleY(0)} Z`;
+  }
+
+  const fairLineX = scaleX(fairLine);
+  const bookLineX = scaleX(bookLine);
+
+  container.innerHTML = `
+    <svg width="100%" height="${h}" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id="tailGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.45"/>
+          <stop offset="100%" stop-color="#38bdf8" stop-opacity="0.05"/>
+        </linearGradient>
+      </defs>
+      <!-- Base Axis -->
+      <line x1="${pad.left}" y1="${h - pad.bottom}" x2="${w - pad.right}" y2="${h - pad.bottom}" stroke="#222d42" stroke-width="1"/>
+      
+      <!-- Shaded Over Tail -->
+      ${tailPathD ? `<path d="${tailPathD}" fill="url(#tailGrad)"/>` : ''}
+
+      <!-- Main Density Curve -->
+      <path d="${pathD}" fill="none" stroke="#38bdf8" stroke-width="2.2" stroke-linecap="round"/>
+
+      <!-- Fair Line (Median) -->
+      <line x1="${fairLineX}" y1="${pad.top}" x2="${fairLineX}" y2="${h - pad.bottom}" stroke="#38bdf8" stroke-width="2" stroke-dasharray="4,4"/>
+      <text x="${fairLineX}" y="${pad.top - 4}" fill="#38bdf8" font-size="10" font-family="monospace" text-anchor="middle" font-weight="700">Fair: ${fairLine}</text>
+
+      <!-- Book Line -->
+      <line x1="${bookLineX}" y1="${pad.top + 10}" x2="${bookLineX}" y2="${h - pad.bottom}" stroke="#ef4444" stroke-width="2"/>
+      <text x="${bookLineX}" y="${h - pad.bottom + 18}" fill="#ef4444" font-size="10" font-family="monospace" text-anchor="middle" font-weight="700">Book: ${bookLine}</text>
+    </svg>
+  `;
+}
+
+function gammaRatio(a, b) {
+  return Math.exp(logGamma(a) - logGamma(b));
+}
+
+function factorial(n) {
+  let f = 1;
+  for (let i = 2; i <= n; i++) f *= i;
+  return f;
+}
+
+// Correlation-Aware Same-Game Parlay (SGP) Simulator (src/parlay.py)
+function evaluateCurrentPlayerSgp() {
+  if (!selectedPlayer) return;
+  const container = document.getElementById('sgpResultsContainer');
+  if (!container) return;
+
+  const muRec = selectedPlayer.mu_rec;
+  const muYpr = selectedPlayer.mu_ypr;
+  const fairRec = selectedPlayer.fair_line_rec;
+  const fairYds = selectedPlayer.fair_line_yards;
+
+  const nSims = 40000;
+  const r = 1.0 / MODEL_ALPHA;
+  const p = r / (r + muRec);
+  const scale = muYpr / MODEL_K;
+
+  let overRecCount = 0;
+  let overYdsCount = 0;
+  let jointOverCount = 0;
+
+  for (let i = 0; i < nSims; i++) {
+    // NegBin random draw
+    const lambda = sampleGamma(r, (1 - p) / p);
+    const n = samplePoisson(lambda);
+    let y = 0;
+    if (n > 0) {
+      y = sampleGamma(n * MODEL_K, scale);
+    }
+
+    const isOverRec = n > fairRec;
+    const isOverYds = y > fairYds;
+
+    if (isOverRec) overRecCount++;
+    if (isOverYds) overYdsCount++;
+    if (isOverRec && isOverYds) jointOverCount++;
+  }
+
+  const pRec = overRecCount / nSims;
+  const pYds = overYdsCount / nSims;
+  const pJoint = jointOverCount / nSims;
+  const pIndep = pRec * pYds;
+  const correlationLift = pIndep > 0 ? (pJoint / pIndep - 1.0) : 0;
+  const fairAmerican = probToAmerican(pJoint);
+
+  container.innerHTML = `
+    <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:8px; padding:16px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
+        <h5 style="color:#fff; font-size:14px;">${selectedPlayer.player_display_name} SGP: Over ${fairRec} Rec + Over ${fairYds} Yds</h5>
+        <span class="sgp-lift-badge">+${(correlationLift * 100).toFixed(1)}% CORRELATION LIFT</span>
+      </div>
+      <table class="sgp-table">
+        <thead>
+          <tr>
+            <th>Leg 1 P(Over)</th>
+            <th>Leg 2 P(Over)</th>
+            <th>Naive Independent Prob</th>
+            <th style="color:var(--accent-purple);">True Joint Model Prob</th>
+            <th>Fair SGP Odds</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>${(pRec * 100).toFixed(1)}%</td>
+            <td>${(pYds * 100).toFixed(1)}%</td>
+            <td style="color:var(--text-dim);">${(pIndep * 100).toFixed(1)}%</td>
+            <td style="color:var(--accent-purple); font-weight:700;">${(pJoint * 100).toFixed(1)}%</td>
+            <td style="color:var(--accent-blue); font-weight:700;">${fairAmerican > 0 ? '+' : ''}${fairAmerican}</td>
+          </tr>
+        </tbody>
+      </table>
+      <div style="margin-top:12px; font-size:11px; color:var(--text-muted); line-height:1.5;">
+        <strong>SGP Pricing Takeaway:</strong> Because yards are produced by receptions (&phi; &approx; 0.65), a receiver who clears receptions is much more likely to also clear yards. If your sportsbook prices this SGP using unadjusted product odds (~${(pIndep * 100).toFixed(1)}%), there is a <strong>+${(correlationLift * 100).toFixed(1)}%</strong> pricing inefficiency.
+      </div>
+    </div>
+  `;
+}
+
+// Marsaglia and Tsang exact Gamma sampler
+function sampleStandardNormal() {
+  let u = 0, v = 0;
+  while (u === 0) u = Math.random();
+  while (v === 0) v = Math.random();
+  return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+}
+
+function sampleGamma(shape, scale) {
+  if (shape < 1) {
+    return sampleGamma(shape + 1, scale) * Math.pow(Math.random(), 1 / shape);
+  }
+  const d = shape - 1 / 3;
+  const c = 1 / Math.sqrt(9 * d);
+  while (true) {
+    const z = sampleStandardNormal();
+    const v = 1 + c * z;
+    if (v <= 0) continue;
+    const v3 = v * v * v;
+    const u = Math.random();
+    if (u < 1 - 0.0331 * z * z * z * z) {
+      return d * v3 * scale;
+    }
+    if (Math.log(u) < 0.5 * z * z + d * (1 - v3 + Math.log(v3))) {
+      return d * v3 * scale;
+    }
+  }
+}
+
+function samplePoisson(lambda) {
+  if (lambda <= 0) return 0;
+  if (lambda < 30) {
+    const L = Math.exp(-lambda);
+    let k = 0, p = 1.0;
+    do {
+      k++;
+      p *= Math.random();
+    } while (p > L);
+    return k - 1;
+  }
+  return Math.max(0, Math.round(lambda + Math.sqrt(lambda) * sampleStandardNormal()));
+}
+
 // --------------------------------------------------------------------------
-// TAB 5: CLV Tracking & Logging
+// TAB 5: CLV Tracking & Logging (with Local-First & Static Fallback)
 // --------------------------------------------------------------------------
 
 async function loadClvData() {
   try {
-    const res = await fetch('/api/clv/log').catch(() => fetch('/api/performance'));
-    if (!res.ok) return;
-    const data = await res.json();
-    clvLogData = data.rows || [];
-    renderClvDashboard(data.report || {});
+    const res = await fetch('/api/clv/log');
+    if (res.ok) {
+      const data = await res.json();
+      clvLogData = data.rows || [];
+      renderClvDashboard(data.report || {});
+      populateClosingPickSelect();
+      renderClvTable();
+      return;
+    }
+  } catch (_) {}
+
+  // Fallback for Vercel edge / static mode: load viewer/picks_log.jsonl + localStorage
+  try {
+    const textRes = await fetch('picks_log.jsonl');
+    let rows = [];
+    if (textRes.ok) {
+      const rawText = await textRes.text();
+      rows = rawText.split('\n')
+        .map(l => l.trim())
+        .filter(Boolean)
+        .map(l => {
+          try { return JSON.parse(l); } catch (_) { return null; }
+        })
+        .filter(Boolean);
+    }
+
+    // Merge with any client-stored local picks
+    try {
+      const localPicks = JSON.parse(localStorage.getItem('clv_local_picks') || '[]');
+      rows = [...rows, ...localPicks];
+    } catch (_) {}
+
+    clvLogData = rows;
+    const report = calculateClientClvReport(rows);
+    renderClvDashboard(report);
     populateClosingPickSelect();
     renderClvTable();
   } catch (err) {
-    console.warn('CLV log endpoint not available in static mode.');
+    console.warn('Could not load static CLV log:', err);
   }
+}
+
+function calculateClientClvReport(rows) {
+  const settled = rows.filter(r => r.clv !== undefined);
+  if (settled.length === 0) return { status: 'no closing lines recorded yet', n: 0 };
+
+  const clvVals = settled.map(r => r.clv);
+  const sum = clvVals.reduce((a, b) => a + b, 0);
+  const mean = sum / clvVals.length;
+
+  let se = 0;
+  if (clvVals.length > 1) {
+    const variance = clvVals.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0) / (clvVals.length - 1);
+    se = Math.sqrt(variance) / Math.sqrt(clvVals.length);
+  }
+
+  const beatClose = clvVals.filter(v => v > 0).length / clvVals.length;
+  return {
+    n: clvVals.length,
+    mean_clv: mean,
+    ci95: [mean - 1.96 * se, mean + 1.96 * se],
+    pct_beating_close: beatClose,
+    verdict: (clvVals.length > 1 && mean - 1.96 * se > 0)
+      ? 'positive CLV - edge is plausible'
+      : (clvVals.length < 5 ? 'insufficient sample size (n < 5)' : 'NOT distinguishable from zero - do not scale')
+  };
 }
 
 function renderClvDashboard(rep) {
@@ -947,7 +1264,6 @@ function renderClvDashboard(rep) {
       beatEl.className = `kpi-value ${rep.pct_beating_close >= 0.5 ? 'val-green' : 'val-amber'}`;
     }
 
-    const verdictTag = document.getElementById('clvVerdictTag');
     const verdictTitle = document.getElementById('clvVerdictTitle');
     const verdictText = document.getElementById('clvVerdictText');
     if (verdictTitle) verdictTitle.textContent = rep.verdict;
@@ -971,7 +1287,7 @@ function populateClosingPickSelect() {
 
   const openPicks = clvLogData.filter(r => r.closing_prob === undefined || r.closing_prob === null);
   if (openPicks.length === 0) {
-    sel.innerHTML = `<option value="">All logged picks have closing lines recorded (or no picks logged)</option>`;
+    sel.innerHTML = `<option value="">All logged picks have closing lines recorded</option>`;
     return;
   }
 
@@ -983,9 +1299,7 @@ function populateClosingPickSelect() {
     `).join('');
 }
 
-function onClosePickSelect() {
-  // Can pre-fill odds if needed
-}
+function onClosePickSelect() {}
 
 function updateClosingProbFromOdds() {
   const oddsInput = document.getElementById('closingOddsInput');
@@ -1012,6 +1326,8 @@ async function submitClosingLine() {
   }
 
   const pickKey = JSON.parse(unescape(sel.value));
+
+  // Try API first
   try {
     const res = await fetch('/api/clv/record-closing', {
       method: 'POST',
@@ -1027,11 +1343,23 @@ async function submitClosingLine() {
       showToast(`✓ Recorded closing probability for ${pickKey.player}!`);
       probInput.value = '';
       await loadClvData();
-    } else {
-      showToast('Error recording closing line.');
+      return;
     }
-  } catch (err) {
-    showToast('Failed to connect to backend API.');
+  } catch (_) {}
+
+  // Local storage fallback for Vercel
+  try {
+    const target = clvLogData.find(r => r.player === pickKey.player && r.market === pickKey.market && r.line === pickKey.line);
+    if (target) {
+      target.closing_prob = prob;
+      target.clv = target.side === 'over' ? (target.model_prob - prob) : ((1 - prob) - target.model_prob);
+      localStorage.setItem('clv_local_picks', JSON.stringify(clvLogData));
+      showToast(`✓ Recorded closing probability locally for ${pickKey.player}!`);
+      probInput.value = '';
+      await loadClvData();
+    }
+  } catch (e) {
+    showToast('Error recording closing line.');
   }
 }
 
@@ -1066,6 +1394,7 @@ async function logCurrentCalcPick() {
   const kelly = ev > 0 ? Math.min(W1_KELLY_CAP, (b * modelProb - (1 - modelProb)) / b) : 0;
 
   const payload = {
+    logged_at: new Date().toISOString(),
     player: selectedPlayer.player_display_name,
     market: market,
     side: side,
@@ -1089,11 +1418,19 @@ async function logCurrentCalcPick() {
     if (res.ok) {
       showToast(`✓ Logged ${selectedPlayer.player_display_name} ${side.toUpperCase()} ${line} to picks_log.jsonl`);
       await loadClvData();
-    } else {
-      showToast('Could not save pick to log.');
+      return;
     }
-  } catch (err) {
-    showToast('Failed to connect to /api/clv/log');
+  } catch (_) {}
+
+  // Local storage fallback for Vercel
+  try {
+    const local = JSON.parse(localStorage.getItem('clv_local_picks') || '[]');
+    local.push(payload);
+    localStorage.setItem('clv_local_picks', JSON.stringify(local));
+    showToast(`✓ Logged ${selectedPlayer.player_display_name} locally to CLV ledger`);
+    await loadClvData();
+  } catch (e) {
+    showToast('Failed to save pick.');
   }
 }
 
@@ -1167,13 +1504,16 @@ async function executeWeeklyRun() {
     btn.innerHTML = `<span class="dot"></span><span>Running week1.py...</span>`;
   }
 
-  term.textContent = `>>> Shelling out: python src/week1.py --season ${season} --week ${week}${allGames ? ' --all-games' : ''}${odds ? ' --odds' : ''}\n\n`;
+  term.textContent = `>>> Connecting to Pipeline Runner: python src/week1.py --season ${season} --week ${week}${allGames ? ' --all-games' : ''}${odds ? ' --odds' : ''}\n\n`;
 
   try {
     const url = `/api/run-week/stream?season=${season}&week=${week}&all_games=${allGames}&odds=${odds}`;
     const response = await fetch(url);
     if (!response.ok) {
-      term.textContent += `[ERROR] HTTP ${response.status} connecting to run stream.\n`;
+      term.textContent += `[INFO] Cloud Edge Mode: The live pipeline requires a persistent process and disk.\n`;
+      term.textContent += `To run on your local machine or Railway VPS:\n`;
+      term.textContent += `  python src/week1.py --season ${season} --week ${week}\n`;
+      term.textContent += `  cd viewer && vercel --prod\n`;
       return;
     }
 
@@ -1203,7 +1543,7 @@ async function executeWeeklyRun() {
     renderSlateTable();
     renderTdPanel();
   } catch (err) {
-    term.textContent += `\n[EXCEPTION] ${err.message}\n`;
+    term.textContent += `\n[NOTE] Running in edge static mode. For persistent disk fits, run locally or via Railway.\n`;
   } finally {
     if (btn) {
       btn.disabled = false;
@@ -1243,7 +1583,6 @@ function openPlayerModal(escapedPlayerId) {
     metaEl.innerHTML = `${p.team} ${homeStr} ${p.opponent_team} &bull; Spread: ${p.team_spread > 0 ? '+' : ''}${Number(p.team_spread).toFixed(1)} &bull; Total: ${Number(p.total_line).toFixed(1)} &bull; Implied: ${Number(p.implied_team_total).toFixed(1)} pts`;
   }
 
-  // Model & Stat breakdown HTML
   const qAlert = p.questionable ? `
     <div style="background:rgba(245,158,11,0.12); border:1px solid rgba(245,158,11,0.35); border-radius:8px; padding:12px; margin-bottom:16px; color:#f59e0b; font-size:12px; line-height:1.5;">
       <strong>⚠️ QUESTIONABLE INJURY STATUS:</strong> Player is listed questionable on the official injury report. The model cannot price in-game reinjury risk or sudden snap reductions — discount manually or reduce stake.
@@ -1355,7 +1694,7 @@ function closePlayerModal(e) {
 }
 
 // --------------------------------------------------------------------------
-// Mathematical & Probability Helpers
+// Mathematical & Probability Distribution Helpers
 // --------------------------------------------------------------------------
 
 function americanToDecimal(odds) {
