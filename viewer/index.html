@@ -67,7 +67,7 @@
 
     <div class="sticky-context-bar" id="stickyContextBar">
       <div class="shell sticky-context-inner">
-        <span class="sticky-pill-label" id="stickyFilterLabel">⚡ Active Opportunities · All Positions</span>
+        <span class="sticky-pill-label" id="stickyFilterLabel"><svg class="prop-icon icon-edge" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 1.5L2.5 9h5l-1 5.5L13.5 7h-5l1-5.5z"/></svg> Active Opportunities · All Positions</span>
         <div class="sticky-actions">
           <span class="sticky-count-pill" id="stickyCountPill">0 plays</span>
           <button type="button" class="sticky-top-btn" id="stickyTopBtn" title="Scroll to top" aria-label="Scroll to top">↑ Top</button>
@@ -178,11 +178,18 @@
         <table class="slate-table">
           <thead id="slateHead"></thead>
           <tbody id="slateRows">
-            <tr class="loading-row"><td colspan="8" style="text-align:center; padding: 24px; color: var(--muted); font-family: var(--mono);">Hydrating 390 receiver distributions and live market prices…</td></tr>
+            <tr class="skeleton-row"><td><div class="skeleton-block" style="width:140px; height:18px;"></div></td><td><div class="skeleton-block" style="width:65px; height:18px;"></div></td><td class="td-num"><div class="skeleton-block" style="width:85px; height:18px; margin-left:auto;"></div></td><td class="td-num"><div class="skeleton-block" style="width:125px; height:18px; margin-left:auto;"></div></td><td class="td-num"><div class="skeleton-block" style="width:80px; height:18px; margin-left:auto;"></div></td><td class="td-num"><div class="skeleton-block" style="width:55px; height:18px; margin-left:auto;"></div></td></tr>
+            <tr class="skeleton-row"><td><div class="skeleton-block" style="width:120px; height:18px;"></div></td><td><div class="skeleton-block" style="width:65px; height:18px;"></div></td><td class="td-num"><div class="skeleton-block" style="width:90px; height:18px; margin-left:auto;"></div></td><td class="td-num"><div class="skeleton-block" style="width:115px; height:18px; margin-left:auto;"></div></td><td class="td-num"><div class="skeleton-block" style="width:75px; height:18px; margin-left:auto;"></div></td><td class="td-num"><div class="skeleton-block" style="width:55px; height:18px; margin-left:auto;"></div></td></tr>
+            <tr class="skeleton-row"><td><div class="skeleton-block" style="width:150px; height:18px;"></div></td><td><div class="skeleton-block" style="width:65px; height:18px;"></div></td><td class="td-num"><div class="skeleton-block" style="width:80px; height:18px; margin-left:auto;"></div></td><td class="td-num"><div class="skeleton-block" style="width:130px; height:18px; margin-left:auto;"></div></td><td class="td-num"><div class="skeleton-block" style="width:85px; height:18px; margin-left:auto;"></div></td><td class="td-num"><div class="skeleton-block" style="width:55px; height:18px; margin-left:auto;"></div></td></tr>
+            <tr class="skeleton-row"><td><div class="skeleton-block" style="width:135px; height:18px;"></div></td><td><div class="skeleton-block" style="width:65px; height:18px;"></div></td><td class="td-num"><div class="skeleton-block" style="width:85px; height:18px; margin-left:auto;"></div></td><td class="td-num"><div class="skeleton-block" style="width:120px; height:18px; margin-left:auto;"></div></td><td class="td-num"><div class="skeleton-block" style="width:70px; height:18px; margin-left:auto;"></div></td><td class="td-num"><div class="skeleton-block" style="width:55px; height:18px; margin-left:auto;"></div></td></tr>
           </tbody>
         </table>
       </div>
-      <div class="card-grid" id="cardView" hidden></div>
+      <div class="card-grid" id="cardView" hidden>
+        <div class="skeleton-card"><div class="skeleton-block" style="width:55%; height:20px; margin-bottom:8px;"></div><div class="skeleton-block" style="width:40%; height:14px; margin-bottom:12px;"></div><div class="skeleton-block" style="width:100%; height:48px; border-radius:6px;"></div></div>
+        <div class="skeleton-card"><div class="skeleton-block" style="width:60%; height:20px; margin-bottom:8px;"></div><div class="skeleton-block" style="width:35%; height:14px; margin-bottom:12px;"></div><div class="skeleton-block" style="width:100%; height:48px; border-radius:6px;"></div></div>
+        <div class="skeleton-card"><div class="skeleton-block" style="width:50%; height:20px; margin-bottom:8px;"></div><div class="skeleton-block" style="width:45%; height:14px; margin-bottom:12px;"></div><div class="skeleton-block" style="width:100%; height:48px; border-radius:6px;"></div></div>
+      </div>
       <div class="empty-state" id="emptyState" hidden>No player records match these filters.</div>
     </section>
 
@@ -231,6 +238,22 @@
       <div id="clvReportContent"></div>
     </form>
   </dialog>
+
+  <nav class="mobile-bottom-nav" aria-label="Mobile Navigation">
+    <button type="button" class="bottom-nav-item active" id="bottomNavSlate" aria-label="View Player Slate">
+      <svg class="prop-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6.5L8 2l6 4.5V14a1 1 0 01-1 1H3a1 1 0 01-1-1V6.5z"/><path d="M6 15V9h4v6"/></svg>
+      <span>Slate</span>
+    </button>
+    <button type="button" class="bottom-nav-item" id="bottomNavClv" aria-label="Open CLV Report">
+      <svg class="prop-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 13.5h12M4 10l3-3 2.5 2.5L13.5 5"/></svg>
+      <span>CLV Report</span>
+    </button>
+    <button type="button" class="bottom-nav-item" id="bottomNavLedger" aria-label="Open Personal CLV Ledger">
+      <svg class="prop-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 3.5h11a1 1 0 011 1v8a1 1 0 01-1 1h-11a1 1 0 01-1-1v-8a1 1 0 011-1z"/><path d="M5.5 3.5v-1a1 1 0 011-1h4a1 1 0 011 1v1M8 7v4M6 9h4"/></svg>
+      <span>Ledger</span>
+      <span class="bottom-nav-badge" id="bottomNavBadge" hidden>0</span>
+    </button>
+  </nav>
 
   <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 </body>

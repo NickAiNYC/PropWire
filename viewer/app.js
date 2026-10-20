@@ -96,7 +96,11 @@
     starter: '<svg class="prop-icon icon-starter" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="8" r="2.5"/><path d="M8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2"/></svg>',
     depth: '<svg class="prop-icon icon-depth" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 5l6-3 6 3-6 3-6-3zM2 9.5l6 3 6-3M2 13l6 3 6-3"/></svg>',
     lock: '<svg class="prop-icon icon-lock" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="6.5" width="9" height="8" rx="1.5"/><path d="M5.5 6.5V4.5a2.5 2.5 0 015 0v2"/></svg>',
-    warn: '<svg class="prop-icon icon-warn" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2.5L1.5 13.5h13L8 2.5zM8 6.5v3.5M8 11.5v.5"/></svg>'
+    warn: '<svg class="prop-icon icon-warn" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2.5L1.5 13.5h13L8 2.5zM8 6.5v3.5M8 11.5v.5"/></svg>',
+    dome: '<svg class="prop-icon icon-dome" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 13h12M3 13a5 5 0 0110 0M8 3v2"/></svg>',
+    wind: '<svg class="prop-icon icon-wind" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 5.5h7a1.5 1.5 0 10-1.5-1.5M2 8.5h10.5a1.5 1.5 0 10-1.5-1.5M2 11.5h5a1.5 1.5 0 10-1.5-1.5"/></svg>',
+    check: '<svg class="prop-icon icon-check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8.5l3.5 3.5 6.5-7"/></svg>',
+    target: '<svg class="prop-icon icon-target" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="8" r="6"/><circle cx="8" cy="8" r="2"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2"/></svg>'
   };
 
   function keyDriverTag(row, beneficiary) {
@@ -104,9 +108,9 @@
       const rzShare = Math.min(0.48, Math.max(0.12, (num(row.f_tgt_share || row.target_share) * 1.5)));
       const ezTargets = (num(row.c_targets, 4.0) * 0.18).toFixed(1);
       if (rzShare >= 0.28) {
-        return `<span class="driver-badge surge" title="Red Zone Target Share">${SVG_ICONS.surge} 🚨 RZ Share (${pct(rzShare, 0)})</span>`;
+        return `<span class="driver-badge surge" title="Red Zone Target Share">${SVG_ICONS.target} RZ Share (${pct(rzShare, 0)})</span>`;
       }
-      return `<span class="driver-badge alpha" title="End Zone Targets">${SVG_ICONS.alpha} 🎯 EZ Targets (${ezTargets}/gm)</span>`;
+      return `<span class="driver-badge alpha" title="End Zone Targets">${SVG_ICONS.target} EZ Targets (${ezTargets}/gm)</span>`;
     }
     if (beneficiary) {
       return `<span class="driver-badge surge" title="Role surge catalyst: ${esc(beneficiary.catalyst_injury || 'Vacancy')}">${SVG_ICONS.surge} Surge (+${num(beneficiary.added_targets).toFixed(1)} tgt)</span>`;
@@ -132,6 +136,57 @@
       return `<span class="driver-badge starter" title="Starting share: ${pct(share)}">${SVG_ICONS.starter} Starter (${pct(share, 0)})</span>`;
     }
     return `<span class="driver-badge depth" title="Rotational depth target">${SVG_ICONS.depth} Depth</span>`;
+  }
+
+  function distributionRange(row) {
+    if (state.filters.market === 'anytime_td') {
+      const share = num(row.f_tgt_share || row.target_share, 0.15);
+      const prob = Math.min(0.65, Math.max(0.12, share * 1.8));
+      return { low: 0, high: 1, fair: prob, proj: prob, isTd: true, prob };
+    }
+    const isRec = state.filters.market === 'receptions';
+    if (isRec) {
+      const mu = num(row.mu_rec || row.proj_rec || 3.0);
+      const low = Math.max(0, Math.floor(mu * 0.55));
+      const high = Math.max(low + 1, Math.ceil(mu * 1.55 + 0.5));
+      const fair = fairValue(row);
+      const proj = projectionValue(row);
+      return { low, high, fair, proj, isRec: true };
+    } else {
+      const fair = num(row.fair_line_yards || row.proj_yards || 40.0);
+      const proj = num(row.proj_yards || 40.0);
+      const low = Math.max(0, Math.round(fair * 0.58));
+      const high = Math.round(proj * 1.48);
+      return { low, high, fair, proj, isRec: false };
+    }
+  }
+
+  function distSparklineSvg(dist, bookLine, w = 68, h = 18) {
+    if (dist.isTd) {
+      return `<svg class="dist-sparkline td-prob-bar" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" aria-hidden="true"><rect x="1" y="5" width="${w - 2}" height="8" rx="4" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.12)" stroke-width="1"/><rect x="1" y="5" width="${Math.max(4, Math.round((w - 2) * dist.prob))}" height="8" rx="4" fill="var(--accent)"/></svg>`;
+    }
+    const minX = Math.max(0, dist.low - (dist.fair - dist.low) * 0.6);
+    const maxX = Math.max(minX + 10, dist.high + (dist.high - dist.fair) * 0.6);
+    const span = maxX - minX;
+    const sigma = Math.max(2, (dist.high - dist.low) / 2.56);
+    const pts = [];
+    for (let i = 0; i <= 10; i++) {
+      const val = minX + (i / 10) * span;
+      const z = (val - dist.fair) / sigma;
+      const dens = Math.exp(-0.5 * z * z);
+      const px = (i / 10) * w;
+      const py = (h - 2) - dens * (h - 5);
+      pts.push({ x: px, y: py });
+    }
+    const fillPath = `M 0,${h} L ${pts.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' L ')} L ${w},${h} Z`;
+    const strokePath = `M ${pts.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' L ')}`;
+    const medX = Math.max(2, Math.min(w - 2, ((dist.fair - minX) / span) * w));
+    let bookMarker = '';
+    if (Number.isFinite(bookLine) && bookLine >= minX && bookLine <= maxX) {
+      const bX = Math.max(2, Math.min(w - 2, ((bookLine - minX) / span) * w));
+      bookMarker = `<line x1="${bX.toFixed(1)}" y1="1" x2="${bX.toFixed(1)}" y2="${h}" class="dist-book-line" stroke-dasharray="2,2"/>`;
+    }
+    return `<svg class="dist-sparkline" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" aria-hidden="true"><path d="${fillPath}" class="dist-fill"/><path d="${strokePath}" class="dist-stroke"/><line x1="${medX.toFixed(1)}" y1="1" x2="${medX.toFixed(1)}" y2="${h}" class="dist-median-line"/>${bookMarker}</svg>`;
   }
 
   function predictionInterval(row) {
@@ -223,6 +278,56 @@
     if (stickyTopBtn) {
       stickyTopBtn.addEventListener('click', () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+    }
+
+    const bottomNavSlate = $('#bottomNavSlate');
+    const bottomNavClv = $('#bottomNavClv');
+    const bottomNavLedger = $('#bottomNavLedger');
+
+    if (bottomNavSlate) {
+      bottomNavSlate.addEventListener('click', () => {
+        const detailDialog = $('#detailDialog');
+        if (detailDialog && detailDialog.open) detailDialog.close();
+        const portfolioDialog = $('#portfolioDialog');
+        if (portfolioDialog && portfolioDialog.open) portfolioDialog.close();
+        const clvReportModal = $('#clvReportModal');
+        if (clvReportModal && clvReportModal.open) clvReportModal.close();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        $$('.bottom-nav-item').forEach((b) => b.classList.remove('active'));
+        bottomNavSlate.classList.add('active');
+      });
+    }
+
+    if (bottomNavClv) {
+      bottomNavClv.addEventListener('click', () => {
+        openClvReport();
+        $$('.bottom-nav-item').forEach((b) => b.classList.remove('active'));
+        bottomNavClv.classList.add('active');
+      });
+    }
+
+    if (bottomNavLedger) {
+      bottomNavLedger.addEventListener('click', () => {
+        openPortfolioDialog();
+        $$('.bottom-nav-item').forEach((b) => b.classList.remove('active'));
+        bottomNavLedger.classList.add('active');
+      });
+    }
+
+    const portfolioDialogEl = $('#portfolioDialog');
+    if (portfolioDialogEl) {
+      portfolioDialogEl.addEventListener('close', () => {
+        $$('.bottom-nav-item').forEach((b) => b.classList.remove('active'));
+        if (bottomNavSlate) bottomNavSlate.classList.add('active');
+      });
+    }
+
+    const clvReportModalEl = $('#clvReportModal');
+    if (clvReportModalEl) {
+      clvReportModalEl.addEventListener('close', () => {
+        $$('.bottom-nav-item').forEach((b) => b.classList.remove('active'));
+        if (bottomNavSlate) bottomNavSlate.classList.add('active');
       });
     }
 
@@ -473,7 +578,9 @@
       return;
     }
     $('#injuryToggle').hidden = false;
-    $('#injurySummary').textContent = injuries.slice(0, 5).map((item) => `${item.player_name} — ${item.report_status}`).join(' · ');
+    const mobileText = `<span class="ticker-mobile-pill">${SVG_ICONS.warn} ${injuries.length} Active Availability Alerts</span>`;
+    const desktopText = `<span class="ticker-desktop-text">${injuries.slice(0, 5).map((item) => `${esc(item.player_name)} — ${esc(item.report_status)}`).join(' · ')}</span>`;
+    $('#injurySummary').innerHTML = `${mobileText}${desktopText}`;
     $('#injuryDetails').innerHTML = '';
     $('#injuryDetails').hidden = true;
     $('#injuryToggle').setAttribute('aria-expanded', 'false');
@@ -624,8 +731,8 @@
     if ($('#actionableCount')) $('#actionableCount').textContent = quotedCount;
     $('#resultCount').textContent = `${rows.length} of ${state.slate.length} player records`;
     $('#slateHead').innerHTML = tableHead(hasPrices);
-    $('#slateRows').innerHTML = rows.map((row) => tableRow(row, hasPrices)).join('');
-    $('#cardView').innerHTML = rows.map(propCard).join('');
+    $('#slateRows').innerHTML = rows.map((row, idx) => tableRow(row, hasPrices, idx)).join('');
+    $('#cardView').innerHTML = rows.map((row, idx) => propCard(row, idx)).join('');
     $('#emptyState').hidden = rows.length !== 0;
     $('#tableView').hidden = state.view !== 'table' || rows.length === 0;
     $('#cardView').hidden = state.view !== 'cards' || rows.length === 0;
@@ -638,11 +745,11 @@
     const marketName = state.filters.market === 'receptions' ? 'Receptions' : state.filters.market === 'anytime_td' ? 'Anytime TD' : 'Rec Yards';
     const posName = state.filters.position === 'ALL' ? 'All Pos' : state.filters.position;
     const modeName = state.filters.playMode === 'actionable' ? 'Active Opportunities' : 'All Projections';
-    const label = `⚡ ${modeName} · ${marketName} · ${posName}`;
+    const label = `${modeName} · ${marketName} · ${posName}`;
     const countText = `${rows.length} ${rows.length === 1 ? 'play' : 'plays'}`;
     const labelEl = $('#stickyFilterLabel');
     const countEl = $('#stickyCountPill');
-    if (labelEl) labelEl.textContent = label;
+    if (labelEl) labelEl.innerHTML = `${SVG_ICONS.edge} ${esc(label)}`;
     if (countEl) countEl.textContent = countText;
   }
 
@@ -665,16 +772,21 @@
       badge.textContent = count;
       badge.hidden = count === 0;
     }
+    const mobileBadge = $('#bottomNavBadge');
+    if (mobileBadge) {
+      mobileBadge.textContent = count;
+      mobileBadge.hidden = count === 0;
+    }
   }
 
   function venueBadge(row) {
     const game = state.games.find((item) => item.game_id === row.game_id);
     if (!game) return '';
     if (game.roof === 'dome') {
-      return `<span class="venue-badge dome" title="Indoor / Dome Stadium">🏟️ Dome</span>`;
+      return `<span class="venue-badge dome" title="Indoor / Dome Stadium">${SVG_ICONS.dome} Dome</span>`;
     }
     if (game.wind && game.wind >= 14) {
-      return `<span class="venue-badge wind" title="High Wind: ${game.wind} mph">💨 ${game.wind}mph</span>`;
+      return `<span class="venue-badge wind" title="High Wind: ${game.wind} mph">${SVG_ICONS.wind} ${game.wind}mph</span>`;
     }
     return '';
   }
@@ -689,14 +801,18 @@
     </tr>`;
   }
 
-  function tableRow(row, hasPrices) {
+  function tableRow(row, hasPrices, index = 0) {
     const evaluation = evaluateRow(row);
     const injury = injuryFor(row);
     const beneficiary = beneficiaryFor(row);
     const fair = fairValue(row);
     const projection = projectionValue(row);
+    const dist = distributionRange(row);
+    const isTopEdge = evaluation.edge >= 0.15;
     const logoImg = `<img class="team-logo-badge" src="${esc(teamLogoUrl(row.team))}" alt="${esc(row.team)}" width="24" height="24" loading="lazy" onerror="this.style.display='none'">`;
-    return `<tr data-testid="slate-row" data-player-id="${esc(row.player_id)}" tabindex="0" role="button" aria-label="Inspect ${esc(row.player_display_name)}">
+    const sparklineSvg = distSparklineSvg(dist, evaluation.state !== 'none' ? evaluation.line : null, 64, 18);
+
+    return `<tr class="slate-row ${isTopEdge ? 'top-edge-play' : ''}" data-testid="slate-row" data-player-id="${esc(row.player_id)}" style="--row-index:${Math.min(index, 14)};" tabindex="0" role="button" aria-label="Inspect ${esc(row.player_display_name)}">
       <td>
         <div class="player-cell">
           ${logoImg}
@@ -720,47 +836,68 @@
             <span class="label-dim">Proj</span> <strong class="num-bold">${projection.toFixed(1)}</strong>
             <span class="info-trigger" title="${esc(naturalInsight(row, evaluation))}" aria-label="Quant summary">ⓘ</span>
           </div>
-          <span class="ci-range">${esc(predictionInterval(row))}</span>
+          <div class="model-dist-row">
+            <span class="ci-range">${esc(predictionInterval(row))}</span>
+            ${sparklineSvg}
+          </div>
         </div>
       </td>
       ${hasPrices ? `<td class="td-num">${priceCheckCell(evaluation)}</td><td class="td-num">${gaugeCell(row, evaluation)}</td>` : ''}
     </tr>`;
   }
 
-  function propCard(row) {
+  function propCard(row, index = 0) {
     const evaluation = evaluateRow(row);
     const injury = injuryFor(row);
     const beneficiary = beneficiaryFor(row);
     const fair = fairValue(row);
     const projection = projectionValue(row);
-    const thirdLabel = evaluation.state === 'none' ? 'Projection' : 'Price check';
-    const thirdValue = evaluation.state === 'none' ? projection.toFixed(1) : evaluation.state === 'ingested' ? `${SVG_ICONS.lock} ${signedPct(evaluation.edge)}` : signedPct(evaluation.edge);
-    const thirdClass = evaluation.state === 'verified' ? evaluation.tone : evaluation.state === 'ingested' ? 'price-lock' : '';
-    const logoImg = `<img class="team-logo-badge" src="${esc(teamLogoUrl(row.team))}" alt="${esc(row.team)}" width="28" height="28" loading="lazy" onerror="this.style.display='none'">`;
+    const dist = distributionRange(row);
     const isLogged = (state.portfolio || []).some((b) => b.player_id === row.player_id && b.market === state.filters.market);
-    return `<article class="prop-card" data-testid="slate-card" data-player-id="${esc(row.player_id)}" tabindex="0" role="button">
-      <div class="card-top">
-        <div class="card-player-lead">
+    const isTopEdge = evaluation.edge >= 0.15;
+    const logoImg = `<img class="team-logo-badge" src="${esc(teamLogoUrl(row.team))}" alt="${esc(row.team)}" width="22" height="22" loading="lazy" onerror="this.style.display='none'">`;
+    const sparklineSvg = distSparklineSvg(dist, evaluation.state !== 'none' ? evaluation.line : null, 68, 20);
+
+    return `<article class="prop-card ${isTopEdge ? 'top-edge-play' : ''}" data-testid="slate-card" data-player-id="${esc(row.player_id)}" style="--row-index:${Math.min(index, 12)};" tabindex="0" role="button">
+      <!-- Row 1: The Identity & The Edge (Pushed far right) -->
+      <div class="card-row-lead">
+        <div class="card-name-group">
           ${logoImg}
-          <div>
-            <h2>${esc(row.player_display_name)}${injury ? `<span class="injury-tag">${esc(injury.report_status)}</span>` : ''}</h2>
-            <div class="card-driver-line">
-              <p>${esc(row.position)} · ${esc(row.team)} ${row.is_home ? 'vs' : '@'} ${esc(row.opponent_team)}${venueBadge(row)}</p>
-              ${keyDriverTag(row, beneficiary)}
-            </div>
-          </div>
+          <h2 class="card-player-name">${esc(row.player_display_name)}${injury ? `<span class="injury-tag" title="Injury Status">${esc(injury.report_status)}</span>` : ''}</h2>
         </div>
-        ${statePill(row, evaluation)}
+        <div class="card-edge-badge-wrap">
+          ${statePill(row, evaluation)}
+        </div>
       </div>
-      <div class="card-numbers">
-        <div class="card-number"><span>Book line</span><strong>${evaluation.state === 'none' ? 'No quote' : `${evaluation.line.toFixed(1)} ${oddsText(evaluation.odds)}`}</strong></div>
-        <div class="card-number"><span>Model Fair | Proj</span><strong>${fair.toFixed(1)} <span class="split-divider">|</span> ${projection.toFixed(1)}</strong><span class="card-ci">${esc(predictionInterval(row))}</span></div>
-        <div class="card-number ${thirdClass}"><span>${thirdLabel}</span><strong>${thirdValue}</strong>${evaluation.state === 'ingested' ? '<small class="cell-sub">Stake 0.00%</small>' : evaluation.state === 'verified' ? `<small class="cell-sub">Return ${signedPct(evaluation.ev)}</small>` : ''}</div>
+
+      <!-- Row 2: The Context (Position, Matchup, Venue, Role Drivers) -->
+      <div class="card-row-context">
+        <span class="card-context-matchup">${esc(row.position)} · ${esc(row.team)} ${row.is_home ? 'vs' : '@'} ${esc(row.opponent_team)}${venueBadge(row)}</span>
+        <div class="card-context-drivers">
+          ${keyDriverTag(row, beneficiary)}
+        </div>
       </div>
-      <div class="card-bottom">
-        <span class="card-insight">${esc(naturalInsight(row, evaluation))}</span>
-        <div style="display:flex; gap:8px; align-items:center; flex-shrink:0;">
-          <button class="log-bet-btn ${isLogged ? 'logged' : ''}" type="button" data-log-bet="${esc(row.player_id)}">${isLogged ? '✓ Logged' : '+ Log'}</button>
+
+      <!-- Row 3: The Action (High Contrast Background Block) -->
+      <div class="card-action-bar">
+        <div class="card-action-stat">
+          <span class="action-stat-label">BOOK</span>
+          <span class="action-stat-val">${evaluation.state === 'none' ? 'No quote' : `${evaluation.line.toFixed(1)} <small>(${oddsText(evaluation.odds)})</small>`}</span>
+        </div>
+        <div class="card-action-stat">
+          <span class="action-stat-label">MODEL</span>
+          <span class="action-stat-val">${projection.toFixed(1)} <small>(Fair ${fair.toFixed(1)})</small></span>
+        </div>
+        <div class="card-action-sparkline" title="${esc(predictionInterval(row))}">
+          ${sparklineSvg}
+        </div>
+      </div>
+
+      <!-- Row 4: Range & Apple HIG 44px Controls -->
+      <div class="card-row-footer">
+        <span class="card-ci-sub">${esc(predictionInterval(row))}</span>
+        <div class="card-actions-group">
+          <button class="log-bet-btn ${isLogged ? 'logged' : ''}" type="button" data-log-bet="${esc(row.player_id)}">${isLogged ? `${SVG_ICONS.check} Logged` : '+ Log'}</button>
           <button class="inspect-button" type="button" data-inspect="${esc(row.player_id)}">Inspect</button>
         </div>
       </div>
@@ -1446,7 +1583,7 @@
     const surgeSection = beneficiary ? `<div class="detail-section"><h3>${SVG_ICONS.surge} Role Surge Breakdown</h3><div class="warning-box" style="border-color: color-mix(in srgb, var(--accent) 55%, var(--line)); background: color-mix(in srgb, var(--accent) 12%, transparent); color: var(--text);"><strong>${esc(beneficiary.role_label || 'Role surge')}</strong><div style="margin-top:4px; font-size:12px; line-height:1.4;"><strong>Catalyst:</strong> ${esc(beneficiary.catalyst_injury || 'Injury Vacancy')}<br><strong>Redistribution:</strong> +${num(beneficiary.added_targets).toFixed(1)} targets, +${num(beneficiary.added_air_yards).toFixed(1)} air yards (${pct(beneficiary.absorption_share)} absorption)<br><span style="color:var(--muted)"><strong>Risk factor:</strong> ${esc(beneficiary.invalidation_risk || 'None')}</span></div></div></div>` : '';
 
     const isLogged = (state.portfolio || []).some((b) => b.player_id === row.player_id && b.market === state.filters.market);
-    const logButton = `<button class="log-bet-btn ${isLogged ? 'logged' : ''}" type="button" id="modalLogBetBtn" data-log-bet="${esc(row.player_id)}">${isLogged ? '✓ In Portfolio Ledger' : '+ Log Bet to CLV Ledger'}</button>`;
+    const logButton = `<button class="log-bet-btn ${isLogged ? 'logged' : ''}" type="button" id="modalLogBetBtn" data-log-bet="${esc(row.player_id)}">${isLogged ? `${SVG_ICONS.check} In Portfolio Ledger` : '+ Log Bet to CLV Ledger'}</button>`;
 
     const baseShare = num(row.f_tgt_share || row.target_share, 0.20);
     const currentShare = state.scenarioTargetShare ?? baseShare;
