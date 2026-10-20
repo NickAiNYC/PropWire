@@ -341,6 +341,45 @@
   state.lastPolledAt = Date.now() - 14000;
   state.nextPollSeconds = 46;
 
+  function triggerHaptic(style = 'light') {
+    try {
+      if (typeof navigator !== 'undefined' && navigator.vibrate) {
+        if (style === 'heavy') navigator.vibrate(24);
+        else if (style === 'medium') navigator.vibrate(14);
+        else navigator.vibrate(8);
+      }
+    } catch (_) {}
+  }
+
+  function initPullToRefresh() {
+    let startY = 0;
+    let isPulling = false;
+
+    window.addEventListener('touchstart', (e) => {
+      if (window.scrollY <= 0 && e.touches.length === 1) {
+        startY = e.touches[0].clientY;
+        isPulling = true;
+      } else {
+        isPulling = false;
+      }
+    }, { passive: true });
+
+    window.addEventListener('touchmove', (e) => {
+      if (!isPulling) return;
+      const currentY = e.touches[0].clientY;
+      const deltaY = currentY - startY;
+      if (deltaY > 80 && window.scrollY <= 0) {
+        isPulling = false;
+        triggerHaptic('medium');
+        triggerOddsPoll(false);
+      }
+    }, { passive: true });
+
+    window.addEventListener('touchend', () => {
+      isPulling = false;
+    }, { passive: true });
+  }
+
   function initPollingTimer() {
     updatePollingDisplay();
     if (pollIntervalId) clearInterval(pollIntervalId);
@@ -373,10 +412,15 @@
 
   function updatePollingDisplay() {
     const timerText = $('#pollingTimerText');
-    if (!timerText) return;
     const elapsedSec = Math.max(0, Math.floor((Date.now() - state.lastPolledAt) / 1000));
     const ageText = elapsedSec < 60 ? `${elapsedSec}s ago` : `${Math.floor(elapsedSec / 60)}m ago`;
-    timerText.textContent = `Updated ${ageText} · Next ${state.nextPollSeconds}s`;
+    if (timerText) {
+      timerText.textContent = `Updated ${ageText} · Next ${state.nextPollSeconds}s`;
+    }
+    const mobileStatusText = $('#mobileStatusText');
+    if (mobileStatusText) {
+      mobileStatusText.textContent = `Live · ${state.nextPollSeconds}s`;
+    }
   }
 
   async function triggerOddsPoll(isAuto = false) {
@@ -412,6 +456,7 @@
     bindControls();
     initInstall();
     initPollingTimer();
+    initPullToRefresh();
     await loadSlate(state.slateKey);
     if ('serviceWorker' in navigator && location.protocol !== 'file:') {
       navigator.serviceWorker.register('sw.js').catch(() => {});
@@ -419,16 +464,16 @@
   }
 
   function bindControls() {
-    $('#slateSelector').addEventListener('change', (event) => loadSlate(event.target.value));
+    if ($('#slateSelector')) $('#slateSelector').addEventListener('change', (event) => loadSlate(event.target.value));
     const availBtn = $('#availabilityToggle');
     if (availBtn) availBtn.addEventListener('click', toggleInjuries);
     const injuryToggle = $('#injuryToggle');
     if (injuryToggle) injuryToggle.addEventListener('click', toggleInjuries);
     const exportBtn = $('#exportBtn');
     if (exportBtn) exportBtn.addEventListener('click', handleSlateExportCsv);
-    $('#searchInput').addEventListener('input', syncFilters);
-    $('#marketFilter').addEventListener('change', syncFilters);
-    $('#positionFilter').addEventListener('change', syncFilters);
+    if ($('#searchInput')) $('#searchInput').addEventListener('input', syncFilters);
+    if ($('#marketFilter')) $('#marketFilter').addEventListener('change', syncFilters);
+    if ($('#positionFilter')) $('#positionFilter').addEventListener('change', syncFilters);
     if ($('#teamFilter')) $('#teamFilter').addEventListener('input', syncFilters);
     if ($('#clearFilters')) $('#clearFilters').addEventListener('click', clearFilters);
 
@@ -438,29 +483,194 @@
     const capMinus = $('#capMinus');
     const capPlus = $('#capPlus');
 
+    function updateGate(delta) {
+      triggerHaptic('light');
+      state.picks.gate_edge = Math.max(0.01, Math.min(0.30, +( (Number(state.picks.gate_edge) || 0.10) + delta ).toFixed(3)));
+      renderHeader();
+      renderBoard();
+    }
+
+    function updateCap(delta) {
+      triggerHaptic('light');
+      state.picks.kelly_cap = Math.max(0.005, Math.min(0.10, +( (Number(state.picks.kelly_cap) || 0.03) + delta ).toFixed(3)));
+      renderHeader();
+      renderBoard();
+    }
+
     if (gateMinus && gatePlus) {
-      gateMinus.addEventListener('click', () => {
-        state.picks.gate_edge = Math.max(0.01, +( (Number(state.picks.gate_edge) || 0.10) - 0.01 ).toFixed(3));
-        renderHeader();
-        renderBoard();
+      gateMinus.addEventListener('click', () => updateGate(-0.01));
+      gatePlus.addEventListener('click', () => updateGate(0.01));
+    }
+
+    if (capMinus && capPlus) {
+      capMinus.addEventListener('click', () => updateCap(-0.005));
+      capPlus.addEventListener('click', () => updateCap(0.005));
+    }
+
+    // Mobile Settings & Risk Sheet Controls
+    const mobileMenuBtn = $('#mobileMenuBtn');
+    const mobileStatusPill = $('#mobileStatusPill');
+    const settingsDialog = $('#settingsDialog');
+
+    if (mobileMenuBtn && settingsDialog) {
+      mobileMenuBtn.addEventListener('click', () => {
+        triggerHaptic('light');
+        settingsDialog.showModal();
       });
-      gatePlus.addEventListener('click', () => {
-        state.picks.gate_edge = Math.min(0.30, +( (Number(state.picks.gate_edge) || 0.10) + 0.01 ).toFixed(3));
-        renderHeader();
+    }
+
+    if (mobileStatusPill && settingsDialog) {
+      mobileStatusPill.addEventListener('click', () => {
+        triggerHaptic('light');
+        settingsDialog.showModal();
+      });
+    }
+
+    const modalGateMinus = $('#modalGateMinus');
+    const modalGatePlus = $('#modalGatePlus');
+    const modalCapMinus = $('#modalCapMinus');
+    const modalCapPlus = $('#modalCapPlus');
+
+    if (modalGateMinus && modalGatePlus) {
+      modalGateMinus.addEventListener('click', () => updateGate(-0.01));
+      modalGatePlus.addEventListener('click', () => updateGate(0.01));
+    }
+
+    if (modalCapMinus && modalCapPlus) {
+      modalCapMinus.addEventListener('click', () => updateCap(-0.005));
+      modalCapPlus.addEventListener('click', () => updateCap(0.005));
+    }
+
+    const settingsBankrollInput = $('#settingsBankrollInput');
+    if (settingsBankrollInput) {
+      settingsBankrollInput.value = state.bankroll || 5000;
+      settingsBankrollInput.addEventListener('input', (e) => {
+        const val = Math.max(100, Number(e.target.value) || 5000);
+        state.bankroll = val;
+        try { localStorage.setItem('propwire-bankroll', String(val)); } catch (_) {}
+        const detailBankroll = $('#kellyBankrollInput');
+        if (detailBankroll) detailBankroll.value = val;
+      });
+    }
+
+    const mobileSlateSelector = $('#mobileSlateSelector');
+    if (mobileSlateSelector) {
+      mobileSlateSelector.value = state.slateKey;
+      mobileSlateSelector.addEventListener('change', (e) => {
+        triggerHaptic('medium');
+        loadSlate(e.target.value);
+        if (settingsDialog && settingsDialog.open) settingsDialog.close();
+      });
+    }
+
+    const settingsOpenAuditBtn = $('#settingsOpenAuditBtn');
+    if (settingsOpenAuditBtn) {
+      settingsOpenAuditBtn.addEventListener('click', () => {
+        triggerHaptic('light');
+        if (settingsDialog && settingsDialog.open) settingsDialog.close();
+        openClvReport();
+      });
+    }
+
+    const settingsExportBtn = $('#settingsExportBtn');
+    if (settingsExportBtn) {
+      settingsExportBtn.addEventListener('click', () => {
+        triggerHaptic('light');
+        handleSlateExportCsv();
+      });
+    }
+
+    // Slim Dismissible Availability Banner
+    const slimInjuryBanner = $('#slimInjuryBanner');
+    const slimInjuryPill = $('#slimInjuryPill');
+    const dismissInjuryBannerBtn = $('#dismissInjuryBannerBtn');
+
+    if (slimInjuryPill) {
+      slimInjuryPill.addEventListener('click', () => {
+        triggerHaptic('light');
+        toggleInjuries();
+      });
+    }
+
+    if (dismissInjuryBannerBtn && slimInjuryBanner) {
+      dismissInjuryBannerBtn.addEventListener('click', () => {
+        triggerHaptic('light');
+        slimInjuryBanner.hidden = true;
+        slimInjuryBanner.dataset.dismissed = 'true';
+      });
+    }
+
+    // Single Horizontal Scrolling Chip Row (Mode, Market, Pos, More)
+    const mobileFilterStrip = $('#mobileFilterStrip');
+    if (mobileFilterStrip) {
+      mobileFilterStrip.addEventListener('click', (e) => {
+        const modeBtn = e.target.closest('[data-mode]');
+        if (modeBtn) {
+          triggerHaptic('light');
+          setPlayMode(modeBtn.dataset.mode);
+          return;
+        }
+        const marketBtn = e.target.closest('[data-market]');
+        if (marketBtn) {
+          triggerHaptic('light');
+          state.filters.market = marketBtn.dataset.market;
+          if ($('#marketFilter')) $('#marketFilter').value = marketBtn.dataset.market;
+          syncFilterChipsUI();
+          renderBoard();
+          return;
+        }
+        const posBtn = e.target.closest('[data-pos]');
+        if (posBtn) {
+          triggerHaptic('light');
+          const pos = posBtn.dataset.pos === 'all' ? 'ALL' : posBtn.dataset.pos;
+          state.filters.position = pos;
+          if ($('#positionFilter')) $('#positionFilter').value = pos;
+          syncFilterChipsUI();
+          renderBoard();
+          return;
+        }
+      });
+    }
+
+    // More Filters Bottom Sheet (Signal Archetypes & Matchups)
+    const moreFiltersBtn = $('#moreFiltersBtn');
+    const moreFiltersDialog = $('#moreFiltersDialog');
+    if (moreFiltersBtn && moreFiltersDialog) {
+      moreFiltersBtn.addEventListener('click', () => {
+        triggerHaptic('light');
+        moreFiltersDialog.showModal();
+      });
+    }
+
+    const signalSheetChips = $('#signalSheetChips');
+    if (signalSheetChips) {
+      signalSheetChips.addEventListener('click', (e) => {
+        const btn = e.target.closest('.signal-chip-btn');
+        if (!btn) return;
+        triggerHaptic('light');
+        $$('.signal-chip-btn').forEach((b) => b.classList.remove('active'));
+        btn.classList.add('active');
+        setIntent(btn.dataset.intent);
+      });
+    }
+
+    const resetMoreFiltersBtn = $('#resetMoreFiltersBtn');
+    if (resetMoreFiltersBtn) {
+      resetMoreFiltersBtn.addEventListener('click', () => {
+        triggerHaptic('light');
+        setIntent('all');
+        $$('.signal-chip-btn').forEach((b) => b.classList.toggle('active', b.dataset.intent === 'all'));
+        state.filters.gameId = '';
+        renderGameChips();
         renderBoard();
       });
     }
 
-    if (capMinus && capPlus) {
-      capMinus.addEventListener('click', () => {
-        state.picks.kelly_cap = Math.max(0.005, +( (Number(state.picks.kelly_cap) || 0.03) - 0.005 ).toFixed(3));
-        renderHeader();
-        renderBoard();
-      });
-      capPlus.addEventListener('click', () => {
-        state.picks.kelly_cap = Math.min(0.10, +( (Number(state.picks.kelly_cap) || 0.03) + 0.005 ).toFixed(3));
-        renderHeader();
-        renderBoard();
+    const applyMoreFiltersBtn = $('#applyMoreFiltersBtn');
+    if (applyMoreFiltersBtn && moreFiltersDialog) {
+      applyMoreFiltersBtn.addEventListener('click', () => {
+        triggerHaptic('light');
+        moreFiltersDialog.close();
       });
     }
 
@@ -514,18 +724,21 @@
       });
     }
 
+    // Native Mobile 4-Tab Bottom Navigation
     const bottomNavSlate = $('#bottomNavSlate');
     const bottomNavWatchlist = $('#bottomNavWatchlist');
     const bottomNavLedger = $('#bottomNavLedger');
+    const bottomNavAudit = $('#bottomNavAudit');
 
     if (bottomNavSlate) {
       bottomNavSlate.addEventListener('click', () => {
+        triggerHaptic('light');
         const detailDialog = $('#detailDialog');
         if (detailDialog && detailDialog.open) detailDialog.close();
         const portfolioDialog = $('#portfolioDialog');
         if (portfolioDialog && portfolioDialog.open) portfolioDialog.close();
-        const clvReportModal = $('#clvReportModal');
-        if (clvReportModal && clvReportModal.open) clvReportModal.close();
+        const clvDialog = $('#clvDialog');
+        if (clvDialog && clvDialog.open) clvDialog.close();
 
         state.bottomTab = 'slate';
         $$('.bottom-nav-item').forEach((b) => b.classList.remove('active'));
@@ -537,12 +750,13 @@
 
     if (bottomNavWatchlist) {
       bottomNavWatchlist.addEventListener('click', () => {
+        triggerHaptic('light');
         const detailDialog = $('#detailDialog');
         if (detailDialog && detailDialog.open) detailDialog.close();
         const portfolioDialog = $('#portfolioDialog');
         if (portfolioDialog && portfolioDialog.open) portfolioDialog.close();
-        const clvReportModal = $('#clvReportModal');
-        if (clvReportModal && clvReportModal.open) clvReportModal.close();
+        const clvDialog = $('#clvDialog');
+        if (clvDialog && clvDialog.open) clvDialog.close();
 
         if (state.bottomTab === 'slate') {
           state.slateScrollY = window.scrollY;
@@ -557,9 +771,19 @@
 
     if (bottomNavLedger) {
       bottomNavLedger.addEventListener('click', () => {
+        triggerHaptic('light');
         openPortfolioDialog();
         $$('.bottom-nav-item').forEach((b) => b.classList.remove('active'));
         bottomNavLedger.classList.add('active');
+      });
+    }
+
+    if (bottomNavAudit) {
+      bottomNavAudit.addEventListener('click', () => {
+        triggerHaptic('light');
+        openClvReport();
+        $$('.bottom-nav-item').forEach((b) => b.classList.remove('active'));
+        bottomNavAudit.classList.add('active');
       });
     }
 
@@ -575,9 +799,9 @@
       });
     }
 
-    const clvReportModalEl = $('#clvReportModal');
-    if (clvReportModalEl) {
-      clvReportModalEl.addEventListener('close', () => {
+    const clvDialogEl = $('#clvDialog');
+    if (clvDialogEl) {
+      clvDialogEl.addEventListener('close', () => {
         $$('.bottom-nav-item').forEach((b) => b.classList.remove('active'));
         if (state.bottomTab === 'watchlist' && bottomNavWatchlist) {
           bottomNavWatchlist.classList.add('active');
@@ -767,11 +991,11 @@
     if (!config) return;
     state.slateKey = slateKey;
     state.filters = { search: '', market: state.filters.market, position: 'ALL', team: '', gameId: '', playMode: 'actionable', intent: 'all' };
-    $('#searchInput').value = '';
-    $('#positionFilter').value = 'ALL';
+    if ($('#searchInput')) $('#searchInput').value = '';
+    if ($('#positionFilter')) $('#positionFilter').value = 'ALL';
     if ($('#teamFilter')) $('#teamFilter').value = '';
-    $('#slateSelector').value = slateKey;
-    $('#slateRows').innerHTML = '<tr><td colspan="8">Loading player records…</td></tr>';
+    if ($('#slateSelector')) $('#slateSelector').value = slateKey;
+    if ($('#slateRows')) $('#slateRows').innerHTML = '<tr><td colspan="8">Loading player records…</td></tr>';
 
     const [slate, games, picks, injuries, odds, clvReport] = await Promise.all([
       fetchJson(config.slate, []),
@@ -838,6 +1062,8 @@
     if ($('#capChip')) $('#capChip').textContent = activePolicy ? `Kelly cap ${pct(activePolicy.cap, 1)}` : 'Kelly cap missing';
     if ($('#gateVal')) $('#gateVal').textContent = activePolicy ? pct(activePolicy.gate, 0) : '—';
     if ($('#capVal')) $('#capVal').textContent = activePolicy ? pct(activePolicy.cap, 1) : '—';
+    if ($('#modalGateVal')) $('#modalGateVal').textContent = activePolicy ? pct(activePolicy.gate, 0) : '—';
+    if ($('#modalCapVal')) $('#modalCapVal').textContent = activePolicy ? pct(activePolicy.cap, 1) : '—';
     if ($('#slateState')) $('#slateState').textContent = config.state;
     if ($('#tickerLine')) {
       $('#tickerLine').innerHTML = [
@@ -869,15 +1095,21 @@
     const chevronEl = $('#injuryAlertChevron');
     const toggleBtn = $('#availabilityToggle');
     const details = $('#availabilityDetails') || $('#injuryDetails');
+    const slimBanner = $('#slimInjuryBanner');
+    const slimText = $('#slimInjuryText');
 
     if (!injuries.length) {
       if (countEl) countEl.textContent = '0 Alerts';
       if (previewEl) previewEl.textContent = 'No active injury alerts';
       if (details) details.hidden = true;
+      if (slimBanner) slimBanner.hidden = true;
       return;
     }
 
     if (countEl) countEl.textContent = `${injuries.length} Injury Alerts`;
+    if (slimText) slimText.textContent = `${injuries.length} Active Availability Alerts`;
+    if (slimBanner && !slimBanner.dataset.dismissed) slimBanner.hidden = false;
+
     if (previewEl) {
       const topItems = injuries.slice(0, 3).map(i => {
         const lastName = (i.player_name || '').split(' ').pop();
@@ -1059,6 +1291,33 @@
         renderBoard();
       };
     }
+
+    const matchupSheet = $('#matchupSheetChips');
+    if (matchupSheet) {
+      const allActive = !state.filters.gameId;
+      const allBtn = `<button class="game-chip ${allActive ? 'active' : ''}" type="button" data-game-id=""><span>All Matchups</span></button>`;
+      const gameBtns = allGames.map((game) => {
+        const isActive = state.filters.gameId === game.game_id;
+        const awayCrest = teamCrest(game.away_team, 'sm');
+        const homeCrest = teamCrest(game.home_team, 'sm');
+        return `<button class="game-chip ${isActive ? 'active' : ''}" type="button" data-game-id="${esc(game.game_id)}">
+          <span class="game-chip-matchup">
+            ${awayCrest}
+            <span class="chip-team-code">${esc(game.away_team)}</span>
+            <span class="chip-at">@</span>
+            ${homeCrest}
+            <span class="chip-team-code">${esc(game.home_team)}</span>
+          </span>
+        </button>`;
+      }).join('');
+      matchupSheet.innerHTML = allBtn + gameBtns;
+      $$('#matchupSheetChips .game-chip').forEach((button) => button.addEventListener('click', () => {
+        triggerHaptic('light');
+        state.filters.gameId = button.dataset.gameId;
+        renderGameChips();
+        renderBoard();
+      }));
+    }
   }
 
   function primeLabel(game) {
@@ -1073,11 +1332,11 @@
 
   function syncFilters() {
     state.filters.search = $('#searchInput') ? $('#searchInput').value.trim().toLowerCase() : '';
-    state.filters.market = $('#marketFilter') ? $('#marketFilter').value : 'receiving_yards';
-    state.filters.position = $('#positionFilter') ? $('#positionFilter').value : 'ALL';
-    state.filters.team = $('#teamFilter') ? $('#teamFilter').value.trim().toUpperCase() : '';
-    if ($('#gameFilter') && $('#gameFilter').value !== 'ALL') {
-      state.filters.gameId = $('#gameFilter').value;
+    if ($('#marketFilter')) state.filters.market = $('#marketFilter').value;
+    if ($('#positionFilter')) state.filters.position = $('#positionFilter').value;
+    if ($('#teamFilter')) state.filters.team = $('#teamFilter').value.trim().toUpperCase();
+    if ($('#gameFilter')) {
+      state.filters.gameId = $('#gameFilter').value === 'ALL' ? '' : $('#gameFilter').value;
     }
     renderBoard();
   }
@@ -1166,6 +1425,13 @@
     const quotedCount = state.slate.filter((row) => Boolean(findQuote(row, state.filters.market))).length;
     if ($('#allCount')) $('#allCount').textContent = totalCount;
     if ($('#actionableCount')) $('#actionableCount').textContent = quotedCount;
+
+    const chipActive = $('#mobileChipActive');
+    const chipAll = $('#mobileChipAll');
+    if (chipActive) chipActive.textContent = `⚡ Active ${quotedCount}`;
+    if (chipAll) chipAll.textContent = `All ${totalCount}`;
+    syncFilterChipsUI();
+
     if (state.bottomTab === 'watchlist') {
       if ($('#resultCount')) $('#resultCount').textContent = `${rows.length} watched ${rows.length === 1 ? 'player' : 'players'} of ${state.slate.length} modeled`;
       $('#emptyState').textContent = 'Your Watchlist is empty. Tap the star icon on any player to track their line movements and edge shifts.';
@@ -1190,6 +1456,19 @@
 
     updateStickyContext(rows);
     updateActiveFilterBadge();
+  }
+
+  function syncFilterChipsUI() {
+    $$('#mobileFilterStrip [data-mode]').forEach((b) => {
+      b.classList.toggle('active', b.dataset.mode === state.filters.playMode);
+    });
+    $$('#mobileFilterStrip [data-market]').forEach((b) => {
+      b.classList.toggle('active', b.dataset.market === state.filters.market);
+    });
+    $$('#mobileFilterStrip [data-pos]').forEach((b) => {
+      const val = b.dataset.pos === 'all' ? 'ALL' : b.dataset.pos;
+      b.classList.toggle('active', val === state.filters.position);
+    });
   }
 
   function updateStickyContext(rows) {
@@ -1346,80 +1625,70 @@
     const isLogged = (state.portfolio || []).some((b) => b.player_id === row.player_id && b.market === state.filters.market);
     const isWatched = (state.watchlist || []).includes(row.player_id);
     const isTopEdge = evaluation.edge >= 0.15;
-    const activePolicy = policy();
-    const isVerify = Boolean(evaluation.dataCheck || evaluation.status === 'Verify' || row.status === 'Verify' || (evaluation.quote && evaluation.quote.status === 'Verify'));
-    const isSubGate = !isVerify && activePolicy && evaluation.edge < activePolicy.gate;
-    const stakeDisplay = isVerify ? 'VERIFY' : isSubGate ? 'Sub-Gate' : evaluation.stake > 0 ? `${(evaluation.stake * 100).toFixed(1)}%` : '0.0%';
+    const beneficiary = beneficiaryFor(row);
 
-    const game = state.games.find((item) => item.game_id === row.game_id);
-    const isDome = row.is_dome || game?.roof === 'dome';
-    const wind = game?.wind ?? row.wind_speed ?? row.wind;
-    const env = isDome ? 'Dome' : (wind && wind >= 12 ? `${wind}mph` : 'Open');
-    const role = roleLabel(row);
+    // Pick one single high-signal badge
+    let signalBadge = '';
+    if (beneficiary) {
+      signalBadge = '<span class="mq-signal-badge surge">SURGE</span>';
+    } else if (num(row.f_tgt_share || row.target_share) >= 0.28) {
+      signalBadge = `<span class="mq-signal-badge alpha">ALPHA ${pct(row.f_tgt_share || row.target_share, 0)}</span>`;
+    } else if (evaluation.edge >= 0.10) {
+      signalBadge = '<span class="mq-signal-badge edge">EDGE 10%+</span>';
+    } else if (injury) {
+      const stat = injury.report_status === 'LIMITED' ? 'LIM' : injury.report_status === 'QUESTIONABLE' ? 'Q' : injury.report_status;
+      signalBadge = `<span class="mq-signal-badge injury">${esc(stat)}</span>`;
+    } else if (num(row.c_targets) >= 7) {
+      signalBadge = '<span class="mq-signal-badge volume">HIGH FLOOR</span>';
+    } else {
+      signalBadge = `<span class="mq-signal-badge neutral">${esc(row.position)}</span>`;
+    }
+
     const crest = teamCrest(row.team, 'md');
+    const fairVal = dist.fair;
 
     return `
       <article class="mobile-quant-row ${isTopEdge ? 'top-edge-play' : ''}" data-testid="slate-card" data-player-id="${esc(row.player_id)}" style="--row-index:${Math.min(index, 12)};" tabindex="0" role="button" aria-label="Inspect ${esc(row.player_display_name)}">
-        <!-- Line 1: Team Crest + Player + Matchup | Right: Verified Edge Pill -->
+        <!-- Line 1: Star, Crest, Name, Team/Pos | Right: Single Signal Badge -->
         <div class="mq-line-1">
           <div class="mq-id-group">
             <button class="star-btn ${isWatched ? 'starred' : ''}" type="button" data-watch-player="${esc(row.player_id)}" title="${isWatched ? 'Remove from Watchlist' : 'Add to Watchlist'}" aria-label="Watch">${isWatched ? '★' : '☆'}</button>
             ${crest}
             <div class="mq-name-block">
-              <div class="mq-name-row">
-                <span class="mq-player-name">${esc(row.player_display_name)}</span>
-                <span class="mq-pos-badge">${esc(row.position)}</span>
-                ${injury ? `<span class="injury-tag">${esc(injury.report_status)}</span>` : ''}
-              </div>
-              <div class="mq-sub-row">
-                <span>${esc(row.team)} ${row.is_home ? 'vs' : '@'} ${esc(row.opponent_team)}</span>
-                <span class="mq-sep">·</span>
-                <span class="mq-env-badge">${esc(env)}</span>
-                <span class="mq-sep">·</span>
-                <span class="mq-role-badge">${esc(role)}</span>
-              </div>
+              <span class="mq-player-name">${esc(row.player_display_name)}</span>
+              <span class="mq-team-matchup">${esc(row.position)} · ${esc(row.team)} ${row.is_home ? 'vs' : '@'} ${esc(row.opponent_team)}</span>
             </div>
           </div>
-          <div class="mq-edge-wrap">
-            ${evaluation.closed
-              ? '<span class="mq-edge-closed">CLOSED</span>'
-              : evaluation.dataCheck
-                ? `<span class="mq-edge-verify">VERIFY ${signedPct(evaluation.edge)}</span>`
-                : evaluation.edge > 0
-                  ? `<span class="mq-edge-val">${evaluation.side === 'OVER' ? 'O' : 'U'} +${(evaluation.edge * 100).toFixed(1)}%</span>`
-                  : '<span class="mq-edge-none">Model Only</span>'}
+          <div class="mq-signal-wrap">
+            ${signalBadge}
           </div>
         </div>
 
-        <!-- Line 2: 3-Column Quant Strip (Book Offer | Model Fair/Proj | Staking/Log) -->
+        <!-- Line 2: Prominent Line & Fair | Right: Prominent Edge + 44px Quick Log Button -->
         <div class="mq-line-2">
-          <!-- Col 1: Book Quote -->
-          <div class="mq-col-book">
-            <span class="mq-strip-lbl">BOOK</span>
+          <div class="mq-line-quote-block">
             ${evaluation.state === 'none'
-              ? '<span class="mq-no-quote">No quote</span>'
-              : `<span class="mq-book-val font-bold"><span class="${evaluation.side === 'OVER' ? 'mq-side-over' : 'mq-side-under'}">${evaluation.side === 'OVER' ? 'O' : 'U'}</span> ${evaluation.line.toFixed(1)} <small class="mq-book-odds">(${oddsText(evaluation.odds)})</small></span>`}
+              ? '<span class="mq-no-quote">No quote · Proj ' + dist.proj.toFixed(1) + '</span>'
+              : `<div class="mq-quote-main">
+                  <span class="mq-side-pill ${evaluation.side === 'OVER' ? 'side-o' : 'side-u'}">${evaluation.side === 'OVER' ? 'OVER' : 'UNDER'}</span>
+                  <span class="mq-line-val">${evaluation.line.toFixed(1)}</span>
+                  <span class="mq-odds-val">${oddsText(evaluation.odds)}</span>
+                  <span class="mq-fair-val">vs fair ${fairVal.toFixed(1)}</span>
+                </div>`}
           </div>
 
-          <!-- Col 2: Model Fair & 80% Range -->
-          <div class="mq-col-model">
-            <div class="mq-model-nums">
-              <span>FAIR <b class="text-white">${dist.fair.toFixed(1)}</b></span>
-              <span class="split-divider">|</span>
-              <span>PROJ <b class="text-accent">${dist.proj.toFixed(1)}</b></span>
-            </div>
-            <div class="mq-model-sub">
-              80% CI: ${dist.low}–${dist.high}${state.filters.market === 'receptions' ? 'rec' : 'y'}
-            </div>
-          </div>
+          <div class="mq-edge-and-log">
+            ${evaluation.closed
+              ? '<span class="mq-edge-prominent closed">CLOSED</span>'
+              : evaluation.dataCheck
+                ? `<span class="mq-edge-prominent verify">${signedPct(evaluation.edge)}</span>`
+                : evaluation.edge > 0
+                  ? `<span class="mq-edge-prominent positive">+${(evaluation.edge * 100).toFixed(1)}%</span>`
+                  : evaluation.edge < 0
+                    ? `<span class="mq-edge-prominent negative">${(evaluation.edge * 100).toFixed(1)}%</span>`
+                    : '<span class="mq-edge-prominent none">—</span>'}
 
-          <!-- Col 3: Kelly Stake & Quick-Log Trigger -->
-          <div class="mq-col-stake">
-            <div class="mq-stake-info">
-              <span class="mq-strip-lbl">KELLY</span>
-              <span class="mq-stake-val ${isVerify ? 'text-verify' : isSubGate ? 'text-subgate' : evaluation.stake > 0 ? 'text-accent' : 'text-dim'}" style="${isVerify ? 'color: #f59e0b !important; font-weight: 700;' : ''}">${stakeDisplay}</span>
-            </div>
-            <button class="mq-log-btn ${isLogged ? 'logged' : ''}" type="button" data-log-bet="${esc(row.player_id)}" aria-label="${isLogged ? 'In Ledger' : 'Log Bet'}" title="Log to Ledger">
+            <button class="mq-log-btn ${isLogged ? 'logged' : ''}" type="button" data-log-bet="${esc(row.player_id)}" aria-label="${isLogged ? 'In Ledger' : 'Add to Ledger'}" title="Log to Ledger">
               ${isLogged ? '✓' : '+'}
             </button>
           </div>
@@ -2580,6 +2849,21 @@
         toast(`Logged ${entry.side} ${entry.line.toFixed(1)} ${entry.player_name} ($${customStake.toFixed(0)}) to CLV ledger`);
       });
     }
+
+    const modalStickyLogBtn = $('#modalStickyLogBtn');
+    if (modalStickyLogBtn) {
+      modalStickyLogBtn.addEventListener('click', () => {
+        triggerHaptic('medium');
+        if (ticketConfirmBtn) {
+          ticketConfirmBtn.click();
+        } else {
+          logBet(row.player_id);
+        }
+        const isNowLogged = (state.portfolio || []).some((b) => b.player_id === row.player_id && b.market === state.filters.market);
+        modalStickyLogBtn.classList.toggle('logged', isNowLogged);
+        modalStickyLogBtn.textContent = isNowLogged ? '✓ In Ledger' : '+ Add to Ledger';
+      });
+    }
   }
 
   function updateScenarioCalculations(row, evaluation, share) {
@@ -2635,6 +2919,7 @@
 
   function detailMarkup(row, evaluation, injury, beneficiary, fair, projection) {
     const isWatched = (state.watchlist || []).includes(row.player_id);
+    const isLogged = (state.portfolio || []).some((b) => b.player_id === row.player_id && b.market === state.filters.market);
     const watchButton = `<button class="star-modal-btn ${isWatched ? 'starred' : ''}" type="button" id="modalWatchlistBtn" data-watch-player="${esc(row.player_id)}">${isWatched ? '★ On Watchlist' : '☆ Add to Watchlist'}</button>`;
 
     const baseShare = num(row.f_tgt_share || row.target_share, 0.20);
@@ -2764,6 +3049,25 @@
       : 'Receiving-yards fair line is the calibrated continuous median, where P(over) is exactly 50.0%.';
 
     return `
+      <!-- Prominent Verdict Strip at Top: Line, Edge, Kelly Stake -->
+      <div class="detail-verdict-card">
+        <div class="verdict-col">
+          <span class="verdict-label">Book Line</span>
+          <strong class="verdict-val font-mono">${evaluation.side === 'UNDER' ? 'UNDER' : 'OVER'} ${evaluation.line ? evaluation.line.toFixed(1) : fair.toFixed(1)} <small class="text-dim">(${oddsText(evaluation.odds)})</small></strong>
+          <span class="verdict-sub">Fair ${fair.toFixed(1)}</span>
+        </div>
+        <div class="verdict-col">
+          <span class="verdict-label">Edge</span>
+          <strong class="verdict-val font-mono ${evaluation.edge > 0 ? 'text-accent' : 'text-danger'}">${signedPct(evaluation.edge)}</strong>
+          <span class="verdict-sub">${signedPct(evaluation.ev)} EV</span>
+        </div>
+        <div class="verdict-col">
+          <span class="verdict-label">Kelly Stake</span>
+          <strong class="verdict-val font-mono">$${wagerDollars}</strong>
+          <span class="verdict-sub">${wagerPct}% cap</span>
+        </div>
+      </div>
+
       <div class="detail-hero">
         ${priceStat}
         <div class="detail-stat detail-stat-fair">
@@ -2842,6 +3146,17 @@
             <div class="spec-note">${scopeNote}</div>
           </div>
         </div>
+      </div>
+
+      <!-- Sticky Add To Ledger Bar pinned to bottom of bottom sheet -->
+      <div class="detail-sticky-bar">
+        <div class="sticky-bar-info">
+          <span class="sticky-verdict">${evaluation.side || 'OVER'} ${evaluation.line ? evaluation.line.toFixed(1) : fair.toFixed(1)} <small class="text-dim">(${oddsText(evaluation.odds)})</small></span>
+          <span class="sticky-edge ${evaluation.edge > 0 ? 'text-accent' : 'text-dim'}">${signedPct(evaluation.edge)} edge · $${wagerDollars} (${wagerPct}%)</span>
+        </div>
+        <button type="button" class="detail-sticky-log-btn ${isLogged ? 'logged' : ''}" id="modalStickyLogBtn">
+          ${isLogged ? '✓ In Ledger' : '+ Add to Ledger'}
+        </button>
       </div>
     `;
   }
