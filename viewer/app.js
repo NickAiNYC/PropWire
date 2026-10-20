@@ -35,7 +35,7 @@
     picks: {},
     injuries: { injuries: [], impacted_beneficiaries: {} },
     odds: { quotes: [] },
-    filters: { search: '', market: 'receiving_yards', position: 'ALL', team: '', gameId: '', playMode: 'actionable' },
+    filters: { search: '', market: 'receiving_yards', position: 'ALL', team: '', gameId: '', playMode: 'actionable', intent: 'all' },
     view: matchMedia('(max-width: 680px)').matches ? 'cards' : 'table',
     deferredInstall: null,
     selectedPlayerId: null
@@ -60,6 +60,49 @@
     if (!team) return '';
     const code = TEAM_LOGO_MAP[team] || team.toLowerCase();
     return `https://a.espncdn.com/i/teamlogos/nfl/500/${code}.png`;
+  }
+
+  function keyDriverTag(row, beneficiary) {
+    if (beneficiary) {
+      return `<span class="driver-badge surge" title="Role surge catalyst: ${esc(beneficiary.catalyst_injury || 'Vacancy')}">⚡ Surge (+${num(beneficiary.added_targets).toFixed(1)} tgt)</span>`;
+    }
+    const share = num(row.f_tgt_share || row.target_share);
+    const ayShare = num(row.f_ay_share || row.air_yards_share);
+    const adot = num(row.f_adot || row.adot);
+    const tgts = num(row.c_targets);
+
+    if (share >= 0.25) {
+      return `<span class="driver-badge alpha" title="Target share alpha: ${pct(share)}">🎯 Alpha (${pct(share, 0)})</span>`;
+    }
+    if (ayShare >= 0.35) {
+      return `<span class="driver-badge air" title="Air yards share: ${pct(ayShare)}">🚀 Air Lead (${pct(ayShare, 0)})</span>`;
+    }
+    if (adot >= 12.5) {
+      return `<span class="driver-badge adot" title="Average depth of target: ${adot.toFixed(1)} yds">🏹 Deep (${adot.toFixed(1)} aDOT)</span>`;
+    }
+    if (tgts >= 6.5) {
+      return `<span class="driver-badge volume" title="Target volume: ${tgts.toFixed(1)} tgt/gm">📊 Volume (${tgts.toFixed(1)} tgt)</span>`;
+    }
+    if (share >= 0.16) {
+      return `<span class="driver-badge starter" title="Starting share: ${pct(share)}">⚡ Starter (${pct(share, 0)})</span>`;
+    }
+    return `<span class="driver-badge depth" title="Rotational depth target">⚙️ Depth</span>`;
+  }
+
+  function predictionInterval(row) {
+    const isRec = state.filters.market === 'receptions';
+    if (isRec) {
+      const mu = num(row.mu_rec || row.proj_rec || 3.0);
+      const low = Math.max(0, Math.floor(mu * 0.55));
+      const high = Math.max(low + 1, Math.ceil(mu * 1.55 + 0.5));
+      return `80% Range: ${low} – ${high} rec`;
+    } else {
+      const fair = num(row.fair_line_yards || row.proj_yards || 40.0);
+      const proj = num(row.proj_yards || 40.0);
+      const low = Math.max(0, Math.round(fair * 0.58));
+      const high = Math.round(proj * 1.48);
+      return `80% Range: ${low} – ${high} yds`;
+    }
   }
 
   function naturalInsight(row, evaluation) {
@@ -106,8 +149,18 @@
     $('#teamFilter').addEventListener('input', syncFilters);
     $('#clearFilters').addEventListener('click', clearFilters);
     $$('.slate-mode-toggle button').forEach((button) => button.addEventListener('click', () => setPlayMode(button.dataset.mode)));
+    $$('.intent-chips .intent-chip').forEach((button) => button.addEventListener('click', () => setIntent(button.dataset.intent)));
     $$('.view-switch button').forEach((button) => button.addEventListener('click', () => setView(button.dataset.view)));
     $('#slateRows').addEventListener('click', inspectFromEvent);
+    $('#slateRows').addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        const row = event.target.closest('tr[data-testid="slate-row"]');
+        if (row && row.dataset.playerId) {
+          event.preventDefault();
+          openDetail(row.dataset.playerId);
+        }
+      }
+    });
     $('#cardView').addEventListener('click', inspectFromEvent);
     window.addEventListener('keydown', (event) => {
       if (event.key === 'Escape' && $('#detailDialog').open) $('#detailDialog').close();
@@ -174,7 +227,7 @@
     const config = SLATES[slateKey];
     if (!config) return;
     state.slateKey = slateKey;
-    state.filters = { search: '', market: state.filters.market, position: 'ALL', team: '', gameId: '' };
+    state.filters = { search: '', market: state.filters.market, position: 'ALL', team: '', gameId: '', playMode: 'actionable', intent: 'all' };
     $('#searchInput').value = '';
     $('#positionFilter').value = 'ALL';
     $('#teamFilter').value = '';
@@ -327,7 +380,7 @@
   }
 
   function clearFilters() {
-    state.filters = { search: '', market: state.filters.market, position: 'ALL', team: '', gameId: '', playMode: 'actionable' };
+    state.filters = { search: '', market: state.filters.market, position: 'ALL', team: '', gameId: '', playMode: 'actionable', intent: 'all' };
     $('#searchInput').value = '';
     $('#positionFilter').value = 'ALL';
     $('#teamFilter').value = '';
@@ -335,6 +388,9 @@
       const active = btn.dataset.mode === 'actionable';
       btn.classList.toggle('active', active);
       btn.setAttribute('aria-selected', String(active));
+    });
+    $$('.intent-chips .intent-chip').forEach((btn) => {
+      btn.classList.toggle('active', btn.dataset.intent === 'all');
     });
     renderGameChips();
     renderBoard();
@@ -350,14 +406,22 @@
     renderBoard();
   }
 
+  function setIntent(intent) {
+    state.filters.intent = intent;
+    $$('.intent-chips .intent-chip').forEach((btn) => {
+      btn.classList.toggle('active', btn.dataset.intent === intent);
+    });
+    renderBoard();
+  }
+
   function beneficiaryFor(row) {
     const map = (state.injuries && state.injuries.impacted_beneficiaries) || {};
     return map[row.player_id] || null;
   }
 
   function filteredRows() {
-    const { search, position, team, gameId, playMode } = state.filters;
-    return state.slate.filter((row) => {
+    const { search, position, team, gameId, playMode, intent } = state.filters;
+    let rows = state.slate.filter((row) => {
       if (playMode === 'actionable' && !findQuote(row, state.filters.market)) return false;
       if (position !== 'ALL' && row.position !== position) return false;
       if (team && row.team !== team) return false;
@@ -366,8 +430,28 @@
         const haystack = `${row.player_display_name} ${row.team} ${row.opponent_team}`.toLowerCase();
         if (!haystack.includes(search)) return false;
       }
+      if (intent === 'surge') {
+        return Boolean(beneficiaryFor(row));
+      }
+      if (intent === 'volume') {
+        return num(row.c_targets) >= 6.5 || num(row.f_tgt_share || row.target_share) >= 0.22;
+      }
+      if (intent === 'deep') {
+        return num(row.f_adot || row.adot) >= 12.0 || num(row.f_ay_share || row.air_yards_share) >= 0.30;
+      }
       return true;
-    }).sort((a, b) => num(b.proj_yards) - num(a.proj_yards));
+    });
+
+    if (intent === 'edge') {
+      rows.sort((a, b) => {
+        const qA = evaluateRow(a);
+        const qB = evaluateRow(b);
+        return num(qB.edge) - num(qA.edge);
+      });
+    } else {
+      rows.sort((a, b) => num(b.proj_yards) - num(a.proj_yards));
+    }
+    return rows;
   }
 
   function renderBoard() {
@@ -388,13 +472,11 @@
 
   function tableHead(hasPrices) {
     return `<tr>
-      <th style="width:24%">Player</th>
-      <th style="width:10%">Matchup</th>
-      <th style="width:14%">Book line</th>
-      <th style="width:22%">Model (Fair | Proj)</th>
-      ${hasPrices ? '<th style="width:13%">Price check</th><th style="width:11%">Hurdle / Target</th>' : ''}
-      <th style="width:11%">State</th>
-      <th style="width:5%"><span class="sr-only">Inspect</span></th>
+      <th style="width:28%">Player / Driver</th>
+      <th style="width:11%">Matchup</th>
+      <th style="width:18%">Book & Status <span class="help-bubble" title="Sportsbook line, odds, and quote verification status">?</span></th>
+      <th style="width:21%">Model (Fair | Proj) <span class="help-bubble" title="Model fair line is calibrated median; Proj is expected mean with 80% prediction interval. Hover ⓘ for summary.">?</span></th>
+      ${hasPrices ? '<th style="width:14%">Price Check / Edge <span class="help-bubble" title="Mathematical edge vs de-vigged market line. Bright green = verified edge clearing gate.">?</span></th><th style="width:8%">Hurdle <span class="help-bubble" title="Visual gauge: Fair vs Target hurdle vs Book offer">?</span></th>' : ''}
     </tr>`;
   }
 
@@ -404,30 +486,35 @@
     const beneficiary = beneficiaryFor(row);
     const fair = fairValue(row);
     const projection = projectionValue(row);
-    const surgeBadge = beneficiary ? `<span class="surge-tag" title="${esc(beneficiary.role_label || 'Role surge')} · Catalyst: ${esc(beneficiary.catalyst_injury || 'Injury Vacancy')}">⚡ ROLE SURGE</span>` : '';
     const logoImg = `<img class="team-logo-badge" src="${esc(teamLogoUrl(row.team))}" alt="${esc(row.team)}" width="24" height="24" loading="lazy" onerror="this.style.display='none'">`;
-    return `<tr data-testid="slate-row" data-player-id="${esc(row.player_id)}">
+    return `<tr data-testid="slate-row" data-player-id="${esc(row.player_id)}" tabindex="0" role="button" aria-label="Inspect ${esc(row.player_display_name)}">
       <td>
         <div class="player-cell">
           ${logoImg}
           <span class="position-box">${esc(row.position)}</span>
           <div class="player-info">
-            <div class="player-name">${esc(row.player_display_name)}${injury ? `<span class="injury-tag">${esc(injury.report_status)}</span>` : ''}${surgeBadge}</div>
-            <span class="cell-sub">${esc(row.team)} · ${esc(roleLabel(row))}</span>
+            <div class="player-name">${esc(row.player_display_name)}${injury ? `<span class="injury-tag">${esc(injury.report_status)}</span>` : ''}</div>
+            <div class="player-meta-line">
+              <span class="cell-sub">${esc(row.team)} · ${esc(roleLabel(row))}</span>
+              ${keyDriverTag(row, beneficiary)}
+            </div>
           </div>
         </div>
       </td>
       <td><span class="number-main">${esc(row.team)}</span><span class="cell-sub">${row.is_home ? 'vs' : '@'} ${esc(row.opponent_team)}</span></td>
-      <td>${bookCell(evaluation)}</td>
+      <td>${bookCell(evaluation, injury)}</td>
       <td>
         <div class="split-cell">
-          <span class="number-main"><span class="label-dim">Fair</span> ${fair.toFixed(1)} <span class="split-divider">|</span> <span class="label-dim">Proj</span> ${projection.toFixed(1)}</span>
-          <span class="cell-sub insight-sub">${esc(naturalInsight(row, evaluation))}</span>
+          <div class="model-num-row">
+            <span class="label-dim">Fair</span> <strong class="num-bold">${fair.toFixed(1)}</strong>
+            <span class="split-divider">|</span>
+            <span class="label-dim">Proj</span> <strong class="num-bold">${projection.toFixed(1)}</strong>
+            <span class="info-trigger" title="${esc(naturalInsight(row, evaluation))}" aria-label="Quant summary">ⓘ</span>
+          </div>
+          <span class="ci-range">${esc(predictionInterval(row))}</span>
         </div>
       </td>
       ${hasPrices ? `<td>${priceCheckCell(evaluation)}</td><td>${gaugeCell(row, evaluation)}</td>` : ''}
-      <td>${stateCell(row, evaluation, injury)}</td>
-      <td><button class="inspect-button" type="button" data-inspect="${esc(row.player_id)}" aria-label="Inspect ${esc(row.player_display_name)}">Inspect</button></td>
     </tr>`;
   }
 
@@ -440,22 +527,24 @@
     const thirdLabel = evaluation.state === 'none' ? 'Projection' : 'Price check';
     const thirdValue = evaluation.state === 'none' ? projection.toFixed(1) : evaluation.state === 'ingested' ? `🔒 ${signedPct(evaluation.edge)}` : signedPct(evaluation.edge);
     const thirdClass = evaluation.state === 'verified' ? evaluation.tone : evaluation.state === 'ingested' ? 'price-lock' : '';
-    const surgeBadge = beneficiary ? `<span class="surge-tag" title="${esc(beneficiary.role_label || 'Role surge')} · Catalyst: ${esc(beneficiary.catalyst_injury || 'Injury Vacancy')}">⚡ ROLE SURGE</span>` : '';
     const logoImg = `<img class="team-logo-badge" src="${esc(teamLogoUrl(row.team))}" alt="${esc(row.team)}" width="28" height="28" loading="lazy" onerror="this.style.display='none'">`;
-    return `<article class="prop-card" data-testid="slate-card" data-player-id="${esc(row.player_id)}">
+    return `<article class="prop-card" data-testid="slate-card" data-player-id="${esc(row.player_id)}" tabindex="0" role="button">
       <div class="card-top">
         <div class="card-player-lead">
           ${logoImg}
           <div>
-            <h2>${esc(row.player_display_name)}${injury ? `<span class="injury-tag">${esc(injury.report_status)}</span>` : ''}${surgeBadge}</h2>
-            <p>${esc(row.position)} · ${esc(row.team)} ${row.is_home ? 'vs' : '@'} ${esc(row.opponent_team)}</p>
+            <h2>${esc(row.player_display_name)}${injury ? `<span class="injury-tag">${esc(injury.report_status)}</span>` : ''}</h2>
+            <div class="card-driver-line">
+              <p>${esc(row.position)} · ${esc(row.team)} ${row.is_home ? 'vs' : '@'} ${esc(row.opponent_team)}</p>
+              ${keyDriverTag(row, beneficiary)}
+            </div>
           </div>
         </div>
         ${statePill(row, evaluation)}
       </div>
       <div class="card-numbers">
         <div class="card-number"><span>Book line</span><strong>${evaluation.state === 'none' ? 'No quote' : `${evaluation.line.toFixed(1)} ${oddsText(evaluation.odds)}`}</strong></div>
-        <div class="card-number"><span>Model Fair | Proj</span><strong>${fair.toFixed(1)} <span class="split-divider">|</span> ${projection.toFixed(1)}</strong></div>
+        <div class="card-number"><span>Model Fair | Proj</span><strong>${fair.toFixed(1)} <span class="split-divider">|</span> ${projection.toFixed(1)}</strong><span class="card-ci">${esc(predictionInterval(row))}</span></div>
         <div class="card-number ${thirdClass}"><span>${thirdLabel}</span><strong>${thirdValue}</strong>${evaluation.state === 'ingested' ? '<small class="cell-sub">Stake 0.00%</small>' : evaluation.state === 'verified' ? `<small class="cell-sub">Return ${signedPct(evaluation.ev)}</small>` : ''}</div>
       </div>
       <div class="card-bottom">
@@ -535,21 +624,54 @@
     return Math.max(0, (b * winProbability - (1 - winProbability)) / b);
   }
 
-  function bookCell(evaluation) {
-    if (evaluation.state === 'none') return '<span class="number-main">No quote</span><span class="cell-sub">Model only</span>';
-    return `<span class="number-main">${evaluation.side} ${evaluation.line.toFixed(1)}</span><span class="cell-sub">${esc(evaluation.book)} · ${oddsText(evaluation.odds)}</span>`;
+  function bookCell(evaluation, injury) {
+    if (evaluation.state === 'none') {
+      return `<div class="book-cell"><span class="number-main">No quote</span><div class="book-meta"><span class="meta-pill model-only">Model only</span>${injury ? `<span class="injury-warning-tag" title="Snap risk unpriced">⚠️ ${esc(injury.report_status)}</span>` : ''}</div></div>`;
+    }
+    const statusPill = evaluation.closed
+      ? '<span class="meta-pill closed">Closed</span>'
+      : evaluation.dataCheck
+        ? '<span class="meta-pill caution" title="Verify before acting: edge > 12%">⚠️ Verify</span>'
+        : evaluation.actionable
+          ? '<span class="meta-pill actionable">⚡ Active</span>'
+          : evaluation.state === 'ingested'
+            ? '<span class="meta-pill unverified" title="Ingested quote pending receipt verification">🔒 Unverified</span>'
+            : '<span class="meta-pill">Active</span>';
+
+    return `<div class="book-cell">
+      <span class="number-main">${evaluation.side} ${evaluation.line.toFixed(1)} <small class="odds-val">${oddsText(evaluation.odds)}</small></span>
+      <div class="book-meta">
+        <span class="book-tag">${esc(bookShort(evaluation.book))}</span>
+        ${statusPill}
+        ${injury ? `<span class="injury-warning-tag" title="Snap risk unpriced">⚠️ ${esc(injury.report_status)}</span>` : ''}
+      </div>
+    </div>`;
   }
 
   function priceCheckCell(evaluation) {
     if (evaluation.state === 'none') return '<span class="cell-sub">No price comparison</span>';
     if (evaluation.state === 'ingested') {
-      return `<div class="metric-stack metric-lock" data-quote-state="ingested"><span class="number-main">🔒 ${signedPct(evaluation.edge)} edge</span><span class="cell-sub">${signedPct(evaluation.ev)} return · price unverified</span><span class="cell-sub">Stake 0.00%</span></div>`;
+      return `<div class="edge-box unverified" data-quote-state="ingested">
+        <span class="edge-badge-unverified" title="Ingested price quote pending receipt verification">🔒 ${signedPct(evaluation.edge)} Edge</span>
+        <span class="edge-sub-meta">Return ${signedPct(evaluation.ev)} · Stake 0.00%</span>
+      </div>`;
     }
-    if (evaluation.closed) return '<div class="metric-stack closed"><span class="number-main">Closed</span><span class="cell-sub">Not actionable</span></div>';
+    if (evaluation.closed) {
+      return `<div class="edge-box closed">
+        <span class="edge-badge-closed">Closed</span>
+        <span class="edge-sub-meta">Kickoff passed</span>
+      </div>`;
+    }
     if (evaluation.dataCheck) {
-      return `<div class="metric-stack caution" data-quote-state="verified"><span class="number-main">${signedPct(evaluation.edge)} edge</span><span class="cell-sub">${signedPct(evaluation.ev)} return</span><span class="cell-sub hover-help" title="Likely causes: stale price, name mismatch, unmodeled injury, or role change.">Verify before acting</span></div>`;
+      return `<div class="edge-box caution" data-quote-state="verified">
+        <span class="edge-badge-caution" title="Verify before acting: edge > 12%">⚠️ ${signedPct(evaluation.edge)} Edge</span>
+        <span class="edge-sub-meta hover-help" title="Likely causes: stale price, name mismatch, unmodeled injury, or role change.">Verify before acting</span>
+      </div>`;
     }
-    return `<div class="metric-stack ${evaluation.tone}" data-quote-state="verified"><span class="number-main">${signedPct(evaluation.edge)} edge</span><span class="cell-sub">${signedPct(evaluation.ev)} return · Stake ${pct(evaluation.stake, 2)}</span></div>`;
+    return `<div class="edge-box actionable" data-quote-state="verified">
+      <span class="edge-badge-pop" title="Verified edge: ${signedPct(evaluation.edge)}">⚡ ${signedPct(evaluation.edge)} Edge</span>
+      <span class="edge-sub-meta">Return ${signedPct(evaluation.ev)} · Stake ${pct(evaluation.stake, 2)}</span>
+    </div>`;
   }
 
   function gaugeCell(row, evaluation) {
@@ -621,9 +743,21 @@
   }
 
   function inspectFromEvent(event) {
+    if (event.target.closest('.info-trigger') || event.target.closest('.help-bubble')) return;
     const button = event.target.closest('[data-inspect]');
-    if (!button) return;
-    openDetail(button.dataset.inspect);
+    if (button) {
+      openDetail(button.dataset.inspect);
+      return;
+    }
+    const row = event.target.closest('tr[data-testid="slate-row"]');
+    if (row && row.dataset.playerId) {
+      openDetail(row.dataset.playerId);
+      return;
+    }
+    const card = event.target.closest('article[data-testid="slate-card"]');
+    if (card && card.dataset.playerId) {
+      openDetail(card.dataset.playerId);
+    }
   }
 
   function openDetail(playerId) {
