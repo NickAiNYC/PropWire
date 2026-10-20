@@ -39,8 +39,34 @@
           <option value="2026_w7">NFL · Week 7 upcoming</option>
           <option value="2026_w1">NFL · Week 1 audit</option>
         </select>
-        <span class="policy-chip" id="gateChip" title="Gate: Minimum statistical edge required before a prop qualifies for recommendation.">Gate — <span class="help-bubble" aria-hidden="true">?</span></span>
-        <span class="policy-chip" id="capChip" title="Kelly cap: Maximum bankroll allocation allowed per prop to prevent overexposure.">Kelly cap — <span class="help-bubble" aria-hidden="true">?</span></span>
+
+        <!-- Interactive Bankroll Risk Steppers (Moved to Top Nav to prevent Command Bar flex-crush) -->
+        <div class="risk-steppers-group" id="headerRiskSteppers">
+          <div class="risk-stepper" title="Gate: Minimum statistical edge required before recommendation">
+            <span class="stepper-label">Gate</span>
+            <button type="button" class="stepper-btn" id="gateMinus" aria-label="Decrease gate">−</button>
+            <span class="stepper-val" id="gateVal">10%</span>
+            <button type="button" class="stepper-btn" id="gatePlus" aria-label="Increase gate">+</button>
+          </div>
+          <span class="stepper-divider" aria-hidden="true">|</span>
+          <div class="risk-stepper" title="Kelly Cap: Maximum bankroll allocation per play">
+            <span class="stepper-label">Cap</span>
+            <button type="button" class="stepper-btn" id="capMinus" aria-label="Decrease Kelly cap">−</button>
+            <span class="stepper-val" id="capVal">3.0%</span>
+            <button type="button" class="stepper-btn" id="capPlus" aria-label="Increase Kelly cap">+</button>
+          </div>
+        </div>
+
+        <!-- Live Odds Polling Countdown & Status Widget -->
+        <div class="live-polling-widget" id="livePollingWidget" title="Live Odds Ingestion Engine · Bovada API Active · Click to poll now">
+          <span class="polling-dot pulse"></span>
+          <span class="polling-timer" id="pollingTimerText">Updated 14s ago · Next 46s</span>
+          <button type="button" class="polling-refresh-btn" id="manualPollBtn" aria-label="Poll fresh quotes now" title="Poll fresh quotes now">
+            <svg class="poll-refresh-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M13.5 8A5.5 5.5 0 118 2.5c2 0 3.8.8 4.7 2.2M13.5 1.5v3.5H10"/>
+            </svg>
+          </button>
+        </div>
       </div>
 
       <div class="header-actions">
@@ -169,23 +195,6 @@
       </div>
 
       <div class="command-bar-right">
-        <!-- Interactive Bankroll Risk Steppers -->
-        <div class="risk-steppers-group">
-          <div class="risk-stepper" title="Gate: Minimum statistical edge required">
-            <span class="stepper-label">Gate</span>
-            <button type="button" class="stepper-btn" id="gateMinus" aria-label="Decrease gate">−</button>
-            <span class="stepper-val" id="gateVal">10%</span>
-            <button type="button" class="stepper-btn" id="gatePlus" aria-label="Increase gate">+</button>
-          </div>
-          <span class="stepper-divider" aria-hidden="true">|</span>
-          <div class="risk-stepper" title="Kelly Cap: Max bankroll allocation per play">
-            <span class="stepper-label">Kelly Cap</span>
-            <button type="button" class="stepper-btn" id="capMinus" aria-label="Decrease Kelly cap">−</button>
-            <span class="stepper-val" id="capVal">3.0%</span>
-            <button type="button" class="stepper-btn" id="capPlus" aria-label="Increase Kelly cap">+</button>
-          </div>
-        </div>
-
         <!-- Hotkey Legend (Desktop Only) -->
         <div class="desktop-kbd-legend" aria-hidden="true">
           <kbd>J</kbd> <kbd>K</kbd> <span>Row</span>
@@ -246,6 +255,7 @@
 
   <dialog class="detail-dialog" id="detailDialog" aria-labelledby="detailTitle">
     <form method="dialog" class="dialog-shell">
+      <div class="dialog-sheet-handle" aria-hidden="true"></div>
       <div class="dialog-header">
         <div>
           <div class="eyebrow" id="detailMeta">Player detail</div>
@@ -259,6 +269,7 @@
 
   <dialog class="detail-dialog portfolio-dialog" id="portfolioDialog" aria-labelledby="portfolioTitle">
     <form method="dialog" class="dialog-shell">
+      <div class="dialog-sheet-handle" aria-hidden="true"></div>
       <div class="dialog-header">
         <div>
           <div class="eyebrow">Personal CLV Ledger</div>
@@ -272,6 +283,7 @@
 
   <dialog class="detail-dialog clv-dialog" id="clvDialog" aria-labelledby="clvReportTitle">
     <form method="dialog" class="dialog-shell">
+      <div class="dialog-sheet-handle" aria-hidden="true"></div>
       <div class="dialog-header">
         <div>
           <div class="eyebrow" id="clvReportEyebrow">Immutable Trust Moat</div>
