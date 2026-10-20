@@ -617,8 +617,9 @@ function renderOpportunitySummary() {
     if (sub) sub.textContent = 'Displaying calibrated fair lines without market quotes. The model never fabricates quotes.';
     if (notice) {
       notice.innerHTML = `
-        <strong>Pure Model Baselines:</strong>
-        Displaying calibrated 50/50 median lines and sensitivity curves. Switch to <em>Verified Quotes</em> to view current book offers or <em>Injury Shifts</em> to inspect vacancy absorption.
+        <strong>💡 Terminal Guidance &bull; Pre-Line Openers Phase:</strong>
+        Sportsbooks typically post receiving prop lines 24–48 hours prior to kickoff. TNF (NE @ CHI) openers post first, followed by Sunday matchups.
+        Use the <strong>Price-to-Act Boundaries</strong> below to identify potential mispricings: when books open, any quote meeting the price boundary automatically surfaces as a verified opportunity.
       `;
     }
   } else if (currentViewMode === 'surges') {
@@ -626,8 +627,9 @@ function renderOpportunitySummary() {
     if (sub) sub.textContent = 'Showing receivers whose recent target share exceeds multi-week and career baselines by >= 8%.';
     if (notice) {
       notice.innerHTML = `
-        <strong>Role-Change Detection Active:</strong>
-        Isolating receivers with substantial offensive volume expansion. Compare their model fair lines against pending market quotes to identify stale prices once lines post.
+        <strong>🔍 Role-Change Detection Active:</strong>
+        Isolating receivers with substantial offensive volume expansion. Compare their model fair lines against pending market quotes to identify stale book lines once markets open.
+        <em>Note: Role classification thresholds remain provisional pending chronological holdout validation.</em>
       `;
     }
   } else if (currentViewMode === 'demo_quotes') {
@@ -635,8 +637,8 @@ function renderOpportunitySummary() {
     if (sub) sub.textContent = 'Simulating hypothetical market discounts to demonstrate price qualification and break-even advantage.';
     if (notice) {
       notice.innerHTML = `
-        <strong style="color:var(--status-amber);">Hypothetical User Scenarios Active:</strong>
-        Lines below include simulated book discounts for demonstration purposes. These are <strong>not verified quotes</strong> and must not be treated as live betting recommendations.
+        <strong style="color:var(--status-amber);">⚠️ Hypothetical Scenarios Only:</strong>
+        Lines below include simulated book discounts for workflow demonstration purposes. These are <strong>not verified quotes</strong> and must never be treated as live betting recommendations.
       `;
     }
   }
@@ -1160,8 +1162,9 @@ function renderBestOpportunitiesGrid() {
     const watchText = isWatched ? '★ Watching' : '★ Watch Condition';
 
     const verifiedTag = card.isVerifiedQuote
-      ? `<span class="verified-quote-badge">${card.quoteBook.toUpperCase()} VERIFIED</span>`
-      : '';
+      ? `<span class="verified-quote-badge book-${card.quoteBook.toLowerCase().slice(0, 2)}">⚡ ${card.quoteBook.toUpperCase()} VERIFIED</span>`
+      : `<span style="font-size:9.5px; font-family:var(--font-mono); color:var(--text-ink-tertiary); background:rgba(0,0,0,0.04); padding:1px 5px; border-radius:3px;">CALIBRATED BASELINE</span>`;
+
     const catalystTag = card.catalyst && card.catalyst !== 'none'
       ? `<span class="catalyst-pill catalyst-${card.catalyst}">${card.catalyst.toUpperCase()}</span>`
       : '';
@@ -1173,15 +1176,140 @@ function renderBestOpportunitiesGrid() {
       statusPill = `<span class="status-pill status-lean">LEAN</span>`;
     }
 
+    // Question 1: What Changed? (Role Shift Before -> After or Injury Vacancy)
+    let roleChangeVisualHtml = '';
+    const ben = currentInjuriesData && currentInjuriesData.impacted_beneficiaries
+      ? (currentInjuriesData.impacted_beneficiaries[card.player_id] || Object.values(currentInjuriesData.impacted_beneficiaries).find(b => b.name === card.player_display_name))
+      : null;
+
+    if (ben) {
+      roleChangeVisualHtml = `
+        <div class="role-shift-visual">
+          <div class="shift-compare-row">
+            <div class="shift-col">
+              <span class="shift-label">INJURY VACANCY</span>
+              <span class="shift-val" style="font-size:12px; color:var(--status-amber);">${ben.injury_event}</span>
+            </div>
+            <span class="shift-pill" style="background:rgba(245,158,11,0.12); color:#b45309;">+${ben.share_of_vacated_targets}% Vacated Share</span>
+          </div>
+          <div style="font-size:11px; color:var(--text-ink-secondary); line-height:1.4;">
+            <strong>${ben.vacated_player_name}</strong> OUT &rarr; Model absorbs <strong>+${ben.projected_extra_targets_per_game} tgts/g</strong> to ${card.player_display_name}.
+          </div>
+        </div>
+      `;
+    } else if (card.roleShift.type === 'SUSTAINED_SURGE' || card.roleShift.type === 'ONE_GAME_SPIKE') {
+      const basePct = Math.round((Number(card.f_tgt_share || 0.18)) * 100);
+      const recentPct = Math.round((Number(card.target_share || card.f_tgt_share || 0.22)) * 100);
+      const diffVal = (recentPct - basePct).toFixed(1);
+      roleChangeVisualHtml = `
+        <div class="role-shift-visual">
+          <div class="shift-compare-row">
+            <div class="shift-col">
+              <span class="shift-label">Baseline Share</span>
+              <span class="shift-val">${basePct}%</span>
+            </div>
+            <div class="shift-arrow">&rarr;</div>
+            <div class="shift-col">
+              <span class="shift-label">Recent Share</span>
+              <span class="shift-val highlight">${recentPct}%</span>
+            </div>
+            <span class="shift-pill">${diffVal > 0 ? '+' : ''}${diffVal}% Shift</span>
+          </div>
+          <div class="shift-bar-track">
+            <div class="shift-bar-base" style="width:${Math.min(100, basePct * 2.5)}%;"></div>
+            <div class="shift-bar-surge" style="width:${Math.max(0, Math.min(100, (recentPct - basePct) * 2.5))}%;"></div>
+          </div>
+        </div>
+      `;
+    } else {
+      const careerTgts = Number(card.c_targets || 0).toFixed(1);
+      const projVol = Number(card.projVol || 0).toFixed(1);
+      roleChangeVisualHtml = `
+        <div class="role-shift-visual">
+          <div class="shift-compare-row">
+            <div class="shift-col">
+              <span class="shift-label">Volume Anchor</span>
+              <span class="shift-val">${careerTgts} career tgts/g</span>
+            </div>
+            <span class="shift-pill">${projVol} ${card.market === 'receptions' ? 'rec' : 'yds'} exp</span>
+          </div>
+        </div>
+      `;
+    }
+
+    // Question 3: Is it Still Worth Acting On? (Tangible Price-to-Act Boundary Gauge)
+    const fairVal = Number(card.fairLine);
+    const maxOver = Number(card.priceBoundaries.maxOverLine);
+    const offerVal = Number(card.bookLine);
+    const minSpan = Math.min(offerVal, maxOver, fairVal) * 0.85;
+    const maxSpan = Math.max(offerVal, maxOver, fairVal) * 1.15;
+    const span = Math.max(1, maxSpan - minSpan);
+
+    const offerPct = Math.min(92, Math.max(8, ((offerVal - minSpan) / span) * 100));
+    const boundaryPct = Math.min(92, Math.max(8, ((maxOver - minSpan) / span) * 100));
+    const fairPct = Math.min(92, Math.max(8, ((fairVal - minSpan) / span) * 100));
+
+    const isInsideOver = offerVal <= maxOver;
+    const bufferVal = (fairVal - offerVal).toFixed(1);
+
+    const gaugeHtml = `
+      <div class="price-boundary-gauge">
+        <div class="gauge-header">
+          <span class="gauge-label">Price-to-Act Boundary Gauge:</span>
+          <span style="font-family:var(--font-mono); font-size:10px; color:var(--text-ink-tertiary);">${card.market === 'receptions' ? 'Rec' : 'Yards'}</span>
+        </div>
+        <div class="gauge-track-wrap">
+          <div class="gauge-rail"></div>
+          <div class="gauge-range-buffer" style="left:${Math.min(offerPct, fairPct)}%; width:${Math.abs(fairPct - offerPct)}%;"></div>
+          
+          <div class="gauge-pin gauge-pin-offer" style="left:${offerPct}%;" title="Offered Quote: ${offerVal}">
+            <div class="gauge-pin-dot"></div>
+            <span class="gauge-pin-label">Offer ${offerVal}</span>
+          </div>
+          
+          <div class="gauge-pin gauge-pin-boundary" style="left:${boundaryPct}%;" title="Max Over Boundary: ${maxOver}">
+            <div class="gauge-pin-dot"></div>
+            <span class="gauge-pin-label">Max ${maxOver}</span>
+          </div>
+
+          <div class="gauge-pin gauge-pin-fair" style="left:${fairPct}%;" title="Fair Line (50/50): ${fairVal.toFixed(1)}">
+            <div class="gauge-pin-dot"></div>
+            <span class="gauge-pin-label">Fair ${fairVal.toFixed(1)}</span>
+          </div>
+        </div>
+
+        <div class="gauge-summary">
+          ${isInsideOver && card.isQualified
+            ? `<span class="gauge-summary-qual">✓ Inside Over Boundary (+${bufferVal} buffer to fair line)</span>`
+            : `<span class="gauge-summary-pass">Requires Over &le; ${maxOver} at -110 to clear 10% hurdle</span>`}
+          <span style="color:var(--text-ink-tertiary);">BE: ${card.priceBoundaries.breakEvenOddsAtFair}</span>
+        </div>
+      </div>
+    `;
+
+    // Question 4: What is the Main Invalidation Risk?
+    const riskText = card.injuryContext 
+      ? card.injuryContext.invalidation_risk 
+      : (card.questionable 
+          ? 'Listed Questionable on official injury report. Pitch count or sudden reinjury risk.' 
+          : (card.team_spread > 3.0 
+              ? 'Positive game script: Early multi-score lead may throttle late-game dropbacks.' 
+              : 'Target distribution variance, defensive bracket coverage.'));
+
     return `
       <div class="opp-card ${card.isQualified ? 'opp-card-qualified' : ''}">
+        <!-- Header -->
         <div class="opp-card-header">
           <div class="opp-player-meta">
             <div class="opp-player-name" onclick="openDrawerForPlayer('${card.player_display_name}')">
               ${card.player_display_name}
             </div>
             <div class="opp-matchup-sub">
-              ${card.team} vs ${card.opponent_team} &bull; <span class="pos-tag pos-${card.position}">${card.position}</span> &bull; Spread: ${card.team_spread > 0 ? '+' : ''}${Number(card.team_spread || 0).toFixed(1)}
+              <span>${card.team} vs ${card.opponent_team}</span>
+              <span>&bull;</span>
+              <span class="pos-tag pos-${card.position}">${card.position}</span>
+              <span>&bull;</span>
+              <span>Spread: ${card.team_spread > 0 ? '+' : ''}${Number(card.team_spread || 0).toFixed(1)}</span>
             </div>
           </div>
           <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap; justify-content:flex-end;">
@@ -1192,14 +1320,17 @@ function renderBestOpportunitiesGrid() {
           </div>
         </div>
 
-        <!-- Pricing Row -->
+        <!-- 1. What Changed? -->
+        ${roleChangeVisualHtml}
+
+        <!-- 2. What is the Price? -->
         <div class="opp-pricing-row">
           <div class="pricing-metric">
             <span class="pricing-label">Calibrated Fair</span>
             <span class="pricing-val" style="color:var(--accent-editorial);">${Number(card.fairLine).toFixed(1)} ${card.market === 'receptions' ? 'Rec' : 'Yds'}</span>
           </div>
           <div class="pricing-metric">
-            <span class="pricing-label">Current Offer</span>
+            <span class="pricing-label">Offered Quote</span>
             <span class="pricing-val">${card.bookLine} <small style="font-size:11px; font-weight:600; color:var(--text-ink-tertiary);">${card.odds > 0 ? '+' : ''}${card.odds}</small></span>
           </div>
           <div class="pricing-metric">
@@ -1210,23 +1341,15 @@ function renderBestOpportunitiesGrid() {
           </div>
         </div>
 
-        <!-- Price Boundary Box (Crucial Decision Support) -->
-        <div class="price-boundary-box">
-          <div class="price-boundary-label">Price Boundary to Act:</div>
-          <div class="price-boundary-val">
-            Qualifies at Over &le; ${card.priceBoundaries.maxOverLine} (-110) or &ge; ${card.priceBoundaries.breakEvenOddsAtFair} at fair line
-          </div>
-        </div>
+        <!-- 3. Is it Still Worth Acting On? -->
+        ${gaugeHtml}
 
         <!-- Status Pill Row if Qualified -->
-        ${statusPill ? `<div style="margin: 8px 0 4px 0;">${statusPill}</div>` : ''}
+        ${statusPill ? `<div style="margin: 2px 0 0 0;">${statusPill}</div>` : ''}
 
-        <!-- Narrative: Supporting Reason & Invalidation -->
-        <div class="opp-narrative">
-          <div><strong>Why it matters:</strong> ${card.roleShift.description}</div>
-          <div style="margin-top:4px; color:var(--text-ink-tertiary);">
-            <strong>Invalidation Risk:</strong> ${card.injuryContext ? card.injuryContext.invalidation_risk : (card.questionable ? 'Listed Questionable on injury feed.' : 'Teammate volume recovery, blowout clock-bleed.')}
-          </div>
+        <!-- 4. What is the Main Risk / Invalidation? -->
+        <div class="invalidation-risk-callout">
+          <strong>⚠️ Invalidation Risk:</strong> ${riskText}
         </div>
 
         <!-- Card Actions -->
@@ -1447,6 +1570,25 @@ function sortTable(col) {
     sortAsc = (col === 'player_display_name' || col === 'position');
   }
   renderBoard();
+}
+
+let currentTableDensity = 'detailed';
+
+function setTableDensity(density) {
+  currentTableDensity = density;
+  const table = document.getElementById('mainSlateTable');
+  const btnDetailed = document.getElementById('btnDensityDetailed');
+  const btnCompact = document.getElementById('btnDensityCompact');
+  
+  if (density === 'compact') {
+    table?.classList.add('compact-mode');
+    btnCompact?.classList.add('active');
+    btnDetailed?.classList.remove('active');
+  } else {
+    table?.classList.remove('compact-mode');
+    btnDetailed?.classList.add('active');
+    btnCompact?.classList.remove('active');
+  }
 }
 
 // --------------------------------------------------------------------------
@@ -1882,13 +2024,13 @@ function renderDrawerDensityCurve(p, market, bookLine) {
   if (!container) return;
 
   const w = container.clientWidth || 530;
-  const h = 180;
-  const pad = { left: 35, right: 25, top: 20, bottom: 25 };
+  const h = 190;
+  const pad = { left: 35, right: 25, top: 24, bottom: 30 };
 
   const fairLine = market === 'receptions' ? p.fair_line_rec : p.fair_line_yards;
   const maxVal = market === 'receptions' ? Math.max(14, fairLine * 2.2) : Math.max(160, fairLine * 2.3);
 
-  const steps = 100;
+  const steps = 120;
   const points = [];
   let maxDensity = 0;
 
@@ -1918,18 +2060,76 @@ function renderDrawerDensityCurve(p, market, bookLine) {
   for (let i = 1; i < points.length; i++) {
     pathD += ` L ${xScale(points[i].x)} ${yScale(points[i].d)}`;
   }
+  const areaD = `${pathD} L ${xScale(points[points.length - 1].x)} ${h - pad.bottom} L ${xScale(points[0].x)} ${h - pad.bottom} Z`;
 
   const bookX = xScale(bookLine);
   const fairX = xScale(fairLine);
 
+  // Interquartile Range (25th to 75th percentile)
+  const iqrLow = Math.max(0, p.projVol * 0.62);
+  const iqrHigh = Math.min(maxVal, p.projVol * 1.35);
+  const iqrX1 = xScale(iqrLow);
+  const iqrX2 = xScale(iqrHigh);
+
+  // Axis Ticks (5 intervals)
+  const ticks = [0, 0.25, 0.5, 0.75, 1.0].map(frac => {
+    const val = Math.round(frac * maxVal);
+    const x = xScale(val);
+    return `
+      <line x1="${x}" y1="${h - pad.bottom}" x2="${x}" y2="${h - pad.bottom + 4}" stroke="var(--border-strong)" stroke-width="1"/>
+      <text x="${x}" y="${h - pad.bottom + 15}" font-family="var(--font-mono)" font-size="9" fill="var(--text-ink-tertiary)" text-anchor="middle">${val}</text>
+    `;
+  }).join('');
+
+  // Edge Value Buffer Shading (if offer is below fair line and qualified)
+  let edgeBufferSvg = '';
+  if (p.isQualified && bookX < fairX) {
+    edgeBufferSvg = `
+      <rect x="${bookX}" y="${pad.top}" width="${fairX - bookX}" height="${h - pad.top - pad.bottom}" fill="rgba(34, 197, 94, 0.12)" stroke="none"/>
+      <text x="${(bookX + fairX) / 2}" y="${pad.top + 16}" font-family="var(--font-mono)" font-size="8.5" font-weight="700" fill="var(--status-green)" text-anchor="middle">EDGE BUFFER</text>
+    `;
+  }
+
   container.innerHTML = `
-    <svg width="100%" height="100%" viewBox="0 0 ${w} ${h}" style="display:block;">
+    <svg width="100%" height="100%" viewBox="0 0 ${w} ${h}" style="display:block; overflow:visible;">
+      <defs>
+        <linearGradient id="curveGradient" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#1e3a8a" stop-opacity="0.22"/>
+          <stop offset="100%" stop-color="#1e3a8a" stop-opacity="0.01"/>
+        </linearGradient>
+      </defs>
+
+      <!-- Baseline Rail -->
       <line x1="${pad.left}" y1="${h - pad.bottom}" x2="${w - pad.right}" y2="${h - pad.bottom}" stroke="var(--border-medium)" stroke-width="1"/>
-      <path d="${pathD}" fill="none" stroke="var(--accent-editorial)" stroke-width="2"/>
+
+      <!-- Shaded IQR Range (25th to 75th percentile) -->
+      <rect x="${iqrX1}" y="${pad.top + 10}" width="${iqrX2 - iqrX1}" height="${h - pad.top - pad.bottom - 10}" fill="rgba(0, 0, 0, 0.03)" stroke="none"/>
+      <text x="${(iqrX1 + iqrX2) / 2}" y="${h - pad.bottom - 4}" font-family="var(--font-mono)" font-size="8" fill="var(--text-ink-dim)" text-anchor="middle">50% OF OUTCOMES (IQR)</text>
+
+      <!-- Edge Buffer Shading if Qualified -->
+      ${edgeBufferSvg}
+
+      <!-- Filled Area Under Curve -->
+      <path d="${areaD}" fill="url(#curveGradient)"/>
+
+      <!-- Density Curve Stroke -->
+      <path d="${pathD}" fill="none" stroke="var(--accent-editorial)" stroke-width="2.2"/>
+
+      <!-- Fair Line Needle & Indicator -->
       <line x1="${fairX}" y1="${pad.top}" x2="${fairX}" y2="${h - pad.bottom}" stroke="var(--accent-editorial)" stroke-width="1.5" stroke-dasharray="3,3"/>
-      <text x="${fairX}" y="${pad.top - 5}" font-family="var(--font-mono)" font-size="10" font-weight="700" fill="var(--accent-editorial)" text-anchor="middle">Fair: ${Number(fairLine).toFixed(1)}</text>
-      <line x1="${bookX}" y1="${pad.top + 10}" x2="${bookX}" y2="${h - pad.bottom}" stroke="var(--text-ink)" stroke-width="2"/>
-      <text x="${bookX}" y="${h - pad.bottom + 15}" font-family="var(--font-mono)" font-size="10" font-weight="700" fill="var(--text-ink)" text-anchor="middle">Offer: ${Number(bookLine).toFixed(1)}</text>
+      <g transform="translate(${fairX}, ${pad.top - 6})">
+        <rect x="-35" y="-14" width="70" height="16" rx="3" fill="#1e3a8a" stroke="none"/>
+        <text x="0" y="-3" font-family="var(--font-mono)" font-size="9.5" font-weight="700" fill="#ffffff" text-anchor="middle">Fair: ${Number(fairLine).toFixed(1)}</text>
+      </g>
+
+      <!-- Book Offer Line Needle & Indicator -->
+      <line x1="${bookX}" y1="${pad.top + 14}" x2="${bookX}" y2="${h - pad.bottom}" stroke="var(--text-ink)" stroke-width="2"/>
+      <g transform="translate(${bookX}, ${h - pad.bottom + 20})">
+        <text x="0" y="0" font-family="var(--font-mono)" font-size="9.5" font-weight="700" fill="var(--text-ink)" text-anchor="middle">Offer: ${Number(bookLine).toFixed(1)}</text>
+      </g>
+
+      <!-- Axis Ticks & Marks -->
+      ${ticks}
     </svg>
   `;
 }

@@ -6,7 +6,7 @@
   <title>NFL Receiving Props Agent — Role-Change Detection & Prop Research</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,400;1,6..72,600&family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -325,9 +325,16 @@
             <button class="clear-game-btn" id="clearMatchupBtn" style="display:none;" onclick="clearMatchupFilter()">Reset Game Filter</button>
           </div>
           <div class="filter-meta-right">
+            <div class="density-toggle-wrap">
+              <span class="density-label">TABLE DENSITY:</span>
+              <div class="segmented-control segmented-control-sm" id="tableDensityGroup">
+                <button class="seg-btn active" id="btnDensityDetailed" onclick="setTableDensity('detailed')">Detailed</button>
+                <button class="seg-btn" id="btnDensityCompact" onclick="setTableDensity('compact')">Compact</button>
+              </div>
+            </div>
             <label class="checkbox-inline">
               <input type="checkbox" id="projectableOnlyCheck" checked onchange="onFilterChange()">
-              <span>Projectable receivers only (hides offseason transfers / low snaps)</span>
+              <span>Projectable only</span>
             </label>
           </div>
         </div>
