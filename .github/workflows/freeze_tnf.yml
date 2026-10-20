@@ -1,0 +1,70 @@
+name: Freeze Pre-Kickoff Slate Snapshot
+
+on:
+  workflow_dispatch:
+    inputs:
+      season:
+        description: 'NFL Season'
+        required: true
+        default: '2026'
+      week:
+        description: 'NFL Week'
+        required: true
+        default: '7'
+      game_id:
+        description: 'Target Game ID (or empty for full slate)'
+        required: false
+        default: '2026_07_NE_CHI'
+      snapshot_type:
+        description: 'Snapshot Type'
+        required: true
+        default: 'pre_kickoff'
+        type: choice
+        options:
+          - pre_kickoff
+          - first_published
+          - material_revision
+          - closing
+  schedule:
+    # 23:45 UTC on Thursdays (7:45 PM EDT, 30 minutes before 8:15 PM EDT TNF kickoff)
+    - cron: '45 23 * * 4'
+
+jobs:
+  freeze:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt || pip install scipy numpy pandas
+
+      - name: Execute Slate Freeze
+        run: |
+          SEASON="${{ github.event.inputs.season || '2026' }}"
+          WEEK="${{ github.event.inputs.week || '7' }}"
+          GAME_ID="${{ github.event.inputs.game_id || '2026_07_NE_CHI' }}"
+          TYPE="${{ github.event.inputs.snapshot_type || 'pre_kickoff' }}"
+          
+          if [ -n "$GAME_ID" ] && [ "$GAME_ID" != "ALL" ]; then
+            python src/freeze_slate.py --season "$SEASON" --week "$WEEK" --game-id "$GAME_ID" --snapshot-type "$TYPE"
+          else
+            python src/freeze_slate.py --season "$SEASON" --week "$WEEK" --all-games --snapshot-type "$TYPE"
+          fi
+
+      - name: Commit and push immutable snapshot
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add snapshots/ viewer/snapshots_*.json
+          git diff --quiet && git diff --staged --quiet || (git commit -m "chore(freeze): immutable pre-kickoff snapshot [skip ci]" && git push)

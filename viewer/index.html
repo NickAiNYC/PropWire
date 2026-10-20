@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#0d1117">
+  <meta name="build-hash" content="a8b92c4">
+  <meta name="description" content="PROP·WIRE NFL receiving-props research terminal.">
+  <title>PROP·WIRE — NFL receiving props</title>
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="PROP·WIRE">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="style.css?v=a8b92c4">
+  <script src="app.js?v=a8b92c4" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#slateBoard">Skip to slate</a>
+
+  <header class="site-header">
+    <div class="header-main shell">
+      <a class="brand" href="/" aria-label="PROP WIRE home">
+        <svg class="brand-mark" viewBox="0 0 200 200" fill="currentColor" aria-hidden="true">
+          <path d="M 146.1 12.0 L 179.3 12.0 L 182.8 14.0 L 184.4 17.0 L 184.4 52.2 L 183.6 54.0 L 181.1 56.3 L 178.1 57.0 L 175.1 56.3 L 172.8 54.2 L 171.5 50.2 L 171.5 35.6 L 171.0 35.4 L 115.7 92.0 L 108.9 97.2 L 101.9 100.8 L 93.3 103.0 L 89.3 103.5 L 58.1 103.8 L 58.1 181.7 L 56.9 185.2 L 54.6 187.2 L 52.4 188.0 L 21.4 188.0 L 17.7 186.2 L 16.4 184.7 L 15.6 182.5 L 15.6 24.6 L 16.7 22.3 L 18.4 20.5 L 20.7 19.5 L 96.6 19.5 L 100.6 20.0 L 107.7 21.6 L 112.2 23.1 L 120.5 26.8 L 125.0 29.6 L 131.3 34.4 L 134.3 37.4 L 135.6 39.9 L 135.6 42.7 L 134.1 45.7 L 131.6 47.5 L 128.0 47.7 L 124.8 46.2 L 121.0 42.7 L 113.5 37.6 L 107.9 35.1 L 99.4 32.9 L 95.9 32.4 L 28.5 32.6 L 28.5 174.7 L 44.8 174.9 L 45.3 174.2 L 45.3 95.5 L 46.1 93.7 L 47.3 92.2 L 50.1 90.7 L 87.8 90.7 L 91.8 90.2 L 98.4 88.2 L 105.4 83.9 L 162.5 25.8 L 162.5 24.8 L 146.6 24.8 L 143.4 23.3 L 142.1 21.8 L 141.4 19.8 L 141.4 16.8 L 142.6 14.3 L 144.4 12.8 L 145.9 12.3 Z"/>
+          <path d="M 146.1 66.6 L 149.2 66.6 L 151.4 67.6 L 152.9 69.1 L 153.9 71.3 L 154.2 87.7 L 153.4 93.7 L 150.7 103.8 L 147.9 110.1 L 143.9 116.8 L 138.1 124.1 L 131.8 129.9 L 123.0 135.7 L 115.2 139.2 L 104.4 142.0 L 100.1 142.5 L 71.2 142.5 L 69.5 141.7 L 67.2 139.5 L 66.4 137.7 L 66.4 134.4 L 68.4 131.2 L 71.7 129.7 L 97.9 129.7 L 106.4 128.4 L 111.2 126.9 L 117.7 123.9 L 125.5 118.4 L 132.8 110.3 L 138.3 100.0 L 139.9 95.5 L 141.4 86.7 L 141.4 71.6 L 142.4 69.3 L 144.1 67.6 L 145.9 66.8 Z"/>
+        </svg>
+        <span class="brand-word">PROP<span>·WIRE</span></span>
+      </a>
+
+      <div class="header-context">
+        <label class="sr-only" for="slateSelector">Slate</label>
+        <select id="slateSelector" class="control compact-control">
+          <option value="2026_w7">NFL · Week 7 upcoming</option>
+          <option value="2026_w1">NFL · Week 1 audit</option>
+        </select>
+        <span class="policy-chip" id="gateChip" title="Gate: Minimum statistical edge required before a prop qualifies for recommendation.">Gate — <span class="help-bubble" aria-hidden="true">?</span></span>
+        <span class="policy-chip" id="capChip" title="Kelly cap: Maximum bankroll allocation allowed per prop to prevent overexposure.">Kelly cap — <span class="help-bubble" aria-hidden="true">?</span></span>
+      </div>
+
+      <div class="header-actions">
+        <button class="clv-button" id="clvReportBtn" type="button" title="Week 7 Public CLV Validation Report" aria-label="Public CLV Report">
+          <svg class="prop-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 13.5h12M4 10l3-3 2.5 2.5L13.5 5"/></svg>
+          <span class="clv-btn-text">CLV Report</span>
+        </button>
+        <button class="portfolio-button" id="portfolioBtn" type="button" title="Personal CLV Ledger & Portfolio" aria-label="Portfolio and CLV Scorecard">
+          <svg class="prop-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 3.5h11a1 1 0 011 1v8a1 1 0 01-1 1h-11a1 1 0 01-1-1v-8a1 1 0 011-1z"/><path d="M5.5 3.5v-1a1 1 0 011-1h4a1 1 0 011 1v1M8 7v4M6 9h4"/></svg>
+          <span class="portfolio-btn-text">Ledger</span>
+          <span class="portfolio-count-badge" id="portfolioCountBadge" hidden>0</span>
+        </button>
+        <button class="icon-button" id="installButton" type="button" title="Install app" aria-label="Install PROP WIRE" hidden>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v11m0 0 4-4m-4 4-4-4M5 17v3h14v-3"/></svg>
+        </button>
+        <button class="icon-button" id="themeButton" type="button" title="Change color theme" aria-label="Use light theme">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4a8 8 0 1 0 8 8 6 6 0 0 1-8-8Z"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="ticker" aria-label="Slate totals">
+      <div class="shell ticker-inner" id="tickerLine" aria-live="polite">Loading slate…</div>
+    </div>
+
+    <div class="sticky-context-bar" id="stickyContextBar">
+      <div class="shell sticky-context-inner">
+        <span class="sticky-pill-label" id="stickyFilterLabel">⚡ Active Opportunities · All Positions</span>
+        <div class="sticky-actions">
+          <span class="sticky-count-pill" id="stickyCountPill">0 plays</span>
+          <button type="button" class="sticky-top-btn" id="stickyTopBtn" title="Scroll to top" aria-label="Scroll to top">↑ Top</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="shell page" id="slateBoard">
+    <section class="injury-strip" aria-labelledby="injuryTitle">
+      <div class="injury-line">
+        <span class="injury-icon-wrap" aria-hidden="true">
+          <svg class="prop-icon icon-warn" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2.5L1.5 13.5h13L8 2.5z"/><path d="M8 6.5v3M8 11.5v.5"/></svg>
+        </span>
+        <span class="eyebrow amber" id="injuryTitle">Availability</span>
+        <div class="injury-summary" id="injurySummary">Checking injury notes…</div>
+        <button class="text-button" id="injuryToggle" type="button" aria-expanded="false" aria-controls="injuryDetails">Details</button>
+      </div>
+      <div class="injury-details" id="injuryDetails" hidden></div>
+    </section>
+
+    <section class="board-heading">
+      <div class="board-heading-lead">
+        <div class="board-title-line">
+          <h1>Receiving props, priced with receipts.</h1>
+          <span class="status-badge-inline" id="slateState">Upcoming slate</span>
+        </div>
+        <p class="lede" id="marketState">Loading price state…</p>
+      </div>
+      <div class="view-switch" role="group" aria-label="View layout switcher">
+        <button type="button" data-view="table" class="active">Table</button>
+        <button type="button" data-view="cards">Grid</button>
+      </div>
+    </section>
+
+    <section class="filter-panel" aria-label="Slate filters">
+      <div class="filter-top-bar">
+        <div class="slate-mode-toggle" role="tablist" aria-label="Filter play status">
+          <button type="button" class="mode-pill active" data-mode="actionable" role="tab" aria-selected="true" id="modeActionableBtn">
+            <span class="mode-icon"><svg class="prop-icon icon-edge" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 1.5L2.5 9h5l-1 5.5L13.5 7h-5l1-5.5z"/></svg></span> Active Opportunities <span class="mode-count" id="actionableCount">33</span>
+          </button>
+          <button type="button" class="mode-pill" data-mode="all" role="tab" aria-selected="false" id="modeAllBtn">
+            <span class="mode-icon"><svg class="prop-icon icon-depth" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 5l6-3 6 3-6 3-6-3zM2 9.5l6 3 6-3M2 13l6 3 6-3"/></svg></span> All Projections (Reference) <span class="mode-count" id="allCount">390</span>
+          </button>
+        </div>
+        <div class="intent-chips" role="group" aria-label="Quick intent filters">
+          <button type="button" class="intent-chip active" data-intent="all">All Intent</button>
+          <button type="button" class="intent-chip" data-intent="edge"><svg class="prop-icon icon-edge" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 1.5L2.5 9h5l-1 5.5L13.5 7h-5l1-5.5z"/></svg> Highest Edge</button>
+          <button type="button" class="intent-chip" data-intent="surge"><svg class="prop-icon icon-surge" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1.5 8h3l2-5 3.5 10 2.5-6 1.5 2.5 2-.5"/></svg> Role Surges</button>
+          <button type="button" class="intent-chip" data-intent="volume"><svg class="prop-icon icon-volume" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 13.5v-4M6.5 13.5v-7M10.5 13.5v-10M14.5 13.5v-6"/></svg> High Floor (7+ Tgt)</button>
+          <button type="button" class="intent-chip" data-intent="deep"><svg class="prop-icon icon-deep" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 1v14M1 8h14"/><circle cx="8" cy="8" r="5.5"/></svg> Deep Threats (12+ aDOT)</button>
+        </div>
+      </div>
+      <div class="prime-chips" id="primeChips" aria-label="Prime-time games"></div>
+      <div class="filters-container">
+        <div class="search-row-mobile">
+          <label class="search-control">
+            <span>Search</span>
+            <input id="searchInput" type="search" placeholder="Player, team, opponent (/ to focus)" autocomplete="off">
+          </label>
+          <button type="button" id="mobileFilterToggle" class="mobile-filter-btn" aria-expanded="false" aria-controls="collapsibleFilters">
+            <svg class="prop-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M1.5 3h13M3.5 8h9M6 13h4"/></svg>
+            <span>Filters</span>
+            <span id="activeFilterBadge" class="filter-count-badge" hidden>0</span>
+          </button>
+        </div>
+        <div class="filters collapsible-filters" id="collapsibleFilters">
+          <label>
+            <span>Market</span>
+            <select id="marketFilter" class="control">
+              <option value="receiving_yards">Receiving yards</option>
+              <option value="receptions">Receptions</option>
+              <option value="anytime_td">Anytime TD (Poisson Model)</option>
+            </select>
+          </label>
+          <label>
+            <span>Position</span>
+            <select id="positionFilter" class="control">
+              <option value="ALL">All positions</option>
+              <option value="WR">WR</option>
+              <option value="TE">TE</option>
+              <option value="RB">RB</option>
+            </select>
+          </label>
+          <label>
+            <span>Team</span>
+            <input id="teamFilter" class="control" type="search" list="teamOptions" placeholder="All teams" autocomplete="off">
+            <datalist id="teamOptions"></datalist>
+          </label>
+        </div>
+      </div>
+      <div class="result-line">
+        <span id="resultCount">33 actionable opportunities (390 modeled)</span>
+        <div class="result-line-right">
+          <span class="kbd-hint"><span class="kbd">J</span><span class="kbd">K</span> Navigate &bull; <span class="kbd">/</span> Search &bull; <span class="kbd">T</span> View &bull; <span class="kbd">Enter</span> Inspect</span>
+          <button id="clearFilters" class="text-button" type="button">Clear filters</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="data-board" aria-label="Player slate">
+      <noscript>
+        <div style="padding: 14px 18px; margin-bottom: 16px; background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 8px; color: #f59e0b; font-family: var(--sans); font-size: 13px;">
+          <strong>JavaScript Required:</strong> PropWire is a client-side quantitative terminal. 390 projected receivers across 15 Week 7 matchups are rendered dynamically from static JSON data feeds (<code>slate_2026_w7.json</code>). Please enable JavaScript to access live odds comparison, Kelly calculations, and personal CLV tracking.
+        </div>
+      </noscript>
+      <div class="table-scroll" id="tableView" tabindex="0" aria-label="Scrollable player table">
+        <table class="slate-table">
+          <thead id="slateHead"></thead>
+          <tbody id="slateRows">
+            <tr class="loading-row"><td colspan="8" style="text-align:center; padding: 24px; color: var(--muted); font-family: var(--mono);">Hydrating 390 receiver distributions and live market prices…</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="card-grid" id="cardView" hidden></div>
+      <div class="empty-state" id="emptyState" hidden>No player records match these filters.</div>
+    </section>
+
+    <section class="trust-line" aria-label="Data integrity status">
+      <div><span class="status-dot grey"></span><strong>Price check</strong> <span id="priceCheckText">Loading…</span></div>
+      <div><strong>Append-only log</strong> Content hashes detect changes; no external chain anchor is claimed.</div>
+      <div id="clvStatus"><strong>CLV</strong> 0 verified live records.</div>
+    </section>
+  </main>
+
+  <dialog class="detail-dialog" id="detailDialog" aria-labelledby="detailTitle">
+    <form method="dialog" class="dialog-shell">
+      <div class="dialog-header">
+        <div>
+          <div class="eyebrow" id="detailMeta">Player detail</div>
+          <h2 id="detailTitle">Player</h2>
+        </div>
+        <button class="icon-button" value="cancel" aria-label="Close player detail">×</button>
+      </div>
+      <div id="detailContent"></div>
+    </form>
+  </dialog>
+
+  <dialog class="detail-dialog portfolio-dialog" id="portfolioDialog" aria-labelledby="portfolioTitle">
+    <form method="dialog" class="dialog-shell">
+      <div class="dialog-header">
+        <div>
+          <div class="eyebrow">Personal CLV Ledger</div>
+          <h2 id="portfolioTitle">Portfolio &amp; CLV Scorecard</h2>
+        </div>
+        <button class="icon-button" value="cancel" aria-label="Close portfolio dialog">×</button>
+      </div>
+      <div id="portfolioContent"></div>
+    </form>
+  </dialog>
+
+  <dialog class="detail-dialog clv-dialog" id="clvDialog" aria-labelledby="clvReportTitle">
+    <form method="dialog" class="dialog-shell">
+      <div class="dialog-header">
+        <div>
+          <div class="eyebrow" id="clvReportEyebrow">Immutable Trust Moat</div>
+          <h2 id="clvReportTitle">Week 7 Public CLV Validation Report</h2>
+        </div>
+        <button class="icon-button" value="cancel" aria-label="Close CLV report">×</button>
+      </div>
+      <div id="clvReportContent"></div>
+    </form>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+</body>
+</html>
