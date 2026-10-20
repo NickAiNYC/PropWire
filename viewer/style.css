@@ -1272,6 +1272,161 @@ body {
   border-color: var(--border-strong);
 }
 
+.btn-x-card {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--bg-surface-subtle);
+  color: var(--text-ink);
+  border: 1px solid var(--border-medium);
+  border-radius: 6px;
+  padding: 7px 11px;
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-x-card:hover {
+  background: var(--text-ink);
+  color: var(--bg-surface);
+  border-color: var(--text-ink);
+}
+
+.btn-x-card svg {
+  width: 12px;
+  height: 12px;
+}
+
+.btn-x-card-mini {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--bg-surface-subtle);
+  border: 1px solid var(--border-medium);
+  color: var(--text-ink);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-x-card-mini:hover {
+  background: var(--text-ink);
+  color: var(--bg-surface);
+  border-color: var(--text-ink);
+}
+
+.action-x-btn {
+  background: transparent;
+  border: 1px solid var(--border-medium);
+  color: var(--text-ink);
+  border-radius: 4px;
+  padding: 3px 6px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.action-x-btn:hover {
+  background: var(--text-ink);
+  color: var(--bg-surface);
+}
+
+/* Steam Move & CLV Advantage Badge */
+.steam-move-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: #0284c7;
+  background: rgba(2, 132, 199, 0.1);
+  border: 1px solid rgba(2, 132, 199, 0.3);
+  letter-spacing: 0.04em;
+  animation: pulse-steam 2.4s infinite ease-in-out;
+}
+
+@keyframes pulse-steam {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.85; transform: scale(1.02); }
+}
+
+/* Streamlined Action Feed */
+.action-feed-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.action-feed-card {
+  background: var(--bg-surface-subtle);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  padding: 14px 16px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.action-feed-card.action-qualified {
+  border-left: 4px solid var(--status-green);
+  background: var(--bg-surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.action-feed-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.action-player-name {
+  font-family: var(--font-serif);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-ink);
+  cursor: pointer;
+}
+
+.action-player-name:hover {
+  color: var(--accent-editorial);
+  text-decoration: underline;
+}
+
+.action-feed-take {
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--text-ink);
+  margin-bottom: 10px;
+}
+
+.action-feed-take strong {
+  color: var(--text-ink);
+}
+
+.action-feed-metrics-strip {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  font-size: 11.5px;
+  color: var(--text-ink-secondary);
+  font-family: var(--font-mono);
+  background: var(--bg-canvas);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  padding: 8px 12px;
+}
+
 /* ==========================================================================
    TABLE DENSITY & COMPACT MODE
    ========================================================================== */

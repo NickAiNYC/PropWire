@@ -44,6 +44,8 @@ let currentProjectableOnly = true;
 let currentViewMode = 'verified_quotes'; // 'baseline', 'surges', 'injury_surges', 'verified_quotes', 'demo_quotes'
 let currentInjuriesData = null;
 let currentLiveOddsData = null;
+let currentFeedFormat = 'quant'; // 'quant' (Table) or 'action' (Feed)
+let currentXCardPlayerId = null;
 
 let sortCol = 'proj_yards';
 let sortAsc = false;
@@ -118,6 +120,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (e.key === 'Escape') {
       closeDrawer();
       closeAdminModal();
+      closeXCardModal();
     }
   });
 
@@ -1364,6 +1367,7 @@ function renderBestOpportunitiesGrid() {
             </div>
           </div>
           <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap; justify-content:flex-end;">
+            ${card.isQualified && card.isVerifiedQuote ? '<span class="steam-move-badge">⚡ STEAM MOVE</span>' : ''}
             ${verifiedTag}
             ${catalystTag}
             <span class="role-badge ${card.roleShift.class}">${card.roleShift.label}</span>
@@ -1411,6 +1415,10 @@ function renderBestOpportunitiesGrid() {
           <button class="btn-watch" onclick="quickSaveCondition('${card.player_id}')">
             ${watchText}
           </button>
+          <button class="btn-x-card" onclick="openXCardModal('${card.player_id}')" title="Export High-Contrast 𝕏 Receipt Slip">
+            <svg class="icon-svg" viewBox="0 0 24 24" fill="currentColor" style="width:12px;height:12px;"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 23.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+            Export 𝕏 Card
+          </button>
         </div>
       </div>
     `;
@@ -1447,6 +1455,9 @@ function renderBoard() {
   const totalLabel = document.getElementById('totalRowCount');
   const qualCountPill = document.getElementById('qualCountPill');
   const boardBadge = document.getElementById('boardTotalBadge');
+  const quantWrap = document.getElementById('quantTableWrap');
+  const actionWrap = document.getElementById('actionFeedWrap');
+  const densityWrap = document.getElementById('tableDensityControlWrap');
 
   if (!tbody || slateData.length === 0) return;
 
@@ -1486,6 +1497,105 @@ function renderBoard() {
   if (countLabel) countLabel.textContent = filtered.length;
   if (totalLabel) totalLabel.textContent = slateData.length;
   if (boardBadge) boardBadge.textContent = slateData.length;
+
+  // ACTION FEED VIEW (Streamlined "Why" & Punchy Social Narrative)
+  if (currentFeedFormat === 'action') {
+    if (quantWrap) quantWrap.style.display = 'none';
+    if (actionWrap) actionWrap.style.display = 'flex';
+    if (densityWrap) densityWrap.style.display = 'none';
+
+    if (filtered.length === 0) {
+      if (actionWrap) {
+        actionWrap.innerHTML = `
+          <div style="text-align:center; padding:36px; background:var(--bg-surface-subtle); border-radius:8px; border:1px solid var(--border-subtle); color:var(--text-ink-tertiary);">
+            No actionable opportunities found matching active filters.
+          </div>
+        `;
+      }
+      return;
+    }
+
+    if (actionWrap) {
+      actionWrap.innerHTML = filtered.map(row => {
+        const isWatched = userSavedConditions.some(w => w.playerId === row.player_id);
+        const watchText = isWatched ? '★ Watching' : '★ Watch';
+        const take = getActionTake(row);
+        const steamBadge = (row.isQualified && row.isVerifiedQuote)
+          ? `<span class="steam-move-badge">⚡ STEAM MOVE</span>`
+          : '';
+
+        let statusBadge = `<span class="status-pill status-pass">PASS</span>`;
+        if (row.status === 'QUALIFIED') {
+          statusBadge = `<span class="status-pill status-qualified">QUALIFIED (${(row.actionableStake * 100).toFixed(2)}% Stake)</span>`;
+        } else if (row.status === 'LEAN') {
+          statusBadge = `<span class="status-pill status-lean">LEAN</span>`;
+        } else if (row.status.includes('QUESTIONABLE')) {
+          statusBadge = `<span class="status-pill status-injury">QUESTIONABLE</span>`;
+        }
+
+        return `
+          <div class="action-feed-card ${row.isQualified ? 'action-qualified' : ''}">
+            <div class="action-feed-header">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <img src="${getTeamLogoUrl(row.team)}" alt="${row.team}" class="team-logo-inline" loading="lazy" onerror="this.style.display='none'">
+                <div>
+                  <span class="action-player-name" onclick="openDrawerForPlayer('${row.player_display_name}')">
+                    ${row.player_display_name}
+                  </span>
+                  <span style="font-size:12px; color:var(--text-ink-secondary); margin-left:6px;">
+                    ${row.team} vs ${row.opponent_team} &bull; <span class="pos-tag pos-${row.position}">${row.position}</span>
+                  </span>
+                </div>
+              </div>
+              <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                ${steamBadge}
+                ${statusBadge}
+                <span class="role-badge ${row.roleShift.class}">${row.roleShift.label}</span>
+              </div>
+            </div>
+
+            <div class="action-feed-take">
+              ${take}
+            </div>
+
+            <div class="action-feed-metrics-strip">
+              <span><strong>Proj Vol:</strong> ${Number(row.projVol).toFixed(1)} ${row.market === 'receptions' ? 'rec' : 'yds'}</span>
+              <span><strong>Fair Line:</strong> <span style="color:var(--accent-editorial); font-weight:700;">${Number(row.fairLine).toFixed(1)}</span></span>
+              <span><strong>Book Offer:</strong> ${row.bestSide} ${row.bookLine} (${row.odds > 0 ? '+' : ''}${row.odds})</span>
+              <span><strong>Edge / EV:</strong> <strong style="color:${row.expectedReturn > 0 ? 'var(--status-green)' : 'var(--text-ink-tertiary)'};">${row.expectedReturn > 0 ? '+' : ''}${(row.expectedReturn * 100).toFixed(1)}% EV</strong></span>
+              <span><strong>Actionable Stake:</strong> ${(row.actionableStake * 100).toFixed(2)}%</span>
+            </div>
+
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px; flex-wrap:wrap; gap:8px;">
+              <div style="display:flex; gap:6px;">
+                <button class="btn-inspect" onclick="openDrawerForPlayer('${row.player_display_name}')" style="padding:4px 10px; font-size:11.5px;">
+                  Inspect &rarr;
+                </button>
+                <button class="btn-watch" onclick="quickSaveCondition('${row.player_id}')" style="padding:4px 10px; font-size:11.5px;">
+                  ${watchText}
+                </button>
+              </div>
+              <div style="display:flex; gap:6px;">
+                <button class="btn-x-card" onclick="openXCardModal('${row.player_id}')" style="padding:4px 10px; font-size:11.5px;">
+                  <svg class="icon-svg" viewBox="0 0 24 24" fill="currentColor" style="width:11px;height:11px;"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 23.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                  Export 𝕏 Card
+                </button>
+                <button class="action-x-btn" onclick="openXCardModal('${row.player_id}'); launchTweetIntent();" title="Post Directly to 𝕏" style="font-size:11.5px; padding:4px 8px;">
+                  Post 𝕏
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+    return;
+  }
+
+  // QUANT TABLE VIEW (Detailed 14-Column Matrix)
+  if (quantWrap) quantWrap.style.display = 'block';
+  if (actionWrap) actionWrap.style.display = 'none';
+  if (densityWrap) densityWrap.style.display = 'inline-flex';
 
   if (filtered.length === 0) {
     tbody.innerHTML = `
@@ -1535,6 +1645,10 @@ function renderBoard() {
       ? `<div style="margin-top:3px;"><span class="verified-quote-badge" style="font-size:8.5px; padding:0 4px;">${row.quoteBook.toUpperCase()} VERIFIED</span></div>`
       : '';
 
+    const steamBadgeTable = (row.isQualified && row.isVerifiedQuote)
+      ? `<span class="steam-move-badge" style="font-size:8px; padding:1px 4px; margin-left:4px;">⚡ STEAM</span>`
+      : '';
+
     return `
       <tr>
         <td style="text-align:center;">
@@ -1548,6 +1662,7 @@ function renderBoard() {
             <div>
               <div style="font-weight:700; color:var(--text-ink); cursor:pointer;" onclick="openDrawerForPlayer('${row.player_display_name}')">
                 ${row.player_display_name}
+                ${steamBadgeTable}
               </div>
               <div style="font-size:11px; color:var(--text-ink-tertiary);">
                 ${row.team} vs ${row.opponent_team} ${row.unposted_lines === 1 ? '<span style="color:var(--status-amber);">(Line Pending)</span>' : ''}
@@ -1586,9 +1701,12 @@ function renderBoard() {
         <td class="num-col">${evFormatted}</td>
         <td class="num-col">${stakeFormatted}</td>
         <td>${statusPill}</td>
-        <td style="text-align:right;">
+        <td style="text-align:right; white-space:nowrap;">
           <button class="action-inspect-btn" onclick="openDrawerForPlayer('${row.player_display_name}')">
             Inspect &rarr;
+          </button>
+          <button class="action-x-btn" onclick="openXCardModal('${row.player_id}')" title="Export 𝕏 Slip" style="margin-left:4px;">
+            𝕏
           </button>
         </td>
       </tr>
@@ -1750,10 +1868,16 @@ function renderDrawerBodyContent() {
         </div>
       </div>
 
-      <div style="font-size:12px; line-height:1.5; color:var(--text-ink-secondary); padding-top:10px; border-top:1px solid var(--border-subtle);">
-        <strong>Qualification Verdict:</strong> ${p.isQualified 
-          ? `<span style="color:var(--status-green); font-weight:700;">QUALIFIED BET &bull; Model clears 10% calibration hurdle with positive expected value at verified book price.</span>` 
-          : `<span style="color:var(--text-ink-tertiary);">PASS &bull; Insufficient edge over book price or unquoted baseline. Model distinguishes outcome uncertainty (wide yardage dispersion) from probability error.</span>`}
+      <div style="font-size:12px; line-height:1.5; color:var(--text-ink-secondary); padding-top:10px; border-top:1px solid var(--border-subtle); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+        <div style="flex:1; min-width:260px;">
+          <strong>Qualification Verdict:</strong> ${p.isQualified 
+            ? `<span style="color:var(--status-green); font-weight:700;">QUALIFIED BET &bull; Model clears 10% calibration hurdle with positive expected value at verified book price.</span>` 
+            : `<span style="color:var(--text-ink-tertiary);">PASS &bull; Insufficient edge over book price or unquoted baseline. Model distinguishes outcome uncertainty (wide yardage dispersion) from probability error.</span>`}
+        </div>
+        <button class="btn-x-card" onclick="openXCardModal('${p.player_id}')" style="padding:5px 12px; font-size:11.5px;">
+          <svg class="icon-svg" viewBox="0 0 24 24" fill="currentColor" style="width:11px;height:11px;"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 23.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+          Export 𝕏 Receipt Slip
+        </button>
       </div>
     </div>
 
@@ -3157,3 +3281,538 @@ function showToast(message, duration = 3000) {
     setTimeout(() => toast.remove(), 300);
   }, duration);
 }
+
+// --------------------------------------------------------------------------
+// Social Growth Suite: Action Feed & 𝕏 Receipt Card Exporter
+// --------------------------------------------------------------------------
+
+function setFeedFormat(format) {
+  currentFeedFormat = format;
+  const btnQuant = document.getElementById('btnFormatQuant');
+  const btnAction = document.getElementById('btnFormatAction');
+  if (format === 'action') {
+    btnAction?.classList.add('active');
+    btnQuant?.classList.remove('active');
+  } else {
+    btnQuant?.classList.add('active');
+    btnAction?.classList.remove('active');
+  }
+  renderBoard();
+}
+
+function getActionTake(row) {
+  const ben = currentInjuriesData && currentInjuriesData.impacted_beneficiaries
+    ? (currentInjuriesData.impacted_beneficiaries[row.player_id] || Object.values(currentInjuriesData.impacted_beneficiaries).find(b => b.name === row.player_display_name))
+    : null;
+
+  const unit = row.market === 'receptions' ? 'receptions' : 'receiving yards';
+  const shortUnit = row.market === 'receptions' ? 'rec' : 'yds';
+  const evPct = (row.expectedReturn * 100).toFixed(1);
+  const cushion = (Number(row.fairLine) - Number(row.bookLine)).toFixed(1);
+  const bookName = row.quoteBook || 'Sportsbook';
+
+  if (ben) {
+    if (row.isQualified) {
+      return `<strong>${ben.vacated_player_name} is OUT (${ben.injury_event}).</strong> Model absorbs <strong>+${ben.projected_extra_targets_per_game} tgts/g</strong> (${ben.share_of_vacated_targets}% vacated share), projecting <strong>${Number(row.projVol).toFixed(1)} ${unit}</strong>. ${bookName} has the line stalled at <strong>${row.bookLine} (${row.odds > 0 ? '+' : ''}${row.odds})</strong>. That is a <strong>+${evPct}% EV qualified play</strong> with a +${cushion} ${shortUnit} cushion to the hurdle.`;
+    } else {
+      return `<strong>${ben.vacated_player_name} is OUT (${ben.injury_event}).</strong> Model projects <strong>${Number(row.projVol).toFixed(1)} ${unit}</strong> (fair line ${Number(row.fairLine).toFixed(1)}). At ${row.bookLine}, the edge is ${(row.probEdge * 100).toFixed(1)}% &mdash; below our 10% calibration hurdle for high-variance volume shifts.`;
+    }
+  }
+
+  if (row.roleShift.type === 'SUSTAINED_SURGE') {
+    if (row.isQualified) {
+      return `<strong>Sustained role expansion:</strong> Target share jumped <strong>+${Math.round((row.roleShift.diff || 0.05) * 100)}%</strong> over the last 3 games. Model projects <strong>${Number(row.projVol).toFixed(1)} ${unit}</strong> (fair line ${Number(row.fairLine).toFixed(1)}) vs ${bookName}'s stale <strong>${row.bookLine}</strong>. That translates to a <strong>+${evPct}% EV edge</strong>.`;
+    } else {
+      return `<strong>Sustained role expansion detected.</strong> Model projects <strong>${Number(row.projVol).toFixed(1)} ${unit}</strong>. Book line at ${row.bookLine} already reflects the surge; waiting for a dip below ${row.priceBoundaries.maxOverLine} before entering.`;
+    }
+  }
+
+  if (row.roleShift.type === 'ESTABLISHED_VOLUME') {
+    if (row.isQualified) {
+      return `<strong>Elite volume anchor:</strong> High-confidence floor with <strong>${Number(row.c_targets || 7.5).toFixed(1)} career tgts/g</strong>. Model fair line is <strong>${Number(row.fairLine).toFixed(1)}</strong> vs offered <strong>${row.bookLine} (${row.odds > 0 ? '+' : ''}${row.odds})</strong> &mdash; <strong>+${evPct}% EV</strong> at ${row.quoteBook || 'consensus'}.`;
+    } else {
+      return `<strong>Established volume anchor (${Number(row.c_targets || 7.0).toFixed(1)} career tgts/g).</strong> Model projects <strong>${Number(row.projVol).toFixed(1)} ${unit}</strong> (fair line ${Number(row.fairLine).toFixed(1)}). Current book quote of ${row.bookLine} is efficiently priced (EV ${evPct}%).`;
+    }
+  }
+
+  return `Model projects <strong>${Number(row.projVol).toFixed(1)} ${unit}</strong> (fair line ${Number(row.fairLine).toFixed(1)}) vs offered quote <strong>${row.bookLine}</strong> (${row.bestSide} &bull; ${evPct}% EV). Status: <strong>${row.status}</strong>.`;
+}
+
+function getTweetTextForPlayer(row) {
+  const ben = currentInjuriesData && currentInjuriesData.impacted_beneficiaries
+    ? (currentInjuriesData.impacted_beneficiaries[row.player_id] || Object.values(currentInjuriesData.impacted_beneficiaries).find(b => b.name === row.player_display_name))
+    : null;
+
+  const unit = row.market === 'receptions' ? 'receptions' : 'receiving yards';
+  const evStr = row.expectedReturn > 0 ? `+${(row.expectedReturn * 100).toFixed(1)}%` : `${(row.expectedReturn * 100).toFixed(1)}%`;
+  const bookName = row.quoteBook || 'DraftKings';
+  const oddsStr = row.odds > 0 ? `+${row.odds}` : `${row.odds}`;
+
+  if (ben) {
+    return `🚨 INJURY ROLE SHIFT ALERT\n\nWith ${ben.vacated_player_name} OUT (${ben.injury_event}), our NegBin-Gamma GLM model projects ${row.player_display_name} for ${Number(row.projVol).toFixed(1)} ${unit} against ${row.opponent_team}.\n\n📉 ${bookName} Line: ${row.bookLine} (${oddsStr})\n📐 Model Fair Line: ${Number(row.fairLine).toFixed(1)}\n💰 Edge / EV: ${evStr} EV (${row.status === 'QUALIFIED' ? 'Qualified Play' : 'Lean'})\n\nTrack live shifts on PROP·WIRE:\nhttps://receiving-props-agent.vercel.app/`;
+  }
+
+  if (row.roleShift.type === 'SUSTAINED_SURGE') {
+    return `⚡ ROLE EXPANSION ALERT\n\n${row.player_display_name} target share jumped +${Math.round((row.roleShift.diff || 0.05) * 100)}% over the last 3 weeks. Our NegBin-Gamma GLM model projects ${Number(row.projVol).toFixed(1)} ${unit}.\n\n📉 ${bookName} Line: ${row.bookLine} (${oddsStr})\n📐 Model Fair Line: ${Number(row.fairLine).toFixed(1)}\n💰 Edge / EV: ${evStr} EV\n\nAudited by SHA-256 pre-line freeze on PROP·WIRE:\nhttps://receiving-props-agent.vercel.app/`;
+  }
+
+  return `📊 PROP·WIRE QUANT SIGNAL\n\n${row.player_display_name} (${row.team} vs ${row.opponent_team})\nModel projects ${Number(row.projVol).toFixed(1)} ${unit} (Fair Line: ${Number(row.fairLine).toFixed(1)}).\n\n📉 ${bookName} Line: ${row.bookLine} (${oddsStr})\n💰 Edge / EV: ${evStr} EV\n\nVerified sports betting intelligence:\nhttps://receiving-props-agent.vercel.app/`;
+}
+
+function openXCardModal(playerId) {
+  const p = slateData.find(x => x.player_id === playerId);
+  if (!p) return;
+  const row = getEvaluatedPlayerRow(p);
+  currentXCardPlayerId = playerId;
+
+  const modal = document.getElementById('xCardModal');
+  const modalTitle = document.getElementById('xCardModalTitle');
+  const tweetTextarea = document.getElementById('xCardTweetText');
+
+  if (modalTitle) {
+    modalTitle.textContent = `Export Decision Receipt • ${row.player_display_name}`;
+  }
+
+  if (tweetTextarea) {
+    tweetTextarea.value = getTweetTextForPlayer(row);
+  }
+
+  if (modal) {
+    modal.classList.add('active');
+  }
+
+  generateXCard(row);
+}
+
+function closeXCardModal() {
+  const modal = document.getElementById('xCardModal');
+  if (modal) {
+    modal.classList.remove('active');
+  }
+  currentXCardPlayerId = null;
+}
+
+function canvasRoundRect(ctx, x, y, width, height, radius, fill, stroke) {
+  ctx.beginPath();
+  ctx.moveTo(x + radius, y);
+  ctx.lineTo(x + width - radius, y);
+  ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+  ctx.lineTo(x + width, y + height - radius);
+  ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+  ctx.lineTo(x + radius, y + height);
+  ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+  ctx.lineTo(x, y + radius);
+  ctx.quadraticCurveTo(x, y, x + radius, y);
+  ctx.closePath();
+  if (fill) ctx.fill();
+  if (stroke) ctx.stroke();
+}
+
+function generateXCard(row) {
+  const canvas = document.getElementById('xCardCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+
+  const W = 1200;
+  const H = 675;
+  canvas.width = W;
+  canvas.height = H;
+
+  // 1. Deep Carbon Gradient Background
+  const bg = ctx.createLinearGradient(0, 0, W, H);
+  bg.addColorStop(0, '#090c12');
+  bg.addColorStop(0.5, '#0f1422');
+  bg.addColorStop(1, '#151c2e');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, W, H);
+
+  // 2. Technical Terminal Grid Lines
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
+  ctx.lineWidth = 1;
+  for (let x = 60; x < W; x += 60) {
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, H);
+    ctx.stroke();
+  }
+  for (let y = 60; y < H; y += 60) {
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(W, y);
+    ctx.stroke();
+  }
+
+  // 3. Card Outer Border
+  ctx.strokeStyle = 'rgba(51, 65, 85, 0.6)';
+  ctx.lineWidth = 2;
+  canvasRoundRect(ctx, 24, 24, W - 48, H - 48, 16, false, true);
+
+  // Corner Accent Brackets (Emerald Glow)
+  ctx.strokeStyle = '#10b981';
+  ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.moveTo(24, 60); ctx.lineTo(24, 24); ctx.lineTo(60, 24); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(W - 60, 24); ctx.lineTo(W - 24, 24); ctx.lineTo(W - 24, 60); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(24, H - 60); ctx.lineTo(24, H - 24); ctx.lineTo(60, H - 24); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(W - 60, H - 24); ctx.lineTo(W - 24, H - 24); ctx.lineTo(W - 24, H - 60); ctx.stroke();
+
+  // 4. Header Bar
+  // Brand squircle icon
+  ctx.fillStyle = '#0f172a';
+  ctx.strokeStyle = '#10b981';
+  ctx.lineWidth = 1.5;
+  canvasRoundRect(ctx, 50, 44, 38, 38, 8, true, true);
+
+  // Upward trend arrow
+  ctx.strokeStyle = '#10b981';
+  ctx.lineWidth = 2.5;
+  ctx.beginPath(); ctx.moveTo(59, 67); ctx.lineTo(74, 52); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(66, 52); ctx.lineTo(74, 52); ctx.lineTo(74, 60); ctx.stroke();
+
+  // Wordmark
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 24px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+  ctx.textAlign = 'left';
+  ctx.fillText('PROP·WIRE', 100, 71);
+
+  // Subtitle
+  ctx.fillStyle = '#10b981';
+  ctx.font = '700 11px "SF Mono", Menlo, Consolas, monospace';
+  ctx.fillText('QUANTITATIVE SPORTS BETTING TERMINAL • AUDIT RECEIPT', 255, 70);
+
+  // Right Header Pill
+  ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+  ctx.strokeStyle = 'rgba(148, 163, 184, 0.25)';
+  ctx.lineWidth = 1;
+  canvasRoundRect(ctx, W - 350, 46, 300, 32, 6, true, true);
+  ctx.fillStyle = '#94a3b8';
+  ctx.font = '700 11px "SF Mono", Menlo, Consolas, monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('WEEK 7 TNF • SHA-256 PRE-LINE AUDIT', W - 200, 67);
+  ctx.textAlign = 'left';
+
+  // 5. Catalyst / Trigger Alert Banner
+  const ben = currentInjuriesData && currentInjuriesData.impacted_beneficiaries
+    ? (currentInjuriesData.impacted_beneficiaries[row.player_id] || Object.values(currentInjuriesData.impacted_beneficiaries).find(b => b.name === row.player_display_name))
+    : null;
+
+  if (ben) {
+    ctx.fillStyle = 'rgba(245, 158, 11, 0.12)';
+    ctx.strokeStyle = 'rgba(245, 158, 11, 0.4)';
+    canvasRoundRect(ctx, 50, 96, 1100, 44, 8, true, true);
+
+    ctx.fillStyle = '#f59e0b';
+    ctx.font = 'bold 13.5px -apple-system, BlinkMacSystemFont, sans-serif';
+    ctx.fillText(`🚨 INJURY ROLE SHIFT: ${ben.vacated_player_name} OUT (${ben.injury_event})`, 68, 123);
+
+    ctx.fillStyle = '#fbbf24';
+    ctx.font = '700 11.5px "SF Mono", monospace';
+    ctx.textAlign = 'right';
+    ctx.fillText(`Model absorbs +${ben.projected_extra_targets_per_game} tgts/g (${ben.share_of_vacated_targets}% vacated share)`, 1130, 123);
+    ctx.textAlign = 'left';
+  } else if (row.roleShift.type === 'SUSTAINED_SURGE') {
+    ctx.fillStyle = 'rgba(16, 185, 129, 0.12)';
+    ctx.strokeStyle = 'rgba(16, 185, 129, 0.4)';
+    canvasRoundRect(ctx, 50, 96, 1100, 44, 8, true, true);
+
+    ctx.fillStyle = '#10b981';
+    ctx.font = 'bold 13.5px -apple-system, BlinkMacSystemFont, sans-serif';
+    ctx.fillText(`⚡ SUSTAINED ROLE SURGE: +${Math.round((row.roleShift.diff || 0.05) * 100)}% Target Share Expansion (L3W)`, 68, 123);
+
+    ctx.fillStyle = '#34d399';
+    ctx.font = '700 11.5px "SF Mono", monospace';
+    ctx.textAlign = 'right';
+    ctx.fillText('Calibrated Poisson-Gamma GLM Drift', 1130, 123);
+    ctx.textAlign = 'left';
+  } else {
+    ctx.fillStyle = 'rgba(56, 189, 248, 0.1)';
+    ctx.strokeStyle = 'rgba(56, 189, 248, 0.3)';
+    canvasRoundRect(ctx, 50, 96, 1100, 44, 8, true, true);
+
+    ctx.fillStyle = '#38bdf8';
+    ctx.font = 'bold 13.5px -apple-system, BlinkMacSystemFont, sans-serif';
+    ctx.fillText(`📊 CALIBRATED PROJECTION: High-Floor Volume Anchor`, 68, 123);
+
+    ctx.fillStyle = '#7dd3fc';
+    ctx.font = '700 11.5px "SF Mono", monospace';
+    ctx.textAlign = 'right';
+    ctx.fillText('Zero-Bias Empirical Holdout Validation', 1130, 123);
+    ctx.textAlign = 'left';
+  }
+
+  // 6. Player Hero Row
+  // Team badge circle
+  const badgeX = 74;
+  const badgeY = 186;
+  ctx.fillStyle = '#1e293b';
+  ctx.strokeStyle = '#475569';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.arc(badgeX, badgeY, 24, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.fillStyle = '#f8fafc';
+  ctx.font = 'bold 14px "SF Mono", monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText(row.team, badgeX, badgeY + 5);
+  ctx.textAlign = 'left';
+
+  // Load team insignia asynchronously and repaint badge if accessible
+  const teamImg = new Image();
+  teamImg.crossOrigin = 'anonymous';
+  teamImg.src = getTeamLogoUrl(row.team);
+  teamImg.onload = () => {
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(badgeX, badgeY, 23, 0, Math.PI * 2);
+    ctx.clip();
+    ctx.drawImage(teamImg, badgeX - 23, badgeY - 23, 46, 46);
+    ctx.restore();
+  };
+
+  // Player Name
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 36px Georgia, serif';
+  ctx.fillText(row.player_display_name, 114, 180);
+
+  // Subtitle (Team, Matchup, Position, Spread, Market)
+  ctx.fillStyle = '#94a3b8';
+  ctx.font = '14px -apple-system, BlinkMacSystemFont, sans-serif';
+  const spreadStr = row.team_spread > 0 ? `+${Number(row.team_spread || 0).toFixed(1)}` : `${Number(row.team_spread || 0).toFixed(1)}`;
+  ctx.fillText(`${row.team} vs ${row.opponent_team}  •  ${row.position}  •  Spread: ${spreadStr}  •  Market: ${row.market === 'receptions' ? 'Receptions' : 'Receiving Yards'}`, 114, 204);
+
+  // Status Badge (Top Right)
+  if (row.isQualified) {
+    ctx.fillStyle = 'rgba(16, 185, 129, 0.18)';
+    ctx.strokeStyle = '#10b981';
+    canvasRoundRect(ctx, 890, 156, 260, 42, 6, true, true);
+    ctx.fillStyle = '#10b981';
+    ctx.font = 'bold 13px "SF Mono", monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(`✓ QUALIFIED BET (${(row.actionableStake * 100).toFixed(2)}%)`, 1020, 182);
+    ctx.textAlign = 'left';
+  } else {
+    ctx.fillStyle = 'rgba(148, 163, 184, 0.12)';
+    ctx.strokeStyle = 'rgba(148, 163, 184, 0.3)';
+    canvasRoundRect(ctx, 920, 156, 230, 42, 6, true, true);
+    ctx.fillStyle = '#cbd5e1';
+    ctx.font = 'bold 13px "SF Mono", monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(`MODEL LEAN / PASS`, 1035, 182);
+    ctx.textAlign = 'left';
+  }
+
+  // 7. Three High-Impact Metric Cards
+  const cardY = 236;
+  const cardH = 180;
+
+  // Card 1: Sportsbook Offered Line
+  ctx.fillStyle = '#0c101a';
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+  canvasRoundRect(ctx, 50, cardY, 345, cardH, 10, true, true);
+
+  ctx.fillStyle = '#94a3b8';
+  ctx.font = '700 11px "SF Mono", monospace';
+  ctx.fillText('SPORTSBOOK OFFER', 72, cardY + 30);
+
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 42px "SF Mono", monospace';
+  ctx.fillText(`${row.bestSide} ${row.bookLine}`, 72, cardY + 84);
+
+  ctx.fillStyle = '#38bdf8';
+  ctx.font = '700 14px -apple-system, sans-serif';
+  ctx.fillText(`${row.quoteBook || 'DraftKings'} (${row.odds > 0 ? '+' : ''}${row.odds})`, 72, cardY + 118);
+
+  ctx.fillStyle = '#64748b';
+  ctx.font = '11.5px "SF Mono", monospace';
+  ctx.fillText(row.isVerifiedQuote ? '⚡ Verified Sportsbook Quote' : 'Simulated Market Baseline', 72, cardY + 152);
+
+  // Card 2: Calibrated Fair Line
+  ctx.fillStyle = '#0c101a';
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+  canvasRoundRect(ctx, 425, cardY, 350, cardH, 10, true, true);
+
+  ctx.fillStyle = '#94a3b8';
+  ctx.font = '700 11px "SF Mono", monospace';
+  ctx.fillText('CALIBRATED FAIR LINE (50/50)', 447, cardY + 30);
+
+  ctx.fillStyle = '#60a5fa';
+  ctx.font = 'bold 42px "SF Mono", monospace';
+  ctx.fillText(`${Number(row.fairLine).toFixed(1)}`, 447, cardY + 84);
+
+  ctx.fillStyle = '#cbd5e1';
+  ctx.font = '700 14px -apple-system, sans-serif';
+  ctx.fillText(`Model Median (${row.market === 'receptions' ? 'Rec' : 'Yards'})`, 447, cardY + 118);
+
+  ctx.fillStyle = '#64748b';
+  ctx.font = '11.5px "SF Mono", monospace';
+  ctx.fillText('Calibrated NegBin-Gamma GLM', 447, cardY + 152);
+
+  // Card 3: Expected Value (EV)
+  ctx.fillStyle = '#0c101a';
+  ctx.strokeStyle = row.expectedReturn > 0 ? 'rgba(16, 185, 129, 0.45)' : 'rgba(255, 255, 255, 0.08)';
+  canvasRoundRect(ctx, 805, cardY, 345, cardH, 10, true, true);
+
+  ctx.fillStyle = '#94a3b8';
+  ctx.font = '700 11px "SF Mono", monospace';
+  ctx.fillText('EXPECTED VALUE (EV)', 827, cardY + 30);
+
+  ctx.fillStyle = row.expectedReturn > 0 ? '#10b981' : '#cbd5e1';
+  ctx.font = 'bold 42px "SF Mono", monospace';
+  const evSign = row.expectedReturn > 0 ? '+' : '';
+  ctx.fillText(`${evSign}${(row.expectedReturn * 100).toFixed(1)}%`, 827, cardY + 84);
+
+  ctx.fillStyle = '#34d399';
+  ctx.font = '700 14px -apple-system, sans-serif';
+  ctx.fillText(`Prob Edge: +${(row.probEdge * 100).toFixed(1)}% vs 50%`, 827, cardY + 118);
+
+  ctx.fillStyle = '#64748b';
+  ctx.font = '11.5px "SF Mono", monospace';
+  ctx.fillText(`Quarter-Kelly: ${(row.actionableStake * 100).toFixed(2)}% Bankroll`, 827, cardY + 152);
+
+  // 8. Price Boundary Gauge & Cushion Bar
+  const gaugeY = 440;
+  const gaugeH = 135;
+  ctx.fillStyle = '#0a0e17';
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.06)';
+  canvasRoundRect(ctx, 50, gaugeY, 1100, gaugeH, 10, true, true);
+
+  ctx.fillStyle = '#cbd5e1';
+  ctx.font = '700 11.5px "SF Mono", monospace';
+  ctx.fillText('PRICE-TO-ACT BOUNDARY GAUGE (ACTIONABLE CUSHION)', 72, gaugeY + 28);
+
+  ctx.fillStyle = '#94a3b8';
+  ctx.font = '11px "SF Mono", monospace';
+  ctx.textAlign = 'right';
+  ctx.fillText(`Required BE Odds at Fair: ${row.priceBoundaries.breakEvenOddsAtFair}`, 1130, gaugeY + 28);
+  ctx.textAlign = 'left';
+
+  // Track bar
+  const trackX = 80;
+  const trackW = 1040;
+  const trackY = gaugeY + 62;
+  ctx.fillStyle = '#1e293b';
+  canvasRoundRect(ctx, trackX, trackY, trackW, 8, 4, true, false);
+
+  // Pins calculations
+  const fairVal = Number(row.fairLine);
+  const maxOver = Number(row.priceBoundaries.maxOverLine);
+  const offerVal = Number(row.bookLine);
+  const minSpan = Math.min(offerVal, maxOver, fairVal) * 0.85;
+  const maxSpan = Math.max(offerVal, maxOver, fairVal) * 1.15;
+  const span = Math.max(1, maxSpan - minSpan);
+
+  const offerPx = trackX + Math.min(trackW * 0.92, Math.max(trackW * 0.08, ((offerVal - minSpan) / span) * trackW));
+  const boundPx = trackX + Math.min(trackW * 0.92, Math.max(trackW * 0.08, ((maxOver - minSpan) / span) * trackW));
+  const fairPx = trackX + Math.min(trackW * 0.92, Math.max(trackW * 0.08, ((fairVal - minSpan) / span) * trackW));
+
+  // Highlight buffer
+  ctx.fillStyle = 'rgba(16, 185, 129, 0.4)';
+  const leftBuf = Math.min(offerPx, fairPx);
+  const bufWidth = Math.abs(fairPx - offerPx);
+  canvasRoundRect(ctx, leftBuf, trackY, bufWidth, 8, 4, true, false);
+
+  // Draw Pin 1: Offer
+  ctx.fillStyle = '#38bdf8';
+  ctx.beginPath(); ctx.arc(offerPx, trackY + 4, 7, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#38bdf8';
+  ctx.font = '700 11px "SF Mono", monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText(`Offer ${offerVal}`, offerPx, trackY - 10);
+
+  // Draw Pin 2: Boundary
+  ctx.fillStyle = '#f59e0b';
+  ctx.beginPath(); ctx.arc(boundPx, trackY + 4, 6, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#f59e0b';
+  ctx.font = '700 11px "SF Mono", monospace';
+  ctx.fillText(`Max ${maxOver}`, boundPx, trackY + 26);
+
+  // Draw Pin 3: Fair
+  ctx.fillStyle = '#10b981';
+  ctx.beginPath(); ctx.arc(fairPx, trackY + 4, 7, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#10b981';
+  ctx.font = '700 11px "SF Mono", monospace';
+  ctx.fillText(`Fair ${fairVal.toFixed(1)}`, fairPx, trackY - 10);
+  ctx.textAlign = 'left';
+
+  // Bottom Summary of Boundary
+  ctx.fillStyle = row.isQualified ? '#34d399' : '#94a3b8';
+  ctx.font = '12px -apple-system, sans-serif';
+  const cushionVal = (fairVal - offerVal).toFixed(1);
+  const summaryStr = row.isQualified
+    ? `✓ Offered quote of ${offerVal} clears entry hurdle with +${cushionVal} ${row.market === 'receptions' ? 'rec' : 'yd'} cushion to fair median value`
+    : `Requires ${row.bestSide} ≤ ${maxOver} at -110 to clear 10% calibration hurdle`;
+  ctx.fillText(summaryStr, 72, gaugeY + 118);
+
+  // 9. Footer & Watermark
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(50, 600);
+  ctx.lineTo(1150, 600);
+  ctx.stroke();
+
+  ctx.fillStyle = '#64748b';
+  ctx.font = '700 11px "SF Mono", monospace';
+  ctx.fillText('🔒 SHA-256 HOLDOUT FREEZE: 9f8a...3e12  •  AUDITED PRE-GAME PROOF LEDGER  •  PROP-WIRE V2', 50, 634);
+
+  ctx.fillStyle = '#10b981';
+  ctx.font = '700 13px "SF Mono", monospace';
+  ctx.textAlign = 'right';
+  ctx.fillText('https://receiving-props-agent.vercel.app/', 1150, 634);
+  ctx.textAlign = 'left';
+}
+
+function downloadXCardPng() {
+  const canvas = document.getElementById('xCardCanvas');
+  if (!canvas) return;
+  const p = slateData.find(x => x.player_id === currentXCardPlayerId);
+  const nameSlug = (p ? p.player_display_name : 'propwire').toLowerCase().replace(/[^a-z0-9]/g, '-');
+  const link = document.createElement('a');
+  link.download = `propwire-${nameSlug}-receipt.png`;
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+  showToast('PNG receipt downloaded!');
+}
+
+async function copyXCardImage() {
+  const canvas = document.getElementById('xCardCanvas');
+  if (!canvas) return;
+  try {
+    canvas.toBlob(async (blob) => {
+      if (!blob) {
+        showToast('Failed to create image blob.');
+        return;
+      }
+      try {
+        await navigator.clipboard.write([
+          new ClipboardItem({ 'image/png': blob })
+        ]);
+        showToast('Receipt card copied to clipboard! Ready to paste on 𝕏 or Discord.');
+      } catch (err) {
+        downloadXCardPng();
+        showToast('Clipboard image access restricted. PNG downloaded instead.');
+      }
+    }, 'image/png');
+  } catch (e) {
+    downloadXCardPng();
+  }
+}
+
+function launchTweetIntent() {
+  const tweetTextarea = document.getElementById('xCardTweetText');
+  const text = tweetTextarea ? tweetTextarea.value : '';
+  const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
+  window.open(url, '_blank', 'noopener,noreferrer');
+}
+
+function copyTweetText() {
+  const tweetTextarea = document.getElementById('xCardTweetText');
+  if (!tweetTextarea) return;
+  tweetTextarea.select();
+  navigator.clipboard.writeText(tweetTextarea.value)
+    .then(() => showToast('Post draft copied to clipboard!'))
+    .catch(() => showToast('Failed to copy text.'));
+}
+

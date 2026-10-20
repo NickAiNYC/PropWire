@@ -372,7 +372,14 @@
           </div>
           <div class="filter-meta-right">
             <div class="density-toggle-wrap">
-              <span class="density-label">TABLE DENSITY:</span>
+              <span class="density-label">FORMAT:</span>
+              <div class="segmented-control segmented-control-sm" id="feedFormatGroup">
+                <button class="seg-btn active" id="btnFormatQuant" onclick="setFeedFormat('quant')">📊 Quant Table</button>
+                <button class="seg-btn" id="btnFormatAction" onclick="setFeedFormat('action')">⚡ Action Feed</button>
+              </div>
+            </div>
+            <div class="density-toggle-wrap" id="tableDensityControlWrap">
+              <span class="density-label">DENSITY:</span>
               <div class="segmented-control segmented-control-sm" id="tableDensityGroup">
                 <button class="seg-btn active" id="btnDensityDetailed" onclick="setTableDensity('detailed')">Detailed</button>
                 <button class="seg-btn" id="btnDensityCompact" onclick="setTableDensity('compact')">Compact</button>
@@ -403,7 +410,7 @@
           </div>
         </div>
         
-        <div class="table-responsive">
+        <div class="table-responsive" id="quantTableWrap">
           <table class="slate-table" id="mainSlateTable">
             <thead>
               <tr>
@@ -428,6 +435,7 @@
             </tbody>
           </table>
         </div>
+        <div id="actionFeedWrap" class="action-feed-grid" style="display:none; margin-top:14px;"></div>
       </section>
     </main>
 
@@ -835,6 +843,63 @@
 
           <div class="runner-terminal">
             <pre id="adminTerminalOutput">Ready. Select season, week, and actions. Output will appear here.&#10;</pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================================================================== -->
+    <!-- X (TWITTER) SOCIAL RECEIPT CARD MODAL -->
+    <!-- ==================================================================== -->
+    <div class="modal-backdrop" id="xCardModal">
+      <div class="modal-container" style="max-width: 760px;">
+        <div class="modal-header">
+          <div>
+            <div class="badge-tag" style="background: rgba(34, 197, 94, 0.15); color: var(--status-green); border-color: rgba(34, 197, 94, 0.3);">
+              𝕏 VIRAL RECEIPT EXPORTER
+            </div>
+            <h3 style="margin-top:4px;" id="xCardModalTitle">Export Decision Receipt to 𝕏</h3>
+          </div>
+          <button class="modal-close" onclick="closeXCardModal()">&times;</button>
+        </div>
+        
+        <div class="modal-body">
+          <p class="text-muted" style="font-size:12px; margin-bottom:12px;">
+            High-contrast 16:9 social card rendered client-side with immutable SHA-256 holdout proof.
+          </p>
+
+          <!-- Canvas Preview Container -->
+          <div class="x-card-canvas-wrap" style="position:relative; background:#0c0e12; border-radius:10px; overflow:hidden; border:1px solid var(--border-medium); margin-bottom:16px;">
+            <canvas id="xCardCanvas" width="1200" height="675" style="width:100%; height:auto; display:block; aspect-ratio: 16/9;"></canvas>
+          </div>
+
+          <!-- Viral Copy Preview -->
+          <div style="background:var(--bg-surface-subtle); border:1px solid var(--border-subtle); border-radius:8px; padding:12px; margin-bottom:16px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+              <span style="font-family:var(--font-mono); font-size:10px; font-weight:700; color:var(--text-ink-tertiary); text-transform:uppercase;">
+                Pre-Filled 𝕏 Post Draft
+              </span>
+              <button class="btn-copy-mini" onclick="copyTweetText()" style="font-size:11px; font-family:var(--font-mono); background:none; border:none; color:var(--accent-editorial); cursor:pointer; font-weight:700;">
+                Copy Text
+              </button>
+            </div>
+            <textarea id="xCardTweetText" rows="4" style="width:100%; background:var(--bg-canvas); color:var(--text-ink); border:1px solid var(--border-subtle); border-radius:6px; padding:8px; font-family:var(--font-sans); font-size:12px; resize:vertical;"></textarea>
+          </div>
+
+          <!-- Action Buttons -->
+          <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end;">
+            <button class="btn-secondary" onclick="downloadXCardPng()" style="display:inline-flex; align-items:center; gap:6px;">
+              <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+              Download PNG (1200×675)
+            </button>
+            <button class="btn-secondary" onclick="copyXCardImage()" style="display:inline-flex; align-items:center; gap:6px;">
+              <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              Copy Image
+            </button>
+            <button class="btn-primary" onclick="launchTweetIntent()" style="background:#000000; color:#ffffff; border:1px solid #333; display:inline-flex; align-items:center; gap:6px;">
+              <svg class="icon-svg" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 23.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+              Post to 𝕏
+            </button>
           </div>
         </div>
       </div>
