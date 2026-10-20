@@ -127,7 +127,7 @@ def questionable_flags(inj: pd.DataFrame) -> set[str]:
 # ---------------------------------------------------------------------------
 
 def build_slate(season: int, week: int, apply_week1_adjustments: bool = True,
-                settled_only: bool = False) -> pd.DataFrame:
+                settled_only: bool = False, include_all: bool = False) -> pd.DataFrame:
     """Produce one feature row per (player, upcoming game).
 
     Carries every player's form forward from their last observed game, then
@@ -215,24 +215,32 @@ def build_slate(season: int, week: int, apply_week1_adjustments: bool = True,
             g = g[g.away_score.notna()].copy()
         else:
             return pd.DataFrame()
+    elif include_all:
+        g = g.copy()
     else:
         # Exclude games that have already kicked off. A completed or in-progress
         # game is unbettable, and a settled one silently poisons the board with
         # props that cannot be taken. away_score is populated once a game is final.
-        if "away_score" in g.columns:
-            g = g[g.away_score.isna()].copy()
-        if "gameday" in g.columns and "gametime" in g.columns:
+        g_cand = g.copy()
+        if "away_score" in g_cand.columns:
+            g_cand = g_cand[g_cand.away_score.isna()].copy()
+        if "gameday" in g_cand.columns and "gametime" in g_cand.columns:
             from datetime import datetime
             import zoneinfo
             try:
                 eastern = zoneinfo.ZoneInfo("America/New_York")
                 now = datetime.now(eastern)
-                has_dt = g["gameday"].notna() & g["gametime"].notna()
+                has_dt = g_cand["gameday"].notna() & g_cand["gametime"].notna()
                 if has_dt.any():
-                    k_times = pd.to_datetime(g.loc[has_dt, "gameday"] + " " + g.loc[has_dt, "gametime"]).dt.tz_localize(eastern)
-                    g = g.loc[~has_dt | (k_times > now)].copy()
+                    k_times = pd.to_datetime(g_cand.loc[has_dt, "gameday"] + " " + g_cand.loc[has_dt, "gametime"]).dt.tz_localize(eastern)
+                    g_cand = g_cand.loc[~has_dt | (k_times > now)].copy()
             except Exception:
                 pass
+        if len(g_cand) > 0:
+            g = g_cand
+        else:
+            # Fallback if auditing or running after kickoff so pipeline does not crash on empty slate
+            g = g.copy()
 
     pairs = pd.concat([
         g.rename(columns={"home_team": "team", "away_team": "opponent_team"}),

@@ -29,13 +29,13 @@ from slate import (build_slate, load_injuries, injury_exclusions,
 from agent import MIN_EDGE, KELLY_CAP, MIN_BOOKS, Pick, log_picks
 
 
-def project(season: int, week: int) -> tuple[pd.DataFrame, ReceivingModel]:
+def project(season: int, week: int, include_all: bool = False) -> tuple[pd.DataFrame, ReceivingModel]:
     panel = build_panel()
     panel = panel[(panel.season < season) |
                   ((panel.season == season) & (panel.week < week))]
     model = ReceivingModel.fit(panel)
 
-    slate = build_slate(season, week)
+    slate = build_slate(season, week, include_all=include_all)
     inj = load_injuries(season, week)
     out = injury_exclusions(inj)
     quest = questionable_flags(inj)
@@ -165,11 +165,12 @@ def main():
     ap.add_argument("--season", type=int, default=2026)
     ap.add_argument("--week", type=int, default=1)
     ap.add_argument("--odds", action="store_true", help="pull live odds (needs key)")
+    ap.add_argument("--all-games", action="store_true", help="include all games on slate regardless of kickoff time")
     ap.add_argument("--out", default="slate_projections.csv")
     ap.add_argument("--top", type=int, default=25)
     a = ap.parse_args()
 
-    slate, model = project(a.season, a.week)
+    slate, model = project(a.season, a.week, include_all=a.all_games)
     ok = slate[slate.excl_reason == ""]
 
     settled_scored = score_settled_games(a.season, a.week, model)
@@ -213,9 +214,10 @@ def main():
     print(top[cols].to_string(index=False,
                               float_format=lambda x: f"{x:.1f}"))
 
-    sorted_slate = ok.sort_values("proj_yards", ascending=False)
+    # Projectable receivers first sorted by projected yards descending, followed by excluded receivers
+    sorted_slate = slate.sort_values(by=["excl_reason", "proj_yards"], ascending=[True, False])
     sorted_slate.to_csv(a.out, index=False)
-    print(f"\n  full slate -> {a.out}")
+    print(f"\n  full slate -> {a.out} ({len(ok)} projectable, {len(slate)} total)")
 
     # Export sanitized JSON (convert NaN to None for standard JSON compliance)
     import math
@@ -260,12 +262,13 @@ def main():
         "note": "Top 25 Projections & Fair Lines (Active Games Only)",
         "picks": picks_list
     }
-    with open("current_picks.json", "w") as f:
-        json.dump(picks_payload, f, indent=2)
-    if os.path.exists("viewer"):
-        with open("viewer/current_picks.json", "w") as f:
+    for target_name in ["current_picks.json", "top_picks.json"]:
+        with open(target_name, "w") as f:
             json.dump(picks_payload, f, indent=2)
-    print("  current_picks.json -> generated and synced to viewer/")
+        if os.path.exists("viewer"):
+            with open(os.path.join("viewer", target_name), "w") as f:
+                json.dump(picks_payload, f, indent=2)
+    print("  current_picks.json & top_picks.json -> generated and synced to viewer/")
 
     if not a.odds:
         print("\n  No odds pulled. Compare the fair lines above to your book:")

@@ -187,12 +187,14 @@ def clv_report(path: str = "picks_log.jsonl") -> dict:
     if not rows:
         return {"status": "no closing lines recorded yet"}
     clv = np.array([r["clv"] for r in rows])
-    se = clv.std(ddof=1) / np.sqrt(len(clv))
+    se = float(clv.std(ddof=1) / np.sqrt(len(clv))) if len(clv) > 1 else 0.0
+    mean_val = float(clv.mean())
     return {
         "n": len(clv),
-        "mean_clv": float(clv.mean()),
-        "ci95": [float(clv.mean() - 1.96 * se), float(clv.mean() + 1.96 * se)],
+        "mean_clv": mean_val,
+        "ci95": [float(mean_val - 1.96 * se), float(mean_val + 1.96 * se)],
         "pct_beating_close": float((clv > 0).mean()),
-        "verdict": ("positive CLV - edge is plausible" if clv.mean() - 1.96 * se > 0
-                    else "NOT distinguishable from zero - do not scale"),
+        "verdict": ("positive CLV - edge is plausible" if (len(clv) > 1 and mean_val - 1.96 * se > 0)
+                    else ("insufficient sample size (n < 5)" if len(clv) < 5
+                          else "NOT distinguishable from zero - do not scale")),
     }
