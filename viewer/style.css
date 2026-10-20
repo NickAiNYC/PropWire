@@ -92,7 +92,7 @@
    ========================================================================== */
 [data-theme="dark"] {
   /* Canvas & Surfaces */
-  --bg-canvas: #0c0e12;
+  --bg-canvas: #0D1117;
   --bg-surface: #14171d;
   --bg-surface-subtle: #1a1e26;
   --bg-surface-elevated: #202530;
@@ -156,14 +156,14 @@
   --logo-squircle-bg: #222225;
   --logo-squircle-border: rgba(255, 255, 255, 0.14);
   --logo-squircle-shadow: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.5));
-  --logo-prop-color: #f3f4f6;
+  --logo-prop-color: #F3F4F6;
   --logo-green: #B6F36B;
   --logo-sq-top: #333337;
   --logo-sq-bot: #17171a;
   --logo-edge-top: rgba(255, 255, 255, 0.22);
   --logo-edge-bot: rgba(255, 255, 255, 0.04);
   --logo-shadow-opacity: 0.55;
-  --logo-prop-fill: linear-gradient(90deg, #ffffff 0%, #c9c9cc 100%);
+  --logo-prop-fill: linear-gradient(90deg, #F3F4F6 0%, #c9ccd2 100%);
   --logo-wire-fill: linear-gradient(90deg, #B6F36B 0%, #7fbf3a 100%);
 }
 
