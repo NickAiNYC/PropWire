@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NFL Receiving Props Agent — 2026 Week 1 Slate</title>
+  <title>NFL Receiving Props Agent — Weekly Web App</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -15,19 +15,30 @@
     <header class="header">
       <div class="header-content">
         <div class="header-left">
-          <div class="badge-tag">NFL PROPS AGENT</div>
-          <h1>2026 Week 1 Slate</h1>
-          <p class="subtitle">Compound NegBin / Gamma Distributional Core &bull; 124 Projectable Receivers (14 Active Games)</p>
+          <div class="brand-line">
+            <span class="badge-tag">NFL PROPS AGENT</span>
+            <span class="badge-sub">COMPOUND NEGBIN / GAMMA</span>
+          </div>
+          <h1 id="appHeaderTitle">2026 Week 1 Slate &amp; Prop Intelligence</h1>
+          <p class="subtitle" id="appHeaderSubtitle">
+            Distributional Core &bull; Median Fair Lines &bull; Walk-Forward Validated &bull; Zero LLM in Decision Path
+          </p>
         </div>
         <div class="header-right">
           <div class="stat-pill">
             <span class="pill-label">TRAINING SAMPLE</span>
             <span class="pill-val">33,588 player-weeks</span>
           </div>
-          <div class="stat-pill">
-            <span class="pill-label">STATUS</span>
-            <span class="pill-val live-val"><span class="dot"></span>Live for 1:00 PM Games</span>
+          <div class="stat-pill" id="clvHeaderPill" onclick="setTab('clv')" style="cursor:pointer;" title="Click to view CLV tracking log">
+            <span class="pill-label">CLV TRACK RECORD</span>
+            <span class="pill-val val-blue" id="headerClvVal">Checking...</span>
           </div>
+          <button class="run-quick-btn" onclick="openRunModal()">
+            <svg class="run-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="5 3 19 12 5 21 5 3"/>
+            </svg>
+            <span>Run Slate</span>
+          </button>
         </div>
       </div>
     </header>
@@ -63,77 +74,138 @@
             <p>Out-of-sample validated bias constants applied: <code>W1_BIAS_REC = 0.057</code>, <code>W1_BIAS_YDS = 0.088</code>. Week 18 rest game dropped, form blended 50/50 with season mean.</p>
           </div>
           <div class="rule-card">
-            <div class="rule-label">EXCLUSIONS (122 PLAYERS)</div>
-            <p><strong>122 receivers</strong> who changed teams in the offseason are excluded (target shares don't carry to new teams). Plus 7 injuries, 85 low usage, 33 inactive, 8 &lt; 8 career games.</p>
+            <div class="rule-label">EXCLUSIONS (OFFSEASON MOVES)</div>
+            <p>Receivers who changed teams in offseason are excluded by default (target shares don't carry over cleanly). Use the <strong>Projectable Only</strong> filter to inspect excluded players.</p>
           </div>
           <div class="rule-card">
-            <div class="rule-label">STAKE CAP &amp; VERDICT</div>
-            <p>An edge &lt; 10% is smaller than the model's own error bar. If zero picks clear 10%, report zero. <strong>Singles until CLV validates; log lines, do not oversize.</strong></p>
+            <div class="rule-label">CALIBRATION ≠ PROVEN EDGE</div>
+            <p>A calibrated probability model is not proof of beating a sharp sportsbook closing line. <strong>Track closing line value (CLV) honestly before scaling stake size.</strong></p>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Navigation / Mode Tabs -->
-    <div class="mode-tabs">
-      <button class="tab-btn active" id="tabPicks" onclick="setTab('picks')">Top Projections &amp; Fair Lines (<span id="picksCountBadge">25</span>)</button>
-      <button class="tab-btn" id="tabSlate" onclick="setTab('slate')">Full Active Slate (<span id="slateCountBadge">124</span>)</button>
-      <button class="tab-btn" id="tabCalc" onclick="setTab('calc')">Prop Pricing Calculator</button>
-    </div>
+    <!-- Navigation Tabs -->
+    <nav class="mode-tabs">
+      <button class="tab-btn active" id="tabPicks" onclick="setTab('picks')">
+        🏆 Top Picks Card (<span id="picksCountBadge">25</span>)
+      </button>
+      <button class="tab-btn" id="tabSlate" onclick="setTab('slate')">
+        📊 Slate Browser &amp; Comparison (<span id="slateCountBadge">146</span>)
+      </button>
+      <button class="tab-btn" id="tabTd" onclick="setTab('td')">
+        🏈 Touchdown Props Panel (<span id="tdCountBadge">146</span>)
+      </button>
+      <button class="tab-btn" id="tabCalc" onclick="setTab('calc')">
+        ⚖️ Prop Pricing Calculator
+      </button>
+      <button class="tab-btn" id="tabClv" onclick="setTab('clv')">
+        📈 CLV Tracking Log
+      </button>
+      <button class="tab-btn" id="tabRun" onclick="setTab('run')">
+        ⚡ Weekly Runner
+      </button>
+    </nav>
 
-    <!-- Spotlight Cards: Top 4 Active Projections -->
-    <section class="spotlight-section">
-      <div class="spotlight-header">
-        <div class="spotlight-title">
-          <span class="spotlight-badge">FEATURED</span>
-          <h3>Top Week 1 Projections (Active Games)</h3>
+    <!-- TAB 1: TOP PICKS CARD -->
+    <section id="picksSection" class="content-section active">
+      <div class="picks-status-card">
+        <div class="picks-status-header">
+          <div>
+            <div class="status-chip chip-active" id="picksStatusChip">Top Projections &amp; Model Targets</div>
+            <h3 id="picksTitle">Top Weekly Model Projections</h3>
+            <p class="text-muted" id="picksSubtitle">
+              Ranked by projected receiving volume. Check your sportsbook lines against our median fair lines (book line below fair line favors <strong>Over</strong>, above favors <strong>Under</strong>).
+            </p>
+          </div>
+          <div class="picks-actions">
+            <button class="btn-copy-slips" id="copySlipsBtn" onclick="copyPicksAsText()">
+              <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+              </svg>
+              <span>Copy as Text for Slips</span>
+            </button>
+            <div class="picks-meta" id="picksMeta">
+              <span class="meta-label">WEEK 1 GATE: 10.0% &bull; KELLY CAP: 0.50%</span>
+            </div>
+          </div>
         </div>
-        <span class="spotlight-hint">Ranked by volume (talent/usage). Tap any player to price against your book.</span>
-      </div>
-      <div class="spotlight-grid" id="spotlightCards">
-        <!-- Filled dynamically in app.js -->
+
+        <div id="picksContainer">
+          <!-- Populated dynamically via app.js -->
+        </div>
       </div>
     </section>
 
-    <!-- TAB 1: SLATE PROJECTIONS -->
+    <!-- TAB 2: SLATE BROWSER & FAIR-LINE COMPARISON TOOL -->
     <main id="slateSection" class="content-section">
       <!-- Toolbar & Filters -->
       <div class="toolbar-card">
-        <div class="search-box">
-          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="11" cy="11" r="8"/>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-          </svg>
-          <input type="text" id="searchInput" placeholder="Search player, team, or opponent..." oninput="filterData()">
-          <button class="clear-search" id="clearSearchBtn" onclick="clearSearch()" style="display:none;">&times;</button>
+        <div class="toolbar-top">
+          <div class="search-box">
+            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"/>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+            <input type="text" id="searchInput" placeholder="Search player, team, or opponent..." oninput="filterData()">
+            <button class="clear-search" id="clearSearchBtn" onclick="clearSearch()" style="display:none;">&times;</button>
+          </div>
+
+          <div class="filter-controls">
+            <!-- Position Pills -->
+            <div class="pos-filters" id="posFilters">
+              <button class="pos-btn active" data-pos="ALL" onclick="setPosFilter('ALL')">All</button>
+              <button class="pos-btn top25-btn" data-pos="TOP25" onclick="setPosFilter('TOP25')">Top 25</button>
+              <button class="pos-btn" data-pos="WR" onclick="setPosFilter('WR')">WR</button>
+              <button class="pos-btn" data-pos="TE" onclick="setPosFilter('TE')">TE</button>
+              <button class="pos-btn" data-pos="RB" onclick="setPosFilter('RB')">RB</button>
+            </div>
+
+            <!-- Team Filter Dropdown -->
+            <div class="select-group">
+              <select id="teamFilter" onchange="filterData()" class="styled-select">
+                <option value="ALL">All Teams (32)</option>
+              </select>
+            </div>
+
+            <!-- Projectable Only Switch -->
+            <label class="toggle-switch-label" title="Toggle between active projectable receivers and full roster (including excluded)">
+              <input type="checkbox" id="projectableToggle" checked onchange="filterData()">
+              <span class="switch-slider"></span>
+              <span class="switch-text">Projectable Only</span>
+            </label>
+          </div>
         </div>
 
-        <div class="pos-filters" id="posFilters">
-          <button class="pos-btn active" data-pos="ALL" onclick="setPosFilter('ALL')">All (124)</button>
-          <button class="pos-btn top25-btn" data-pos="TOP25" onclick="setPosFilter('TOP25')">Top 25</button>
-          <button class="pos-btn" data-pos="WR" onclick="setPosFilter('WR')">WR (70)</button>
-          <button class="pos-btn" data-pos="TE" onclick="setPosFilter('TE')">TE (34)</button>
-          <button class="pos-btn" data-pos="RB" onclick="setPosFilter('RB')">RB (20)</button>
+        <!-- Killer Feature Explainer Tag -->
+        <div class="comparison-hint-banner">
+          <span class="hint-pill">⚡ FAIR-LINE COMPARISON TOOL</span>
+          <span>Paste your sportsbook's line in any player's row to instantly compute modeled edge, probability, EV, and suggested Kelly stake.</span>
         </div>
       </div>
 
       <!-- Quick Summary Stats Bar -->
       <div class="summary-stats-bar">
         <div class="stat-item">
-          <span class="stat-name">Active Receivers</span>
-          <span class="stat-num" id="showingCount">124</span>
+          <span class="stat-name">Receivers Showing</span>
+          <span class="stat-num" id="showingCount">0</span>
         </div>
         <div class="stat-item">
           <span class="stat-name">Top Projected Yards</span>
-          <span class="stat-num" id="topProjYards">104.7 (Ja'Marr Chase)</span>
+          <span class="stat-num" id="topProjYards">—</span>
         </div>
         <div class="stat-item">
           <span class="stat-name">Top Projected Rec</span>
-          <span class="stat-num" id="topProjRec">8.0 (Ja'Marr Chase)</span>
+          <span class="stat-num" id="topProjRec">—</span>
         </div>
         <div class="stat-item">
           <span class="stat-name">Questionable Flagged</span>
-          <span class="stat-num" id="qCount">3</span>
+          <span class="stat-num val-amber" id="qCount">0</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-name">TD Tier 1 Alpha Plays</span>
+          <span class="stat-num val-green" id="tdTier1Count">0</span>
         </div>
       </div>
 
@@ -159,8 +231,11 @@
               <th class="num-col sortable" onclick="sortBy('fair_line_yards')">
                 Fair Line Yards <span class="sort-arrow" id="sort-fair_line_yards"></span>
               </th>
-              <th>Game Context</th>
-              <th class="action-col">Action</th>
+              <th class="num-col sortable" onclick="sortBy('p_td')">
+                Anytime TD <span class="sort-arrow" id="sort-p_td"></span>
+              </th>
+              <th class="comparison-col">Book Line Comparison &amp; Edge Evaluator</th>
+              <th class="action-col">Detail</th>
             </tr>
           </thead>
           <tbody id="slateTbody">
@@ -170,34 +245,62 @@
       </div>
     </main>
 
-    <!-- TAB 1: TOP MODEL PROJECTIONS (DEFAULT) -->
-    <section id="picksSection" class="content-section active">
-      <div class="picks-status-card">
-        <div class="picks-status-header">
+    <!-- TAB 3: TOUCHDOWN PROPS PANEL -->
+    <section id="tdSection" class="content-section">
+      <div class="td-panel-card">
+        <div class="td-panel-header">
           <div>
-            <div class="status-chip chip-active" id="picksStatusChip">Top 25 Projections Active (Settled Games Excluded)</div>
-            <h3 id="picksTitle">Top Projections &amp; Fair Lines</h3>
-            <p class="text-muted" id="picksSubtitle">
-              Top receivers ranked by projected volume (talent &amp; usage, not edge). <strong>Pricing Strategy:</strong> For <strong>Receiving Yards</strong> (continuous), compare your book's line to the fair line (below leans Over, above leans Under). For <strong>Receptions</strong> (discrete count), check the exact <em>P(Over)</em> shown next to the fair line or use <strong>Price Prop</strong> in the calculator.
+            <div class="status-chip chip-purple">TD PROBABILITY SIDE-MODEL</div>
+            <h3>Anytime Touchdown Projections &amp; Value Tiers</h3>
+            <p class="text-muted">
+              Positional empirical Bayesian shrinkage model: 2025 TD rate per target regressed to positional baseline (WR: 5.2%, TE: 7.6%, RB: 3.8%), scaled by game implied team total.
             </p>
           </div>
-          <div class="picks-meta" id="picksMeta">
-            <span class="meta-label">WEEK 1 GATE: 10.0% &bull; KELLY CAP: 0.50%</span>
+          <div class="td-tier-legend">
+            <span class="tier-pill tier-1-pill">Tier 1: High (&ge;35%)</span>
+            <span class="tier-pill tier-2-pill">Tier 2: Moderate (20&ndash;35%)</span>
+            <span class="tier-pill tier-3-pill">Tier 3: Value (&lt;20%)</span>
           </div>
         </div>
 
-        <div id="picksContainer">
-          <!-- Populated dynamically via app.js -->
+        <div class="td-summary-grid" id="tdTierSummary">
+          <!-- Summary cards filled in app.js -->
+        </div>
+
+        <div class="table-container" style="margin-top:20px;">
+          <table class="slate-table" id="tdTable">
+            <thead>
+              <tr>
+                <th>Rank</th>
+                <th>Player</th>
+                <th>Pos</th>
+                <th>Team / Matchup</th>
+                <th class="num-col">Implied Total</th>
+                <th class="num-col">Exp Targets</th>
+                <th class="num-col">2025 TDs (Tgts)</th>
+                <th class="num-col">Regressed TD Rate</th>
+                <th class="num-col">P(Anytime TD)</th>
+                <th class="num-col">Fair American Odds</th>
+                <th>Tier</th>
+                <th class="action-col">Action</th>
+              </tr>
+            </thead>
+            <tbody id="tdTbody">
+              <!-- Populated dynamically via app.js -->
+            </tbody>
+          </table>
         </div>
       </div>
     </section>
 
-    <!-- TAB 3: PROP PRICING CALCULATOR -->
+    <!-- TAB 4: PROP PRICING CALCULATOR -->
     <section id="calcSection" class="content-section">
       <div class="calc-card">
         <div class="calc-header">
           <h3>Interactive Prop Line &amp; Edge Evaluator</h3>
-          <p class="text-muted">Enter any sportsbook line (DraftKings, FanDuel, etc.) for a player to price it with the compound model + Week 1 bias correction.</p>
+          <p class="text-muted">
+            Enter any sportsbook line (DraftKings, FanDuel, BetMGM, Pinnacle) to evaluate full distribution probabilities, implied vig, expected value, and Kelly sizing.
+          </p>
         </div>
 
         <div class="calc-grid">
@@ -239,6 +342,17 @@
             <div class="player-context-box" id="calcPlayerContext">
               <!-- Context filled dynamically -->
             </div>
+
+            <div style="margin-top:16px;">
+              <button class="btn-log-bet" onclick="logCurrentCalcPick()">
+                <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                  <polyline points="17 21 17 13 7 13 7 21"/>
+                  <polyline points="7 3 7 8 15 8"/>
+                </svg>
+                <span>Save Bet to CLV Tracking Log</span>
+              </button>
+            </div>
           </div>
 
           <div class="calc-results" id="calcResults">
@@ -248,14 +362,232 @@
       </div>
     </section>
 
+    <!-- TAB 5: CLV TRACKING LOG -->
+    <section id="clvSection" class="content-section">
+      <div class="clv-container">
+        <!-- Honest Track Record Card -->
+        <div class="clv-header-card">
+          <div class="clv-title-row">
+            <div>
+              <div class="status-chip chip-blue">CLV DISCIPLINE &bull; CLOSING LINE VALUE</div>
+              <h3>Model Track Record &amp; Closing Line Audit</h3>
+              <p class="text-muted">
+                Beating the closing line is the only statistical validation that confirms an edge before hundreds of bets settle.
+              </p>
+            </div>
+            <button class="btn-secondary" onclick="loadClvData()">
+              <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M23 4v6h-6"/>
+                <path d="M1 20v-6h6"/>
+                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+              </svg>
+              <span>Refresh Log</span>
+            </button>
+          </div>
+
+          <!-- CLV KPI Cards -->
+          <div class="clv-kpi-grid">
+            <div class="kpi-card">
+              <span class="kpi-label">MEAN CLV</span>
+              <span class="kpi-value" id="clvMeanVal">—</span>
+              <span class="kpi-sub" id="clvMeanSub">Avg edge vs closing line</span>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-label">95% CONFIDENCE INTERVAL</span>
+              <span class="kpi-value" id="clvCiVal">—</span>
+              <span class="kpi-sub" id="clvSeSub">Standard Error: —</span>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-label">BETS AUDITED</span>
+              <span class="kpi-value" id="clvCountVal">0</span>
+              <span class="kpi-sub" id="clvWeeksSub">0 weeks logged</span>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-label">% BEATING THE CLOSE</span>
+              <span class="kpi-value" id="clvBeatingVal">—</span>
+              <span class="kpi-sub">Picks closing in our favor</span>
+            </div>
+          </div>
+
+          <!-- Verdict Banner -->
+          <div class="clv-verdict-banner" id="clvVerdictBanner">
+            <div class="verdict-tag" id="clvVerdictTag">HONEST AUDIT VERDICT</div>
+            <div class="verdict-title" id="clvVerdictTitle">Awaiting closing lines</div>
+            <p id="clvVerdictText">
+              Enter closing lines once games lock to calculate running CLV. If CLV is not distinguishable from zero, the edge cannot be claimed.
+            </p>
+          </div>
+        </div>
+
+        <!-- Record Closing Lines Card -->
+        <div class="card-box" style="margin-top:20px;">
+          <div class="card-box-header">
+            <h4>Record Closing Line for Settled Picks</h4>
+            <span class="text-muted">Enter closing de-vigged probability or American odds after game lock.</span>
+          </div>
+          <div class="closing-form-row">
+            <div class="form-group flex-1">
+              <label for="closeSelectPick">Select Logged Pick</label>
+              <select id="closeSelectPick" class="styled-select" onchange="onClosePickSelect()">
+                <option value="">No open picks awaiting closing</option>
+              </select>
+            </div>
+            <div class="form-group flex-1">
+              <label for="closingProbInput">Closing De-Vig Prob (e.g. 0.525 or enter Odds below)</label>
+              <input type="number" id="closingProbInput" step="0.005" placeholder="0.525" class="styled-input">
+            </div>
+            <div class="form-group" style="width:140px;">
+              <label for="closingOddsInput">Closing Odds</label>
+              <input type="number" id="closingOddsInput" step="5" placeholder="-125" class="styled-input" oninput="updateClosingProbFromOdds()">
+            </div>
+            <button class="btn-primary" style="align-self:flex-end; height:42px;" onclick="submitClosingLine()">
+              Save Closing Line
+            </button>
+          </div>
+        </div>
+
+        <!-- Logged Picks Table -->
+        <div class="card-box" style="margin-top:20px;">
+          <div class="card-box-header">
+            <h4>Picks Audit Ledger (picks_log.jsonl)</h4>
+          </div>
+          <div class="table-container">
+            <table class="slate-table" id="clvLogTable">
+              <thead>
+                <tr>
+                  <th>Logged At</th>
+                  <th>Player</th>
+                  <th>Market</th>
+                  <th>Side</th>
+                  <th>Line</th>
+                  <th>Odds</th>
+                  <th>Model Prob</th>
+                  <th>Mkt Prob</th>
+                  <th>Closing Prob</th>
+                  <th>CLV</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="clvLogTbody">
+                <tr><td colspan="11" style="text-align:center; padding:24px; color:var(--text-dim);">No picks logged yet. Log picks from the Calculator or Runner.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 6: WEEKLY RUNNER -->
+    <section id="runSection" class="content-section">
+      <div class="runner-card">
+        <div class="runner-header">
+          <div>
+            <div class="status-chip chip-amber">PIPELINE RUNNER</div>
+            <h3>Execute Weekly NFL Prop Pipeline</h3>
+            <p class="text-muted">
+              Shells out to <code>src/week1.py</code>, runs model parameter fitting, projects the slate, generates fair lines, and streams stdout directly into the console below.
+            </p>
+          </div>
+        </div>
+
+        <div class="runner-controls-card">
+          <div class="runner-controls-grid">
+            <div class="form-group">
+              <label for="runSeasonSelect">NFL Season</label>
+              <select id="runSeasonSelect" class="styled-select">
+                <option value="2026" selected>2026</option>
+                <option value="2025">2025</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="runWeekSelect">Week</label>
+              <select id="runWeekSelect" class="styled-select">
+                <option value="1" selected>Week 1</option>
+                <option value="2">Week 2</option>
+                <option value="3">Week 3</option>
+                <option value="4">Week 4</option>
+              </select>
+            </div>
+
+            <div class="form-group checkbox-group">
+              <label class="styled-checkbox">
+                <input type="checkbox" id="runAllGamesCheck" checked>
+                <span>Include All Slate Games (Research / Audit Mode)</span>
+              </label>
+            </div>
+
+            <div class="form-group checkbox-group">
+              <label class="styled-checkbox">
+                <input type="checkbox" id="runOddsCheck">
+                <span>Pull Live Book Odds (requires <code>ODDS_API_KEY</code>)</span>
+              </label>
+            </div>
+
+            <button class="btn-primary-large" id="executeRunBtn" onclick="executeWeeklyRun()">
+              <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="5 3 19 12 5 21 5 3"/>
+              </svg>
+              <span>Run Pipeline Now</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Terminal Console -->
+        <div class="terminal-container">
+          <div class="terminal-bar">
+            <div class="terminal-dots">
+              <span class="dot red-dot"></span>
+              <span class="dot yellow-dot"></span>
+              <span class="dot green-dot"></span>
+            </div>
+            <span class="terminal-title">Runner Console (stdout stream)</span>
+            <button class="terminal-clear" onclick="clearTerminal()">Clear</button>
+          </div>
+          <pre class="terminal-body" id="terminalOutput">Ready. Click "Run Pipeline Now" to execute week1.py and stream live model training and projections.</pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- PLAYER DETAIL MODAL / SLIDE-OVER DRAWER -->
+    <div class="modal-backdrop" id="playerModal" onclick="closePlayerModal(event)">
+      <div class="modal-content" onclick="event.stopPropagation()">
+        <div class="modal-header">
+          <div class="modal-player-info">
+            <span class="pos-tag" id="modalPosTag">WR</span>
+            <div>
+              <h2 id="modalPlayerName">Player Name</h2>
+              <div class="modal-meta" id="modalPlayerMeta">Team vs Opponent &bull; Spread &bull; Implied Total</div>
+            </div>
+          </div>
+          <button class="modal-close" onclick="closePlayerModal()">&times;</button>
+        </div>
+
+        <div class="modal-body" id="modalBody">
+          <!-- Filled dynamically in app.js -->
+        </div>
+      </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION CONTAINER -->
+    <div id="toastContainer" class="toast-container"></div>
+
     <!-- Footer -->
     <footer class="footer">
-      <p>
-        <strong>Legal &amp; Model Disclaimer:</strong> Statistical estimates for entertainment and research only. Not financial advice. No outcome is guaranteed. Past performance does not predict future results. 21+ where legal. If gambling is causing harm, call 1-800-GAMBLER.
-      </p>
-      <p class="footer-sub">
-        Compound NegBin / Gamma Model &bull; Evaluated walk-forward against 33,588 player-weeks.
-      </p>
+      <div class="footer-grid">
+        <div>
+          <h4>Model Integrity &amp; Architecture</h4>
+          <p class="text-muted">
+            Compound Negative-Binomial / Gamma distributional framework. Model fitting happens in batch jobs, never inside requests. Calibrated against 33,588 historical player-weeks.
+          </p>
+        </div>
+        <div>
+          <h4>Important Disclaimers</h4>
+          <p class="text-muted">
+            Statistical estimates for entertainment and research only. Not financial advice. Past calibration does not equal proven edge vs sportsbooks. Must be 21+ where legal. Gambling problem? Call 1-800-GAMBLER.
+          </p>
+        </div>
+      </div>
     </footer>
   </div>
 
