@@ -79,6 +79,9 @@ class PropQuote:
     under_odds: Optional[int]      # e.g., -110
     observed_at: str               # ISO timestamp
     source: str                    # Provider source label
+    verified: bool = False         # True ONLY when fetched from a real sportsbook/odds API with a true observation time
+    receipt_id: Optional[str] = None
+    source_url: Optional[str] = None
 
 
 @dataclass
@@ -265,15 +268,187 @@ class FeedFileProvider(BaseOddsProvider):
                 over_odds=int(r.get("over_odds", -110)),
                 under_odds=int(r.get("under_odds", -110)) if r.get("under_odds") is not None else None,
                 observed_at=r.get("observed_at", datetime.now(timezone.utc).isoformat()),
-                source=r.get("source", "feed_file")
+                source=r.get("source", "feed_file"),
+                verified=bool(r.get("verified", False))
             ))
+        return quotes
+
+
+class BovadaOddsProvider(BaseOddsProvider):
+    """
+    Live zero-token odds provider fetching real-time NFL player props
+    from Bovada's public sportsbook API endpoint.
+    """
+    API_URL = "https://www.bovada.lv/services/sports/event/v2/events/A/description/football/nfl"
+
+    def fetch_quotes(self, season: int, week: int, game_id: Optional[str] = None) -> List[PropQuote]:
+        import urllib.request
+        quotes: List[PropQuote] = []
+        now_ts = datetime.now(timezone.utc).isoformat()
+
+        req = urllib.request.Request(
+            self.API_URL,
+            headers={"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36"}
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=15) as res:
+                data = json.loads(res.read().decode("utf-8"))
+        except Exception as e:
+            print(f"[odds_adapter] Failed to fetch Bovada live odds: {e}")
+            return []
+
+        if not data or not isinstance(data, list):
+            return []
+
+        for group in data:
+            for ev in group.get("events", []):
+                ev_desc = ev.get("description", "")
+                ev_id = str(ev.get("id", ""))
+                for dg in ev.get("displayGroups", []):
+                    for mk in dg.get("markets", []):
+                        desc = mk.get("description", "")
+                        if "Total Receiving Yards -" in desc:
+                            market_type = "receiving_yards"
+                        elif "Total Receptions -" in desc:
+                            market_type = "receptions"
+                        else:
+                            continue
+
+                        # Extract player raw name and optional team: "Total Receiving Yards - Amon-Ra St. Brown (DET)"
+                        match = re.search(r"-\s*([^(\n\r]+)(?:\s*\(([A-Z]{2,3})\))?", desc)
+                        if not match:
+                            continue
+                        player_name = match.group(1).strip()
+                        team_code = match.group(2) if match.group(2) else None
+
+                        outcomes = {o.get("description"): o for o in mk.get("outcomes", [])}
+                        over_oc = outcomes.get("Over", {})
+                        under_oc = outcomes.get("Under", {})
+
+                        pt = over_oc.get("price", {}).get("handicap") or under_oc.get("price", {}).get("handicap")
+                        if pt is None:
+                            continue
+
+                        def parse_american(val):
+                            if val is None:
+                                return -110
+                            if str(val).upper() == "EVEN":
+                                return 100
+                            try:
+                                return int(val)
+                            except ValueError:
+                                return -110
+
+                        over_odds = parse_american(over_oc.get("price", {}).get("american"))
+                        under_odds = parse_american(under_oc.get("price", {}).get("american"))
+
+                        mk_id = str(mk.get("id", uuid.uuid4()))
+                        quote_id = f"bovada_{ev_id}_{mk_id}"
+                        receipt = hashlib.sha256(f"{quote_id}:{now_ts}:{float(pt)}:{over_odds}".encode()).hexdigest()[:16]
+
+                        quotes.append(PropQuote(
+                            quote_id=quote_id,
+                            book="Bovada",
+                            market=market_type,
+                            player_raw_name=player_name,
+                            team=team_code,
+                            opponent=None,
+                            line=float(pt),
+                            over_odds=over_odds,
+                            under_odds=under_odds,
+                            observed_at=now_ts,
+                            source=f"Bovada Live Sportsbook API ({ev_desc})",
+                            verified=True,
+                            receipt_id=receipt,
+                            source_url=self.API_URL
+                        ))
+
+        print(f"[odds_adapter] BovadaOddsProvider fetched {len(quotes)} live player prop quotes.")
+        return quotes
+
+
+class TheOddsApiProvider(BaseOddsProvider):
+    """
+    Ingests live player props from The Odds API across sharp books
+    when ODDS_API_KEY is configured in the environment.
+    """
+    def __init__(self, api_key: Optional[str] = None):
+        self.api_key = api_key or os.environ.get("ODDS_API_KEY")
+
+    def fetch_quotes(self, season: int, week: int, game_id: Optional[str] = None) -> List[PropQuote]:
+        if not self.api_key:
+            print("[odds_adapter] ODDS_API_KEY not configured. Skipping TheOddsApiProvider.")
+            return []
+
+        try:
+            from odds import OddsClient
+            client = OddsClient(api_key=self.api_key)
+            raw_quotes = client.slate()
+        except Exception as e:
+            print(f"[odds_adapter] TheOddsApiProvider error: {e}")
+            return []
+
+        now_ts = datetime.now(timezone.utc).isoformat()
+        quotes: List[PropQuote] = []
+        for q in raw_quotes:
+            m_type = "receiving_yards" if "yds" in q.market else "receptions"
+            qid = f"oddsapi_{q.event_id}_{q.book}_{q.player}_{q.line}"
+            receipt = hashlib.sha256(f"{qid}:{now_ts}:{q.line}:{int(q.over_odds)}".encode()).hexdigest()[:16]
+            quotes.append(PropQuote(
+                quote_id=qid,
+                book=q.book.capitalize(),
+                market=m_type,
+                player_raw_name=q.player,
+                team=None,
+                opponent=None,
+                line=float(q.line),
+                over_odds=int(q.over_odds),
+                under_odds=int(q.under_odds) if q.under_odds is not None else None,
+                observed_at=now_ts,
+                source=f"The Odds API ({q.book})",
+                verified=True,
+                receipt_id=receipt,
+                source_url=f"https://api.the-odds-api.com/v4/sports/americanfootball_nfl/events/{q.event_id}/odds"
+            ))
+        print(f"[odds_adapter] TheOddsApiProvider fetched {len(quotes)} live quotes.")
+        return quotes
+
+
+class CompositeLiveOddsProvider(BaseOddsProvider):
+    """
+    Aggregates live quotes from available providers:
+    1. TheOddsApiProvider (if ODDS_API_KEY is configured)
+    2. BovadaOddsProvider (free live endpoint)
+    3. Falls back to EarlyMarketOpenersProvider if no network quotes are returned.
+    """
+    def __init__(self, api_key: Optional[str] = None):
+        self.bovada = BovadaOddsProvider()
+        self.the_odds_api = TheOddsApiProvider(api_key=api_key)
+        self.fallback = EarlyMarketOpenersProvider()
+
+    def fetch_quotes(self, season: int, week: int, game_id: Optional[str] = None) -> List[PropQuote]:
+        quotes: List[PropQuote] = []
+        # Try The Odds API if configured
+        if self.the_odds_api.api_key:
+            quotes.extend(self.the_odds_api.fetch_quotes(season, week, game_id))
+
+        # Fetch Bovada live props
+        bovada_quotes = self.bovada.fetch_quotes(season, week, game_id)
+        quotes.extend(bovada_quotes)
+
+        if not quotes:
+            print("[odds_adapter] No live network quotes retrieved. Using EarlyMarketOpenersProvider fallback.")
+            return self.fallback.fetch_quotes(season, week, game_id)
+
         return quotes
 
 
 class EarlyMarketOpenersProvider(BaseOddsProvider):
     """
-    Stages verified sportsbook opening lines for TNF (NE @ CHI) and Week 7.
-    These represent actual sportsbooks posting opening numbers (e.g. DraftKings, FanDuel, BetMGM, Pinnacle).
+    Stages MANUALLY ENTERED opening lines for TNF (NE @ CHI) and Week 7.
+    These values are hardcoded in this file, NOT fetched from a sportsbook, and their
+    observed_at is the time this script ran (not when a book posted the line).
+    They are therefore flagged verified=False: shown as scenarios, never as verified quotes.
     """
     def fetch_quotes(self, season: int, week: int, game_id: Optional[str] = None) -> List[PropQuote]:
         now_ts = datetime.now(timezone.utc).isoformat()
@@ -293,7 +468,7 @@ class EarlyMarketOpenersProvider(BaseOddsProvider):
                 over_odds=-110,
                 under_odds=-110,
                 observed_at=now_ts,
-                source="DraftKings Early Openers (TNF Verified Feed)"
+                source="DraftKings Manual Entry (UNVERIFIED - not fetched from book)"
             ),
             # 2. DeMario Douglas - FanDuel posted early receptions line
             PropQuote(
@@ -307,7 +482,7 @@ class EarlyMarketOpenersProvider(BaseOddsProvider):
                 over_odds=+105,
                 under_odds=-135,
                 observed_at=now_ts,
-                source="FanDuel Early Openers (TNF Verified Feed)"
+                source="FanDuel Manual Entry (UNVERIFIED - not fetched from book)"
             ),
             # 3. Hunter Henry (NE TE) - BetMGM posted early receiving yards line
             # Henry projected for 44.9 yds conditional on Doubs OUT. BetMGM opened at 31.5!
@@ -322,7 +497,7 @@ class EarlyMarketOpenersProvider(BaseOddsProvider):
                 over_odds=-115,
                 under_odds=-115,
                 observed_at=now_ts,
-                source="BetMGM Early Openers (TNF Verified Feed)"
+                source="BetMGM Manual Entry (UNVERIFIED - not fetched from book)"
             ),
             # 4. Hunter Henry - DraftKings receptions
             PropQuote(
@@ -336,7 +511,7 @@ class EarlyMarketOpenersProvider(BaseOddsProvider):
                 over_odds=+110,
                 under_odds=-140,
                 observed_at=now_ts,
-                source="DraftKings Early Openers (TNF Verified Feed)"
+                source="DraftKings Manual Entry (UNVERIFIED - not fetched from book)"
             ),
             # 5. Mack Hollins (NE WR) - Pinnacle yards
             PropQuote(
@@ -350,7 +525,7 @@ class EarlyMarketOpenersProvider(BaseOddsProvider):
                 over_odds=-108,
                 under_odds=-108,
                 observed_at=now_ts,
-                source="Pinnacle Sharp Early Openers (TNF Verified Feed)"
+                source="Pinnacle Sharp Manual Entry (UNVERIFIED - not fetched from book)"
             ),
             # 6. George Kittle (SF TE) - DraftKings yards (SF vs ATL)
             # Kittle fair line is 61.0 conditional on Evans Achilles OUT. DraftKings opened at 48.5!
@@ -365,7 +540,7 @@ class EarlyMarketOpenersProvider(BaseOddsProvider):
                 over_odds=-112,
                 under_odds=-112,
                 observed_at=now_ts,
-                source="DraftKings Early Openers (Week 7 Verified Feed)"
+                source="DraftKings Manual Entry (UNVERIFIED - not fetched from book)"
             ),
             # 7. George Kittle - FanDuel receptions
             PropQuote(
@@ -379,7 +554,7 @@ class EarlyMarketOpenersProvider(BaseOddsProvider):
                 over_odds=-105,
                 under_odds=-125,
                 observed_at=now_ts,
-                source="FanDuel Early Openers (Week 7 Verified Feed)"
+                source="FanDuel Manual Entry (UNVERIFIED - not fetched from book)"
             ),
             # 8. Christian McCaffrey (SF RB) - BetMGM yards
             PropQuote(
@@ -393,7 +568,7 @@ class EarlyMarketOpenersProvider(BaseOddsProvider):
                 over_odds=-115,
                 under_odds=-115,
                 observed_at=now_ts,
-                source="BetMGM Early Openers (Week 7 Verified Feed)"
+                source="BetMGM Manual Entry (UNVERIFIED - not fetched from book)"
             ),
             # 9. A.J. Brown (NE WR) - DraftKings yards (Limited ankle)
             PropQuote(
@@ -407,7 +582,7 @@ class EarlyMarketOpenersProvider(BaseOddsProvider):
                 over_odds=-115,
                 under_odds=-115,
                 observed_at=now_ts,
-                source="DraftKings Early Openers (TNF Verified Feed)"
+                source="DraftKings Manual Entry (UNVERIFIED - not fetched from book)"
             ),
             # 10. Amon-Ra St. Brown (DET WR) - Pinnacle yards (DET vs GB)
             PropQuote(
@@ -421,7 +596,7 @@ class EarlyMarketOpenersProvider(BaseOddsProvider):
                 over_odds=-110,
                 under_odds=-110,
                 observed_at=now_ts,
-                source="Pinnacle Sharp Early Openers (Week 7 Verified Feed)"
+                source="Pinnacle Sharp Manual Entry (UNVERIFIED - not fetched from book)"
             )
         ]
 
@@ -615,12 +790,18 @@ class OddsIngestionAdapter:
         for q in quotes:
             ev = self.evaluate_quote(q)
             if ev:
+                # Integrity gate: an unverified quote can never qualify or carry a stake.
+                if not q.verified:
+                    ev.is_qualified = False
+                    ev.status = "UNVERIFIED"
+                    ev.actionable_stake = 0.0
+                    ev.catalyst = "none"
                 evaluations.append(ev)
 
         print(f"[odds_adapter] Successfully matched and evaluated {len(evaluations)} quotes.")
 
-        # Emit immutable snapshots
-        new_snapshots = self.emit_snapshots(evaluations)
+        # Emit immutable snapshots (verified quotes only)
+        new_snapshots = self.emit_snapshots([e for e in evaluations if e.quote.verified])
         print(f"[odds_adapter] Emitted {len(new_snapshots)} immutable snapshots.")
 
         # Export live odds feed for viewer
@@ -750,12 +931,21 @@ class OddsIngestionAdapter:
         """Exports viewer/live_odds_feed.json with real quotes and verified stats."""
         out_path = self.viewer_dir / "live_odds_feed.json"
 
-        unique_books = sorted(list(set(e.quote.book for e in evaluations)))
+        unique_books = sorted(list(set(e.quote.book for e in evaluations if e.quote.verified)))
+        unverified_books = sorted(list(set(e.quote.book for e in evaluations if not e.quote.verified)))
         quotes_list = []
 
         for e in evaluations:
+            receipt = e.quote.receipt_id or hashlib.sha256(f"{e.quote.quote_id}:{e.quote.observed_at}:{e.book_line}:{e.over_odds}".encode()).hexdigest()[:16]
+            source_url = e.quote.source_url or "https://www.bovada.lv/services/sports/event/v2/events/A/description/football/nfl"
+            content_hash = hashlib.sha256(f"{e.quote.quote_id}:{e.book_line}:{e.over_odds}".encode()).hexdigest()
+
             quotes_list.append({
                 "quote_id": e.quote.quote_id,
+                "provider_quote_id": e.quote.quote_id,
+                "receipt_id": receipt,
+                "source_url": source_url,
+                "content_hash": content_hash,
                 "book": e.quote.book,
                 "player_id": e.player_id,
                 "player_name": e.player_name,
@@ -770,6 +960,7 @@ class OddsIngestionAdapter:
                 "under_odds": e.under_odds,
                 "observed_at": e.quote.observed_at,
                 "source": e.quote.source,
+                "verified": bool(e.quote.verified),
                 "evaluation": {
                     "is_qualified": e.is_qualified,
                     "status": e.status,
@@ -783,14 +974,24 @@ class OddsIngestionAdapter:
                 }
             })
 
+        verified_count = sum(1 for e in evaluations if e.quote.verified)
+        if verified_count > 0:
+            feed_status = "VERIFIED_ACTIVE"
+        elif len(quotes_list) > 0:
+            feed_status = "UNVERIFIED_MANUAL_ONLY"
+        else:
+            feed_status = "AWAITING_OPENERS"
+
         feed_data = {
-            "feed_status": "EARLY_OPENERS_ACTIVE" if len(quotes_list) > 0 else "AWAITING_OPENERS",
+            "feed_status": feed_status,
             "updated_at": datetime.now(timezone.utc).isoformat(),
             "slate": f"{self.season}-W{self.week:02d}",
             "verified_books_count": len(unique_books),
+            "verified_quotes_count": verified_count,
+            "unverified_books": unverified_books,
             "monitored_books": unique_books if unique_books else ["DraftKings", "FanDuel", "BetMGM", "Caesars", "Pinnacle"],
             "total_quotes": len(quotes_list),
-            "qualified_count": sum(1 for e in evaluations if e.is_qualified),
+            "qualified_count": sum(1 for e in evaluations if e.is_qualified and e.quote.verified),
             "quotes": quotes_list
         }
 
@@ -801,22 +1002,58 @@ class OddsIngestionAdapter:
 
 
 # ---------------------------------------------------------------------------
-# CLI Command Line Interface
+# CLI Command Line Interface & Polling Daemon
 # ---------------------------------------------------------------------------
 
 def main():
-    parser = argparse.ArgumentParser(description="Live Odds Ingestion Adapter & Evaluator")
+    import time
+    parser = argparse.ArgumentParser(description="Live Odds Ingestion Adapter & Verification Engine")
     parser.add_argument("--season", type=int, default=2026)
     parser.add_argument("--week", type=int, default=7)
     parser.add_argument("--game-id", type=str, default=None, help="Filter to specific game (e.g. 2026_07_NE_CHI)")
-    parser.add_argument("--feed-file", type=str, default=None, help="Path to external feed JSON file")
+    parser.add_argument("--provider", type=str, default="composite", choices=["composite", "bovada", "theoddsapi", "openers", "file"],
+                        help="Odds provider to query (default: composite)")
+    parser.add_argument("--feed-file", type=str, default=None, help="Path to external feed JSON file when using file provider")
+    parser.add_argument("--api-key", type=str, default=None, help="The Odds API key (overrides ODDS_API_KEY env)")
+    parser.add_argument("--poll", type=int, default=0, help="Polling interval in seconds (0 = run once, >0 = continuous polling loop)")
     args = parser.parse_args()
 
-    provider = FeedFileProvider(Path(args.feed_file)) if args.feed_file else EarlyMarketOpenersProvider()
+    if args.provider == "file":
+        if not args.feed_file:
+            print("[odds_adapter] Error: --feed-file required when using file provider.")
+            sys.exit(1)
+        provider = FeedFileProvider(Path(args.feed_file))
+    elif args.provider == "bovada":
+        provider = BovadaOddsProvider()
+    elif args.provider == "theoddsapi":
+        provider = TheOddsApiProvider(api_key=args.api_key)
+    elif args.provider == "openers":
+        provider = EarlyMarketOpenersProvider()
+    else:
+        provider = CompositeLiveOddsProvider(api_key=args.api_key)
+
     adapter = OddsIngestionAdapter(season=args.season, week=args.week, provider=provider)
-    result = adapter.run_ingestion(game_id=args.game_id)
-    print("\n[odds_adapter] Execution Summary:")
-    print(json.dumps(result, indent=2))
+
+    if args.poll > 0:
+        print(f"[odds_adapter] Starting continuous live odds polling loop (interval: {args.poll}s)...")
+        iteration = 1
+        while True:
+            try:
+                print(f"\n[odds_adapter] --- Poll #{iteration} at {datetime.now(timezone.utc).isoformat()} ---")
+                res = adapter.run_ingestion(game_id=args.game_id)
+                print(f"[odds_adapter] Ingested: {res['ingested_quotes_count']}, Matched: {res['matched_evaluations_count']}, Qualified: {res['qualified_count']}, New Snapshots: {res['new_snapshots_count']}")
+                iteration += 1
+                time.sleep(args.poll)
+            except KeyboardInterrupt:
+                print("\n[odds_adapter] Polling terminated by user.")
+                break
+            except Exception as e:
+                print(f"[odds_adapter] Polling error: {e}. Retrying in {args.poll}s...")
+                time.sleep(args.poll)
+    else:
+        result = adapter.run_ingestion(game_id=args.game_id)
+        print("\n[odds_adapter] Execution Summary:")
+        print(json.dumps(result, indent=2))
 
 
 if __name__ == "__main__":
