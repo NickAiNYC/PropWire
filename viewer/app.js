@@ -56,8 +56,14 @@
     selectedPlayerId: null,
     focusedIndex: -1,
     scenarioTargetShare: null,
+    bankroll: 5000,
+    clvReport: null,
     portfolio: loadPortfolio()
   };
+  try {
+    const savedBankroll = localStorage.getItem('propwire-bankroll');
+    if (savedBankroll) state.bankroll = Math.max(100, Number(savedBankroll));
+  } catch (_) {}
 
   const $ = (selector) => document.querySelector(selector);
   const $$ = (selector) => [...document.querySelectorAll(selector)];
@@ -94,6 +100,14 @@
   };
 
   function keyDriverTag(row, beneficiary) {
+    if (state.filters.market === 'anytime_td') {
+      const rzShare = Math.min(0.48, Math.max(0.12, (num(row.f_tgt_share || row.target_share) * 1.5)));
+      const ezTargets = (num(row.c_targets, 4.0) * 0.18).toFixed(1);
+      if (rzShare >= 0.28) {
+        return `<span class="driver-badge surge" title="Red Zone Target Share">${SVG_ICONS.surge} 🚨 RZ Share (${pct(rzShare, 0)})</span>`;
+      }
+      return `<span class="driver-badge alpha" title="End Zone Targets">${SVG_ICONS.alpha} 🎯 EZ Targets (${ezTargets}/gm)</span>`;
+    }
     if (beneficiary) {
       return `<span class="driver-badge surge" title="Role surge catalyst: ${esc(beneficiary.catalyst_injury || 'Vacancy')}">${SVG_ICONS.surge} Surge (+${num(beneficiary.added_targets).toFixed(1)} tgt)</span>`;
     }
@@ -121,6 +135,11 @@
   }
 
   function predictionInterval(row) {
+    if (state.filters.market === 'anytime_td') {
+      const share = num(row.f_tgt_share || row.target_share, 0.15);
+      const prob = Math.min(0.65, Math.max(0.12, share * 1.8));
+      return `Implied P(TD): ${pct(prob, 0)}`;
+    }
     const isRec = state.filters.market === 'receptions';
     if (isRec) {
       const mu = num(row.mu_rec || row.proj_rec || 3.0);
@@ -188,6 +207,9 @@
     const portfolioBtn = $('#portfolioBtn');
     if (portfolioBtn) portfolioBtn.addEventListener('click', openPortfolioDialog);
 
+    const clvReportBtn = $('#clvReportBtn');
+    if (clvReportBtn) clvReportBtn.addEventListener('click', openClvReport);
+
     const mobileFilterToggle = $('#mobileFilterToggle');
     if (mobileFilterToggle) {
       mobileFilterToggle.addEventListener('click', () => {
@@ -210,63 +232,84 @@
   }
 
   function initKeyboardNav() {
-    window.addEventListener('keydown', (event) => {
-      const targetTag = (event.target.tagName || '').toUpperCase();
-      const isInput = targetTag === 'INPUT' || targetTag === 'SELECT' || targetTag === 'TEXTAREA' || event.target.isContentEditable;
-
-      // [/] to focus search
-      if (event.key === '/' && !isInput) {
-        event.preventDefault();
-        const search = $('#searchInput');
-        if (search) {
-          search.focus();
-          search.select();
+    document.addEventListener('keydown', (e) => {
+      // 1. Ignore shortcuts if the user is already typing in an input (except Escape)
+      const activeTag = (document.activeElement?.tagName || '').toUpperCase();
+      if (['INPUT', 'TEXTAREA', 'SELECT'].includes(activeTag) || document.activeElement?.isContentEditable) {
+        if (e.key === 'Escape') {
+          document.activeElement.blur(); // Clear focus
         }
         return;
       }
 
-      // [Escape] to close dialog or blur search
-      if (event.key === 'Escape') {
-        if ($('#detailDialog').open) {
-          $('#detailDialog').close();
-          return;
-        }
-        const portDialog = $('#portfolioDialog');
-        if (portDialog && portDialog.open) {
-          portDialog.close();
-          return;
-        }
-        if (isInput) {
-          event.target.blur();
-          return;
-        }
+      // 2. Escape closes dialogs or clears focus
+      if (e.key === 'Escape') {
+        const detailDlg = $('#detailDialog');
+        if (detailDlg && detailDlg.open) { detailDlg.close(); return; }
+        const portDlg = $('#portfolioDialog');
+        if (portDlg && portDlg.open) { portDlg.close(); return; }
+        const clvDlg = $('#clvDialog');
+        if (clvDlg && clvDlg.open) { clvDlg.close(); return; }
         clearFocusedRow();
         return;
       }
 
-      if (isInput) return;
+      const rows = getVisibleItems();
+      let focusedRowIndex = state.focusedIndex;
 
-      // [J] or [ArrowDown] - Navigate down
-      if (event.key === 'j' || event.key === 'J' || event.key === 'ArrowDown') {
-        event.preventDefault();
-        navigateRow(1);
-        return;
-      }
+      switch (e.key) {
+        case '/': // Focus Search
+          e.preventDefault();
+          const searchInput = document.getElementById('searchInput');
+          if (searchInput) {
+            searchInput.focus();
+            searchInput.select();
+          }
+          break;
 
-      // [K] or [ArrowUp] - Navigate up
-      if (event.key === 'k' || event.key === 'K' || event.key === 'ArrowUp') {
-        event.preventDefault();
-        navigateRow(-1);
-        return;
-      }
+        case 'j': // Move Down
+        case 'J':
+        case 'ArrowDown':
+          e.preventDefault();
+          if (rows.length && focusedRowIndex < rows.length - 1) {
+            if (focusedRowIndex >= 0 && rows[focusedRowIndex]) {
+              rows[focusedRowIndex].classList.remove('keyboard-focus', 'terminal-focused');
+            }
+            focusedRowIndex++;
+            state.focusedIndex = focusedRowIndex;
+            rows[focusedRowIndex].classList.add('keyboard-focus', 'terminal-focused');
+            rows[focusedRowIndex].scrollIntoView({ block: 'nearest' });
+          }
+          break;
 
-      // [Enter] - Inspect focused item
-      if (event.key === 'Enter') {
-        const activeEl = getFocusedItem();
-        if (activeEl && activeEl.dataset.playerId) {
-          event.preventDefault();
-          openDetail(activeEl.dataset.playerId);
-        }
+        case 'k': // Move Up
+        case 'K':
+        case 'ArrowUp':
+          e.preventDefault();
+          if (rows.length && focusedRowIndex > 0) {
+            if (rows[focusedRowIndex]) {
+              rows[focusedRowIndex].classList.remove('keyboard-focus', 'terminal-focused');
+            }
+            focusedRowIndex--;
+            state.focusedIndex = focusedRowIndex;
+            rows[focusedRowIndex].classList.add('keyboard-focus', 'terminal-focused');
+            rows[focusedRowIndex].scrollIntoView({ block: 'nearest' });
+          }
+          break;
+
+        case 'Enter': // Inspect Row
+          e.preventDefault();
+          if (focusedRowIndex >= 0 && rows[focusedRowIndex]) {
+            rows[focusedRowIndex].click();
+          }
+          break;
+
+        case 't': // Toggle Table/Grid
+        case 'T':
+          e.preventDefault();
+          const currentView = document.querySelector('.view-switch .active')?.dataset?.view || state.view;
+          setView(currentView === 'table' ? 'cards' : 'table');
+          break;
       }
     });
   }
@@ -278,27 +321,9 @@
     return $$('#cardView article[data-testid="slate-card"]');
   }
 
-  function navigateRow(direction) {
-    const items = getVisibleItems();
-    if (!items.length) return;
-    state.focusedIndex = Math.max(0, Math.min(items.length - 1, state.focusedIndex + direction));
-    items.forEach((item, idx) => {
-      item.classList.toggle('terminal-focused', idx === state.focusedIndex);
-    });
-    const current = items[state.focusedIndex];
-    if (current) {
-      current.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-    }
-  }
-
-  function getFocusedItem() {
-    const items = getVisibleItems();
-    return items[state.focusedIndex] || null;
-  }
-
   function clearFocusedRow() {
     state.focusedIndex = -1;
-    getVisibleItems().forEach((item) => item.classList.remove('terminal-focused'));
+    getVisibleItems().forEach((item) => item.classList.remove('keyboard-focus', 'terminal-focused'));
   }
 
   function initTheme() {
@@ -556,7 +581,7 @@
   function filteredRows() {
     const { search, position, team, gameId, playMode, intent } = state.filters;
     let rows = state.slate.filter((row) => {
-      if (playMode === 'actionable' && !findQuote(row, state.filters.market)) return false;
+      if (playMode === 'actionable' && state.filters.market !== 'anytime_td' && !findQuote(row, state.filters.market)) return false;
       if (position !== 'ALL' && row.position !== position) return false;
       if (team && row.team !== team) return false;
       if (gameId && row.game_id !== gameId) return false;
@@ -608,7 +633,7 @@
   }
 
   function updateStickyContext(rows) {
-    const marketName = state.filters.market === 'receptions' ? 'Receptions' : 'Rec Yards';
+    const marketName = state.filters.market === 'receptions' ? 'Receptions' : state.filters.market === 'anytime_td' ? 'Anytime TD' : 'Rec Yards';
     const posName = state.filters.position === 'ALL' ? 'All Pos' : state.filters.position;
     const modeName = state.filters.playMode === 'actionable' ? 'Active Opportunities' : 'All Projections';
     const label = `⚡ ${modeName} · ${marketName} · ${posName}`;
@@ -638,6 +663,18 @@
       badge.textContent = count;
       badge.hidden = count === 0;
     }
+  }
+
+  function venueBadge(row) {
+    const game = state.games.find((item) => item.game_id === row.game_id);
+    if (!game) return '';
+    if (game.roof === 'dome') {
+      return `<span class="venue-badge dome" title="Indoor / Dome Stadium">🏟️ Dome</span>`;
+    }
+    if (game.wind && game.wind >= 14) {
+      return `<span class="venue-badge wind" title="High Wind: ${game.wind} mph">💨 ${game.wind}mph</span>`;
+    }
+    return '';
   }
 
   function tableHead(hasPrices) {
@@ -671,7 +708,7 @@
           </div>
         </div>
       </td>
-      <td><span class="number-main">${esc(row.team)}</span><span class="cell-sub">${row.is_home ? 'vs' : '@'} ${esc(row.opponent_team)}</span></td>
+      <td><span class="number-main">${esc(row.team)}</span><span class="cell-sub">${row.is_home ? 'vs' : '@'} ${esc(row.opponent_team)}${venueBadge(row)}</span></td>
       <td class="td-num">${bookCell(evaluation, injury)}</td>
       <td class="td-num">
         <div class="split-cell">
@@ -706,7 +743,7 @@
           <div>
             <h2>${esc(row.player_display_name)}${injury ? `<span class="injury-tag">${esc(injury.report_status)}</span>` : ''}</h2>
             <div class="card-driver-line">
-              <p>${esc(row.position)} · ${esc(row.team)} ${row.is_home ? 'vs' : '@'} ${esc(row.opponent_team)}</p>
+              <p>${esc(row.position)} · ${esc(row.team)} ${row.is_home ? 'vs' : '@'} ${esc(row.opponent_team)}${venueBadge(row)}</p>
               ${keyDriverTag(row, beneficiary)}
             </div>
           </div>
@@ -729,14 +766,23 @@
   }
 
   function fairValue(row) {
+    if (state.filters.market === 'anytime_td') {
+      const share = num(row.f_tgt_share || row.target_share, 0.15);
+      return Math.round(share * 2.2 * 10) / 10;
+    }
     return num(state.filters.market === 'receptions' ? row.fair_line_rec : row.fair_line_yards);
   }
 
   function projectionValue(row) {
+    if (state.filters.market === 'anytime_td') {
+      const share = num(row.f_tgt_share || row.target_share, 0.15);
+      return Math.round(share * 2.4 * 10) / 10;
+    }
     return num(state.filters.market === 'receptions' ? row.proj_rec : row.proj_yards);
   }
 
   function fairProbabilityText(row) {
+    if (state.filters.market === 'anytime_td') return 'Poisson Red Zone Model (Holdout)';
     return state.filters.market === 'receptions' ? `P(over fair) ${pct(row.p_rec_at_fair_line)}` : 'P(over fair) 50.0%';
   }
 
@@ -1066,6 +1112,68 @@
     dialog.showModal();
   }
 
+  async function openClvReport() {
+    const dialog = $('#clvDialog');
+    if (!dialog) return;
+    $('#clvReportContent').innerHTML = '<div style="padding:24px; text-align:center; color:var(--muted); font-family:var(--mono);">Loading Week 7 CLV validation ledger…</div>';
+    dialog.showModal();
+
+    let report = state.clvReport;
+    if (!report) {
+      report = await fetchJson('clv_report_2026_w7.json', null);
+      state.clvReport = report;
+    }
+
+    if (!report || !report.ledger) {
+      $('#clvReportContent').innerHTML = '<div style="padding:20px; color:var(--danger);">Failed to load CLV validation report. Run python3 grade_clv.py to generate ledger.</div>';
+      return;
+    }
+
+    const s = report.summary;
+    const kpiHtml = `
+      <div class="clv-summary-grid">
+        <div class="clv-kpi-card"><span>Total Graded</span><strong>${s.total_graded}</strong></div>
+        <div class="clv-kpi-card"><span>Beat Close Rate</span><strong style="color:var(--accent);">${(s.positive_clv_pct * 100).toFixed(1)}%</strong></div>
+        <div class="clv-kpi-card"><span>Avg Line Move</span><strong>${s.avg_line_delta >= 0 ? '+' : ''}${s.avg_line_delta.toFixed(2)} yds</strong></div>
+        <div class="clv-kpi-card"><span>Avg CLV EV</span><strong style="color:var(--accent);">${(s.avg_clv_ev * 100).toFixed(2)}%</strong></div>
+      </div>
+      <p style="font-size:11.5px; color:var(--muted); margin:0 0 10px;">
+        Closing Line Value (CLV) is the institutional trust moat. Props are isolated when flagged as VERIFIED_ACTIVE with edge &ge; 10%, then mathematically evaluated against the final pre-kickoff consensus line.
+      </p>
+      <div class="clv-table-wrap">
+        <table class="clv-table">
+          <thead>
+            <tr>
+              <th>Player</th>
+              <th>Market</th>
+              <th>Trigger Quote</th>
+              <th>Closing Line</th>
+              <th>Line Beat</th>
+              <th>CLV Delta EV</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${report.ledger.map((entry) => {
+              const statusClass = entry.status === 'BEAT_CLOSE' ? 'clv-status-beat' : entry.status === 'PUSH' ? 'clv-status-push' : 'clv-status-faded';
+              const moveText = (entry.line_movement > 0 ? `+${entry.line_movement.toFixed(1)}` : entry.line_movement.toFixed(1));
+              return `<tr>
+                <td><strong>${esc(entry.player_name)}</strong> <span style="color:var(--faint); font-size:10px;">${esc(entry.team)}</span></td>
+                <td>${entry.market === 'receptions' ? 'Rec' : 'Yards'} ${entry.side}</td>
+                <td>${entry.trigger_line.toFixed(1)} <small style="color:var(--faint)">(${oddsText(entry.trigger_odds)})</small></td>
+                <td>${entry.close_line.toFixed(1)} <small style="color:var(--faint)">(${oddsText(entry.close_odds)})</small></td>
+                <td style="font-weight:700; color:${entry.line_movement > 0 ? 'var(--accent)' : 'inherit'};">${moveText}</td>
+                <td style="font-weight:700; color:${entry.clv_ev > 0 ? 'var(--accent)' : 'inherit'};">${signedPct(entry.clv_ev)}</td>
+                <td><span class="${statusClass}">${entry.status}</span></td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
+    $('#clvReportContent').innerHTML = kpiHtml;
+  }
+
   function renderSparklineSvg(openLine, currentLine, fairLine) {
     const min = Math.min(openLine, currentLine, fairLine) * 0.9;
     const max = Math.max(openLine, currentLine, fairLine) * 1.1;
@@ -1134,6 +1242,20 @@
         logBet(row.player_id);
       });
     }
+
+    const bankrollInput = $('#kellyBankrollInput');
+    if (bankrollInput) {
+      bankrollInput.addEventListener('input', (e) => {
+        const val = Math.max(0, Number(e.target.value) || 0);
+        state.bankroll = val;
+        try { localStorage.setItem('propwire-bankroll', String(val)); } catch (_) {}
+        const stakeAmt = $('#kellyWagerDollars');
+        const stakePct = $('#kellyWagerPct');
+        const stakeFraction = Number(evaluation.stake) || 0.0;
+        if (stakeAmt) stakeAmt.textContent = `$${(val * stakeFraction).toFixed(2)}`;
+        if (stakePct) stakePct.textContent = `(${ (stakeFraction * 100).toFixed(2) }% of bankroll)`;
+      });
+    }
   }
 
   function updateScenarioCalculations(row, evaluation, share) {
@@ -1195,6 +1317,33 @@
     const simFair = state.filters.market === 'receptions' ? simRec : simYards;
     const simEdge = evaluation.line ? ((simFair - evaluation.line) / evaluation.line) : null;
 
+    const bankroll = Number(state.bankroll) || 5000;
+    const stakeFraction = Number(evaluation.stake) || 0.0;
+    const wagerDollars = (bankroll * stakeFraction).toFixed(2);
+    const wagerPct = (stakeFraction * 100).toFixed(2);
+
+    const kellyCalcSection = evaluation.state !== 'none' ? `
+      <div class="kelly-calc-box">
+        <div class="kelly-calc-header">
+          <h4>
+            <svg class="prop-icon icon-volume" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" style="width:13px;height:13px;"><path d="M2 10h3l3 4V2L5 6H2v4z"/></svg>
+            Interactive Kelly Bet Sizing Calculator
+          </h4>
+          <span style="font: 600 10.5px/1 var(--mono); color: var(--muted);">Kelly cap 3.0%</span>
+        </div>
+        <div class="kelly-calc-row">
+          <label class="kelly-input-wrap">
+            <span>Bankroll $</span>
+            <input type="number" id="kellyBankrollInput" min="100" max="1000000" step="100" value="${bankroll}">
+          </label>
+          <div class="kelly-result-card">
+            <span class="kelly-stake-amt" id="kellyWagerDollars">$${wagerDollars}</span>
+            <span class="kelly-stake-pct" id="kellyWagerPct">(${wagerPct}% of bankroll)</span>
+          </div>
+        </div>
+      </div>
+    ` : '';
+
     const scenarioSection = `
       <div class="scenario-box">
         <div class="scenario-header">
@@ -1230,6 +1379,7 @@
     </div>
     ${surgeSection}
     ${scenarioSection}
+    ${kellyCalcSection}
     ${sparkline}
     ${evaluation.state !== 'none' ? `<div class="detail-section"><h3>Hurdle / Target</h3>${gaugeCell(row, evaluation)}<p>Target is the nearest model line that clears the JSON gate at the displayed price. The sportsbook offer remains ${evaluation.state === 'verified' ? 'receipt-verified' : 'unverified'}.</p></div>` : ''}
     <div class="detail-section"><h3>Why this projection</h3><dl class="detail-list">

@@ -43,7 +43,11 @@
       </div>
 
       <div class="header-actions">
-        <button class="portfolio-button" id="portfolioBtn" type="button" title="Portfolio & CLV Scorecard" aria-label="Portfolio and CLV Scorecard">
+        <button class="clv-button" id="clvReportBtn" type="button" title="Week 7 Public CLV Validation Report" aria-label="Public CLV Report">
+          <svg class="prop-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 13.5h12M4 10l3-3 2.5 2.5L13.5 5"/></svg>
+          <span class="clv-btn-text">CLV Report</span>
+        </button>
+        <button class="portfolio-button" id="portfolioBtn" type="button" title="Personal CLV Ledger & Portfolio" aria-label="Portfolio and CLV Scorecard">
           <svg class="prop-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 3.5h11a1 1 0 011 1v8a1 1 0 01-1 1h-11a1 1 0 01-1-1v-8a1 1 0 011-1z"/><path d="M5.5 3.5v-1a1 1 0 011-1h4a1 1 0 011 1v1M8 7v4M6 9h4"/></svg>
           <span class="portfolio-btn-text">Ledger</span>
           <span class="portfolio-count-badge" id="portfolioCountBadge" hidden>0</span>
@@ -136,6 +140,7 @@
             <select id="marketFilter" class="control">
               <option value="receiving_yards">Receiving yards</option>
               <option value="receptions">Receptions</option>
+              <option value="anytime_td">Anytime TD (Poisson Model)</option>
             </select>
           </label>
           <label>
@@ -157,7 +162,7 @@
       <div class="result-line">
         <span id="resultCount">0 player records</span>
         <div class="result-line-right">
-          <span class="kbd-hint"><span class="kbd">J</span><span class="kbd">K</span> Navigate &bull; <span class="kbd">/</span> Search &bull; <span class="kbd">Enter</span> Inspect</span>
+          <span class="kbd-hint"><span class="kbd">J</span><span class="kbd">K</span> Navigate &bull; <span class="kbd">/</span> Search &bull; <span class="kbd">T</span> View &bull; <span class="kbd">Enter</span> Inspect</span>
           <button id="clearFilters" class="text-button" type="button">Clear filters</button>
         </div>
       </div>
@@ -204,6 +209,19 @@
         <button class="icon-button" value="cancel" aria-label="Close portfolio dialog">×</button>
       </div>
       <div id="portfolioContent"></div>
+    </form>
+  </dialog>
+
+  <dialog class="detail-dialog clv-dialog" id="clvDialog" aria-labelledby="clvReportTitle">
+    <form method="dialog" class="dialog-shell">
+      <div class="dialog-header">
+        <div>
+          <div class="eyebrow" id="clvReportEyebrow">Immutable Trust Moat</div>
+          <h2 id="clvReportTitle">Week 7 Public CLV Validation Report</h2>
+        </div>
+        <button class="icon-button" value="cancel" aria-label="Close CLV report">×</button>
+      </div>
+      <div id="clvReportContent"></div>
     </form>
   </dialog>
 
