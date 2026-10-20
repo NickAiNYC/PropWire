@@ -2999,3 +2999,337 @@ body {
     grid-template-columns: 1fr 1fr;
   }
 }
+
+/* ==========================================================================
+   STICKY QUICK-FILTER PILLS BAR (Mobile & Desktop UX)
+   ========================================================================== */
+
+.sticky-quick-filters {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: rgba(9, 9, 11, 0.92);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+[data-theme="light"] .sticky-quick-filters {
+  background: rgba(255, 255, 255, 0.94);
+  border-bottom: 1px solid #e2e8f0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.sticky-quick-filters-inner {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.sticky-quick-filters-inner::-webkit-scrollbar {
+  display: none;
+}
+
+.quick-pills-scroll-track {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.quick-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--text-ink-secondary);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  cursor: pointer;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: nowrap;
+  user-select: none;
+}
+
+.quick-pill:hover {
+  background: var(--bg-surface-hover);
+  color: var(--text-ink);
+  border-color: var(--border-medium);
+}
+
+.quick-pill.active {
+  background: #10b981;
+  color: #09090b;
+  font-weight: 700;
+  border-color: #10b981;
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.35);
+}
+
+/* ==========================================================================
+   TACTILE COPY SLIP HAPTIC / BUTTON CONFIRMATION
+   ========================================================================== */
+
+.btn-copied-active {
+  background: rgba(16, 185, 129, 0.18) !important;
+  color: #10b981 !important;
+  border-color: #10b981 !important;
+  box-shadow: 0 0 16px rgba(16, 185, 129, 0.45) !important;
+  font-weight: 700 !important;
+  transform: scale(1.03);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+/* ==========================================================================
+   PWA INSTALL BANNER
+   ========================================================================== */
+
+.pwa-install-banner {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  width: calc(100% - 32px);
+  max-width: 560px;
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-medium);
+  border-radius: 12px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.55);
+  padding: 12px 16px;
+  animation: slideUpPwa 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideUpPwa {
+  from {
+    transform: translate(-50%, 40px);
+    opacity: 0;
+  }
+  to {
+    transform: translate(-50%, 0);
+    opacity: 1;
+  }
+}
+
+.pwa-banner-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.pwa-banner-icon-lockup {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pwa-app-icon {
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  flex-shrink: 0;
+}
+
+.pwa-banner-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-ink);
+  line-height: 1.2;
+}
+
+.pwa-banner-desc {
+  font-size: 11px;
+  color: var(--text-ink-secondary);
+  line-height: 1.3;
+  margin-top: 2px;
+}
+
+.pwa-banner-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.btn-pwa-install {
+  background: #10b981;
+  color: #09090b;
+  border: none;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 7px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.btn-pwa-install:hover {
+  background: #059669;
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
+}
+
+.btn-pwa-dismiss {
+  background: transparent;
+  color: var(--text-ink-tertiary);
+  border: none;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 4px;
+}
+
+.btn-pwa-dismiss:hover {
+  color: var(--text-ink);
+  background: var(--bg-surface-hover);
+}
+
+/* ==========================================================================
+   SCENARIO LAB SLIDERS (Interactive Drawer Playground)
+   ========================================================================== */
+
+.scenario-lab-box {
+  background: var(--bg-surface-subtle);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  padding: 14px;
+  margin-top: 14px;
+}
+
+.scenario-lab-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.scenario-lab-title {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-ink);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-reset-sliders {
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  color: var(--text-ink-tertiary);
+  font-size: 10px;
+  font-family: var(--font-mono);
+  padding: 3px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-reset-sliders:hover {
+  color: var(--text-ink);
+  border-color: var(--border-medium);
+  background: var(--bg-surface-hover);
+}
+
+.scenario-slider-row {
+  margin-bottom: 12px;
+}
+
+.scenario-slider-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  margin-bottom: 4px;
+}
+
+.scenario-slider-label {
+  font-weight: 600;
+  color: var(--text-ink-secondary);
+}
+
+.scenario-slider-val {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--accent-editorial);
+  font-size: 11.5px;
+}
+
+.scenario-slider-input {
+  width: 100%;
+  height: 6px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: var(--border-medium);
+  border-radius: 3px;
+  outline: none;
+  cursor: pointer;
+}
+
+.scenario-slider-input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #10b981;
+  border: 2px solid var(--bg-surface);
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.5);
+  cursor: pointer;
+  transition: transform 0.1s ease;
+}
+
+.scenario-slider-input::-webkit-slider-thumb:hover {
+  transform: scale(1.18);
+}
+
+.scenario-slider-input::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #10b981;
+  border: 2px solid var(--bg-surface);
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.5);
+  cursor: pointer;
+}
+
+.scenario-lab-readout {
+  background: var(--bg-canvas);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  padding: 10px 12px;
+  margin-top: 10px;
+}
+
+.scenario-lab-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  text-align: center;
+}
+
+.scenario-lab-stat-label {
+  font-size: 9.5px;
+  font-family: var(--font-mono);
+  color: var(--text-ink-tertiary);
+  text-transform: uppercase;
+}
+
+.scenario-lab-stat-val {
+  font-size: 13px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  margin-top: 2px;
+}

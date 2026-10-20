@@ -56,6 +56,11 @@ let userSavedConditions = [];
 let selectedDrawerPlayer = null;
 let clvFilterType = 'all'; // 'all', 'verified', 'demo'
 let activeDrawerConditionalScenario = 'BASELINE'; // 'BASELINE', 'TEAMMATE_OUT', 'LIMITED_WORKLOAD', 'TRAILING_SCRIPT'
+let currentQuickFilter = 'all'; // 'all', 'qualified', 'tnf', 'injuries', 'surges'
+let drawerLabTargetShift = 0; // -15 to +20 %
+let drawerLabInjuryShift = 0; // 0 to +30 %
+let drawerLabMatchupShift = 0; // -20 to +20 %
+let deferredPwaPrompt = null;
 
 function getTeamLogoUrl(team) {
   if (!team) return '';
@@ -114,6 +119,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   initTheme();
   loadStoredConditions();
   loadStoredLines();
+  initPwaServiceWorker();
+  initPwaInstallPrompt();
   
   // Keyboard shortcut: Escape to close drawer/modal
   document.addEventListener('keydown', (e) => {
@@ -621,19 +628,32 @@ function renderSnapshotStatus() {
 
 function setViewMode(mode) {
   currentViewMode = mode;
+  syncViewModeButtons();
+
+  if (mode === 'injury_surges') {
+    currentQuickFilter = 'injuries';
+  } else if (mode === 'surges') {
+    currentQuickFilter = 'surges';
+  } else if (mode === 'verified_quotes' && !currentQualifiedOnly && !selectedGameId) {
+    currentQuickFilter = 'all';
+  }
+  syncQuickFilterPillsUI();
+
+  renderSlateHealthStrip();
+  renderOpportunitySummary();
+  renderBestOpportunitiesGrid();
+  renderBoard();
+}
+
+function syncViewModeButtons() {
   ['baseline', 'surges', 'injury_surges', 'verified_quotes', 'demo_quotes'].forEach(m => {
     let btnId = `btnMode${capitalize(m)}`;
     if (m === 'demo_quotes') btnId = 'btnModeDemoQuotes';
     if (m === 'injury_surges') btnId = 'btnModeInjurySurges';
     if (m === 'verified_quotes') btnId = 'btnModeVerifiedQuotes';
     const btn = document.getElementById(btnId);
-    if (btn) btn.classList.toggle('active', m === mode);
+    if (btn) btn.classList.toggle('active', m === currentViewMode);
   });
-
-  renderSlateHealthStrip();
-  renderOpportunitySummary();
-  renderBestOpportunitiesGrid();
-  renderBoard();
 }
 
 function renderOpportunitySummary() {
@@ -1443,6 +1463,63 @@ function renderBestOpportunitiesGrid() {
 // Secondary View: Full Slate Research Table
 // --------------------------------------------------------------------------
 
+function setQuickFilterPill(filterId) {
+  currentQuickFilter = filterId;
+  syncQuickFilterPillsUI();
+
+  const qualToggle = document.getElementById('qualifiedOnlyToggle');
+
+  if (filterId === 'all') {
+    currentQualifiedOnly = false;
+    if (qualToggle) qualToggle.checked = false;
+    selectedGameId = null;
+    currentViewMode = 'verified_quotes';
+    updateGameFilterLabels();
+    renderGameStrip();
+    syncViewModeButtons();
+    renderOpportunitySummary();
+    renderBestOpportunitiesGrid();
+    renderBoard();
+  } else if (filterId === 'qualified') {
+    currentQualifiedOnly = true;
+    if (qualToggle) qualToggle.checked = true;
+    selectedGameId = null;
+    updateGameFilterLabels();
+    renderGameStrip();
+    renderBestOpportunitiesGrid();
+    renderBoard();
+  } else if (filterId === 'tnf') {
+    currentQualifiedOnly = false;
+    if (qualToggle) qualToggle.checked = false;
+    const tnfGame = (gamesData && gamesData.length > 0)
+      ? (gamesData.find(g => g.game_id && g.game_id.includes('NE_CHI')) || gamesData[0])
+      : null;
+    selectedGameId = tnfGame ? tnfGame.game_id : '2026_07_NE_CHI';
+    updateGameFilterLabels();
+    renderGameStrip();
+    renderBestOpportunitiesGrid();
+    renderBoard();
+  } else if (filterId === 'injuries') {
+    setViewMode('injury_surges');
+  } else if (filterId === 'surges') {
+    setViewMode('surges');
+  }
+}
+
+function syncQuickFilterPillsUI() {
+  const map = {
+    'all': 'pillFilterAll',
+    'qualified': 'pillFilterQualified',
+    'tnf': 'pillFilterTnf',
+    'injuries': 'pillFilterInjuries',
+    'surges': 'pillFilterSurges'
+  };
+  const activeBtnId = map[currentQuickFilter] || 'pillFilterAll';
+  document.querySelectorAll('#quickFilterPillsTrack .quick-pill').forEach(btn => {
+    btn.classList.toggle('active', btn.id === activeBtnId);
+  });
+}
+
 function onFilterChange() {
   currentSearchQuery = document.getElementById('searchInput')?.value.toLowerCase().trim() || '';
   currentFilterMarket = document.getElementById('marketFilter')?.value || 'yards';
@@ -1451,6 +1528,13 @@ function onFilterChange() {
   currentQualifiedOnly = document.getElementById('qualifiedOnlyToggle')?.checked || false;
   currentProjectableOnly = document.getElementById('projectableOnlyCheck')?.checked || false;
   
+  if (currentQualifiedOnly) {
+    currentQuickFilter = 'qualified';
+  } else if (!selectedGameId && currentViewMode === 'verified_quotes') {
+    currentQuickFilter = 'all';
+  }
+  syncQuickFilterPillsUI();
+
   renderBestOpportunitiesGrid();
   renderBoard();
 }
@@ -1511,6 +1595,22 @@ function renderBoard() {
   if (countLabel) countLabel.textContent = filtered.length;
   if (totalLabel) totalLabel.textContent = slateData.length;
   if (boardBadge) boardBadge.textContent = slateData.length;
+
+  // Sync Quick Filter Pill dynamic counter badges
+  const pillCountAll = document.getElementById('quickPillCountAll');
+  const pillCountQual = document.getElementById('quickPillCountQual');
+  const pillCountInj = document.getElementById('quickPillCountInj');
+  const pillCountSurge = document.getElementById('quickPillCountSurge');
+  if (pillCountAll) pillCountAll.textContent = slateData.length;
+  if (pillCountQual) pillCountQual.textContent = qualifiedList.length;
+  if (pillCountInj) {
+    const injCount = evaluatedAll.filter(r => (r.roleShift && r.roleShift.type === 'INJURY_SURGE') || (currentInjuriesData && currentInjuriesData.impacted_beneficiaries && currentInjuriesData.impacted_beneficiaries[r.player_id])).length;
+    pillCountInj.textContent = injCount;
+  }
+  if (pillCountSurge) {
+    const surgeCount = evaluatedAll.filter(r => r.roleShift && r.roleShift.type === 'SUSTAINED_SURGE').length;
+    pillCountSurge.textContent = surgeCount;
+  }
 
   // ACTION FEED VIEW (Streamlined "Why" & Punchy Social Narrative)
   if (currentFeedFormat === 'action') {
@@ -1795,6 +1895,9 @@ function openDrawerForPlayer(playerName) {
   if (!p) return;
   selectedDrawerPlayer = getEvaluatedPlayerRow(p);
   activeDrawerConditionalScenario = 'BASELINE';
+  drawerLabTargetShift = 0;
+  drawerLabInjuryShift = 0;
+  drawerLabMatchupShift = 0;
 
   const drawer = document.getElementById('detailDrawer');
   const overlay = document.getElementById('drawerOverlay');
@@ -2023,6 +2126,68 @@ function renderDrawerBodyContent() {
       </ul>
     </div>
 
+    <!-- BONUS SUB-TOOL: INTERACTIVE SCENARIO LAB SLIDERS -->
+    <div class="scenario-lab-box">
+      <div class="scenario-lab-header">
+        <div class="scenario-lab-title">
+          <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;color:#10b981;"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          Interactive Scenario Lab (Live Parameter Tuning)
+        </div>
+        <button class="btn-reset-sliders" onclick="resetDrawerLabSliders()">Reset 0%</button>
+      </div>
+      <p style="font-size:11px; color:var(--text-ink-secondary); margin-bottom:12px; line-height:1.4;">
+        Tweak target share, vacated injury volume, or matchup efficiency to stress-test how fair lines and edge shift in real time.
+      </p>
+
+      <div class="scenario-slider-row">
+        <div class="scenario-slider-meta">
+          <span class="scenario-slider-label">Target Share Adjustment</span>
+          <span class="scenario-slider-val" id="labSliderValTarget">${drawerLabTargetShift > 0 ? '+' : ''}${drawerLabTargetShift}%</span>
+        </div>
+        <input type="range" min="-15" max="20" step="1" value="${drawerLabTargetShift}" class="scenario-slider-input" id="labSliderInputTarget" oninput="onDrawerLabSliderChange()">
+      </div>
+
+      <div class="scenario-slider-row">
+        <div class="scenario-slider-meta">
+          <span class="scenario-slider-label">Injury / Vacated Volume Absorption</span>
+          <span class="scenario-slider-val" id="labSliderValInjury">${drawerLabInjuryShift > 0 ? '+' : ''}${drawerLabInjuryShift}%</span>
+        </div>
+        <input type="range" min="0" max="30" step="1" value="${drawerLabInjuryShift}" class="scenario-slider-input" id="labSliderInputInjury" oninput="onDrawerLabSliderChange()">
+      </div>
+
+      <div class="scenario-slider-row">
+        <div class="scenario-slider-meta">
+          <span class="scenario-slider-label">Matchup Efficiency Shift</span>
+          <span class="scenario-slider-val" id="labSliderValMatchup">${drawerLabMatchupShift > 0 ? '+' : ''}${drawerLabMatchupShift}%</span>
+        </div>
+        <input type="range" min="-20" max="20" step="1" value="${drawerLabMatchupShift}" class="scenario-slider-input" id="labSliderInputMatchup" oninput="onDrawerLabSliderChange()">
+      </div>
+
+      <div class="scenario-lab-readout">
+        <div class="scenario-lab-grid">
+          <div>
+            <div class="scenario-lab-stat-label">Lab Fair Line</div>
+            <div class="scenario-lab-stat-val" id="labSimFairLine" style="color:var(--accent-editorial);">${Number(p.fairLine).toFixed(1)} ${p.market === 'receptions' ? 'rec' : 'yds'}</div>
+            <div style="font-size:9.5px; font-family:var(--font-mono); color:var(--text-ink-tertiary);" id="labSimFairDelta">Baseline: ${Number(p.fairLine).toFixed(1)}</div>
+          </div>
+          <div>
+            <div class="scenario-lab-stat-label">Simulated EV</div>
+            <div class="scenario-lab-stat-val" id="labSimEv" style="color:${p.expectedReturn > 0 ? 'var(--status-green)' : 'var(--text-ink-tertiary)'};">
+              ${p.expectedReturn > 0 ? '+' : ''}${(p.expectedReturn * 100).toFixed(1)}%
+            </div>
+            <div style="font-size:9.5px; font-family:var(--font-mono); color:var(--text-ink-tertiary);" id="labSimSide">${p.bestSide} ${p.bookLine}</div>
+          </div>
+          <div>
+            <div class="scenario-lab-stat-label">Hurdle Verdict</div>
+            <div id="labSimStatusPill" style="margin-top:3px;">
+              ${p.isQualified ? '<span class="status-pill status-qualified" style="font-size:10px; padding:2px 6px;">QUALIFIED</span>' : '<span class="status-pill status-pass" style="font-size:10px; padding:2px 6px;">PASS</span>'}
+            </div>
+            <div style="font-size:9.5px; font-family:var(--font-mono); color:var(--text-ink-tertiary); margin-top:2px;" id="labSimProb">${(p.winProb * 100).toFixed(1)}% Win</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- STEP 4: RISKS & INVALIDATION FACTORS -->
     <div class="drawer-section-title" id="drawerStep4">4. Invalidation Factors &amp; Matchup Risks</div>
     <div style="background:var(--bg-surface-subtle); border:1px solid var(--border-subtle); border-radius:8px; padding:12px; margin-bottom:16px; font-size:12px; line-height:1.6; color:var(--text-ink-secondary);">
@@ -2152,6 +2317,98 @@ function renderDrawerBodyContent() {
 function setDrawerScenario(scen) {
   activeDrawerConditionalScenario = scen;
   renderDrawerBodyContent();
+}
+
+function findCalibratedFairLine(muRec, muYpr, market) {
+  let low = 0.5;
+  let high = market === 'receptions' ? 18.0 : 180.0;
+  for (let iter = 0; iter < 16; iter++) {
+    const mid = (low + high) / 2;
+    const p = market === 'receptions' ? pRecOver(muRec, mid) : pYardsOver(muRec, muYpr, mid);
+    if (p > 0.50) {
+      low = mid;
+    } else {
+      high = mid;
+    }
+  }
+  return (low + high) / 2;
+}
+
+function onDrawerLabSliderChange() {
+  if (!selectedDrawerPlayer) return;
+  const p = selectedDrawerPlayer;
+
+  const targetInput = document.getElementById('labSliderInputTarget');
+  const injuryInput = document.getElementById('labSliderInputInjury');
+  const matchupInput = document.getElementById('labSliderInputMatchup');
+
+  if (targetInput) drawerLabTargetShift = parseInt(targetInput.value, 10) || 0;
+  if (injuryInput) drawerLabInjuryShift = parseInt(injuryInput.value, 10) || 0;
+  if (matchupInput) drawerLabMatchupShift = parseInt(matchupInput.value, 10) || 0;
+
+  const valTarget = document.getElementById('labSliderValTarget');
+  const valInjury = document.getElementById('labSliderValInjury');
+  const valMatchup = document.getElementById('labSliderValMatchup');
+  if (valTarget) valTarget.textContent = `${drawerLabTargetShift > 0 ? '+' : ''}${drawerLabTargetShift}%`;
+  if (valInjury) valInjury.textContent = `${drawerLabInjuryShift > 0 ? '+' : ''}${drawerLabInjuryShift}%`;
+  if (valMatchup) valMatchup.textContent = `${drawerLabMatchupShift > 0 ? '+' : ''}${drawerLabMatchupShift}%`;
+
+  const volMultiplier = (1 + (drawerLabTargetShift + drawerLabInjuryShift) / 100) * (1 + drawerLabMatchupShift / 180);
+  const simMuRec = Math.max(0.2, p.mu_rec * volMultiplier);
+  const simMuYpr = Math.max(4.0, p.mu_ypr * (1 + drawerLabMatchupShift / 200));
+
+  const biasRec = isHistoricalSlate ? W1_BIAS_REC : 0.0;
+  const biasYds = isHistoricalSlate ? W1_BIAS_YDS : 0.0;
+  const bias = p.market === 'receptions' ? biasRec : biasYds;
+
+  const simFairLine = findCalibratedFairLine(simMuRec, simMuYpr, p.market);
+  const m = evaluateLineAndOdds(simMuRec, simMuYpr, p.market, p.bookLine, p.odds, bias);
+
+  const lineEl = document.getElementById('labSimFairLine');
+  const deltaEl = document.getElementById('labSimFairDelta');
+  const evEl = document.getElementById('labSimEv');
+  const sideEl = document.getElementById('labSimSide');
+  const statusEl = document.getElementById('labSimStatusPill');
+  const probEl = document.getElementById('labSimProb');
+
+  if (lineEl) lineEl.textContent = `${simFairLine.toFixed(1)} ${p.market === 'receptions' ? 'rec' : 'yds'}`;
+  if (deltaEl) {
+    const diff = simFairLine - Number(p.fairLine);
+    deltaEl.textContent = `${diff >= 0 ? '+' : ''}${diff.toFixed(1)} vs base (${Number(p.fairLine).toFixed(1)})`;
+  }
+  if (evEl) {
+    evEl.textContent = `${m.expectedReturn > 0 ? '+' : ''}${(m.expectedReturn * 100).toFixed(1)}%`;
+    evEl.style.color = m.expectedReturn > 0 ? 'var(--status-green)' : 'var(--text-ink-tertiary)';
+  }
+  if (sideEl) {
+    sideEl.textContent = `${m.bestSide} ${p.bookLine}`;
+  }
+  if (probEl) {
+    probEl.textContent = `${(m.winProb * 100).toFixed(1)}% Win`;
+  }
+  if (statusEl) {
+    const isQual = m.expectedReturn > 0 && m.probEdge >= (isHistoricalSlate ? W1_MIN_EDGE : STD_MIN_EDGE) && !p.questionable;
+    if (isQual) {
+      statusEl.innerHTML = `<span class="status-pill status-qualified" style="font-size:10px; padding:2px 6px;">QUALIFIED</span>`;
+    } else if (m.expectedReturn > 0 && m.probEdge >= 0.04) {
+      statusEl.innerHTML = `<span class="status-pill status-lean" style="font-size:10px; padding:2px 6px;">LEAN</span>`;
+    } else {
+      statusEl.innerHTML = `<span class="status-pill status-pass" style="font-size:10px; padding:2px 6px;">PASS</span>`;
+    }
+  }
+}
+
+function resetDrawerLabSliders() {
+  drawerLabTargetShift = 0;
+  drawerLabInjuryShift = 0;
+  drawerLabMatchupShift = 0;
+  const targetInput = document.getElementById('labSliderInputTarget');
+  const injuryInput = document.getElementById('labSliderInputInjury');
+  const matchupInput = document.getElementById('labSliderInputMatchup');
+  if (targetInput) targetInput.value = 0;
+  if (injuryInput) injuryInput.value = 0;
+  if (matchupInput) matchupInput.value = 0;
+  onDrawerLabSliderChange();
 }
 
 function computeConditionalProjection(player, scenario) {
@@ -2794,7 +3051,24 @@ function copyDrawerSlip() {
   if (!selectedDrawerPlayer) return;
   const p = selectedDrawerPlayer;
   const slip = `PROPRIETARY SELECTION: ${p.player_display_name} (${p.team}) ${p.bestSide} ${p.bookLine} ${p.market} (${p.odds > 0 ? '+' : ''}${p.odds})\nModel Fair: ${Number(p.fairLine).toFixed(1)} | Win Prob: ${(p.winProb * 100).toFixed(1)}% | EV: ${(p.expectedReturn * 100).toFixed(1)}%\nVerified Decision Support: https://receiving-props-agent.vercel.app`;
+  
+  // Real haptic/tactile feedback on mobile devices
+  if (navigator && typeof navigator.vibrate === 'function') {
+    try { navigator.vibrate([25, 40, 25]); } catch (e) {}
+  }
+
+  const btn = document.getElementById('drawerCopySlipBtn');
+  const originalHtml = btn ? btn.innerHTML : 'Copy Slip';
+
   navigator.clipboard.writeText(slip).then(() => {
+    if (btn) {
+      btn.classList.add('btn-copied-active');
+      btn.innerHTML = `<svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:13px;height:13px;display:inline-block;vertical-align:-1px;margin-right:4px;"><polyline points="20 6 9 17 4 12"/></svg>✓ Copied Slip!`;
+      setTimeout(() => {
+        btn.classList.remove('btn-copied-active');
+        btn.innerHTML = originalHtml;
+      }, 1600);
+    }
     showToast('✓ Copied bet slip details to clipboard!');
   }).catch(() => {
     showToast('Could not copy slip.');
@@ -3844,5 +4118,68 @@ function copyTweetText() {
   navigator.clipboard.writeText(tweetTextarea.value)
     .then(() => showToast('Post draft copied to clipboard!'))
     .catch(() => showToast('Failed to copy text.'));
+}
+
+// --------------------------------------------------------------------------
+// Progressive Web App (PWA) & Service Worker Handlers
+// --------------------------------------------------------------------------
+
+function initPwaServiceWorker() {
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').then((reg) => {
+        console.log('PROP·WIRE Service Worker registered:', reg.scope);
+      }).catch((err) => {
+        console.warn('PROP·WIRE Service Worker notice:', err);
+      });
+    });
+  }
+}
+
+function initPwaInstallPrompt() {
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPwaPrompt = e;
+    try {
+      if (!localStorage.getItem('propwire_pwa_dismissed')) {
+        const banner = document.getElementById('pwaInstallBanner');
+        if (banner) banner.style.display = 'block';
+      }
+    } catch (err) {}
+  });
+
+  window.addEventListener('appinstalled', () => {
+    deferredPwaPrompt = null;
+    dismissPwaBanner();
+    showToast('✓ PROP·WIRE Terminal successfully installed!');
+  });
+}
+
+function triggerPwaInstall() {
+  if (deferredPwaPrompt) {
+    deferredPwaPrompt.prompt();
+    deferredPwaPrompt.userChoice.then((choiceResult) => {
+      if (choiceResult && choiceResult.outcome === 'accepted') {
+        showToast('✓ PROP·WIRE added to Home Screen!');
+      }
+      deferredPwaPrompt = null;
+      dismissPwaBanner();
+    });
+  } else {
+    const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    if (isIos) {
+      showToast('To add to Home Screen: Tap Share ⎋ in Safari, then "Add to Home Screen"');
+    } else {
+      showToast('Open browser menu (⋮) and select "Install app" or "Add to Home Screen"');
+    }
+  }
+}
+
+function dismissPwaBanner() {
+  const banner = document.getElementById('pwaInstallBanner');
+  if (banner) banner.style.display = 'none';
+  try {
+    localStorage.setItem('propwire_pwa_dismissed', '1');
+  } catch (e) {}
 }
 

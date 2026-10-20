@@ -5,6 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PROP·WIRE — Quantitative Sports Betting Terminal</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <!-- Progressive Web App (PWA) Manifest & Mobile Meta -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#10b981">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="PROP·WIRE">
+  <link rel="apple-touch-icon" href="icon-192.png">
   <script>
     (function() {
       try {
@@ -394,6 +401,29 @@
         </div>
       </section>
 
+      <!-- QUICK-FILTER PILLS BAR (Mobile & Desktop Instant Slate Navigation) -->
+      <nav class="sticky-quick-filters" id="stickyQuickFiltersBar" aria-label="Quick Slate Filters">
+        <div class="sticky-quick-filters-inner">
+          <div class="quick-pills-scroll-track" id="quickFilterPillsTrack">
+            <button class="quick-pill active" id="pillFilterAll" onclick="setQuickFilterPill('all')">
+              All Matchups (<span id="quickPillCountAll">390</span>)
+            </button>
+            <button class="quick-pill" id="pillFilterQualified" onclick="setQuickFilterPill('qualified')">
+              ⚡ Qualified Only (<span id="quickPillCountQual">0</span>)
+            </button>
+            <button class="quick-pill" id="pillFilterTnf" onclick="setQuickFilterPill('tnf')">
+              🏈 TNF Slate (NE @ CHI)
+            </button>
+            <button class="quick-pill" id="pillFilterInjuries" onclick="setQuickFilterPill('injuries')">
+              🚨 Injury Vacancies (<span id="quickPillCountInj">6</span>)
+            </button>
+            <button class="quick-pill" id="pillFilterSurges" onclick="setQuickFilterPill('surges')">
+              🔥 Role Surges (<span id="quickPillCountSurge">12</span>)
+            </button>
+          </div>
+        </div>
+      </nav>
+
       <!-- 3. FULL SLATE RESEARCH TABLE (Secondary Research View) -->
       <section class="main-slate-card">
         <div class="slate-card-header">
@@ -704,7 +734,7 @@
         <button class="btn-secondary" id="drawerWatchlistBtn" onclick="toggleDrawerWatchlist()">
           ★ Watch Condition
         </button>
-        <button class="btn-secondary" onclick="copyDrawerSlip()" title="Copy slip to clipboard">
+        <button class="btn-secondary" id="drawerCopySlipBtn" onclick="copyDrawerSlip()" title="Copy slip to clipboard">
           Copy Slip
         </button>
         <button class="btn-x-card" onclick="exportDrawerToXCard()" style="display:inline-flex; align-items:center; gap:6px;" title="Export high-contrast receipt card to 𝕏">
@@ -909,6 +939,23 @@
         </div>
       </div>
     </div>
+
+    <!-- PWA MOBILE INSTALL PROMPT BANNER -->
+    <aside id="pwaInstallBanner" class="pwa-install-banner" style="display:none;" aria-label="Add PROP·WIRE to Home Screen">
+      <div class="pwa-banner-content">
+        <div class="pwa-banner-icon-lockup">
+          <img src="icon-192.png" alt="PROP·WIRE Icon" class="pwa-app-icon" width="38" height="38">
+          <div class="pwa-banner-text">
+            <div class="pwa-banner-title">Add PROP·WIRE to Home Screen</div>
+            <div class="pwa-banner-desc">Fast, full-screen mobile terminal without browser URL bars</div>
+          </div>
+        </div>
+        <div class="pwa-banner-actions">
+          <button class="btn-pwa-install" onclick="triggerPwaInstall()">Add to Home Screen</button>
+          <button class="btn-pwa-dismiss" onclick="dismissPwaBanner()" title="Dismiss">&times;</button>
+        </div>
+      </div>
+    </aside>
 
     <!-- TOAST NOTIFICATIONS -->
     <div id="toastContainer"></div>
