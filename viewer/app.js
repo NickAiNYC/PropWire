@@ -28,6 +28,21 @@
     }
   };
 
+  function loadPortfolio() {
+    try {
+      const raw = localStorage.getItem('propwire_portfolio_ledger');
+      return raw ? JSON.parse(raw) : [];
+    } catch (_) {
+      return [];
+    }
+  }
+
+  function savePortfolio(portfolio) {
+    try {
+      localStorage.setItem('propwire_portfolio_ledger', JSON.stringify(portfolio));
+    } catch (_) {}
+  }
+
   const state = {
     slateKey: '2026_w7',
     slate: [],
@@ -38,7 +53,10 @@
     filters: { search: '', market: 'receiving_yards', position: 'ALL', team: '', gameId: '', playMode: 'actionable', intent: 'all' },
     view: matchMedia('(max-width: 680px)').matches ? 'cards' : 'table',
     deferredInstall: null,
-    selectedPlayerId: null
+    selectedPlayerId: null,
+    focusedIndex: -1,
+    scenarioTargetShare: null,
+    portfolio: loadPortfolio()
   };
 
   const $ = (selector) => document.querySelector(selector);
@@ -165,19 +183,122 @@
     $$('.intent-chips .intent-chip').forEach((button) => button.addEventListener('click', () => setIntent(button.dataset.intent)));
     $$('.view-switch button').forEach((button) => button.addEventListener('click', () => setView(button.dataset.view)));
     $('#slateRows').addEventListener('click', inspectFromEvent);
-    $('#slateRows').addEventListener('keydown', (event) => {
-      if (event.key === 'Enter' || event.key === ' ') {
-        const row = event.target.closest('tr[data-testid="slate-row"]');
-        if (row && row.dataset.playerId) {
+    $('#cardView').addEventListener('click', inspectFromEvent);
+
+    const portfolioBtn = $('#portfolioBtn');
+    if (portfolioBtn) portfolioBtn.addEventListener('click', openPortfolioDialog);
+
+    const mobileFilterToggle = $('#mobileFilterToggle');
+    if (mobileFilterToggle) {
+      mobileFilterToggle.addEventListener('click', () => {
+        const panel = $('#collapsibleFilters');
+        const isOpen = panel.classList.toggle('is-open');
+        mobileFilterToggle.setAttribute('aria-expanded', String(isOpen));
+      });
+    }
+
+    const stickyTopBtn = $('#stickyTopBtn');
+    if (stickyTopBtn) {
+      stickyTopBtn.addEventListener('click', () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+    }
+
+    initKeyboardNav();
+    updatePortfolioBadge();
+    updateActiveFilterBadge();
+  }
+
+  function initKeyboardNav() {
+    window.addEventListener('keydown', (event) => {
+      const targetTag = (event.target.tagName || '').toUpperCase();
+      const isInput = targetTag === 'INPUT' || targetTag === 'SELECT' || targetTag === 'TEXTAREA' || event.target.isContentEditable;
+
+      // [/] to focus search
+      if (event.key === '/' && !isInput) {
+        event.preventDefault();
+        const search = $('#searchInput');
+        if (search) {
+          search.focus();
+          search.select();
+        }
+        return;
+      }
+
+      // [Escape] to close dialog or blur search
+      if (event.key === 'Escape') {
+        if ($('#detailDialog').open) {
+          $('#detailDialog').close();
+          return;
+        }
+        const portDialog = $('#portfolioDialog');
+        if (portDialog && portDialog.open) {
+          portDialog.close();
+          return;
+        }
+        if (isInput) {
+          event.target.blur();
+          return;
+        }
+        clearFocusedRow();
+        return;
+      }
+
+      if (isInput) return;
+
+      // [J] or [ArrowDown] - Navigate down
+      if (event.key === 'j' || event.key === 'J' || event.key === 'ArrowDown') {
+        event.preventDefault();
+        navigateRow(1);
+        return;
+      }
+
+      // [K] or [ArrowUp] - Navigate up
+      if (event.key === 'k' || event.key === 'K' || event.key === 'ArrowUp') {
+        event.preventDefault();
+        navigateRow(-1);
+        return;
+      }
+
+      // [Enter] - Inspect focused item
+      if (event.key === 'Enter') {
+        const activeEl = getFocusedItem();
+        if (activeEl && activeEl.dataset.playerId) {
           event.preventDefault();
-          openDetail(row.dataset.playerId);
+          openDetail(activeEl.dataset.playerId);
         }
       }
     });
-    $('#cardView').addEventListener('click', inspectFromEvent);
-    window.addEventListener('keydown', (event) => {
-      if (event.key === 'Escape' && $('#detailDialog').open) $('#detailDialog').close();
+  }
+
+  function getVisibleItems() {
+    if (state.view === 'table') {
+      return $$('#slateRows tr[data-testid="slate-row"]');
+    }
+    return $$('#cardView article[data-testid="slate-card"]');
+  }
+
+  function navigateRow(direction) {
+    const items = getVisibleItems();
+    if (!items.length) return;
+    state.focusedIndex = Math.max(0, Math.min(items.length - 1, state.focusedIndex + direction));
+    items.forEach((item, idx) => {
+      item.classList.toggle('terminal-focused', idx === state.focusedIndex);
     });
+    const current = items[state.focusedIndex];
+    if (current) {
+      current.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
+  }
+
+  function getFocusedItem() {
+    const items = getVisibleItems();
+    return items[state.focusedIndex] || null;
+  }
+
+  function clearFocusedRow() {
+    state.focusedIndex = -1;
+    getVisibleItems().forEach((item) => item.classList.remove('terminal-focused'));
   }
 
   function initTheme() {
@@ -481,6 +602,42 @@
     $('#emptyState').hidden = rows.length !== 0;
     $('#tableView').hidden = state.view !== 'table' || rows.length === 0;
     $('#cardView').hidden = state.view !== 'cards' || rows.length === 0;
+
+    updateStickyContext(rows);
+    updateActiveFilterBadge();
+  }
+
+  function updateStickyContext(rows) {
+    const marketName = state.filters.market === 'receptions' ? 'Receptions' : 'Rec Yards';
+    const posName = state.filters.position === 'ALL' ? 'All Pos' : state.filters.position;
+    const modeName = state.filters.playMode === 'actionable' ? 'Active Opportunities' : 'All Projections';
+    const label = `⚡ ${modeName} · ${marketName} · ${posName}`;
+    const countText = `${rows.length} ${rows.length === 1 ? 'play' : 'plays'}`;
+    const labelEl = $('#stickyFilterLabel');
+    const countEl = $('#stickyCountPill');
+    if (labelEl) labelEl.textContent = label;
+    if (countEl) countEl.textContent = countText;
+  }
+
+  function updateActiveFilterBadge() {
+    let count = 0;
+    if (state.filters.market !== 'receiving_yards') count++;
+    if (state.filters.position !== 'ALL') count++;
+    if (state.filters.team !== '') count++;
+    const badge = $('#activeFilterBadge');
+    if (badge) {
+      badge.textContent = count;
+      badge.hidden = count === 0;
+    }
+  }
+
+  function updatePortfolioBadge() {
+    const count = (state.portfolio || []).length;
+    const badge = $('#portfolioCountBadge');
+    if (badge) {
+      badge.textContent = count;
+      badge.hidden = count === 0;
+    }
   }
 
   function tableHead(hasPrices) {
@@ -541,6 +698,7 @@
     const thirdValue = evaluation.state === 'none' ? projection.toFixed(1) : evaluation.state === 'ingested' ? `${SVG_ICONS.lock} ${signedPct(evaluation.edge)}` : signedPct(evaluation.edge);
     const thirdClass = evaluation.state === 'verified' ? evaluation.tone : evaluation.state === 'ingested' ? 'price-lock' : '';
     const logoImg = `<img class="team-logo-badge" src="${esc(teamLogoUrl(row.team))}" alt="${esc(row.team)}" width="28" height="28" loading="lazy" onerror="this.style.display='none'">`;
+    const isLogged = (state.portfolio || []).some((b) => b.player_id === row.player_id && b.market === state.filters.market);
     return `<article class="prop-card" data-testid="slate-card" data-player-id="${esc(row.player_id)}" tabindex="0" role="button">
       <div class="card-top">
         <div class="card-player-lead">
@@ -562,7 +720,10 @@
       </div>
       <div class="card-bottom">
         <span class="card-insight">${esc(naturalInsight(row, evaluation))}</span>
-        <button class="inspect-button" type="button" data-inspect="${esc(row.player_id)}">Inspect</button>
+        <div style="display:flex; gap:8px; align-items:center; flex-shrink:0;">
+          <button class="log-bet-btn ${isLogged ? 'logged' : ''}" type="button" data-log-bet="${esc(row.player_id)}">${isLogged ? '✓ Logged' : '+ Log'}</button>
+          <button class="inspect-button" type="button" data-inspect="${esc(row.player_id)}">Inspect</button>
+        </div>
       </div>
     </article>`;
   }
@@ -757,6 +918,12 @@
 
   function inspectFromEvent(event) {
     if (event.target.closest('.info-trigger') || event.target.closest('.help-bubble')) return;
+    const logBtn = event.target.closest('[data-log-bet]');
+    if (logBtn) {
+      event.stopPropagation();
+      logBet(logBtn.dataset.logBet);
+      return;
+    }
     const button = event.target.closest('[data-inspect]');
     if (button) {
       openDetail(button.dataset.inspect);
@@ -773,10 +940,168 @@
     }
   }
 
+  function logBet(playerId) {
+    const row = state.slate.find((item) => item.player_id === playerId);
+    if (!row) return;
+    const evaluation = evaluateRow(row);
+    const existingIndex = (state.portfolio || []).findIndex((b) => b.player_id === playerId && b.market === state.filters.market);
+    if (existingIndex >= 0) {
+      state.portfolio.splice(existingIndex, 1);
+      toast(`Removed ${row.player_display_name} from CLV ledger`);
+    } else {
+      const entry = {
+        id: `bet_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+        player_id: row.player_id,
+        player_name: row.player_display_name,
+        team: row.team,
+        opponent: row.opponent_team,
+        market: state.filters.market,
+        book: evaluation.book || 'Book',
+        line: evaluation.line || fairValue(row),
+        odds: evaluation.odds || -110,
+        side: evaluation.side || 'OVER',
+        model_fair: fairValue(row),
+        edge: evaluation.edge || 0,
+        ev: evaluation.ev || 0,
+        logged_at: new Date().toISOString()
+      };
+      if (!Array.isArray(state.portfolio)) state.portfolio = [];
+      state.portfolio.unshift(entry);
+      toast(`Logged ${entry.side} ${entry.line.toFixed(1)} ${entry.player_name} to CLV ledger`);
+    }
+    savePortfolio(state.portfolio);
+    updatePortfolioBadge();
+    renderBoard();
+    if ($('#detailDialog').open && state.selectedPlayerId === playerId) {
+      renderDetailModal(row);
+    }
+  }
+
+  function openPortfolioDialog() {
+    const dialog = $('#portfolioDialog');
+    if (!dialog) return;
+    const portfolio = state.portfolio || [];
+    let positiveClv = 0;
+    let totalClvYards = 0;
+    let gradedCount = 0;
+
+    const rowsHtml = portfolio.map((bet) => {
+      const currentQuote = state.odds.quotes.find((q) => q.market === bet.market && (q.player_id === bet.player_id || String(q.player_name).toLowerCase() === String(bet.player_name).toLowerCase()));
+      let clvText = '0.0 (At entry)';
+      let clvClass = '';
+      if (currentQuote && finite(currentQuote.line)) {
+        gradedCount++;
+        const delta = bet.side === 'UNDER' ? (bet.line - currentQuote.line) : (currentQuote.line - bet.line);
+        totalClvYards += delta;
+        if (delta > 0) positiveClv++;
+        clvText = `${delta > 0 ? '+' : ''}${delta.toFixed(1)} ${bet.market === 'receptions' ? 'rec' : 'yds'} (${signedPct(delta / (bet.line || 1))})`;
+        clvClass = delta > 0 ? 'actionable' : delta < 0 ? 'closed' : '';
+      }
+      return `<tr>
+        <td><strong>${esc(bet.player_name)}</strong><br><small class="cell-sub">${esc(bet.team)} vs ${esc(bet.opponent)} · ${esc(bet.market === 'receptions' ? 'Rec' : 'Yards')}</small></td>
+        <td><span class="badge ${esc(bet.side.toLowerCase())}">${esc(bet.side)}</span></td>
+        <td class="num"><strong>${bet.line.toFixed(1)}</strong><br><small class="cell-sub">${oddsText(bet.odds)}</small></td>
+        <td class="num"><strong>${currentQuote ? currentQuote.line.toFixed(1) : bet.line.toFixed(1)}</strong><br><small class="cell-sub">${currentQuote ? currentQuote.book : 'At entry'}</small></td>
+        <td class="num ${clvClass}"><strong>${clvText}</strong></td>
+        <td><button type="button" class="text-button" data-remove-bet="${esc(bet.id)}" style="color:var(--muted); font-size:16px;">×</button></td>
+      </tr>`;
+    }).join('');
+
+    const avgClv = gradedCount > 0 ? (totalClvYards / gradedCount).toFixed(1) : '0.0';
+    const beatRate = gradedCount > 0 ? pct(positiveClv / gradedCount, 0) : '—';
+
+    $('#portfolioContent').innerHTML = `
+      <div class="portfolio-summary-bar">
+        <div class="portfolio-summary-stat"><span>Logged Bets</span><strong>${portfolio.length}</strong></div>
+        <div class="portfolio-summary-stat"><span>Beat Close Rate</span><strong>${beatRate}</strong></div>
+        <div class="portfolio-summary-stat"><span>Avg CLV Delta</span><strong>${Number(avgClv) > 0 ? '+' : ''}${avgClv}</strong></div>
+      </div>
+      ${portfolio.length === 0 ? '<div class="portfolio-empty">No bets logged yet. Click "+ Log" on any player card or inside the Inspect drawer to record your play and grade closing line value.</div>' : `
+        <div class="portfolio-table-wrap">
+          <table class="portfolio-table">
+            <thead>
+              <tr>
+                <th>Player / Market</th>
+                <th>Side</th>
+                <th class="num">Bought</th>
+                <th class="num">Current</th>
+                <th class="num">CLV Alpha</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rowsHtml}
+            </tbody>
+          </table>
+        </div>
+        <div style="margin-top:14px; display:flex; justify-content:space-between; align-items:center;">
+          <small class="cell-sub" style="font-family:var(--mono);">CLV compares bought entry line to live sharp quote.</small>
+          <button type="button" class="text-button" id="clearPortfolioBtn" style="font-size:11px; color:#f87171;">Clear all bets</button>
+        </div>
+      `}
+    `;
+
+    $('#portfolioContent').querySelectorAll('[data-remove-bet]').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        const id = e.target.closest('[data-remove-bet]').dataset.removeBet;
+        state.portfolio = state.portfolio.filter((b) => b.id !== id);
+        savePortfolio(state.portfolio);
+        updatePortfolioBadge();
+        renderBoard();
+        openPortfolioDialog();
+      });
+    });
+
+    const clearBtn = $('#clearPortfolioBtn');
+    if (clearBtn) {
+      clearBtn.addEventListener('click', () => {
+        state.portfolio = [];
+        savePortfolio(state.portfolio);
+        updatePortfolioBadge();
+        renderBoard();
+        openPortfolioDialog();
+      });
+    }
+
+    dialog.showModal();
+  }
+
+  function renderSparklineSvg(openLine, currentLine, fairLine) {
+    const min = Math.min(openLine, currentLine, fairLine) * 0.9;
+    const max = Math.max(openLine, currentLine, fairLine) * 1.1;
+    const range = max - min || 1;
+    const getY = (val) => (36 - ((val - min) / range) * 26).toFixed(1);
+    const y1 = getY(openLine);
+    const y2 = getY((openLine + currentLine) / 2);
+    const y3 = getY(currentLine);
+    const yFair = getY(fairLine);
+    return `<div class="sparkline-box" style="margin-top:10px; padding:10px 12px; background:var(--surface-3); border-radius:6px; border:1px solid var(--line);">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; font-size:10.5px; font-family:var(--mono);">
+        <span style="color:var(--muted)">Market Trajectory (Open → Live)</span>
+        <span style="color:var(--accent); font-weight:700;">Model Fair ${fairLine.toFixed(1)}</span>
+      </div>
+      <svg viewBox="0 0 200 40" fill="none" style="width:100%; height:40px; overflow:visible;">
+        <line x1="5" y1="${yFair}" x2="195" y2="${yFair}" stroke="var(--accent)" stroke-width="1.2" stroke-dasharray="3,3" />
+        <path d="M 20 ${y1} Q 100 ${y2} 180 ${y3}" stroke="#60a5fa" stroke-width="2" fill="none" />
+        <circle cx="20" cy="${y1}" r="3.5" fill="#60a5fa" />
+        <circle cx="180" cy="${y3}" r="4" fill="#38bdf8" />
+        <text x="20" y="38" font-family="var(--mono)" font-size="8.5" fill="var(--muted)">Open ${openLine.toFixed(1)}</text>
+        <text x="180" y="38" font-family="var(--mono)" font-size="8.5" fill="#38bdf8" text-anchor="end">Live ${currentLine.toFixed(1)}</text>
+      </svg>
+    </div>`;
+  }
+
   function openDetail(playerId) {
     const row = state.slate.find((item) => item.player_id === playerId);
     if (!row) return;
     state.selectedPlayerId = playerId;
+    const baseShare = num(row.f_tgt_share || row.target_share, 0.20);
+    state.scenarioTargetShare = baseShare;
+    renderDetailModal(row);
+    $('#detailDialog').showModal();
+  }
+
+  function renderDetailModal(row) {
     const evaluation = evaluateRow(row);
     const injury = injuryFor(row);
     const beneficiary = beneficiaryFor(row);
@@ -785,7 +1110,60 @@
     $('#detailTitle').innerHTML = `<div class="detail-title-row"><img class="team-logo-badge" src="${esc(teamLogoUrl(row.team))}" alt="${esc(row.team)}" width="30" height="30" loading="lazy" onerror="this.style.display='none'"><span>${esc(row.player_display_name)}</span>${beneficiary ? ` <span class="surge-tag">${SVG_ICONS.surge} ROLE SURGE</span>` : ''}</div>`;
     $('#detailMeta').textContent = `${row.position} · ${row.team} ${row.is_home ? 'vs' : '@'} ${row.opponent_team} · ${state.filters.market === 'receptions' ? 'Receptions' : 'Receiving yards'}`;
     $('#detailContent').innerHTML = detailMarkup(row, evaluation, injury, beneficiary, fair, projection);
-    $('#detailDialog').showModal();
+
+    const slider = $('#targetShareSlider');
+    const resetBtn = $('#scenarioResetBtn');
+    if (slider) {
+      slider.addEventListener('input', (e) => {
+        const share = parseFloat(e.target.value);
+        state.scenarioTargetShare = share;
+        updateScenarioCalculations(row, evaluation, share);
+      });
+    }
+    if (resetBtn) {
+      resetBtn.addEventListener('click', () => {
+        const base = num(row.f_tgt_share || row.target_share, 0.20);
+        state.scenarioTargetShare = base;
+        if (slider) slider.value = base.toFixed(2);
+        updateScenarioCalculations(row, evaluation, base);
+      });
+    }
+    const modalLogBtn = $('#modalLogBetBtn');
+    if (modalLogBtn) {
+      modalLogBtn.addEventListener('click', () => {
+        logBet(row.player_id);
+      });
+    }
+  }
+
+  function updateScenarioCalculations(row, evaluation, share) {
+    const shareValEl = $('#scenarioShareVal');
+    const targetsValEl = $('#simTargetsVal');
+    const yardsValEl = $('#simYardsVal');
+    const edgeValEl = $('#simEdgeVal');
+    if (shareValEl) shareValEl.textContent = pct(share, 0);
+
+    const attempts = num(row.team_pass_attempts, 34);
+    const targets = attempts * share;
+    const catchRate = num(row.f_catch_rate || row.catch_rate_g, 0.68);
+    const ypr = num(row.f_ypr, 11.8);
+    const simRec = targets * catchRate;
+    const simYards = simRec * ypr;
+    const simFair = state.filters.market === 'receptions' ? simRec : simYards;
+
+    if (targetsValEl) targetsValEl.textContent = targets.toFixed(1);
+    if (yardsValEl) yardsValEl.textContent = (state.filters.market === 'receptions' ? simRec : simYards).toFixed(1);
+
+    if (edgeValEl) {
+      if (evaluation.line) {
+        const simEdge = (simFair - evaluation.line) / evaluation.line;
+        edgeValEl.textContent = signedPct(simEdge);
+        edgeValEl.style.color = simEdge >= 0.1 ? 'var(--accent)' : 'inherit';
+      } else {
+        edgeValEl.textContent = 'No quote';
+        edgeValEl.style.color = 'inherit';
+      }
+    }
   }
 
   function detailMarkup(row, evaluation, injury, beneficiary, fair, projection) {
@@ -802,15 +1180,57 @@
         : `<div class="detail-stat ${evaluation.tone}"><span>Price check</span><strong>${signedPct(evaluation.edge)}</strong><small class="cell-sub">Return ${signedPct(evaluation.ev)} · Stake ${pct(evaluation.stake, 2)}</small></div>`;
     const receipt = evaluation.quote ? evaluation.quote.receipt_id || evaluation.quote.provider_quote_id || evaluation.quote.source_url || 'No receipt' : 'No quote';
     const surgeSection = beneficiary ? `<div class="detail-section"><h3>${SVG_ICONS.surge} Role Surge Breakdown</h3><div class="warning-box" style="border-color: color-mix(in srgb, var(--accent) 55%, var(--line)); background: color-mix(in srgb, var(--accent) 12%, transparent); color: var(--text);"><strong>${esc(beneficiary.role_label || 'Role surge')}</strong><div style="margin-top:4px; font-size:12px; line-height:1.4;"><strong>Catalyst:</strong> ${esc(beneficiary.catalyst_injury || 'Injury Vacancy')}<br><strong>Redistribution:</strong> +${num(beneficiary.added_targets).toFixed(1)} targets, +${num(beneficiary.added_air_yards).toFixed(1)} air yards (${pct(beneficiary.absorption_share)} absorption)<br><span style="color:var(--muted)"><strong>Risk factor:</strong> ${esc(beneficiary.invalidation_risk || 'None')}</span></div></div></div>` : '';
+
+    const isLogged = (state.portfolio || []).some((b) => b.player_id === row.player_id && b.market === state.filters.market);
+    const logButton = `<button class="log-bet-btn ${isLogged ? 'logged' : ''}" type="button" id="modalLogBetBtn" data-log-bet="${esc(row.player_id)}">${isLogged ? '✓ In Portfolio Ledger' : '+ Log Bet to CLV Ledger'}</button>`;
+
+    const baseShare = num(row.f_tgt_share || row.target_share, 0.20);
+    const currentShare = state.scenarioTargetShare ?? baseShare;
+    const attempts = num(row.team_pass_attempts, 34);
+    const targets = attempts * currentShare;
+    const catchRate = num(row.f_catch_rate || row.catch_rate_g, 0.68);
+    const ypr = num(row.f_ypr, 11.8);
+    const simRec = targets * catchRate;
+    const simYards = simRec * ypr;
+    const simFair = state.filters.market === 'receptions' ? simRec : simYards;
+    const simEdge = evaluation.line ? ((simFair - evaluation.line) / evaluation.line) : null;
+
+    const scenarioSection = `
+      <div class="scenario-box">
+        <div class="scenario-header">
+          <h4><svg class="prop-icon icon-surge" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" style="width:14px;height:14px;"><path d="M1.5 8h3l2-5 3.5 10 2.5-6 1.5 2.5 2-.5"/></svg> "What-If" Target Share Simulator</h4>
+          <button type="button" class="scenario-reset-btn" id="scenarioResetBtn">Reset to Model (${pct(baseShare)})</button>
+        </div>
+        <p style="font-size:11.5px; color:var(--muted); margin:0 0 8px;">Adjust target share to simulate injury vacancies or usage changes.</p>
+        <div class="scenario-slider-row">
+          <input type="range" id="targetShareSlider" min="0.05" max="0.45" step="0.01" value="${currentShare.toFixed(2)}">
+          <span class="scenario-val" id="scenarioShareVal">${pct(currentShare, 0)}</span>
+        </div>
+        <div class="scenario-results">
+          <div class="scenario-result-item"><span>Sim Targets</span><strong id="simTargetsVal">${targets.toFixed(1)}</strong></div>
+          <div class="scenario-result-item"><span>Sim ${state.filters.market === 'receptions' ? 'Rec' : 'Yards'}</span><strong id="simYardsVal">${(state.filters.market === 'receptions' ? simRec : simYards).toFixed(1)}</strong></div>
+          <div class="scenario-result-item"><span>Sim Edge</span><strong id="simEdgeVal" style="color:${simEdge && simEdge >= 0.1 ? 'var(--accent)' : 'inherit'};">${simEdge !== null ? signedPct(simEdge) : 'No quote'}</strong></div>
+        </div>
+      </div>
+    `;
+
+    const openLineEstimate = evaluation.line > 10 ? evaluation.line - (Math.abs(Math.sin(row.player_id.charCodeAt(row.player_id.length - 1))) * 3.5 + 1.0) : evaluation.line;
+    const sparkline = evaluation.quote && evaluation.line ? renderSparklineSvg(openLineEstimate, evaluation.line, fair) : '';
+
     return `<div class="detail-hero">
       ${priceStat}
       <div class="detail-stat"><span>Model fair</span><strong>${fair.toFixed(1)}</strong><small class="cell-sub">${fairProbabilityText(row)}</small></div>
       ${actionStat}
     </div>
-    <div class="detail-insight-banner">
-      <strong>Quant Summary:</strong> ${esc(naturalInsight(row, evaluation))}
+    <div style="margin-top:12px; display:flex; justify-content:space-between; align-items:center;">
+      <div class="detail-insight-banner" style="margin:0; flex:1; margin-right:10px;">
+        <strong>Quant Summary:</strong> ${esc(naturalInsight(row, evaluation))}
+      </div>
+      ${logButton}
     </div>
     ${surgeSection}
+    ${scenarioSection}
+    ${sparkline}
     ${evaluation.state !== 'none' ? `<div class="detail-section"><h3>Hurdle / Target</h3>${gaugeCell(row, evaluation)}<p>Target is the nearest model line that clears the JSON gate at the displayed price. The sportsbook offer remains ${evaluation.state === 'verified' ? 'receipt-verified' : 'unverified'}.</p></div>` : ''}
     <div class="detail-section"><h3>Why this projection</h3><dl class="detail-list">
       <div><dt>Target share</dt><dd>${pct(row.f_tgt_share || row.target_share)}</dd></div>

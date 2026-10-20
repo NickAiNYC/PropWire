@@ -1,5 +1,5 @@
 // PROP·WIRE Service Worker (PWA Offline Support & Cache)
-const CACHE_NAME = 'propwire-f1a355d';
+const CACHE_NAME = 'propwire-a8b92c4';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -8,7 +8,8 @@ const STATIC_ASSETS = [
   '/manifest.json',
   '/favicon.svg',
   '/icon-192.png',
-  '/icon-512.png'
+  '/icon-512.png',
+  '/apple-touch-icon.png'
 ];
 
 self.addEventListener('install', (event) => {

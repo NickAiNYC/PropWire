@@ -4,16 +4,20 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#0d1117">
-  <meta name="build-hash" content="f1a355d">
+  <meta name="build-hash" content="a8b92c4">
   <meta name="description" content="PROP·WIRE NFL receiving-props research terminal.">
   <title>PROP·WIRE — NFL receiving props</title>
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="PROP·WIRE">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="manifest" href="manifest.json">
-  <link rel="stylesheet" href="style.css?v=f1a355d">
-  <script src="app.js?v=f1a355d" defer></script>
+  <link rel="stylesheet" href="style.css?v=a8b92c4">
+  <script src="app.js?v=a8b92c4" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#slateBoard">Skip to slate</a>
@@ -39,6 +43,11 @@
       </div>
 
       <div class="header-actions">
+        <button class="portfolio-button" id="portfolioBtn" type="button" title="Portfolio & CLV Scorecard" aria-label="Portfolio and CLV Scorecard">
+          <svg class="prop-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 3.5h11a1 1 0 011 1v8a1 1 0 01-1 1h-11a1 1 0 01-1-1v-8a1 1 0 011-1z"/><path d="M5.5 3.5v-1a1 1 0 011-1h4a1 1 0 011 1v1M8 7v4M6 9h4"/></svg>
+          <span class="portfolio-btn-text">Ledger</span>
+          <span class="portfolio-count-badge" id="portfolioCountBadge" hidden>0</span>
+        </button>
         <button class="icon-button" id="installButton" type="button" title="Install app" aria-label="Install PROP WIRE" hidden>
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v11m0 0 4-4m-4 4-4-4M5 17v3h14v-3"/></svg>
         </button>
@@ -50,6 +59,16 @@
 
     <div class="ticker" aria-label="Slate totals">
       <div class="shell ticker-inner" id="tickerLine" aria-live="polite">Loading slate…</div>
+    </div>
+
+    <div class="sticky-context-bar" id="stickyContextBar">
+      <div class="shell sticky-context-inner">
+        <span class="sticky-pill-label" id="stickyFilterLabel">⚡ Active Opportunities · All Positions</span>
+        <div class="sticky-actions">
+          <span class="sticky-count-pill" id="stickyCountPill">0 plays</span>
+          <button type="button" class="sticky-top-btn" id="stickyTopBtn" title="Scroll to top" aria-label="Scroll to top">↑ Top</button>
+        </div>
+      </div>
     </div>
   </header>
 
@@ -99,36 +118,48 @@
         </div>
       </div>
       <div class="prime-chips" id="primeChips" aria-label="Prime-time games"></div>
-      <div class="filters">
-        <label class="search-control">
-          <span>Search</span>
-          <input id="searchInput" type="search" placeholder="Player, team, opponent" autocomplete="off">
-        </label>
-        <label>
-          <span>Market</span>
-          <select id="marketFilter" class="control">
-            <option value="receiving_yards">Receiving yards</option>
-            <option value="receptions">Receptions</option>
-          </select>
-        </label>
-        <label>
-          <span>Position</span>
-          <select id="positionFilter" class="control">
-            <option value="ALL">All positions</option>
-            <option value="WR">WR</option>
-            <option value="TE">TE</option>
-            <option value="RB">RB</option>
-          </select>
-        </label>
-        <label>
-          <span>Team</span>
-          <input id="teamFilter" class="control" type="search" list="teamOptions" placeholder="All teams" autocomplete="off">
-          <datalist id="teamOptions"></datalist>
-        </label>
+      <div class="filters-container">
+        <div class="search-row-mobile">
+          <label class="search-control">
+            <span>Search</span>
+            <input id="searchInput" type="search" placeholder="Player, team, opponent (/ to focus)" autocomplete="off">
+          </label>
+          <button type="button" id="mobileFilterToggle" class="mobile-filter-btn" aria-expanded="false" aria-controls="collapsibleFilters">
+            <svg class="prop-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M1.5 3h13M3.5 8h9M6 13h4"/></svg>
+            <span>Filters</span>
+            <span id="activeFilterBadge" class="filter-count-badge" hidden>0</span>
+          </button>
+        </div>
+        <div class="filters collapsible-filters" id="collapsibleFilters">
+          <label>
+            <span>Market</span>
+            <select id="marketFilter" class="control">
+              <option value="receiving_yards">Receiving yards</option>
+              <option value="receptions">Receptions</option>
+            </select>
+          </label>
+          <label>
+            <span>Position</span>
+            <select id="positionFilter" class="control">
+              <option value="ALL">All positions</option>
+              <option value="WR">WR</option>
+              <option value="TE">TE</option>
+              <option value="RB">RB</option>
+            </select>
+          </label>
+          <label>
+            <span>Team</span>
+            <input id="teamFilter" class="control" type="search" list="teamOptions" placeholder="All teams" autocomplete="off">
+            <datalist id="teamOptions"></datalist>
+          </label>
+        </div>
       </div>
       <div class="result-line">
         <span id="resultCount">0 player records</span>
-        <button id="clearFilters" class="text-button" type="button">Clear filters</button>
+        <div class="result-line-right">
+          <span class="kbd-hint"><span class="kbd">J</span><span class="kbd">K</span> Navigate &bull; <span class="kbd">/</span> Search &bull; <span class="kbd">Enter</span> Inspect</span>
+          <button id="clearFilters" class="text-button" type="button">Clear filters</button>
+        </div>
       </div>
     </section>
 
@@ -160,6 +191,19 @@
         <button class="icon-button" value="cancel" aria-label="Close player detail">×</button>
       </div>
       <div id="detailContent"></div>
+    </form>
+  </dialog>
+
+  <dialog class="detail-dialog portfolio-dialog" id="portfolioDialog" aria-labelledby="portfolioTitle">
+    <form method="dialog" class="dialog-shell">
+      <div class="dialog-header">
+        <div>
+          <div class="eyebrow">Personal CLV Ledger</div>
+          <h2 id="portfolioTitle">Portfolio &amp; CLV Scorecard</h2>
+        </div>
+        <button class="icon-button" value="cancel" aria-label="Close portfolio dialog">×</button>
+      </div>
+      <div id="portfolioContent"></div>
     </form>
   </dialog>
 
