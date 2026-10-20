@@ -50,8 +50,7 @@
       <!-- Left: Brand + Slate Selector + Compact Availability Trigger -->
       <div class="pw-topbar-left">
         <a href="#slateBoard" class="pw-brand" aria-label="PROP WIRE home">
-          <span class="pw-brand-mark">P↗</span>
-          <span class="pw-brand-text">PROP<span class="pw-dot">·</span>WIRE</span>
+          <img src="/propwire-logo-full.png?v=v3_mark" alt="PROP·WIRE" class="pw-brand-img" height="24">
         </a>
         <div class="pw-divider"></div>
         <select id="slateSelector" class="pw-select pw-select-slate" aria-label="Select Slate">
@@ -133,8 +132,15 @@
         <kbd class="pw-kbd">/</kbd>
       </div>
 
+      <!-- Mobile Drawer Trigger for Secondary Filters -->
+      <button type="button" class="pw-filter-toggle-btn" id="mobileFilterToggle" aria-expanded="false" title="Toggle Filters">
+        <span class="filter-toggle-icon">⚡</span>
+        <span id="mobileFilterBadgeText">Filters</span>
+        <span class="filter-toggle-chevron">▾</span>
+      </button>
+
       <!-- Compact Facet Selects (Clean labels, zero truncation) -->
-      <div class="pw-facets">
+      <div class="pw-facets" id="collapsibleFilters">
         <label class="pw-facet" title="Select prop market">
           <span class="pw-facet-label">Mkt</span>
           <select id="marketFilter">
@@ -191,7 +197,7 @@
           <strong>JavaScript Required:</strong> PropWire is a client-side quantitative terminal. 390 projected receivers across 15 Week 7 matchups are rendered dynamically from static JSON data feeds (<code>slate_2026_w7.json</code>). Please enable JavaScript to access live odds comparison, Kelly calculations, and personal CLV tracking.
         </div>
       </noscript>
-      <div class="table-scroll" id="tableView" tabindex="0" aria-label="Scrollable player table">
+      <div class="table-scroll desktop-table-container" id="tableView" tabindex="0" aria-label="Scrollable player table">
         <table class="slate-table">
           <thead id="slateHead"></thead>
           <tbody id="slateRows">

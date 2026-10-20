@@ -1209,10 +1209,19 @@
     if (state.filters.market !== 'receiving_yards') count++;
     if (state.filters.position !== 'ALL') count++;
     if (state.filters.team !== '') count++;
+    if (state.filters.intent && state.filters.intent !== 'all') count++;
     const badge = $('#activeFilterBadge');
     if (badge) {
       badge.textContent = count;
       badge.hidden = count === 0;
+    }
+    const mobileText = $('#mobileFilterBadgeText');
+    if (mobileText) {
+      mobileText.textContent = count > 0 ? `Filters · ${count} Active` : 'Filters';
+    }
+    const mobileToggle = $('#mobileFilterToggle');
+    if (mobileToggle) {
+      mobileToggle.classList.toggle('has-active', count > 0);
     }
   }
 
@@ -1616,7 +1625,11 @@
   }
 
   function setView(view) {
-    state.view = view === 'cards' ? 'cards' : 'table';
+    if (window.matchMedia && window.matchMedia('(max-width: 768px)').matches) {
+      state.view = 'cards';
+    } else {
+      state.view = view === 'cards' ? 'cards' : 'table';
+    }
     $$('.view-switch button').forEach((button) => button.classList.toggle('active', button.dataset.view === state.view));
     renderBoard();
   }
@@ -2146,7 +2159,7 @@
     const deltaYards = (fairLine - offerLine).toFixed(1);
     const deltaSigned = num(deltaYards) > 0 ? `+${deltaYards}` : deltaYards;
 
-    const isCrowded = Math.abs(targetPct - offerPct) < 9;
+    const isOfferHurdleCrowded = Math.abs(targetPct - offerPct) < 9 || Math.abs(targetLineVal - offerLine) < 2.5;
 
     return `
       <div class="quant-ruler-card">
@@ -2174,15 +2187,15 @@
             <span class="marker-val val-open">${openLine.toFixed(1)}</span>
           </div>
 
-          <!-- Marker 2: Live Book Offer -->
-          <div class="ruler-marker marker-offer" style="left:${offerPct.toFixed(1)}%">
+          <!-- Marker 2: Live Book Offer (Staggered top when crowded) -->
+          <div class="ruler-marker marker-offer ${isOfferHurdleCrowded ? 'marker-stagger-top' : ''}" style="left:${offerPct.toFixed(1)}%">
             <span class="marker-lbl lbl-offer">OFFER</span>
             <div class="marker-dot dot-offer"></div>
             <span class="marker-val val-offer">${offerLine.toFixed(1)}</span>
           </div>
 
-          <!-- Marker 3: Gate Hurdle Target -->
-          <div class="ruler-marker marker-hurdle ${isCrowded ? 'stagger-hurdle' : ''}" style="left:${targetPct.toFixed(1)}%">
+          <!-- Marker 3: Gate Hurdle Target (Staggered bottom when crowded) -->
+          <div class="ruler-marker marker-hurdle ${isOfferHurdleCrowded ? 'marker-stagger-bottom' : ''}" style="left:${targetPct.toFixed(1)}%">
             <span class="marker-lbl lbl-hurdle">HURDLE</span>
             <div class="marker-dot dot-hurdle"></div>
             <span class="marker-val val-hurdle">${targetLineVal.toFixed(1)}</span>
@@ -2278,9 +2291,9 @@
 
         <div class="bridge-body">
           <div class="bridge-legend">
-            <span>De-Vigged Mkt: <b>${mktPct}%</b></span>
-            <span class="text-amber">Break-Even: <b>${bePct}%</b> (${oddsText(evaluation.odds)})</span>
-            <span class="text-accent">Model P(${evaluation.side} ${evaluation.line.toFixed(1)}): <b>${winPct}%</b></span>
+            <span class="legend-mkt">De-Vigged Mkt: <b class="val-mkt">${mktPct}%</b></span>
+            <span class="legend-vig">Break-Even Vig: <b class="val-vig">${bePct}%</b> <small>(${oddsText(evaluation.odds)})</small></span>
+            <span class="legend-model">Model Win P: <b class="val-model">${winPct}%</b></span>
           </div>
 
           <div class="bridge-track">
@@ -2734,13 +2747,32 @@
       </div>
     `;
 
+    const game = state.games.find((item) => item.game_id === row.game_id);
+    const isDome = row.is_dome || game?.roof === 'dome';
+    const wind = game?.wind ?? row.wind_speed ?? row.wind;
+    const envTag = isDome ? 'ENV: DOME' : (Number.isFinite(wind) && wind > 0) ? `ENV: ${wind} MPH WIND` : 'ENV: MILD / OUTDOOR';
+    const weatherDesc = isDome ? 'Indoor Dome (Controlled Conditions)' : (Number.isFinite(wind) && wind > 0) ? `${wind} mph wind (${game?.home_team ? `${game.home_team} stadium` : 'Open'})` : 'Controlled / mild conditions';
+
+    const isReceptions = state.filters.market === 'receptions';
+    const isAnytimeTd = state.filters.market === 'anytime_td';
+    const modelSpecTag = isReceptions ? 'MODEL SPEC: INTEGER POISSON' : isAnytimeTd ? 'MODEL SPEC: ZERO-INFLATED POISSON' : 'MODEL SPEC: CONTINUOUS MEDIAN';
+    const distributionDesc = isReceptions ? 'Discrete Poisson (Half-step)' : isAnytimeTd ? 'Poisson Red Zone Model' : 'Calibrated Continuous Log-Normal';
+    const fairPVal = isReceptions ? pct(row.p_rec_at_fair_line) : '50.0%';
+    const sampleDesc = `${num(row.games_prior, 16)} games prior · ${row.season || '2026'}`;
+    const scopeNote = isReceptions
+      ? `Receptions use integer outcomes and half-step lines. Fair line calibrated at P(over) = ${pct(row.p_rec_at_fair_line)}.`
+      : 'Receiving-yards fair line is the calibrated continuous median, where P(over) is exactly 50.0%.';
+
     return `
       <div class="detail-hero">
         ${priceStat}
-        <div class="detail-stat">
-          <span>Model Fair</span>
+        <div class="detail-stat detail-stat-fair">
+          <div class="detail-stat-head">
+            <span>Model Fair</span>
+            <span class="detail-stat-badge">${fairProbabilityText(row)}</span>
+          </div>
           <strong class="text-white">${fair.toFixed(1)} <small class="text-dim" style="font-size:11px;">(μ ${projection.toFixed(1)})</small></strong>
-          <small class="cell-sub">${fairProbabilityText(row)}</small>
+          <small class="cell-sub">Continuous median · ${num(row.games_prior, 16)}G baseline</small>
         </div>
         ${actionStat}
       </div>
@@ -2778,17 +2810,38 @@
       <!-- Inline Execution Ticket (CLV Ledger) -->
       ${executionTicketMarkup(row, evaluation, wagerDollars)}
 
-      <!-- Invalidation & Risk Factors -->
-      <div class="detail-section">
-        <h3>What could invalidate it</h3>
-        <p>${esc(invalidationText(row, injury))}</p>
-        ${injury ? '<div class="warning-box"><strong>Snap risk is unpriced.</strong> The designation stays visible and is not converted into false precision.</div>' : ''}
-        ${evaluation.dataCheck ? '<div class="warning-box"><strong>Verify before acting.</strong> Edge above 12% can indicate a stale price, name mismatch, unmodeled injury, or role change.</div>' : ''}
-      </div>
+      <!-- Institutional 2-Column Terminal Specification Grid (Replacing Text-Heavy Footer) -->
+      <div class="spec-grid-card">
+        <div class="spec-col spec-col-invalidation">
+          <div class="spec-header">
+            <span class="spec-title">Invalidation &amp; Risk Envelope</span>
+            <span class="spec-tag ${isDome ? 'tag-dome' : 'tag-wind'}">${envTag}</span>
+          </div>
+          <div class="spec-body">
+            <div class="spec-meta-list">
+              <div class="spec-meta-item"><span class="spec-k">Game Script:</span> <span class="spec-v">${row.team} spread ${num(row.team_spread) > 0 ? '+' : ''}${num(row.team_spread).toFixed(1)}</span></div>
+              <div class="spec-meta-item"><span class="spec-k">Venue / Env:</span> <span class="spec-v">${weatherDesc}</span></div>
+              <div class="spec-meta-item"><span class="spec-k">Tail Risk:</span> <span class="spec-v">${injury ? `${injury.report_status} (${injury.notes || 'Snap risk unpriced'})` : 'Late inactive / unmodeled rotation'}</span></div>
+            </div>
+            ${injury ? '<div class="spec-alert alert-amber"><strong>Snap risk unpriced:</strong> Inactive designation tracked without false precision.</div>' : ''}
+            ${evaluation.dataCheck ? '<div class="spec-alert alert-amber"><strong>Audit Flag:</strong> Edge &gt;12% warrants active receipt check.</div>' : ''}
+          </div>
+        </div>
 
-      <div class="detail-section">
-        <h3>Fair-line scope</h3>
-        <p>${state.filters.market === 'receptions' ? `Receptions use integer outcomes and half-step lines. This player's P(over) at the displayed fair line is ${pct(row.p_rec_at_fair_line)}.` : 'Receiving-yards fair line is the calibrated continuous median, where P(over) is 50%.'}</p>
+        <div class="spec-col spec-col-scope">
+          <div class="spec-header">
+            <span class="spec-title">Fair-Line Specification</span>
+            <span class="spec-tag tag-model">${modelSpecTag}</span>
+          </div>
+          <div class="spec-body">
+            <div class="spec-meta-list">
+              <div class="spec-meta-item"><span class="spec-k">Distribution:</span> <span class="spec-v">${distributionDesc}</span></div>
+              <div class="spec-meta-item"><span class="spec-k">P(Over Fair):</span> <span class="spec-v font-bold ${isReceptions ? 'text-amber' : 'text-accent'}">${fairPVal}</span></div>
+              <div class="spec-meta-item"><span class="spec-k">Sample Base:</span> <span class="spec-v">${sampleDesc}</span></div>
+            </div>
+            <div class="spec-note">${scopeNote}</div>
+          </div>
+        </div>
       </div>
     `;
   }

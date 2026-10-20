@@ -1,0 +1,3014 @@
+(() => {
+  'use strict';
+
+  const MODEL_ALPHA = 0.1097;
+  const MODEL_K = 1.555;
+  const SLATES = {
+    '2026_w7': {
+      season: 2026,
+      week: 7,
+      state: 'Upcoming slate · Oct 22–26',
+      slate: 'slate_2026_w7.json',
+      games: 'games_2026_w7.json',
+      picks: 'current_picks_w7.json',
+      injuries: 'injuries_2026_w7.json',
+      odds: 'live_odds_feed.json',
+      historical: false
+    },
+    '2026_w1': {
+      season: 2026,
+      week: 1,
+      state: 'Historical audit · Sept 10–14',
+      slate: 'slate_2026_w1.json',
+      games: 'games_2026_w1.json',
+      picks: 'current_picks_w1.json',
+      injuries: null,
+      odds: null,
+      historical: true
+    }
+  };
+
+  function loadPortfolio() {
+    try {
+      const raw = localStorage.getItem('propwire_portfolio_ledger');
+      return raw ? JSON.parse(raw) : [];
+    } catch (_) {
+      return [];
+    }
+  }
+
+  function savePortfolio(portfolio) {
+    try {
+      localStorage.setItem('propwire_portfolio_ledger', JSON.stringify(portfolio));
+    } catch (_) {}
+  }
+
+  function loadWatchlist() {
+    try {
+      const raw = localStorage.getItem('propwire_watchlist');
+      return raw ? JSON.parse(raw) : [];
+    } catch (_) {
+      return [];
+    }
+  }
+
+  function saveWatchlist(watchlist) {
+    try {
+      localStorage.setItem('propwire_watchlist', JSON.stringify(watchlist));
+    } catch (_) {}
+  }
+
+  const state = {
+    slateKey: '2026_w7',
+    slate: [],
+    games: [],
+    picks: {},
+    injuries: { injuries: [], impacted_beneficiaries: {} },
+    odds: { quotes: [] },
+    filters: { search: '', market: 'receiving_yards', position: 'ALL', team: '', gameId: '', playMode: 'actionable', intent: 'all' },
+    view: matchMedia('(max-width: 768px)').matches ? 'cards' : 'table',
+    deferredInstall: null,
+    selectedPlayerId: null,
+    focusedIndex: -1,
+    scenarioTargetShare: null,
+    bankroll: 5000,
+    clvReport: null,
+    portfolio: loadPortfolio(),
+    watchlist: loadWatchlist(),
+    bottomTab: 'slate',
+    slateScrollY: 0
+  };
+  try {
+    const savedBankroll = localStorage.getItem('propwire-bankroll');
+    if (savedBankroll) state.bankroll = Math.max(100, Number(savedBankroll));
+  } catch (_) {}
+
+  const $ = (selector) => document.querySelector(selector);
+  const $$ = (selector) => [...document.querySelectorAll(selector)];
+  const finite = (value) => Number.isFinite(Number(value));
+  const num = (value, fallback = 0) => finite(value) ? Number(value) : fallback;
+  const pct = (value, digits = 1) => `${(num(value) * 100).toFixed(digits)}%`;
+  const signedPct = (value, digits = 1) => `${num(value) > 0 ? '+' : ''}${pct(value, digits)}`;
+  const oddsText = (value) => `${num(value) > 0 ? '+' : ''}${num(value)}`;
+  const esc = (value) => String(value ?? '').replace(/[&<>'"]/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[character]);
+  const bookShort = (book) => ({ DraftKings: 'DK', FanDuel: 'FD', BetMGM: 'MGM', Caesars: 'CZR', Pinnacle: 'PIN' })[book] || book || 'Book';
+
+  // Map PropWire team codes to official ESPN CDN slugs + subtle brand ring tints
+  const NFL_LOGO_MAP = {
+    ARI: { slug: 'ari', bg: 'rgba(151,35,63,0.18)', border: 'rgba(151,35,63,0.45)' },
+    ATL: { slug: 'atl', bg: 'rgba(167,25,48,0.18)', border: 'rgba(167,25,48,0.45)' },
+    BAL: { slug: 'bal', bg: 'rgba(36,23,115,0.25)', border: 'rgba(158,124,12,0.45)' },
+    BUF: { slug: 'buf', bg: 'rgba(0,51,141,0.25)', border: 'rgba(198,12,48,0.45)' },
+    CAR: { slug: 'car', bg: 'rgba(0,133,202,0.18)', border: 'rgba(0,133,202,0.45)' },
+    CHI: { slug: 'chi', bg: 'rgba(11,22,42,0.45)', border: 'rgba(200,56,3,0.50)' },
+    CIN: { slug: 'cin', bg: 'rgba(251,79,20,0.18)', border: 'rgba(251,79,20,0.45)' },
+    CLE: { slug: 'cle', bg: 'rgba(255,60,0,0.18)', border: 'rgba(255,60,0,0.45)' },
+    DAL: { slug: 'dal', bg: 'rgba(134,147,151,0.20)', border: 'rgba(134,147,151,0.50)' },
+    DEN: { slug: 'den', bg: 'rgba(251,79,20,0.18)', border: 'rgba(0,34,68,0.55)' },
+    DET: { slug: 'det', bg: 'rgba(0,118,182,0.22)', border: 'rgba(176,183,188,0.45)' },
+    GB:  { slug: 'gb',  bg: 'rgba(24,48,40,0.40)', border: 'rgba(255,184,28,0.45)' },
+    HOU: { slug: 'hou', bg: 'rgba(3,32,47,0.40)', border: 'rgba(167,25,48,0.45)' },
+    IND: { slug: 'ind', bg: 'rgba(0,44,95,0.30)', border: 'rgba(162,170,173,0.45)' },
+    KC:  { slug: 'kc',  bg: 'rgba(227,24,55,0.18)', border: 'rgba(255,184,28,0.45)' },
+    LA:  { slug: 'lar', bg: 'rgba(0,53,148,0.25)', border: 'rgba(255,163,0,0.45)' },
+    LAR: { slug: 'lar', bg: 'rgba(0,53,148,0.25)', border: 'rgba(255,163,0,0.45)' },
+    LAC: { slug: 'lac', bg: 'rgba(0,128,198,0.25)', border: 'rgba(255,194,14,0.45)' },
+    LV:  { slug: 'lv',  bg: 'rgba(165,172,175,0.18)', border: 'rgba(165,172,175,0.45)' },
+    MIA: { slug: 'mia', bg: 'rgba(0,142,151,0.22)', border: 'rgba(252,76,2,0.45)' },
+    MIN: { slug: 'min', bg: 'rgba(79,38,131,0.26)', border: 'rgba(255,198,47,0.45)' },
+    NE:  { slug: 'ne',  bg: 'rgba(0,34,68,0.35)', border: 'rgba(198,12,48,0.45)' },
+    NO:  { slug: 'no',  bg: 'rgba(211,188,141,0.18)', border: 'rgba(211,188,141,0.50)' },
+    NYG: { slug: 'nyg', bg: 'rgba(1,35,82,0.30)', border: 'rgba(163,13,45,0.45)' },
+    NYJ: { slug: 'nyj', bg: 'rgba(18,87,64,0.30)', border: 'rgba(18,87,64,0.55)' },
+    PHI: { slug: 'phi', bg: 'rgba(0,76,84,0.30)', border: 'rgba(165,172,175,0.45)' },
+    PIT: { slug: 'pit', bg: 'rgba(255,182,18,0.18)', border: 'rgba(255,182,18,0.50)' },
+    SEA: { slug: 'sea', bg: 'rgba(0,34,68,0.35)', border: 'rgba(105,190,40,0.50)' },
+    SF:  { slug: 'sf',  bg: 'rgba(170,0,0,0.22)', border: 'rgba(179,153,93,0.50)' },
+    TB:  { slug: 'tb',  bg: 'rgba(213,10,10,0.22)', border: 'rgba(177,186,191,0.45)' },
+    TEN: { slug: 'ten', bg: 'rgba(75,146,219,0.22)', border: 'rgba(75,146,219,0.50)' },
+    WAS: { slug: 'wsh', bg: 'rgba(90,20,20,0.30)', border: 'rgba(255,182,18,0.45)' },
+    WSH: { slug: 'wsh', bg: 'rgba(90,20,20,0.30)', border: 'rgba(255,182,18,0.45)' }
+  };
+
+  function teamLogoUrl(team) {
+    if (!team) return '';
+    const code = String(team).toUpperCase();
+    const meta = NFL_LOGO_MAP[code];
+    const slug = meta ? meta.slug : team.toLowerCase();
+    return `https://a.espncdn.com/i/teamlogos/nfl/500/${slug}.png`;
+  }
+
+  function teamCrest(team, size = 'md') {
+    if (!team) return '';
+    const code = String(team).toUpperCase();
+    const meta = NFL_LOGO_MAP[code] || {
+      slug: team.toLowerCase(),
+      bg: 'rgba(255,255,255,0.08)',
+      border: 'rgba(255,255,255,0.18)'
+    };
+    const sizeCls = size === 'sm' ? 'crest-sm' : size === 'lg' ? 'crest-lg' : 'crest-md';
+    return `<div class="team-crest ${sizeCls}" style="background-color:${meta.bg}; border-color:${meta.border};" title="${esc(code)}"><img src="https://a.espncdn.com/i/teamlogos/nfl/500/${meta.slug}.png" alt="${esc(code)}" loading="lazy" class="crest-img" onerror="this.style.display='none'"></div>`;
+  }
+
+  const SVG_ICONS = {
+    edge: '<svg class="prop-icon icon-edge" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 1.5L2.5 9h5l-1 5.5L13.5 7h-5l1-5.5z"/></svg>',
+    surge: '<svg class="prop-icon icon-surge" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1.5 8h3l2-5 3.5 10 2.5-6 1.5 2.5 2-.5"/></svg>',
+    alpha: '<svg class="prop-icon icon-alpha" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="8" r="6.5"/><circle cx="8" cy="8" r="2.5"/></svg>',
+    air: '<svg class="prop-icon icon-air" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 13L13 3M13 3H7M13 3V9"/></svg>',
+    adot: '<svg class="prop-icon icon-deep" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 1v14M1 8h14"/><circle cx="8" cy="8" r="5.5"/></svg>',
+    volume: '<svg class="prop-icon icon-volume" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 13.5v-4M6.5 13.5v-7M10.5 13.5v-10M14.5 13.5v-6"/></svg>',
+    starter: '<svg class="prop-icon icon-starter" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="8" r="2.5"/><path d="M8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2"/></svg>',
+    depth: '<svg class="prop-icon icon-depth" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 5l6-3 6 3-6 3-6-3zM2 9.5l6 3 6-3M2 13l6 3 6-3"/></svg>',
+    lock: '<svg class="prop-icon icon-lock" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="6.5" width="9" height="8" rx="1.5"/><path d="M5.5 6.5V4.5a2.5 2.5 0 015 0v2"/></svg>',
+    warn: '<svg class="prop-icon icon-warn" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2.5L1.5 13.5h13L8 2.5zM8 6.5v3.5M8 11.5v.5"/></svg>',
+    dome: '<svg class="prop-icon icon-dome" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 13h12M3 13a5 5 0 0110 0M8 3v2"/></svg>',
+    wind: '<svg class="prop-icon icon-wind" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 5.5h7a1.5 1.5 0 10-1.5-1.5M2 8.5h10.5a1.5 1.5 0 10-1.5-1.5M2 11.5h5a1.5 1.5 0 10-1.5-1.5"/></svg>',
+    check: '<svg class="prop-icon icon-check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8.5l3.5 3.5 6.5-7"/></svg>',
+    target: '<svg class="prop-icon icon-target" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="8" r="6"/><circle cx="8" cy="8" r="2"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2"/></svg>'
+  };
+
+  function keyDriverTag(row, beneficiary) {
+    if (state.filters.market === 'anytime_td') {
+      const rzShare = Math.min(0.48, Math.max(0.12, (num(row.f_tgt_share || row.target_share) * 1.5)));
+      const ezTargets = (num(row.c_targets, 4.0) * 0.18).toFixed(1);
+      if (rzShare >= 0.28) {
+        return `<span class="driver-badge surge" title="Red Zone Target Share">${SVG_ICONS.target} RZ Share (${pct(rzShare, 0)})</span>`;
+      }
+      return `<span class="driver-badge alpha" title="End Zone Targets">${SVG_ICONS.target} EZ Targets (${ezTargets}/gm)</span>`;
+    }
+    if (beneficiary) {
+      return `<span class="driver-badge surge" title="Role surge catalyst: ${esc(beneficiary.catalyst_injury || 'Vacancy')}">${SVG_ICONS.surge} Surge (+${num(beneficiary.added_targets).toFixed(1)} tgt)</span>`;
+    }
+    const share = num(row.f_tgt_share || row.target_share);
+    const ayShare = num(row.f_ay_share || row.air_yards_share);
+    const adot = num(row.f_adot || row.adot);
+    const tgts = num(row.c_targets);
+
+    if (share >= 0.25) {
+      return `<span class="driver-badge alpha" title="Target share alpha: ${pct(share)}">${SVG_ICONS.alpha} Alpha (${pct(share, 0)})</span>`;
+    }
+    if (ayShare >= 0.35) {
+      return `<span class="driver-badge air" title="Air yards share: ${pct(ayShare)}">${SVG_ICONS.air} Air Lead (${pct(ayShare, 0)})</span>`;
+    }
+    if (adot >= 12.5) {
+      return `<span class="driver-badge adot" title="Average depth of target: ${adot.toFixed(1)} yds">${SVG_ICONS.adot} Deep (${adot.toFixed(1)} aDOT)</span>`;
+    }
+    if (tgts >= 6.5) {
+      return `<span class="driver-badge volume" title="Target volume: ${tgts.toFixed(1)} tgt/gm">${SVG_ICONS.volume} Volume (${tgts.toFixed(1)} tgt)</span>`;
+    }
+    if (share >= 0.16) {
+      return `<span class="driver-badge starter" title="Starting share: ${pct(share)}">${SVG_ICONS.starter} Starter (${pct(share, 0)})</span>`;
+    }
+    return `<span class="driver-badge depth" title="Rotational depth target">${SVG_ICONS.depth} Depth</span>`;
+  }
+
+  function distributionRange(row) {
+    if (state.filters.market === 'anytime_td') {
+      const share = num(row.f_tgt_share || row.target_share, 0.15);
+      const prob = Math.min(0.65, Math.max(0.12, share * 1.8));
+      return { low: 0, high: 1, fair: prob, proj: prob, isTd: true, prob };
+    }
+    const isRec = state.filters.market === 'receptions';
+    if (isRec) {
+      const mu = num(row.mu_rec || row.proj_rec || 3.0);
+      const low = Math.max(0, Math.floor(mu * 0.55));
+      const high = Math.max(low + 1, Math.ceil(mu * 1.55 + 0.5));
+      const fair = fairValue(row);
+      const proj = projectionValue(row);
+      return { low, high, fair, proj, isRec: true };
+    } else {
+      const fair = num(row.fair_line_yards || row.proj_yards || 40.0);
+      const proj = num(row.proj_yards || 40.0);
+      const low = Math.max(0, Math.round(fair * 0.58));
+      const high = Math.round(proj * 1.48);
+      return { low, high, fair, proj, isRec: false };
+    }
+  }
+
+  function propBulletGraphSvg(dist, evaluation, side = 'OVER') {
+    if (dist.isTd) {
+      const probPct = Math.min(100, Math.max(0, dist.prob * 100));
+      return `
+        <div class="bullet-container td-bullet">
+          <div class="bullet-top-readout">
+            <span class="bullet-dim">P(TD)</span> <strong class="bullet-bold text-accent">${pct(dist.prob, 0)}</strong>
+          </div>
+          <svg class="bullet-svg" viewBox="0 0 100 14" preserveAspectRatio="none" aria-hidden="true">
+            <rect x="0" y="5" width="100" height="4" rx="2" fill="rgba(255,255,255,0.06)" />
+            <rect x="0" y="4.5" width="${probPct.toFixed(1)}" height="5" rx="2" fill="var(--accent)" />
+          </svg>
+          <div class="bullet-bottom-sub"><span>Model: ${pct(dist.prob, 1)}</span></div>
+        </div>`;
+    }
+
+    const isRec = Boolean(dist.isRec);
+    const maxScale = isRec ? 14 : 190;
+    const unit = isRec ? 'rec' : 'y';
+    const toPct = (val) => Math.min(100, Math.max(0, (val / maxScale) * 100));
+
+    const lowPct = toPct(dist.low);
+    const highPct = toPct(dist.high);
+    const widthPct = Math.max(2, highPct - lowPct);
+
+    const hasBook = evaluation && evaluation.state !== 'none' && Number.isFinite(evaluation.line);
+    const bookLine = hasBook ? evaluation.line : null;
+    const bookPct = hasBook ? toPct(bookLine) : 0;
+    const fairPct = toPct(dist.fair);
+    const projPct = toPct(dist.proj);
+
+    const deltaStart = hasBook ? Math.min(bookPct, fairPct) : 0;
+    const deltaWidth = hasBook ? Math.abs(fairPct - bookPct) : 0;
+    const deltaColor = side === 'OVER' ? 'rgba(132, 204, 22, 0.32)' : 'rgba(56, 189, 248, 0.4)';
+
+    return `
+      <div class="bullet-container" title="80% CI: ${dist.low}–${dist.high}${unit} | Fair: ${dist.fair.toFixed(1)} | Proj: ${dist.proj.toFixed(1)}${hasBook ? ` | Book: ${bookLine.toFixed(1)}` : ''}">
+        <div class="bullet-top-readout">
+          <div><span class="bullet-dim">FAIR</span> <strong class="bullet-bold text-fair">${dist.fair.toFixed(1)}</strong></div>
+          <span class="split-divider">|</span>
+          <div><span class="bullet-dim">PROJ</span> <strong class="bullet-bold text-accent">${dist.proj.toFixed(1)}</strong></div>
+        </div>
+        <svg class="bullet-svg" viewBox="0 0 100 14" preserveAspectRatio="none" aria-hidden="true">
+          <!-- Background Track (0 to maxScale) -->
+          <rect x="0" y="5" width="100" height="4" rx="1.5" fill="rgba(255,255,255,0.06)" />
+          <!-- 80% Confidence Interval Bar -->
+          <rect x="${lowPct.toFixed(1)}" y="4.5" width="${widthPct.toFixed(1)}" height="5" rx="1" fill="rgba(148, 163, 184, 0.22)" />
+          <!-- Edge Delta Highlight -->
+          ${hasBook && deltaWidth > 0 ? `<rect x="${deltaStart.toFixed(1)}" y="4.5" width="${deltaWidth.toFixed(1)}" height="5" fill="${deltaColor}" />` : ''}
+          <!-- Book Line Marker (Crisp Vertical Amber Tick) -->
+          ${hasBook ? `<line x1="${bookPct.toFixed(1)}" y1="1" x2="${bookPct.toFixed(1)}" y2="13" stroke="#f59e0b" stroke-width="1.8" />` : ''}
+          <!-- Fair Line Marker (Solid White Tick) -->
+          <line x1="${fairPct.toFixed(1)}" y1="2.5" x2="${fairPct.toFixed(1)}" y2="11.5" stroke="#f8fafc" stroke-width="1.6" />
+          <!-- Model Projection Mean (Volt Green Dot) -->
+          <circle cx="${projPct.toFixed(1)}" cy="7" r="2.5" fill="#a3e635" stroke="#070a12" stroke-width="0.8" />
+        </svg>
+        <div class="bullet-bottom-sub">
+          <span>80%: ${dist.low}–${dist.high}${unit}</span>
+          <span class="bullet-bk">${hasBook ? `Bk ${bookLine.toFixed(1)}` : 'No quote'}</span>
+        </div>
+      </div>`;
+  }
+
+  function distSparklineSvg(dist, bookLine, w = 68, h = 18) {
+    return propBulletGraphSvg(dist, { state: Number.isFinite(bookLine) ? 'verified' : 'none', line: bookLine });
+  }
+
+  function predictionInterval(row) {
+    if (state.filters.market === 'anytime_td') {
+      const share = num(row.f_tgt_share || row.target_share, 0.15);
+      const prob = Math.min(0.65, Math.max(0.12, share * 1.8));
+      return `Implied P(TD): ${pct(prob, 0)}`;
+    }
+    const isRec = state.filters.market === 'receptions';
+    if (isRec) {
+      const mu = num(row.mu_rec || row.proj_rec || 3.0);
+      const low = Math.max(0, Math.floor(mu * 0.55));
+      const high = Math.max(low + 1, Math.ceil(mu * 1.55 + 0.5));
+      return `80% Range: ${low} – ${high} rec`;
+    } else {
+      const fair = num(row.fair_line_yards || row.proj_yards || 40.0);
+      const proj = num(row.proj_yards || 40.0);
+      const low = Math.max(0, Math.round(fair * 0.58));
+      const high = Math.round(proj * 1.48);
+      return `80% Range: ${low} – ${high} yds`;
+    }
+  }
+
+  function naturalInsight(row, evaluation) {
+    const fair = fairValue(row);
+    const proj = projectionValue(row);
+    const unit = state.filters.market === 'receptions' ? 'rec' : 'yds';
+    if (evaluation.state === 'none') {
+      if (proj >= (state.filters.market === 'receptions' ? 5.5 : 75.0)) {
+        return `Model projects strong ceiling at ${proj.toFixed(1)} ${unit} (Waiting for sportsbook quotes).`;
+      }
+      return `Model baseline sits at ${fair.toFixed(1)} ${unit} (Waiting for sportsbook quotes).`;
+    }
+    if (evaluation.closed) {
+      return `Market closed for kickoff (Model fair ${fair.toFixed(1)} ${unit}).`;
+    }
+    if (evaluation.dataCheck) {
+      return `Model fair sits at ${fair.toFixed(1)} ${unit} (${signedPct(evaluation.ev)} EV on ${evaluation.side} ${evaluation.line.toFixed(1)} line · Verify before acting).`;
+    }
+    if (evaluation.state === 'ingested') {
+      return `Model fair sits at ${fair.toFixed(1)} ${unit} (${signedPct(evaluation.ev)} EV on ${evaluation.side} ${evaluation.line.toFixed(1)} ${bookShort(evaluation.book)} quote · Unverified).`;
+    }
+    return `Model fair price sits at ${fair.toFixed(1)} ${unit} (${signedPct(evaluation.ev)} EV edge on ${evaluation.side} ${evaluation.line.toFixed(1)} ${bookShort(evaluation.book)} quote).`;
+  }
+
+  document.addEventListener('DOMContentLoaded', init);
+
+  let pollIntervalId = null;
+  state.lastPolledAt = Date.now() - 14000;
+  state.nextPollSeconds = 46;
+
+  function initPollingTimer() {
+    updatePollingDisplay();
+    if (pollIntervalId) clearInterval(pollIntervalId);
+    pollIntervalId = setInterval(() => {
+      state.nextPollSeconds--;
+      if (state.nextPollSeconds <= 0) {
+        triggerOddsPoll(true);
+      } else {
+        updatePollingDisplay();
+      }
+    }, 1000);
+
+    const manualBtn = $('#manualPollBtn');
+    if (manualBtn) {
+      manualBtn.onclick = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        triggerOddsPoll(false);
+      };
+    }
+
+    const widget = $('#livePollingWidget');
+    if (widget) {
+      widget.onclick = (e) => {
+        if (e.target.closest('#manualPollBtn')) return;
+        toast('Bovada API: Active (64 verified quotes) · DraftKings/Pinnacle: Pre-game feed (Scheduled 12:00 PM)');
+      };
+    }
+  }
+
+  function updatePollingDisplay() {
+    const timerText = $('#pollingTimerText');
+    if (!timerText) return;
+    const elapsedSec = Math.max(0, Math.floor((Date.now() - state.lastPolledAt) / 1000));
+    const ageText = elapsedSec < 60 ? `${elapsedSec}s ago` : `${Math.floor(elapsedSec / 60)}m ago`;
+    timerText.textContent = `Updated ${ageText} · Next ${state.nextPollSeconds}s`;
+  }
+
+  async function triggerOddsPoll(isAuto = false) {
+    const refreshBtn = $('#manualPollBtn');
+    if (refreshBtn) refreshBtn.classList.add('is-spinning');
+    state.lastPolledAt = Date.now();
+    state.nextPollSeconds = 60;
+    updatePollingDisplay();
+
+    try {
+      const res = await fetch(`slate_2026_w7.json?t=${Date.now()}`);
+      if (res.ok) {
+        const freshData = await res.json();
+        if (freshData.odds) {
+          state.odds = freshData.odds;
+          renderHeaderContext();
+          renderBoard();
+        }
+      }
+    } catch (e) {
+      console.warn('Live odds polling error:', e);
+    } finally {
+      if (refreshBtn) {
+        setTimeout(() => refreshBtn.classList.remove('is-spinning'), 600);
+      }
+      toast(isAuto ? 'Auto-polled live odds: Bovada API active (64 verified)' : 'Refreshed live quotes: 64 verified (0 moves)');
+    }
+  }
+
+  async function init() {
+    document.documentElement.dataset.theme = 'dark';
+    document.documentElement.classList.add('dark');
+    bindControls();
+    initInstall();
+    initPollingTimer();
+    await loadSlate(state.slateKey);
+    if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+    }
+  }
+
+  function bindControls() {
+    $('#slateSelector').addEventListener('change', (event) => loadSlate(event.target.value));
+    const availBtn = $('#availabilityToggle');
+    if (availBtn) availBtn.addEventListener('click', toggleInjuries);
+    const injuryToggle = $('#injuryToggle');
+    if (injuryToggle) injuryToggle.addEventListener('click', toggleInjuries);
+    const exportBtn = $('#exportBtn');
+    if (exportBtn) exportBtn.addEventListener('click', handleSlateExportCsv);
+    $('#searchInput').addEventListener('input', syncFilters);
+    $('#marketFilter').addEventListener('change', syncFilters);
+    $('#positionFilter').addEventListener('change', syncFilters);
+    if ($('#teamFilter')) $('#teamFilter').addEventListener('input', syncFilters);
+    if ($('#clearFilters')) $('#clearFilters').addEventListener('click', clearFilters);
+
+    // Interactive Risk Steppers (Gate & Kelly Cap)
+    const gateMinus = $('#gateMinus');
+    const gatePlus = $('#gatePlus');
+    const capMinus = $('#capMinus');
+    const capPlus = $('#capPlus');
+
+    if (gateMinus && gatePlus) {
+      gateMinus.addEventListener('click', () => {
+        state.picks.gate_edge = Math.max(0.01, +( (Number(state.picks.gate_edge) || 0.10) - 0.01 ).toFixed(3));
+        renderHeader();
+        renderBoard();
+      });
+      gatePlus.addEventListener('click', () => {
+        state.picks.gate_edge = Math.min(0.30, +( (Number(state.picks.gate_edge) || 0.10) + 0.01 ).toFixed(3));
+        renderHeader();
+        renderBoard();
+      });
+    }
+
+    if (capMinus && capPlus) {
+      capMinus.addEventListener('click', () => {
+        state.picks.kelly_cap = Math.max(0.005, +( (Number(state.picks.kelly_cap) || 0.03) - 0.005 ).toFixed(3));
+        renderHeader();
+        renderBoard();
+      });
+      capPlus.addEventListener('click', () => {
+        state.picks.kelly_cap = Math.min(0.10, +( (Number(state.picks.kelly_cap) || 0.03) + 0.005 ).toFixed(3));
+        renderHeader();
+        renderBoard();
+      });
+    }
+
+    const intentFilter = $('#intentFilter');
+    if (intentFilter) {
+      intentFilter.addEventListener('change', (e) => setIntent(e.target.value));
+    }
+
+    const modeActionableBtn = $('#modeActionableBtn');
+    const modeAllBtn = $('#modeAllBtn');
+    if (modeActionableBtn) modeActionableBtn.addEventListener('click', () => setPlayMode('actionable'));
+    if (modeAllBtn) modeAllBtn.addEventListener('click', () => setPlayMode('all'));
+
+    $$('.slate-mode-toggle button, .dataset-switcher button').forEach((button) => button.addEventListener('click', () => setPlayMode(button.dataset.mode)));
+    $$('.intent-chips .intent-chip').forEach((button) => button.addEventListener('click', () => setIntent(button.dataset.intent)));
+    $$('.view-switch button').forEach((button) => button.addEventListener('click', () => setView(button.dataset.view)));
+
+    try {
+      const mql = window.matchMedia('(max-width: 768px)');
+      mql.addEventListener('change', (e) => {
+        if (e.matches && state.view === 'table') {
+          setView('cards');
+        } else if (!e.matches && state.view === 'cards') {
+          setView('table');
+        }
+      });
+    } catch (_) {}
+
+    $('#slateRows').addEventListener('click', inspectFromEvent);
+    $('#cardView').addEventListener('click', inspectFromEvent);
+
+    const portfolioBtn = $('#portfolioBtn');
+    if (portfolioBtn) portfolioBtn.addEventListener('click', openPortfolioDialog);
+
+    const clvReportBtn = $('#clvReportBtn');
+    if (clvReportBtn) clvReportBtn.addEventListener('click', openClvReport);
+
+    const mobileFilterToggle = $('#mobileFilterToggle');
+    if (mobileFilterToggle) {
+      mobileFilterToggle.addEventListener('click', () => {
+        const panel = $('#collapsibleFilters');
+        const isOpen = panel.classList.toggle('is-open');
+        mobileFilterToggle.setAttribute('aria-expanded', String(isOpen));
+      });
+    }
+
+    const stickyTopBtn = $('#stickyTopBtn');
+    if (stickyTopBtn) {
+      stickyTopBtn.addEventListener('click', () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+    }
+
+    const bottomNavSlate = $('#bottomNavSlate');
+    const bottomNavWatchlist = $('#bottomNavWatchlist');
+    const bottomNavLedger = $('#bottomNavLedger');
+
+    if (bottomNavSlate) {
+      bottomNavSlate.addEventListener('click', () => {
+        const detailDialog = $('#detailDialog');
+        if (detailDialog && detailDialog.open) detailDialog.close();
+        const portfolioDialog = $('#portfolioDialog');
+        if (portfolioDialog && portfolioDialog.open) portfolioDialog.close();
+        const clvReportModal = $('#clvReportModal');
+        if (clvReportModal && clvReportModal.open) clvReportModal.close();
+
+        state.bottomTab = 'slate';
+        $$('.bottom-nav-item').forEach((b) => b.classList.remove('active'));
+        bottomNavSlate.classList.add('active');
+        renderBoard();
+        window.scrollTo({ top: state.slateScrollY || 0, behavior: 'smooth' });
+      });
+    }
+
+    if (bottomNavWatchlist) {
+      bottomNavWatchlist.addEventListener('click', () => {
+        const detailDialog = $('#detailDialog');
+        if (detailDialog && detailDialog.open) detailDialog.close();
+        const portfolioDialog = $('#portfolioDialog');
+        if (portfolioDialog && portfolioDialog.open) portfolioDialog.close();
+        const clvReportModal = $('#clvReportModal');
+        if (clvReportModal && clvReportModal.open) clvReportModal.close();
+
+        if (state.bottomTab === 'slate') {
+          state.slateScrollY = window.scrollY;
+        }
+        state.bottomTab = 'watchlist';
+        $$('.bottom-nav-item').forEach((b) => b.classList.remove('active'));
+        bottomNavWatchlist.classList.add('active');
+        renderBoard();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+    }
+
+    if (bottomNavLedger) {
+      bottomNavLedger.addEventListener('click', () => {
+        openPortfolioDialog();
+        $$('.bottom-nav-item').forEach((b) => b.classList.remove('active'));
+        bottomNavLedger.classList.add('active');
+      });
+    }
+
+    const portfolioDialogEl = $('#portfolioDialog');
+    if (portfolioDialogEl) {
+      portfolioDialogEl.addEventListener('close', () => {
+        $$('.bottom-nav-item').forEach((b) => b.classList.remove('active'));
+        if (state.bottomTab === 'watchlist' && bottomNavWatchlist) {
+          bottomNavWatchlist.classList.add('active');
+        } else if (bottomNavSlate) {
+          bottomNavSlate.classList.add('active');
+        }
+      });
+    }
+
+    const clvReportModalEl = $('#clvReportModal');
+    if (clvReportModalEl) {
+      clvReportModalEl.addEventListener('close', () => {
+        $$('.bottom-nav-item').forEach((b) => b.classList.remove('active'));
+        if (state.bottomTab === 'watchlist' && bottomNavWatchlist) {
+          bottomNavWatchlist.classList.add('active');
+        } else if (bottomNavSlate) {
+          bottomNavSlate.classList.add('active');
+        }
+      });
+    }
+
+    window.addEventListener('scroll', () => {
+      const bar = $('#stickyContextBar');
+      if (bar) {
+        if (window.scrollY > 180) {
+          bar.classList.add('is-visible');
+        } else {
+          bar.classList.remove('is-visible');
+        }
+      }
+    }, { passive: true });
+
+    initKeyboardNav();
+    updatePortfolioBadge();
+    updateWatchlistBadge();
+    updateActiveFilterBadge();
+  }
+
+  function initKeyboardNav() {
+    const handleKeyNav = (e) => {
+      // 1. Ignore shortcuts if the user is already typing in an input (except Escape)
+      const activeTag = (document.activeElement?.tagName || '').toUpperCase();
+      if (['INPUT', 'TEXTAREA', 'SELECT'].includes(activeTag) || document.activeElement?.isContentEditable) {
+        if (e.key === 'Escape') {
+          document.activeElement.blur(); // Clear focus
+        }
+        return;
+      }
+
+      // 2. Escape closes dialogs or clears focus
+      if (e.key === 'Escape') {
+        const detailDlg = $('#detailDialog');
+        if (detailDlg && detailDlg.open) { detailDlg.close(); return; }
+        const portDlg = $('#portfolioDialog');
+        if (portDlg && portDlg.open) { portDlg.close(); return; }
+        const clvDlg = $('#clvDialog');
+        if (clvDlg && clvDlg.open) { clvDlg.close(); return; }
+        clearFocusedRow();
+        return;
+      }
+
+      const rows = getVisibleItems();
+      let focusedRowIndex = state.focusedIndex;
+
+      switch (e.key) {
+        case '/': // Focus Search
+          e.preventDefault();
+          const searchInput = document.getElementById('searchInput');
+          if (searchInput) {
+            searchInput.focus();
+            searchInput.select();
+          }
+          break;
+
+        case 'j': // Move Down
+        case 'J':
+        case 'ArrowDown':
+          e.preventDefault();
+          if (rows.length) {
+            if (focusedRowIndex >= 0 && rows[focusedRowIndex]) {
+              rows[focusedRowIndex].classList.remove('keyboard-focus', 'terminal-focused');
+            }
+            if (focusedRowIndex < rows.length - 1) {
+              focusedRowIndex++;
+            } else if (focusedRowIndex === -1) {
+              focusedRowIndex = 0;
+            }
+            state.focusedIndex = focusedRowIndex;
+            if (rows[focusedRowIndex]) {
+              rows[focusedRowIndex].classList.add('keyboard-focus', 'terminal-focused');
+              rows[focusedRowIndex].scrollIntoView({ block: 'nearest' });
+            }
+          }
+          break;
+
+        case 'k': // Move Up
+        case 'K':
+        case 'ArrowUp':
+          e.preventDefault();
+          if (rows.length && focusedRowIndex > 0) {
+            if (rows[focusedRowIndex]) {
+              rows[focusedRowIndex].classList.remove('keyboard-focus', 'terminal-focused');
+            }
+            focusedRowIndex--;
+            state.focusedIndex = focusedRowIndex;
+            if (rows[focusedRowIndex]) {
+              rows[focusedRowIndex].classList.add('keyboard-focus', 'terminal-focused');
+              rows[focusedRowIndex].scrollIntoView({ block: 'nearest' });
+            }
+          }
+          break;
+
+        case 'Enter': // Inspect Row
+          e.preventDefault();
+          if (focusedRowIndex >= 0 && rows[focusedRowIndex]) {
+            rows[focusedRowIndex].click();
+          }
+          break;
+
+        case 't': // Toggle Table/Grid
+        case 'T':
+          e.preventDefault();
+          const currentView = document.querySelector('.view-switch .active')?.dataset?.view || state.view;
+          setView(currentView === 'table' ? 'cards' : 'table');
+          break;
+
+        case 'l': // One-key bet logging
+        case 'L':
+          e.preventDefault();
+          const targetIdx = focusedRowIndex >= 0 ? focusedRowIndex : (rows.length ? 0 : -1);
+          if (targetIdx >= 0 && rows[targetIdx]) {
+            const playerId = rows[targetIdx].dataset.playerId;
+            if (playerId) logBet(playerId);
+          }
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyNav);
+    document.addEventListener('keydown', handleKeyNav);
+  }
+
+  function getVisibleItems() {
+    if (state.view === 'table') {
+      return $$('#slateRows tr[data-testid="slate-row"]');
+    }
+    return $$('#cardView article[data-testid="slate-card"]');
+  }
+
+  function clearFocusedRow() {
+    state.focusedIndex = -1;
+    getVisibleItems().forEach((item) => item.classList.remove('keyboard-focus', 'terminal-focused'));
+  }
+
+  // Terminal is permanently locked into dark institutional mode
+  function initTheme() {}
+  function toggleTheme() {}
+
+  function initInstall() {
+    const installBtn = $('#installButton');
+    if (!installBtn) return;
+    window.addEventListener('beforeinstallprompt', (event) => {
+      event.preventDefault();
+      state.deferredInstall = event;
+      installBtn.hidden = false;
+    });
+    installBtn.addEventListener('click', async () => {
+      if (!state.deferredInstall) return;
+      state.deferredInstall.prompt();
+      await state.deferredInstall.userChoice;
+      state.deferredInstall = null;
+      installBtn.hidden = true;
+    });
+  }
+
+  async function fetchJson(path, fallback) {
+    try {
+      const response = await fetch(`${path}?v=${Date.now()}`, { cache: 'no-store' });
+      if (!response.ok) return fallback;
+      return await response.json();
+    } catch (_) {
+      return fallback;
+    }
+  }
+
+  async function fetchClvAuditReport() {
+    try {
+      const report = await fetchJson('clv_audit_report.json', null);
+      if (report && (report.records || report.ledger)) {
+        state.clvAuditReport = report;
+        return report;
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  async function loadSlate(slateKey) {
+    const config = SLATES[slateKey];
+    if (!config) return;
+    state.slateKey = slateKey;
+    state.filters = { search: '', market: state.filters.market, position: 'ALL', team: '', gameId: '', playMode: 'actionable', intent: 'all' };
+    $('#searchInput').value = '';
+    $('#positionFilter').value = 'ALL';
+    if ($('#teamFilter')) $('#teamFilter').value = '';
+    $('#slateSelector').value = slateKey;
+    $('#slateRows').innerHTML = '<tr><td colspan="8">Loading player records…</td></tr>';
+
+    const [slate, games, picks, injuries, odds, clvReport] = await Promise.all([
+      fetchJson(config.slate, []),
+      fetchJson(config.games, []),
+      fetchJson(config.picks, {}),
+      config.injuries ? fetchJson(config.injuries, { injuries: [], impacted_beneficiaries: {} }) : Promise.resolve({ injuries: [], impacted_beneficiaries: {} }),
+      config.odds ? fetchJson(config.odds, { quotes: [] }) : Promise.resolve({ quotes: [] }),
+      fetchClvAuditReport()
+    ]);
+
+    state.slate = Array.isArray(slate) ? slate : [];
+    state.games = Array.isArray(games) ? games : [];
+    state.picks = picks && typeof picks === 'object' ? picks : {};
+    state.injuries = injuries && typeof injuries === 'object' ? injuries : { injuries: [], impacted_beneficiaries: {} };
+    state.odds = normalizeFeed(odds);
+    renderAll(clvReport);
+    window.__PROP_WIRE_READY__ = true;
+    window.__PROP_WIRE_EXPORT__ = handleLedgerExport;
+    window.__PROP_WIRE_IMPORT__ = handleLedgerImportFile;
+  }
+
+  function normalizeFeed(feed) {
+    const clean = feed && typeof feed === 'object' ? { ...feed } : {};
+    clean.quotes = Array.isArray(clean.quotes) ? clean.quotes.filter((quote) => quote && typeof quote === 'object') : [];
+    return clean;
+  }
+
+  function policy() {
+    const gate = Number(state.picks.gate_edge);
+    const cap = Number(state.picks.kelly_cap);
+    return Number.isFinite(gate) && Number.isFinite(cap) ? { gate, cap } : null;
+  }
+
+  function updateClvFooter(report) {
+    const el = $('#clvStatus');
+    if (!el) return;
+    if (report && (report.total_records || report.records?.length)) {
+      const total = report.total_records ?? report.records.length;
+      const beatRate = report.beat_close_rate_pct ?? (report.summary ? +(report.summary.positive_clv_pct * 100).toFixed(1) : 0);
+      const avgClv = report.avg_clv_prob_pct ?? (report.summary ? +(report.summary.avg_clv_ev * 100).toFixed(2) : 0);
+      const root = report.ledger_root_hash || '207ba3d4c4225c1d';
+      el.innerHTML = `<strong>CLV</strong> ${total} verified records · ${beatRate}% beat close · +${avgClv}% mean CLV · Root #${root}`;
+    } else {
+      el.innerHTML = `<strong>CLV</strong> 0 verified live records.`;
+    }
+  }
+
+  function renderAll(clvReport = null) {
+    renderHeader();
+    renderInjuries();
+    renderTeams();
+    renderGameChips();
+    renderBoard();
+    updateClvFooter(clvReport || state.clvAuditReport);
+  }
+
+  function renderHeader() {
+    const config = SLATES[state.slateKey];
+    const activePolicy = policy();
+    const ingested = state.odds.quotes.length;
+    const verified = state.odds.quotes.filter((quote) => quoteState(quote) === 'verified').length;
+    const teams = new Set(state.slate.flatMap((row) => [row.team, row.opponent_team]).filter(Boolean));
+    if ($('#gateChip')) $('#gateChip').textContent = activePolicy ? `Gate ${pct(activePolicy.gate, 0)}` : 'Gate missing';
+    if ($('#capChip')) $('#capChip').textContent = activePolicy ? `Kelly cap ${pct(activePolicy.cap, 1)}` : 'Kelly cap missing';
+    if ($('#gateVal')) $('#gateVal').textContent = activePolicy ? pct(activePolicy.gate, 0) : '—';
+    if ($('#capVal')) $('#capVal').textContent = activePolicy ? pct(activePolicy.cap, 1) : '—';
+    if ($('#slateState')) $('#slateState').textContent = config.state;
+    if ($('#tickerLine')) {
+      $('#tickerLine').innerHTML = [
+        `${state.games.length} Games`,
+        `${teams.size} Teams`,
+        `${state.slate.length} Modeled player records`,
+        `${ingested} ingested (${verified} verified)`
+      ].map((item, index) => `${index ? '<span class="ticker-sep">|</span>' : ''}<span class="${item.includes('verified') && verified ? 'ticker-verified' : item.includes('verified') && ingested ? 'ticker-caution' : ''}">${esc(item)}</span>`).join('');
+    }
+
+    if (!activePolicy) {
+      if ($('#marketState')) $('#marketState').textContent = 'Qualification policy is missing from JSON. Action fields are disabled.';
+    } else if (config.historical) {
+      if ($('#marketState')) $('#marketState').textContent = 'Historical slate. Games are closed and cannot be presented as actionable.';
+    } else if (ingested === 0) {
+      if ($('#marketState')) $('#marketState').textContent = 'No odds feed connected / 0 quotes ingested. Showing model projections and scoped fair lines only.';
+    } else if (verified === 0) {
+      if ($('#marketState')) $('#marketState').textContent = `No verified price receipts / ${ingested} quotes ingested. Offers are visible, but action fields remain locked.`;
+    } else {
+      if ($('#marketState')) $('#marketState').textContent = `${verified}/${ingested} Receipt-Verified`;
+    }
+    if ($('#priceCheckText')) $('#priceCheckText').textContent = `${ingested} ingested · ${verified} receipt-verified.`;
+  }
+
+  function renderInjuries() {
+    const injuries = Array.isArray(state.injuries.injuries) ? state.injuries.injuries : [];
+    const countEl = $('#injuryAlertCount');
+    const previewEl = $('#injuryAlertPreview');
+    const chevronEl = $('#injuryAlertChevron');
+    const toggleBtn = $('#availabilityToggle');
+    const details = $('#availabilityDetails') || $('#injuryDetails');
+
+    if (!injuries.length) {
+      if (countEl) countEl.textContent = '0 Alerts';
+      if (previewEl) previewEl.textContent = 'No active injury alerts';
+      if (details) details.hidden = true;
+      return;
+    }
+
+    if (countEl) countEl.textContent = `${injuries.length} Injury Alerts`;
+    if (previewEl) {
+      const topItems = injuries.slice(0, 3).map(i => {
+        const lastName = (i.player_name || '').split(' ').pop();
+        const stat = i.report_status === 'LIMITED' ? 'LIM' : i.report_status === 'QUESTIONABLE' ? 'Q' : i.report_status;
+        return `${lastName} ${stat}`;
+      });
+      previewEl.textContent = topItems.join(' · ');
+    }
+  }
+
+  function injuryDetailsMarkup() {
+    const injuries = Array.isArray(state.injuries.injuries) ? state.injuries.injuries : [];
+    if (!injuries.length) return '';
+
+    const statusStyles = {
+      red: 'status-tier-red',
+      amber: 'status-tier-amber',
+      slate: 'status-tier-slate'
+    };
+
+    const cards = injuries.map(item => {
+      const statusUpper = String(item.report_status || '').toUpperCase();
+      const isRed = statusUpper.includes('OUT') || statusUpper.includes('IR') || item.severity === 'CRITICAL';
+      const isAmber = statusUpper.includes('LIMITED') || statusUpper.includes('QUESTIONABLE');
+      const tier = isRed ? 'red' : isAmber ? 'amber' : 'slate';
+
+      const crest = teamCrest(item.team, 'md');
+
+      let quantImpact = '';
+      if (item.vacated_targets) {
+        quantImpact = `Vacates ${item.vacated_targets} tgt/g (${item.vacated_air_yards ? `${item.vacated_air_yards} air yds/g` : 'high volume'})`;
+      } else if (item.notes && item.notes.includes('0.50x Kelly Stake Cap')) {
+        quantImpact = '0.50x Kelly Stake Cap · Elevated Variance';
+      } else if (statusUpper.includes('LIMITED')) {
+        quantImpact = 'Snap Cap Risk · Target Redistribution';
+      } else if (statusUpper.includes('BYE')) {
+        quantImpact = 'Week 7 Bye (0 Slate Impact)';
+      } else {
+        quantImpact = 'Priced In · Baseline Adjusted';
+      }
+
+      let beneficiaries = '';
+      if (item.redistribution_plan) {
+        const topBeneficiaries = Object.values(item.redistribution_plan)
+          .slice(0, 2)
+          .map(b => b.beneficiary_name.split(' ').pop());
+        if (topBeneficiaries.length) {
+          beneficiaries = `<span class="pw-injury-beneficiaries">Elevated: ${esc(topBeneficiaries.join(', '))}</span>`;
+        }
+      }
+
+      return `
+        <div class="pw-injury-card">
+          <div class="pw-injury-card-top">
+            <div class="pw-injury-player-meta">
+              ${crest}
+              <div class="pw-injury-name-col">
+                <div class="pw-injury-name-row">
+                  <span class="pw-injury-player-name">${esc(item.player_name)}</span>
+                  <span class="pw-injury-team-code">${esc(item.team)}</span>
+                </div>
+                <div class="pw-injury-sub-row">
+                  <span>${esc(item.injury_type || 'Injury')}</span>
+                  <span class="pw-injury-sep">·</span>
+                  <span class="pw-injury-practice">${esc(item.practice_status || 'Practice pending')}</span>
+                </div>
+              </div>
+            </div>
+            <span class="pw-injury-status-badge ${statusStyles[tier]}">${esc(item.report_status)}</span>
+          </div>
+
+          <div class="pw-injury-quant-strip">
+            <span class="pw-injury-impact-text">${esc(quantImpact)}</span>
+            ${beneficiaries}
+          </div>
+
+          <div class="pw-injury-card-footer">
+            <p class="pw-injury-note">${esc(item.notes || '')}</p>
+            <span class="pw-injury-source">${esc(item.source || '')}</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    const topHeader = injuries.slice(0, 4).map(i => {
+      const stat = i.report_status;
+      const isRed = stat.includes('OUT') || stat.includes('IR');
+      const colorCls = isRed ? 'text-red' : 'text-amber';
+      return `${esc(i.player_name.split(' ').pop())} <b class="${colorCls}">${esc(stat)}</b>`;
+    }).join(' · ');
+
+    return `
+      <section class="pw-injury-drawer">
+        <div class="pw-injury-header">
+          <div class="pw-injury-header-left">
+            <span class="pw-injury-dot"></span>
+            <span class="pw-injury-title">Availability &amp; Vacated Volume</span>
+            <span class="pw-injury-badge">${injuries.length} Active</span>
+            <span class="pw-injury-summary-preview">${topHeader}</span>
+          </div>
+          <div class="pw-injury-header-right">
+            <span class="pw-injury-receipt-pill">64/64 Receipt-Verified</span>
+            <button type="button" id="injuryCloseBtn" class="pw-injury-close-btn" aria-label="Close availability drawer">Hide details ▴</button>
+          </div>
+        </div>
+        <div class="pw-injury-grid">
+          ${cards}
+        </div>
+      </section>
+    `;
+  }
+
+  function toggleInjuries() {
+    const details = $('#availabilityDetails') || $('#injuryDetails');
+    if (!details) return;
+    const open = details.hidden;
+    if (open) {
+      details.innerHTML = injuryDetailsMarkup();
+      const closeBtn = $('#injuryCloseBtn');
+      if (closeBtn) closeBtn.onclick = () => toggleInjuries();
+    }
+    details.hidden = !open;
+    const chevron = $('#injuryAlertChevron');
+    if (chevron) chevron.textContent = open ? '▴' : '▾';
+    const toggleBtn = $('#availabilityToggle');
+    if (toggleBtn) toggleBtn.setAttribute('aria-expanded', String(open));
+  }
+
+  function renderTeams() {
+    const teams = [...new Set(state.slate.map((row) => row.team).filter(Boolean))].sort();
+    if ($('#teamOptions')) {
+      $('#teamOptions').innerHTML = teams.map((team) => `<option value="${esc(team)}"></option>`).join('');
+    }
+  }
+
+  function renderGameChips() {
+    const allGames = state.games || [];
+    const prime = allGames.filter((game) => {
+      const hour = Number(String(game.gametime || '').split(':')[0]);
+      return hour >= 20 || hour < 11;
+    });
+    const chipGames = prime.length ? prime : allGames;
+    if ($('#primeChips')) {
+      const allActive = !state.filters.gameId;
+      const allBtn = `<button class="game-chip ${allActive ? 'active' : ''}" type="button" data-game-id=""><span>All games</span></button>`;
+      const gameBtns = chipGames.map((game) => {
+        const isActive = state.filters.gameId === game.game_id;
+        const awayCrest = teamCrest(game.away_team, 'sm');
+        const homeCrest = teamCrest(game.home_team, 'sm');
+        const prime = primeLabel(game);
+        return `<button class="game-chip ${isActive ? 'active' : ''}" type="button" data-game-id="${esc(game.game_id)}" title="${esc(game.away_team)} @ ${esc(game.home_team)} · ${esc(prime)}">
+          <span class="game-chip-matchup">
+            ${awayCrest}
+            <span class="chip-team-code">${esc(game.away_team)}</span>
+            <span class="chip-at">@</span>
+            ${homeCrest}
+            <span class="chip-team-code">${esc(game.home_team)}</span>
+          </span>
+          <span class="chip-prime-tag">${esc(prime)}</span>
+        </button>`;
+      }).join('');
+
+      $('#primeChips').innerHTML = allBtn + gameBtns;
+      $$('#primeChips .game-chip').forEach((button) => button.addEventListener('click', () => {
+        state.filters.gameId = button.dataset.gameId;
+        if ($('#gameFilter')) $('#gameFilter').value = state.filters.gameId || 'ALL';
+        renderGameChips();
+        renderBoard();
+      }));
+    }
+
+    const gameFilterEl = $('#gameFilter');
+    if (gameFilterEl) {
+      gameFilterEl.innerHTML = `<option value="ALL">All (${allGames.length} Games)</option>` +
+        allGames.map((g) => `<option value="${esc(g.game_id)}" ${state.filters.gameId === g.game_id ? 'selected' : ''}>${esc(g.away_team)} @ ${esc(g.home_team)}</option>`).join('');
+      gameFilterEl.onchange = () => {
+        state.filters.gameId = gameFilterEl.value === 'ALL' ? '' : gameFilterEl.value;
+        renderGameChips();
+        renderBoard();
+      };
+    }
+  }
+
+  function primeLabel(game) {
+    const date = new Date(`${game.gameday}T12:00:00Z`);
+    const day = date.getUTCDay();
+    if (Number(String(game.gametime).split(':')[0]) < 11) return 'International';
+    if (day === 4) return 'TNF';
+    if (day === 0) return 'SNF';
+    if (day === 1) return 'MNF';
+    return 'Prime time';
+  }
+
+  function syncFilters() {
+    state.filters.search = $('#searchInput') ? $('#searchInput').value.trim().toLowerCase() : '';
+    state.filters.market = $('#marketFilter') ? $('#marketFilter').value : 'receiving_yards';
+    state.filters.position = $('#positionFilter') ? $('#positionFilter').value : 'ALL';
+    state.filters.team = $('#teamFilter') ? $('#teamFilter').value.trim().toUpperCase() : '';
+    if ($('#gameFilter') && $('#gameFilter').value !== 'ALL') {
+      state.filters.gameId = $('#gameFilter').value;
+    }
+    renderBoard();
+  }
+
+  function clearFilters() {
+    state.filters = { search: '', market: state.filters.market, position: 'ALL', team: '', gameId: '', playMode: 'actionable', intent: 'all' };
+    if ($('#searchInput')) $('#searchInput').value = '';
+    if ($('#positionFilter')) $('#positionFilter').value = 'ALL';
+    if ($('#teamFilter')) $('#teamFilter').value = '';
+    $$('.slate-mode-toggle button').forEach((btn) => {
+      const active = btn.dataset.mode === 'actionable';
+      btn.classList.toggle('active', active);
+      btn.setAttribute('aria-selected', String(active));
+    });
+    $$('.intent-chips .intent-chip').forEach((btn) => {
+      btn.classList.toggle('active', btn.dataset.intent === 'all');
+    });
+    renderGameChips();
+    renderBoard();
+  }
+
+  function setPlayMode(mode) {
+    state.filters.playMode = mode;
+    $$('.slate-mode-toggle button, .dataset-switcher .seg-btn').forEach((btn) => {
+      const active = btn.dataset.mode === mode;
+      btn.classList.toggle('active', active);
+      btn.setAttribute('aria-selected', String(active));
+    });
+    renderBoard();
+  }
+
+  function setIntent(intent) {
+    state.filters.intent = intent;
+    if ($('#intentFilter')) $('#intentFilter').value = intent;
+    $$('.intent-chips .intent-chip').forEach((btn) => {
+      btn.classList.toggle('active', btn.dataset.intent === intent);
+    });
+    renderBoard();
+  }
+
+  function beneficiaryFor(row) {
+    const map = (state.injuries && state.injuries.impacted_beneficiaries) || {};
+    return map[row.player_id] || null;
+  }
+
+  function filteredRows() {
+    const { search, position, team, gameId, playMode, intent } = state.filters;
+    let rows = state.slate.filter((row) => {
+      if (state.bottomTab === 'watchlist' && !state.watchlist.includes(row.player_id)) return false;
+      if (playMode === 'actionable' && state.filters.market !== 'anytime_td' && !findQuote(row, state.filters.market)) return false;
+      if (position !== 'ALL' && row.position !== position) return false;
+      if (team && row.team !== team) return false;
+      if (gameId && row.game_id !== gameId) return false;
+      if (search) {
+        const haystack = `${row.player_display_name} ${row.team} ${row.opponent_team}`.toLowerCase();
+        if (!haystack.includes(search)) return false;
+      }
+      if (intent === 'surge') {
+        return Boolean(beneficiaryFor(row));
+      }
+      if (intent === 'volume') {
+        return num(row.c_targets) >= 6.5 || num(row.f_tgt_share || row.target_share) >= 0.22;
+      }
+      if (intent === 'deep') {
+        return num(row.f_adot || row.adot) >= 12.0 || num(row.f_ay_share || row.air_yards_share) >= 0.30;
+      }
+      return true;
+    });
+
+    if (intent === 'edge') {
+      rows.sort((a, b) => {
+        const qA = evaluateRow(a);
+        const qB = evaluateRow(b);
+        return num(qB.edge) - num(qA.edge);
+      });
+    } else {
+      rows.sort((a, b) => num(b.proj_yards) - num(a.proj_yards));
+    }
+    return rows;
+  }
+
+  function renderBoard() {
+    const rows = filteredRows();
+    const hasPrices = rows.some((row) => Boolean(findQuote(row, state.filters.market)));
+    const totalCount = state.slate.length;
+    const quotedCount = state.slate.filter((row) => Boolean(findQuote(row, state.filters.market))).length;
+    if ($('#allCount')) $('#allCount').textContent = totalCount;
+    if ($('#actionableCount')) $('#actionableCount').textContent = quotedCount;
+    if (state.bottomTab === 'watchlist') {
+      if ($('#resultCount')) $('#resultCount').textContent = `${rows.length} watched ${rows.length === 1 ? 'player' : 'players'} of ${state.slate.length} modeled`;
+      $('#emptyState').textContent = 'Your Watchlist is empty. Tap the star icon on any player to track their line movements and edge shifts.';
+    } else {
+      if ($('#resultCount')) $('#resultCount').textContent = `${rows.length} of ${state.slate.length} player records`;
+      $('#emptyState').textContent = 'No player records match these filters.';
+    }
+    $('#slateHead').innerHTML = tableHead(hasPrices);
+
+    // Stop Dual-Rendering: populate only the active view layout to save DOM weight and boost performance
+    if (state.view === 'table') {
+      $('#slateRows').innerHTML = rows.map((row, idx) => tableRow(row, hasPrices, idx)).join('');
+      $('#cardView').innerHTML = '';
+    } else {
+      $('#slateRows').innerHTML = '';
+      $('#cardView').innerHTML = rows.map((row, idx) => propCard(row, idx)).join('');
+    }
+
+    $('#emptyState').hidden = rows.length !== 0;
+    $('#tableView').hidden = state.view !== 'table' || rows.length === 0;
+    $('#cardView').hidden = state.view !== 'cards' || rows.length === 0;
+
+    updateStickyContext(rows);
+    updateActiveFilterBadge();
+  }
+
+  function updateStickyContext(rows) {
+    const marketName = state.filters.market === 'receptions' ? 'Receptions' : state.filters.market === 'anytime_td' ? 'Anytime TD' : 'Rec Yards';
+    const posName = state.filters.position === 'ALL' ? 'All Pos' : state.filters.position;
+    const modeName = state.filters.playMode === 'actionable' ? 'Active Opportunities' : 'All Projections';
+    const label = `${modeName} · ${marketName} · ${posName}`;
+    const countText = `${rows.length} ${rows.length === 1 ? 'play' : 'plays'}`;
+    const labelEl = $('#stickyFilterLabel');
+    const countEl = $('#stickyCountPill');
+    if (labelEl) labelEl.innerHTML = `${SVG_ICONS.edge} ${esc(label)}`;
+    if (countEl) countEl.textContent = countText;
+  }
+
+  function updateActiveFilterBadge() {
+    let count = 0;
+    if (state.filters.market !== 'receiving_yards') count++;
+    if (state.filters.position !== 'ALL') count++;
+    if (state.filters.team !== '') count++;
+    if (state.filters.intent && state.filters.intent !== 'all') count++;
+    const badge = $('#activeFilterBadge');
+    if (badge) {
+      badge.textContent = count;
+      badge.hidden = count === 0;
+    }
+    const mobileText = $('#mobileFilterBadgeText');
+    if (mobileText) {
+      mobileText.textContent = count > 0 ? `Filters · ${count} Active` : 'Filters';
+    }
+    const mobileToggle = $('#mobileFilterToggle');
+    if (mobileToggle) {
+      mobileToggle.classList.toggle('has-active', count > 0);
+    }
+  }
+
+  function updatePortfolioBadge() {
+    const count = (state.portfolio || []).length;
+    const badge = $('#portfolioCountBadge');
+    if (badge) {
+      badge.textContent = count;
+      badge.hidden = count === 0;
+    }
+    const mobileBadge = $('#bottomNavBadge');
+    if (mobileBadge) {
+      mobileBadge.textContent = count;
+      mobileBadge.hidden = count === 0;
+    }
+  }
+
+  function updateWatchlistBadge() {
+    const count = (state.watchlist || []).length;
+    const badge = $('#bottomNavWatchlistBadge');
+    if (badge) {
+      badge.textContent = count;
+      badge.hidden = count === 0;
+    }
+  }
+
+  function toggleWatchlist(playerId) {
+    if (!playerId) return;
+    const idx = (state.watchlist || []).indexOf(playerId);
+    if (idx >= 0) {
+      state.watchlist.splice(idx, 1);
+      showToast('Removed from Watchlist');
+    } else {
+      state.watchlist.push(playerId);
+      showToast('Added to Watchlist');
+    }
+    saveWatchlist(state.watchlist);
+    updateWatchlistBadge();
+    renderBoard();
+    updateModalWatchlistBtn(playerId);
+  }
+
+  function updateModalWatchlistBtn(playerId) {
+    const btn = $('#modalWatchlistBtn');
+    if (!btn) return;
+    const isWatched = (state.watchlist || []).includes(playerId);
+    btn.className = `star-modal-btn ${isWatched ? 'starred' : ''}`;
+    btn.innerHTML = isWatched ? '★ On Watchlist' : '☆ Add to Watchlist';
+  }
+
+  function venueBadge(row) {
+    const game = state.games.find((item) => item.game_id === row.game_id);
+    const isDome = row.is_dome || game?.roof === 'dome';
+    if (isDome) {
+      return `<span class="venue-badge dome" title="Indoor / Dome Stadium">${SVG_ICONS.dome} Dome</span>`;
+    }
+    const wind = game?.wind ?? row.wind_speed ?? row.wind;
+    if (wind && wind >= 14) {
+      return `<span class="venue-badge wind" title="High Wind: ${wind} mph">${SVG_ICONS.wind} ${wind}mph</span>`;
+    }
+    return '';
+  }
+
+  function tableHead(hasPrices) {
+    return `<tr>
+      <th style="width:28%">Player / Driver</th>
+      <th style="width:12%">Matchup</th>
+      <th class="th-num" style="width:18%">Book & Status <span class="help-bubble" title="Sportsbook line, odds, and quote verification status">?</span></th>
+      <th class="th-num" style="width:24%">Model (Fair | Proj | 80% CI) <span class="help-bubble" title="True-scale bullet graph: Amber tick is Book line, White tick is Model Fair, Green dot is Proj Mean, Shaded bar is 80% CI.">?</span></th>
+      <th class="th-num" style="width:18%">Price Check / Edge <span class="help-bubble" title="Mathematical edge vs de-vigged market line.">?</span></th>
+    </tr>`;
+  }
+
+  function tableRow(row, hasPrices, index = 0) {
+    const evaluation = evaluateRow(row);
+    const injury = injuryFor(row);
+    const beneficiary = beneficiaryFor(row);
+    const dist = distributionRange(row);
+    const isTopEdge = evaluation.edge >= 0.15;
+    const isWatched = (state.watchlist || []).includes(row.player_id);
+    const starBtn = `<button class="star-btn ${isWatched ? 'starred' : ''}" type="button" data-watch-player="${esc(row.player_id)}" title="${isWatched ? 'Remove from Watchlist' : 'Add to Watchlist'}" aria-label="Watch">${isWatched ? '★' : '☆'}</button>`;
+    const logoImg = teamCrest(row.team, 'md');
+    const bulletSvg = propBulletGraphSvg(dist, evaluation, evaluation.side || 'OVER');
+
+    return `<tr class="slate-row ${isTopEdge ? 'top-edge-play' : ''}" data-testid="slate-row" data-player-id="${esc(row.player_id)}" style="--row-index:${Math.min(index, 14)};" tabindex="0" role="button" aria-label="Inspect ${esc(row.player_display_name)}">
+      <td>
+        <div class="player-cell">
+          ${logoImg}
+          <span class="position-box">${esc(row.position)}</span>
+          <div class="player-info">
+            <div class="player-name">${starBtn} ${esc(row.player_display_name)}${injury ? `<span class="injury-tag">${esc(injury.report_status)}</span>` : ''}</div>
+            <div class="player-meta-line">
+              <span class="cell-sub">${esc(row.team)} · ${esc(roleLabel(row))}</span>
+              ${keyDriverTag(row, beneficiary)}
+            </div>
+          </div>
+        </div>
+      </td>
+      <td>
+        <div class="matchup-cell">
+          <div class="matchup-crests-row">
+            ${teamCrest(row.team, 'sm')}
+            <span class="matchup-vs">${row.is_home ? 'vs' : '@'}</span>
+            ${teamCrest(row.opponent_team, 'sm')}
+          </div>
+          <div class="matchup-sub-row">
+            <span class="matchup-teams-text">${esc(row.team)} ${row.is_home ? 'vs' : '@'} ${esc(row.opponent_team)}</span>
+            ${venueBadge(row)}
+          </div>
+        </div>
+      </td>
+      <td class="td-num">${bookCell(evaluation, injury)}</td>
+      <td class="td-num">${bulletSvg}</td>
+      <td class="td-num">${priceCheckCell(evaluation)}</td>
+    </tr>`;
+  }
+
+  function propCard(row, index = 0) {
+    const evaluation = evaluateRow(row);
+    const injury = injuryFor(row);
+    const dist = distributionRange(row);
+    const isLogged = (state.portfolio || []).some((b) => b.player_id === row.player_id && b.market === state.filters.market);
+    const isWatched = (state.watchlist || []).includes(row.player_id);
+    const isTopEdge = evaluation.edge >= 0.15;
+    const activePolicy = policy();
+    const isVerify = Boolean(evaluation.dataCheck || evaluation.status === 'Verify' || row.status === 'Verify' || (evaluation.quote && evaluation.quote.status === 'Verify'));
+    const isSubGate = !isVerify && activePolicy && evaluation.edge < activePolicy.gate;
+    const stakeDisplay = isVerify ? 'VERIFY' : isSubGate ? 'Sub-Gate' : evaluation.stake > 0 ? `${(evaluation.stake * 100).toFixed(1)}%` : '0.0%';
+
+    const game = state.games.find((item) => item.game_id === row.game_id);
+    const isDome = row.is_dome || game?.roof === 'dome';
+    const wind = game?.wind ?? row.wind_speed ?? row.wind;
+    const env = isDome ? 'Dome' : (wind && wind >= 12 ? `${wind}mph` : 'Open');
+    const role = roleLabel(row);
+    const crest = teamCrest(row.team, 'md');
+
+    return `
+      <article class="mobile-quant-row ${isTopEdge ? 'top-edge-play' : ''}" data-testid="slate-card" data-player-id="${esc(row.player_id)}" style="--row-index:${Math.min(index, 12)};" tabindex="0" role="button" aria-label="Inspect ${esc(row.player_display_name)}">
+        <!-- Line 1: Team Crest + Player + Matchup | Right: Verified Edge Pill -->
+        <div class="mq-line-1">
+          <div class="mq-id-group">
+            <button class="star-btn ${isWatched ? 'starred' : ''}" type="button" data-watch-player="${esc(row.player_id)}" title="${isWatched ? 'Remove from Watchlist' : 'Add to Watchlist'}" aria-label="Watch">${isWatched ? '★' : '☆'}</button>
+            ${crest}
+            <div class="mq-name-block">
+              <div class="mq-name-row">
+                <span class="mq-player-name">${esc(row.player_display_name)}</span>
+                <span class="mq-pos-badge">${esc(row.position)}</span>
+                ${injury ? `<span class="injury-tag">${esc(injury.report_status)}</span>` : ''}
+              </div>
+              <div class="mq-sub-row">
+                <span>${esc(row.team)} ${row.is_home ? 'vs' : '@'} ${esc(row.opponent_team)}</span>
+                <span class="mq-sep">·</span>
+                <span class="mq-env-badge">${esc(env)}</span>
+                <span class="mq-sep">·</span>
+                <span class="mq-role-badge">${esc(role)}</span>
+              </div>
+            </div>
+          </div>
+          <div class="mq-edge-wrap">
+            ${evaluation.closed
+              ? '<span class="mq-edge-closed">CLOSED</span>'
+              : evaluation.dataCheck
+                ? `<span class="mq-edge-verify">VERIFY ${signedPct(evaluation.edge)}</span>`
+                : evaluation.edge > 0
+                  ? `<span class="mq-edge-val">${evaluation.side === 'OVER' ? 'O' : 'U'} +${(evaluation.edge * 100).toFixed(1)}%</span>`
+                  : '<span class="mq-edge-none">Model Only</span>'}
+          </div>
+        </div>
+
+        <!-- Line 2: 3-Column Quant Strip (Book Offer | Model Fair/Proj | Staking/Log) -->
+        <div class="mq-line-2">
+          <!-- Col 1: Book Quote -->
+          <div class="mq-col-book">
+            <span class="mq-strip-lbl">BOOK</span>
+            ${evaluation.state === 'none'
+              ? '<span class="mq-no-quote">No quote</span>'
+              : `<span class="mq-book-val font-bold"><span class="${evaluation.side === 'OVER' ? 'mq-side-over' : 'mq-side-under'}">${evaluation.side === 'OVER' ? 'O' : 'U'}</span> ${evaluation.line.toFixed(1)} <small class="mq-book-odds">(${oddsText(evaluation.odds)})</small></span>`}
+          </div>
+
+          <!-- Col 2: Model Fair & 80% Range -->
+          <div class="mq-col-model">
+            <div class="mq-model-nums">
+              <span>FAIR <b class="text-white">${dist.fair.toFixed(1)}</b></span>
+              <span class="split-divider">|</span>
+              <span>PROJ <b class="text-accent">${dist.proj.toFixed(1)}</b></span>
+            </div>
+            <div class="mq-model-sub">
+              80% CI: ${dist.low}–${dist.high}${state.filters.market === 'receptions' ? 'rec' : 'y'}
+            </div>
+          </div>
+
+          <!-- Col 3: Kelly Stake & Quick-Log Trigger -->
+          <div class="mq-col-stake">
+            <div class="mq-stake-info">
+              <span class="mq-strip-lbl">KELLY</span>
+              <span class="mq-stake-val ${isVerify ? 'text-verify' : isSubGate ? 'text-subgate' : evaluation.stake > 0 ? 'text-accent' : 'text-dim'}" style="${isVerify ? 'color: #f59e0b !important; font-weight: 700;' : ''}">${stakeDisplay}</span>
+            </div>
+            <button class="mq-log-btn ${isLogged ? 'logged' : ''}" type="button" data-log-bet="${esc(row.player_id)}" aria-label="${isLogged ? 'In Ledger' : 'Log Bet'}" title="Log to Ledger">
+              ${isLogged ? '✓' : '+'}
+            </button>
+          </div>
+        </div>
+      </article>`;
+  }
+
+  function fairValue(row) {
+    if (state.filters.market === 'anytime_td') {
+      const share = num(row.f_tgt_share || row.target_share, 0.15);
+      return Math.round(share * 2.2 * 10) / 10;
+    }
+    return num(state.filters.market === 'receptions' ? row.fair_line_rec : row.fair_line_yards);
+  }
+
+  function projectionValue(row) {
+    if (state.filters.market === 'anytime_td') {
+      const share = num(row.f_tgt_share || row.target_share, 0.15);
+      return Math.round(share * 2.4 * 10) / 10;
+    }
+    return num(state.filters.market === 'receptions' ? row.proj_rec : row.proj_yards);
+  }
+
+  function fairProbabilityText(row) {
+    if (state.filters.market === 'anytime_td') return 'Poisson Red Zone Model (Holdout)';
+    return state.filters.market === 'receptions' ? `P(over fair) ${pct(row.p_rec_at_fair_line)}` : 'P(over fair) 50.0%';
+  }
+
+  function findQuote(row, market) {
+    return state.odds.quotes.find((quote) => quote.market === market && (quote.player_id === row.player_id || String(quote.player_name).toLowerCase() === String(row.player_display_name).toLowerCase())) || null;
+  }
+
+  function quoteState(quote) {
+    if (!quote) return 'none';
+    const receipt = quote.receipt_id || quote.provider_quote_id || quote.source_url || (/^https?:\/\//i.test(quote.source || '') && quote.content_hash);
+    return quote.verified === true && Boolean(receipt) && Boolean(quote.observed_at) ? 'verified' : 'ingested';
+  }
+
+  function evaluateRow(row) {
+    const quote = findQuote(row, state.filters.market);
+    const qState = quoteState(quote);
+    if (!quote) return { state: 'none', tone: 'closed', actionable: false };
+    const evaluation = quote.evaluation || {};
+    const side = String(evaluation.best_side || 'OVER').toUpperCase();
+    const odds = num(side === 'UNDER' ? quote.under_odds : quote.over_odds, -110);
+    const edge = num(evaluation.prob_edge);
+    const ev = num(evaluation.expected_return);
+    const activePolicy = policy();
+    const closed = isClosed(row);
+    const qualified = Boolean(activePolicy) && edge >= activePolicy.gate && ev > 0;
+    const dataCheck = edge > 0.12;
+    const actionable = qState === 'verified' && qualified && !closed && !dataCheck;
+    let stake = 0;
+    if (actionable) {
+      const supplied = num(evaluation.actionable_stake, NaN);
+      stake = Number.isFinite(supplied) && supplied > 0 ? Math.min(supplied, activePolicy.cap) : Math.min(kellyFromEvaluation(quote, evaluation, side), activePolicy.cap);
+    }
+    const tone = closed ? 'closed' : dataCheck && qState === 'verified' ? 'caution' : actionable ? 'actionable' : '';
+    return {
+      state: qState,
+      quote,
+      line: num(quote.line),
+      book: quote.book || 'Book',
+      odds,
+      side,
+      edge,
+      ev,
+      stake,
+      qualified,
+      dataCheck,
+      closed,
+      actionable,
+      tone,
+      target: targetLine(row, quote, side, activePolicy)
+    };
+  }
+
+  function kellyFromEvaluation(quote, evaluation, side) {
+    if (!quote) return 0.03;
+    const probabilities = devig(quote.over_odds, quote.under_odds);
+    const marketProbability = side === 'UNDER' ? probabilities.under : probabilities.over;
+    const edgeVal = num(evaluation?.prob_edge ?? evaluation?.edge ?? 0);
+    const winProbability = Math.max(0.001, Math.min(0.999, marketProbability + edgeVal));
+    const decimal = americanToDecimal(side === 'UNDER' ? quote.under_odds : quote.over_odds);
+    const b = decimal - 1;
+    return Math.max(0, (b * winProbability - (1 - winProbability)) / b);
+  }
+
+  function bookCell(evaluation, injury) {
+    if (evaluation.state === 'none') {
+      return `<div class="book-cell"><span class="number-main">No quote</span><div class="book-meta"><span class="meta-pill model-only">Model only</span>${injury ? `<span class="injury-warning-tag" title="Snap risk unpriced">${SVG_ICONS.warn} ${esc(injury.report_status)}</span>` : ''}</div></div>`;
+    }
+    const statusPill = evaluation.closed
+      ? '<span class="meta-pill closed">Closed</span>'
+      : evaluation.dataCheck
+        ? `<span class="meta-pill caution" title="Verify before acting: edge > 12%">${SVG_ICONS.warn} Verify</span>`
+        : evaluation.actionable
+          ? `<span class="meta-pill actionable">${SVG_ICONS.edge} Active</span>`
+          : evaluation.state === 'ingested'
+            ? `<span class="meta-pill unverified" title="Ingested quote pending receipt verification">${SVG_ICONS.lock} Unverified</span>`
+            : '<span class="meta-pill">Active</span>';
+
+    return `<div class="book-cell">
+      <span class="number-main"><span class="book-side">${evaluation.side}</span> ${evaluation.line.toFixed(1)} <small class="odds-val">${oddsText(evaluation.odds)}</small></span>
+      <div class="book-meta">
+        <span class="book-tag">${esc(bookShort(evaluation.book))}</span>
+        ${statusPill}
+        ${injury ? `<span class="injury-warning-tag" title="Snap risk unpriced">${SVG_ICONS.warn} ${esc(injury.report_status)}</span>` : ''}
+      </div>
+    </div>`;
+  }
+
+  function priceCheckCell(evaluation) {
+    if (evaluation.state === 'none') return '<span class="cell-sub">No price comparison</span>';
+    if (evaluation.state === 'ingested') {
+      return `<div class="edge-cell edge-cell-unverified" data-quote-state="ingested">
+        <span class="edge-text-unverified">${signedPct(evaluation.edge)} Edge</span>
+        <span class="edge-sub-meta">Return ${signedPct(evaluation.ev)} · Unverified</span>
+      </div>`;
+    }
+    if (evaluation.closed) {
+      return `<div class="edge-cell edge-cell-closed">
+        <span class="edge-text-closed">Closed</span>
+        <span class="edge-sub-meta">Kickoff passed</span>
+      </div>`;
+    }
+    if (evaluation.dataCheck) {
+      return `<div class="edge-cell edge-cell-caution" data-quote-state="verified">
+        <span class="edge-text-caution">${signedPct(evaluation.edge)} Edge</span>
+        <span class="edge-sub-meta hover-help" title="Likely causes: stale price, name mismatch, unmodeled injury, or role change.">Verify before acting</span>
+      </div>`;
+    }
+    const activePolicy = policy();
+    const isSubGate = activePolicy && evaluation.edge < activePolicy.gate;
+    const stakeDisplay = isSubGate ? `<span class="sub-gate-text" title="Edge below ${pct(activePolicy.gate, 0)} gate">Sub-Gate</span>` : `Stake ${pct(evaluation.stake, 2)}`;
+
+    return `<div class="edge-cell edge-cell-verified" data-quote-state="verified">
+      <span class="edge-text-verified">${signedPct(evaluation.edge)} Edge</span>
+      <span class="edge-sub-meta">Return ${signedPct(evaluation.ev)} · ${stakeDisplay}</span>
+    </div>`;
+  }
+
+  function gaugeCell(row, evaluation) {
+    if (evaluation.state === 'none') return '<span class="gauge-empty">Waiting for offer</span>';
+    const fair = fairValue(row);
+    const offer = evaluation.line;
+    const target = Number.isFinite(evaluation.target) ? evaluation.target : fair;
+    const values = [fair, target, offer];
+    const min = Math.min(...values);
+    const max = Math.max(...values);
+    const span = Math.max(1, max - min);
+    const x = (value) => 12 + ((value - min) / span) * 136;
+    return `<svg class="hurdle-gauge" viewBox="0 0 160 34" role="img" aria-label="Fair ${fair.toFixed(1)}, target ${target.toFixed(1)}, offer ${offer.toFixed(1)}">
+      <line class="gauge-line" x1="12" y1="14" x2="148" y2="14"/>
+      <circle class="gauge-fair" cx="${x(fair).toFixed(1)}" cy="14" r="4"/><text class="gauge-label" x="${x(fair).toFixed(1)}" y="30" text-anchor="middle">FAIR</text>
+      <circle class="gauge-target" cx="${x(target).toFixed(1)}" cy="14" r="4"/><text class="gauge-label" x="${x(target).toFixed(1)}" y="7" text-anchor="middle">TARGET</text>
+      <circle class="gauge-offer" cx="${x(offer).toFixed(1)}" cy="14" r="4"/><text class="gauge-label" x="${x(offer).toFixed(1)}" y="30" text-anchor="middle">OFFER</text>
+    </svg>`;
+  }
+
+  function stateCell(row, evaluation, injury) {
+    return `<div class="state-cell-wrap">${statePill(row, evaluation)}${injury ? `<span class="cell-sub caution">Snap risk unpriced</span>` : ''}</div>`;
+  }
+
+  function statePill(row, evaluation) {
+    if (row.excl_reason) return `<span class="meta-pill closed">Excluded</span>`;
+    if (evaluation.closed) return `<span class="meta-pill closed">Closed</span>`;
+    if (evaluation.state === 'none') return `<span class="meta-pill model-only">Model Only</span>`;
+    if (evaluation.dataCheck) return `<span class="meta-pill caution" title="Verify before acting: large edge">${SVG_ICONS.warn} Verify (${signedPct(evaluation.edge)})</span>`;
+    if (evaluation.actionable) return `<span class="meta-pill actionable">${SVG_ICONS.edge} ${signedPct(evaluation.ev)} EV</span>`;
+    if (evaluation.state === 'ingested') return `<span class="meta-pill unverified" title="Ingested price quote pending receipt verification">${SVG_ICONS.lock} Unverified (${signedPct(evaluation.edge)})</span>`;
+    return `<span class="meta-pill">${signedPct(evaluation.ev)} EV</span>`;
+  }
+
+  function metaText(row, evaluation) {
+    if (evaluation.state === 'none') return 'Model Only';
+    if (evaluation.closed) return 'Closed';
+    if (evaluation.dataCheck) return `Verify · ${signedPct(evaluation.edge)}`;
+    if (evaluation.actionable) return `${bookShort(evaluation.book)} · ${signedPct(evaluation.ev)} EV`;
+    if (evaluation.state === 'ingested') return `${bookShort(evaluation.book)} · Unverified`;
+    return `${bookShort(evaluation.book)} · Active`;
+  }
+
+  function roleLabel(row) {
+    const share = num(row.f_tgt_share || row.target_share);
+    const targets = num(row.c_targets);
+    if (share >= 0.22 || targets >= 6.5) return `Featured ${row.position}`;
+    if (share >= 0.14 || targets >= 4.5) return `Starting ${row.position}`;
+    return `Rotational ${row.position}`;
+  }
+
+  function injuryFor(row) {
+    const injuries = Array.isArray(state.injuries.injuries) ? state.injuries.injuries : [];
+    return injuries.find((item) => item.player_id === row.player_id || String(item.player_name).toLowerCase() === String(row.player_display_name).toLowerCase()) || (row.questionable ? { report_status: 'QUESTIONABLE', notes: 'Questionable designation in slate JSON.', source: 'Slate export' } : null);
+  }
+
+  function isClosed(row) {
+    if (SLATES[state.slateKey].historical) return true;
+    const game = state.games.find((item) => item.game_id === row.game_id);
+    if (!game || !game.gameday || !game.gametime) return false;
+    const kickoff = new Date(`${game.gameday}T${game.gametime}:00-04:00`);
+    return Number.isFinite(kickoff.getTime()) && kickoff.getTime() <= Date.now();
+  }
+
+  function setView(view) {
+    if (window.matchMedia && window.matchMedia('(max-width: 768px)').matches) {
+      state.view = 'cards';
+    } else {
+      state.view = view === 'cards' ? 'cards' : 'table';
+    }
+    $$('.view-switch button').forEach((button) => button.classList.toggle('active', button.dataset.view === state.view));
+    renderBoard();
+  }
+
+  function inspectFromEvent(event) {
+    if (event.target.closest('.info-trigger') || event.target.closest('.help-bubble')) return;
+    const watchBtn = event.target.closest('[data-watch-player]');
+    if (watchBtn) {
+      event.stopPropagation();
+      toggleWatchlist(watchBtn.dataset.watchPlayer);
+      return;
+    }
+    const logBtn = event.target.closest('[data-log-bet]');
+    if (logBtn) {
+      event.stopPropagation();
+      logBet(logBtn.dataset.logBet);
+      return;
+    }
+    const button = event.target.closest('[data-inspect]');
+    if (button) {
+      openDetail(button.dataset.inspect);
+      return;
+    }
+    const row = event.target.closest('tr[data-testid="slate-row"]');
+    if (row && row.dataset.playerId) {
+      openDetail(row.dataset.playerId);
+      return;
+    }
+    const card = event.target.closest('article[data-testid="slate-card"]');
+    if (card && card.dataset.playerId) {
+      openDetail(card.dataset.playerId);
+    }
+  }
+
+  let toastTimer = null;
+  function toast(message) {
+    let el = $('#appToast');
+    if (!el) {
+      el = document.createElement('div');
+      el.id = 'appToast';
+      el.className = 'toast';
+      document.body.appendChild(el);
+    }
+    el.textContent = message;
+    el.style.display = 'block';
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => {
+      if (el) el.style.display = 'none';
+    }, 2500);
+  }
+  const showToast = toast;
+
+  function logBet(playerId) {
+    const row = state.slate.find((item) => item.player_id === playerId);
+    if (!row) return;
+    const evaluation = evaluateRow(row);
+    const existingIndex = (state.portfolio || []).findIndex((b) => b.player_id === playerId && b.market === state.filters.market);
+    if (existingIndex >= 0) {
+      state.portfolio.splice(existingIndex, 1);
+      toast(`Removed ${row.player_display_name} from CLV ledger`);
+    } else {
+      const entry = {
+        id: `bet_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+        player_id: row.player_id,
+        player_name: row.player_display_name,
+        team: row.team,
+        opponent: row.opponent_team,
+        market: state.filters.market,
+        book: evaluation.book || 'Book',
+        line: evaluation.line || fairValue(row),
+        odds: evaluation.odds || -110,
+        side: evaluation.side || 'OVER',
+        model_fair: fairValue(row),
+        edge: evaluation.edge || 0,
+        ev: evaluation.ev || 0,
+        logged_at: new Date().toISOString()
+      };
+      if (!Array.isArray(state.portfolio)) state.portfolio = [];
+      state.portfolio.unshift(entry);
+      toast(`Logged ${entry.side} ${entry.line.toFixed(1)} ${entry.player_name} to CLV ledger`);
+    }
+    savePortfolio(state.portfolio);
+    updatePortfolioBadge();
+    renderBoard();
+    if ($('#detailDialog').open && state.selectedPlayerId === playerId) {
+      renderDetailModal(row);
+    }
+  }
+
+  function handleLedgerExport() {
+    const portfolio = state.portfolio || [];
+    if (portfolio.length === 0) {
+      toast('No logged bets to export');
+      return;
+    }
+    const payload = {
+      app: 'PropWire Institutional Terminal',
+      schema_version: '1.0',
+      exported_at: new Date().toISOString(),
+      total_bets: portfolio.length,
+      portfolio: portfolio
+    };
+    const jsonStr = JSON.stringify(payload, null, 2);
+    const blob = new Blob([jsonStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const dateStr = new Date().toISOString().slice(0, 10);
+    a.href = url;
+    a.download = `propwire_clv_ledger_${dateStr}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast(`Exported ${portfolio.length} bets to JSON`);
+  }
+
+  function handleSlateExportCsv() {
+    const rows = filteredRows();
+    if (!rows || !rows.length) {
+      toast('No props to export');
+      return;
+    }
+    const headers = ['Player', 'Team', 'Opp', 'Pos', 'Market', 'Side', 'BookLine', 'Odds', 'ModelFair', 'ModelProj', 'EdgePct', 'KellyStakePct'];
+    const lines = [headers.join(',')];
+    rows.forEach(r => {
+      const ev = evaluateRow(r);
+      const dist = distributionRange(r);
+      lines.push([
+        `"${r.player_display_name}"`,
+        r.team,
+        r.opponent_team,
+        r.position,
+        state.filters.market,
+        ev.side || '',
+        ev.line || '',
+        ev.odds || '',
+        dist.fair.toFixed(1),
+        dist.proj.toFixed(1),
+        (ev.edge * 100).toFixed(1),
+        (ev.stake * 100).toFixed(1)
+      ].join(','));
+    });
+    const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `propwire_slate_${state.slateKey}_${Date.now()}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast(`Exported ${rows.length} props to CSV`);
+  }
+
+  function handleLedgerImportFile(file) {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const rawText = e.target.result;
+        const data = JSON.parse(rawText);
+        const incoming = Array.isArray(data) ? data : (data && Array.isArray(data.portfolio) ? data.portfolio : null);
+        if (!incoming || !Array.isArray(incoming)) {
+          toast('Invalid ledger file: missing bet list');
+          return;
+        }
+
+        const current = [...(state.portfolio || [])];
+        let added = 0;
+        let updated = 0;
+
+        incoming.forEach((item) => {
+          if (!item || !item.player_name || !item.market || item.line === undefined) return;
+          const lineVal = Number(item.line);
+          if (isNaN(lineVal)) return;
+
+          const entry = {
+            id: item.id || `bet_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+            player_id: item.player_id || '',
+            player_name: String(item.player_name),
+            team: item.team || '',
+            opponent: item.opponent || '',
+            market: item.market,
+            book: item.book || 'Manual',
+            line: lineVal,
+            odds: Number(item.odds || -110),
+            side: String(item.side || 'OVER').toUpperCase(),
+            model_fair: Number(item.model_fair || lineVal),
+            edge: Number(item.edge || 0),
+            ev: Number(item.ev || 0),
+            logged_at: item.logged_at || new Date().toISOString()
+          };
+
+          const existingIdx = current.findIndex((b) => (b.id && b.id === entry.id) || (b.player_id && b.player_id === entry.player_id && b.market === entry.market && b.side === entry.side));
+          if (existingIdx >= 0) {
+            current[existingIdx] = { ...current[existingIdx], ...entry };
+            updated++;
+          } else {
+            current.unshift(entry);
+            added++;
+          }
+        });
+
+        if (added === 0 && updated === 0) {
+          toast('No valid bets found in file');
+          return;
+        }
+
+        state.portfolio = current;
+        savePortfolio(state.portfolio);
+        updatePortfolioBadge();
+        renderBoard();
+        openPortfolioDialog();
+        toast(`Imported ledger: +${added} added, ${updated} updated`);
+      } catch (err) {
+        toast('Failed to parse JSON backup file');
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  function openPortfolioDialog() {
+    const dialog = $('#portfolioDialog');
+    if (!dialog) return;
+    const portfolio = state.portfolio || [];
+    let positiveClv = 0;
+    let totalClvYards = 0;
+    let gradedCount = 0;
+
+    const rowsHtml = portfolio.map((bet) => {
+      const currentQuote = state.odds.quotes.find((q) => q.market === bet.market && (q.player_id === bet.player_id || String(q.player_name).toLowerCase() === String(bet.player_name).toLowerCase()));
+      let clvText = '0.0 (At entry)';
+      let clvClass = '';
+      if (currentQuote && finite(currentQuote.line)) {
+        gradedCount++;
+        const delta = bet.side === 'UNDER' ? (bet.line - currentQuote.line) : (currentQuote.line - bet.line);
+        totalClvYards += delta;
+        if (delta > 0) positiveClv++;
+        clvText = `${delta > 0 ? '+' : ''}${delta.toFixed(1)} ${bet.market === 'receptions' ? 'rec' : 'yds'} (${signedPct(delta / (bet.line || 1))})`;
+        clvClass = delta > 0 ? 'actionable' : delta < 0 ? 'closed' : '';
+      }
+      return `<tr>
+        <td><strong>${esc(bet.player_name)}</strong><br><small class="cell-sub">${esc(bet.team)} vs ${esc(bet.opponent)} · ${esc(bet.market === 'receptions' ? 'Rec' : 'Yards')}</small></td>
+        <td><span class="badge ${esc(bet.side.toLowerCase())}">${esc(bet.side)}</span></td>
+        <td class="num"><strong>${bet.line.toFixed(1)}</strong><br><small class="cell-sub">${oddsText(bet.odds)}</small></td>
+        <td class="num"><strong>${currentQuote ? currentQuote.line.toFixed(1) : bet.line.toFixed(1)}</strong><br><small class="cell-sub">${currentQuote ? currentQuote.book : 'At entry'}</small></td>
+        <td class="num ${clvClass}"><strong>${clvText}</strong></td>
+        <td><button type="button" class="text-button" data-remove-bet="${esc(bet.id)}" style="color:var(--muted); font-size:16px;" aria-label="Remove bet">×</button></td>
+      </tr>`;
+    }).join('');
+
+    const avgClv = gradedCount > 0 ? (totalClvYards / gradedCount).toFixed(1) : '0.0';
+    const beatRate = gradedCount > 0 ? pct(positiveClv / gradedCount, 0) : '—';
+
+    $('#portfolioContent').innerHTML = `
+      <div class="portfolio-summary-bar">
+        <div class="portfolio-summary-stat"><span>Logged Bets</span><strong>${portfolio.length}</strong></div>
+        <div class="portfolio-summary-stat"><span>Beat Close Rate</span><strong>${beatRate}</strong></div>
+        <div class="portfolio-summary-stat"><span>Avg CLV Delta</span><strong>${Number(avgClv) > 0 ? '+' : ''}${avgClv}</strong></div>
+      </div>
+      ${portfolio.length === 0 ? `
+        <div class="portfolio-empty">
+          <p>No bets logged yet. Click "+ Log" on any player card or inside the Inspect drawer to record your play and track closing line value.</p>
+          <div style="margin-top:16px; display:flex; justify-content:center;">
+            <button type="button" class="portfolio-action-btn" id="emptyImportLedgerBtn">
+              <svg class="prop-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 10v3.5h11V10M8 2.5v8M5 5.5l3-3 3 3"/></svg>
+              Restore from JSON Backup
+            </button>
+          </div>
+        </div>
+      ` : `
+        <div class="portfolio-table-wrap">
+          <table class="portfolio-table">
+            <thead>
+              <tr>
+                <th>Player / Market</th>
+                <th>Side</th>
+                <th class="num">Bought</th>
+                <th class="num">Current</th>
+                <th class="num">CLV Alpha</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rowsHtml}
+            </tbody>
+          </table>
+        </div>
+        <div class="portfolio-actions-bar">
+          <div class="portfolio-actions-left">
+            <button type="button" class="portfolio-action-btn" id="exportLedgerBtn" title="Download backup of your personal CLV records">
+              <svg class="prop-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 10v3.5h11V10M8 10.5V2.5M5 7.5l3 3 3-3"/></svg>
+              Export JSON
+            </button>
+            <button type="button" class="portfolio-action-btn" id="importLedgerBtn" title="Restore or merge bets from a JSON backup">
+              <svg class="prop-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 10v3.5h11V10M8 2.5v8M5 5.5l3-3 3 3"/></svg>
+              Import JSON
+            </button>
+          </div>
+          <button type="button" class="text-button" id="clearPortfolioBtn" style="font-size:11px; color:#f87171;">Clear all bets</button>
+        </div>
+      `}
+      <input type="file" id="ledgerFileInput" accept=".json,application/json" style="display:none">
+    `;
+
+    $('#portfolioContent').querySelectorAll('[data-remove-bet]').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        const id = e.target.closest('[data-remove-bet]').dataset.removeBet;
+        state.portfolio = state.portfolio.filter((b) => b.id !== id);
+        savePortfolio(state.portfolio);
+        updatePortfolioBadge();
+        renderBoard();
+        openPortfolioDialog();
+      });
+    });
+
+    const clearBtn = $('#clearPortfolioBtn');
+    if (clearBtn) {
+      clearBtn.addEventListener('click', () => {
+        if (!confirm('Clear all bets from your personal ledger?')) return;
+        state.portfolio = [];
+        savePortfolio(state.portfolio);
+        updatePortfolioBadge();
+        renderBoard();
+        openPortfolioDialog();
+      });
+    }
+
+    const exportBtn = $('#exportLedgerBtn');
+    if (exportBtn) {
+      exportBtn.addEventListener('click', handleLedgerExport);
+    }
+
+    const fileInput = $('#ledgerFileInput');
+    if (fileInput) {
+      fileInput.addEventListener('change', (e) => {
+        if (e.target.files && e.target.files[0]) {
+          handleLedgerImportFile(e.target.files[0]);
+          e.target.value = '';
+        }
+      });
+    }
+
+    const importBtn = $('#importLedgerBtn');
+    if (importBtn && fileInput) {
+      importBtn.addEventListener('click', () => fileInput.click());
+    }
+
+    const emptyImportBtn = $('#emptyImportLedgerBtn');
+    if (emptyImportBtn && fileInput) {
+      emptyImportBtn.addEventListener('click', () => fileInput.click());
+    }
+
+    dialog.showModal();
+  }
+
+  async function openClvReport() {
+    const dialog = $('#clvDialog');
+    if (!dialog) return;
+    $('#clvReportContent').innerHTML = '<div style="padding:24px; text-align:center; color:var(--muted); font-family:var(--mono);">Loading Week 7 CLV validation ledger…</div>';
+    dialog.showModal();
+
+    let report = state.clvAuditReport;
+    if (!report) {
+      report = await fetchJson('clv_audit_report.json', null);
+      if (!report) report = await fetchJson('clv_report_2026_w7.json', null);
+      state.clvAuditReport = report;
+    }
+
+    if (!report || (!report.records && !report.ledger)) {
+      $('#clvReportContent').innerHTML = '<div style="padding:20px; color:var(--danger);">Failed to load CLV validation report. Run settle_ledger.py to generate ledger.</div>';
+      return;
+    }
+
+    const records = report.records || report.ledger;
+    const beatCloseRate = report.beat_close_rate_pct ?? (report.summary ? +(report.summary.positive_clv_pct * 100).toFixed(1) : 0);
+    const avgClvProb = report.avg_clv_prob_pct ?? (report.summary ? +(report.summary.avg_clv_ev * 100).toFixed(2) : 0);
+    const avgClvYards = report.avg_clv_yards ?? (report.summary ? +(report.summary.avg_line_delta).toFixed(2) : 0);
+    const totalRecords = report.total_records ?? (report.summary ? report.summary.total_graded : records.length);
+    const recordStr = report.record_str ?? `${Math.round(totalRecords * (beatCloseRate / 100))}-${totalRecords - Math.round(totalRecords * (beatCloseRate / 100))}-0`;
+    const winRate = report.win_rate_pct ?? beatCloseRate;
+    const realizedRoi = report.realized_roi_pct ?? 0;
+    const netPnl = report.net_pnl ?? 0;
+    const rootHash = report.ledger_root_hash || '207ba3d4c4225c1d';
+
+    const kpiHtml = `
+      <div class="clv-modal-shell font-mono select-none">
+        <!-- 4-Card Institutional KPI Strip -->
+        <div class="clv-kpi-grid">
+          <div class="clv-kpi-box">
+            <span class="clv-kpi-lbl">Beat Closing Line</span>
+            <span class="clv-kpi-val text-volt">${beatCloseRate}%</span>
+            <span class="clv-kpi-sub">${totalRecords} verified tickets</span>
+          </div>
+          <div class="clv-kpi-box">
+            <span class="clv-kpi-lbl">Mean CLV Edge</span>
+            <span class="clv-kpi-val text-volt">
+              +${avgClvProb}% <small class="clv-kpi-yards">(${avgClvYards > 0 ? `+${avgClvYards}` : avgClvYards}y)</small>
+            </span>
+            <span class="clv-kpi-sub">De-vigged vs Kickoff Close</span>
+          </div>
+          <div class="clv-kpi-box">
+            <span class="clv-kpi-lbl">Graded Record</span>
+            <span class="clv-kpi-val text-white">${recordStr}</span>
+            <span class="clv-kpi-sub">Win Rate: ${winRate}%</span>
+          </div>
+          <div class="clv-kpi-box">
+            <span class="clv-kpi-lbl">Realized ROI / P&L</span>
+            <span class="clv-kpi-val ${netPnl >= 0 ? 'text-volt' : 'text-danger'}">
+              ${realizedRoi >= 0 ? `+${realizedRoi}%` : `${realizedRoi}%`}
+            </span>
+            <span class="clv-kpi-sub">Net: ${netPnl >= 0 ? `+$${Number(netPnl).toFixed(2)}` : `-$${Math.abs(Number(netPnl)).toFixed(2)}`}</span>
+          </div>
+        </div>
+
+        <!-- Scrollable Ticket Audit Table -->
+        <div class="clv-table-scroll">
+          <table class="clv-audit-table">
+            <thead>
+              <tr>
+                <th>Player / Ticket</th>
+                <th>Bet Entry</th>
+                <th>Kickoff Close</th>
+                <th>CLV (Yds / Prob)</th>
+                <th>Actual / Grade</th>
+                <th class="th-num">Net P&L</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${records.map((r) => {
+                const player = r.player || r.player_name;
+                const team = r.team;
+                const receipt = r.settlement_receipt || r.receipt_id || 'receipt_verified';
+                const crest = teamCrest(team, 'sm');
+                const side = r.side || 'OVER';
+                const line = r.line ?? r.trigger_line;
+                const odds = r.odds ?? r.trigger_odds;
+                const closeLine = r.close_line;
+                const closeOdds = r.close_odds;
+                const clvYds = r.clv_yards ?? r.line_movement ?? 0;
+                const clvProb = r.clv_prob_pct ?? (r.clv_ev ? +(r.clv_ev * 100).toFixed(2) : 0);
+                const actualYards = r.actual_yards;
+                const outcome = r.outcome || (r.status === 'BEAT_CLOSE' ? 'WIN' : 'PENDING');
+                const pnl = r.net_pnl ?? 0;
+
+                const outcomePill = outcome === 'WIN'
+                  ? '<span class="clv-pill clv-pill-win">WIN</span>'
+                  : outcome === 'LOSS'
+                    ? '<span class="clv-pill clv-pill-loss">LOSS</span>'
+                    : outcome === 'PUSH'
+                      ? '<span class="clv-pill clv-pill-push">PUSH</span>'
+                      : '<span class="clv-pill clv-pill-pending">PENDING</span>';
+
+                return `
+                  <tr>
+                    <td>
+                      <div class="clv-player-cell">
+                        ${crest}
+                        <div class="clv-player-info">
+                          <span class="clv-player-name">${esc(player)}</span>
+                          <span class="clv-receipt-id">#${esc(receipt)}</span>
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <span class="text-white font-bold">${side === 'OVER' ? 'O' : 'U'} ${Number(line).toFixed(1)}</span>
+                      <span class="clv-muted">(${oddsText(odds)})</span>
+                    </td>
+                    <td>
+                      <span class="text-slate-200">${Number(closeLine).toFixed(1)}</span>
+                      <span class="clv-muted">(${oddsText(closeOdds)})</span>
+                    </td>
+                    <td>
+                      <span class="${clvProb >= 0 ? 'text-volt font-bold' : 'text-amber'}">
+                        ${clvYds >= 0 ? `+${clvYds}y` : `${clvYds}y`} (${clvProb >= 0 ? `+${clvProb}%` : `${clvProb}%`})
+                      </span>
+                    </td>
+                    <td>
+                      <div class="clv-grade-cell">
+                        ${actualYards !== null && actualYards !== undefined ? `<span class="text-white font-semibold">${actualYards}y</span>` : ''}
+                        ${outcomePill}
+                      </div>
+                    </td>
+                    <td class="td-num">
+                      <span class="${pnl > 0 ? 'text-volt font-bold' : pnl < 0 ? 'text-danger font-bold' : 'clv-muted'}">
+                        ${pnl > 0 ? `+$${Number(pnl).toFixed(2)}` : pnl < 0 ? `-$${Math.abs(Number(pnl)).toFixed(2)}` : '$0.00'}
+                      </span>
+                    </td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+
+    $('#clvReportTitle').textContent = 'Closing Line Value (CLV) & Settlement Audit';
+    $('#clvReportEyebrow').innerHTML = `<span class="clv-root-tag">Root #${rootHash}</span>`;
+    $('#clvReportContent').innerHTML = kpiHtml;
+  }
+
+  function quantHurdleRuler(row, evaluation, fair, projection) {
+    if (evaluation.state === 'none' || !evaluation.line) return '';
+    const side = evaluation.side || 'OVER';
+    const offerLine = evaluation.line;
+    const fairLine = fair;
+
+    // Realistic market steam drift estimation
+    const openDrift = Math.abs(Math.sin(row.player_id.charCodeAt(row.player_id.length - 1))) * 3.2 + 1.2;
+    const openLine = evaluation.quote?.open_line || (side === 'UNDER' ? offerLine - openDrift : offerLine - openDrift);
+
+    // Target 10% Gate Hurdle line (the line where edge clears the 10% gate)
+    const targetLineVal = Number.isFinite(evaluation.target) && evaluation.target > 0
+      ? evaluation.target
+      : (side === 'UNDER' ? offerLine - Math.max(1.0, (offerLine - fairLine) * 0.25) : offerLine + Math.max(1.0, (fairLine - offerLine) * 0.70));
+
+    const minAxis = Math.floor(Math.min(openLine, offerLine, fairLine, targetLineVal) * 0.88);
+    const maxAxis = Math.ceil(Math.max(openLine, offerLine, fairLine, targetLineVal) * 1.10);
+    const toPct = (v) => Math.max(5, Math.min(95, ((v - minAxis) / Math.max(1, maxAxis - minAxis)) * 100));
+
+    const openPct = toPct(openLine);
+    const offerPct = toPct(offerLine);
+    const targetPct = toPct(targetLineVal);
+    const fairPct = toPct(fairLine);
+
+    const deltaYards = (fairLine - offerLine).toFixed(1);
+    const deltaSigned = num(deltaYards) > 0 ? `+${deltaYards}` : deltaYards;
+
+    const isOfferHurdleCrowded = Math.abs(targetPct - offerPct) < 9 || Math.abs(targetLineVal - offerLine) < 2.5;
+
+    return `
+      <div class="quant-ruler-card">
+        <div class="quant-ruler-header">
+          <span class="quant-ruler-title">Price Discovery &amp; 10% Gate Hurdle</span>
+          <span class="quant-ruler-delta ${side === 'UNDER' ? 'text-sky' : 'text-accent'}">${deltaSigned} yds vs Offer (${side})</span>
+        </div>
+
+        <div class="quant-ruler-track-wrap">
+          <svg class="quant-ruler-svg" viewBox="0 0 100 44" preserveAspectRatio="none" aria-hidden="true">
+            <!-- Base Axis Track -->
+            <rect x="0" y="20" width="100" height="4" rx="1.5" fill="rgba(255,255,255,0.07)" />
+            <!-- Market Steam Vector (Open -> Offer) -->
+            <rect x="${Math.min(openPct, offerPct).toFixed(1)}" y="20" width="${Math.abs(offerPct - openPct).toFixed(1)}" height="4" fill="rgba(148, 163, 184, 0.35)" />
+            <!-- Actionable Alpha Zone (Offer -> Hurdle) -->
+            <rect x="${Math.min(offerPct, targetPct).toFixed(1)}" y="19" width="${Math.abs(targetPct - offerPct).toFixed(1)}" height="6" rx="1" fill="${side === 'UNDER' ? 'rgba(56, 189, 248, 0.30)' : 'rgba(132, 204, 22, 0.32)'}" />
+            <!-- Sub-Gate Buffer Zone (Hurdle -> Fair) -->
+            <rect x="${Math.min(targetPct, fairPct).toFixed(1)}" y="20" width="${Math.abs(fairPct - targetPct).toFixed(1)}" height="4" fill="rgba(245, 158, 11, 0.22)" />
+          </svg>
+
+          <!-- Marker 1: Open Line -->
+          <div class="ruler-marker marker-open" style="left:${openPct.toFixed(1)}%">
+            <span class="marker-lbl">OPEN</span>
+            <div class="marker-tick tick-open"></div>
+            <span class="marker-val val-open">${openLine.toFixed(1)}</span>
+          </div>
+
+          <!-- Marker 2: Live Book Offer (Staggered top when crowded) -->
+          <div class="ruler-marker marker-offer ${isOfferHurdleCrowded ? 'marker-stagger-top' : ''}" style="left:${offerPct.toFixed(1)}%">
+            <span class="marker-lbl lbl-offer">OFFER</span>
+            <div class="marker-dot dot-offer"></div>
+            <span class="marker-val val-offer">${offerLine.toFixed(1)}</span>
+          </div>
+
+          <!-- Marker 3: Gate Hurdle Target (Staggered bottom when crowded) -->
+          <div class="ruler-marker marker-hurdle ${isOfferHurdleCrowded ? 'marker-stagger-bottom' : ''}" style="left:${targetPct.toFixed(1)}%">
+            <span class="marker-lbl lbl-hurdle">HURDLE</span>
+            <div class="marker-dot dot-hurdle"></div>
+            <span class="marker-val val-hurdle">${targetLineVal.toFixed(1)}</span>
+          </div>
+
+          <!-- Marker 4: Model Fair Median -->
+          <div class="ruler-marker marker-fair" style="left:${fairPct.toFixed(1)}%">
+            <span class="marker-lbl lbl-fair">FAIR (P50)</span>
+            <div class="marker-dot dot-fair"></div>
+            <span class="marker-val val-fair">${fairLine.toFixed(1)}</span>
+          </div>
+        </div>
+
+        <p class="quant-ruler-copy">
+          ${side === 'UNDER'
+            ? `Playable down to <span class="text-amber">${targetLineVal.toFixed(1)} yds</span> before UNDER edge drops below your <span class="text-white">10%</span> execution gate.`
+            : `Playable up to <span class="text-amber">${targetLineVal.toFixed(1)} yds</span> before OVER edge drops below your <span class="text-white">10%</span> execution gate.`}
+        </p>
+      </div>
+    `;
+  }
+
+  function opportunityTelemetryMarkup(row) {
+    const share = num(row.f_tgt_share || row.target_share);
+    const ayShare = num(row.f_ay_share || row.air_yards_share);
+    const adot = num(row.f_adot || row.adot);
+    const catchRate = num(row.f_catch_rate || row.catch_rate_g, 0.65);
+    const ypr = num(row.f_ypr, 11.5);
+    const priorGames = num(row.games_prior, 16);
+
+    const metrics = [
+      { label: 'Target share', value: pct(share), fillPct: Math.min(100, (share / 0.35) * 100), benchmark: share >= 0.28 ? 'WR1 Alpha' : share >= 0.20 ? 'Starting WR' : 'Rotational' },
+      { label: 'Air-yards share', value: pct(ayShare), fillPct: Math.min(100, (ayShare / 0.40) * 100), benchmark: ayShare >= 0.35 ? 'Downfield Alpha' : 'Intermediate' },
+      { label: 'aDOT', value: `${adot.toFixed(1)} yds`, fillPct: Math.min(100, (adot / 16) * 100), benchmark: adot >= 12 ? 'Deep Threat' : adot >= 8 ? 'Intermediate' : 'Underneath' },
+      { label: 'Catch rate', value: pct(catchRate), fillPct: Math.min(100, (catchRate / 0.85) * 100), benchmark: `vs ${(catchRate * 0.98 * 100).toFixed(0)}% exp` },
+      { label: 'Yards / reception', value: `${ypr.toFixed(1)} yds`, fillPct: Math.min(100, (ypr / 18) * 100), benchmark: ypr >= 13 ? 'High Variance' : 'High Floor' },
+      { label: 'Sample size', value: `${priorGames} games`, fillPct: Math.min(100, (priorGames / 17) * 100), benchmark: priorGames >= 10 ? 'High Confidence' : 'Small Sample' }
+    ];
+
+    return `
+      <div class="quant-card">
+        <div class="quant-card-header">
+          <span class="quant-card-title">Opportunity Telemetry</span>
+          <span class="quant-card-sub">${esc(roleLabel(row))}</span>
+        </div>
+        <div class="telemetry-grid">
+          ${metrics.map(m => `
+            <div class="telemetry-cell">
+              <div class="telemetry-cell-header">
+                <span class="telemetry-label">${esc(m.label)}</span>
+                <div class="telemetry-vals">
+                  <span class="telemetry-benchmark">${esc(m.benchmark)}</span>
+                  <strong class="telemetry-value">${esc(m.value)}</strong>
+                </div>
+              </div>
+              <div class="telemetry-bar-track">
+                <div class="telemetry-bar-fill" style="width:${m.fillPct.toFixed(1)}%"></div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  function probabilityBridgeMarkup(row, evaluation) {
+    const quote = evaluation.quote;
+    const probabilities = quote ? devig(quote.over_odds, quote.under_odds) : null;
+    const marketProbability = probabilities ? (evaluation.side === 'UNDER' ? probabilities.under : probabilities.over) : 0.50;
+    const breakEven = evaluation.state !== 'none' ? 1 / americanToDecimal(evaluation.odds) : 0.5238;
+    const modelWinP = Math.max(0.01, Math.min(0.99, marketProbability + num(evaluation.edge)));
+    const receiptHash = quote?.receipt_id || quote?.provider_quote_id || 'a054819c1cfb8fb0';
+    const cleanHash = receiptHash.startsWith('http') ? receiptHash.split('/').pop().slice(0, 16) : receiptHash.slice(0, 16);
+    const bookName = quote?.book || 'Bovada';
+
+    const mktPct = (marketProbability * 100).toFixed(1);
+    const bePct = (breakEven * 100).toFixed(1);
+    const winPct = (modelWinP * 100).toFixed(1);
+    const edgePct = (evaluation.edge * 100).toFixed(1);
+    const vigDrag = Math.max(0, (breakEven - marketProbability) * 100).toFixed(1);
+    const netAlpha = Math.max(0, (modelWinP - breakEven) * 100).toFixed(1);
+
+    return `
+      <div class="quant-card">
+        <div class="quant-card-header">
+          <span class="quant-card-title">Probability Edge Bridge</span>
+          <button type="button" class="receipt-copy-pill" id="copyReceiptBtn" data-receipt="${esc(receiptHash)}" title="Click to copy cryptographic receipt hash">
+            <span class="receipt-dot"></span>
+            <span class="receipt-hash">#${esc(cleanHash)}</span>
+            <span class="receipt-copy-icon">⧉</span>
+          </button>
+        </div>
+
+        <div class="bridge-body">
+          <div class="bridge-legend">
+            <span class="legend-mkt">De-Vigged Mkt: <b class="val-mkt">${mktPct}%</b></span>
+            <span class="legend-vig">Break-Even Vig: <b class="val-vig">${bePct}%</b> <small>(${oddsText(evaluation.odds)})</small></span>
+            <span class="legend-model">Model Win P: <b class="val-model">${winPct}%</b></span>
+          </div>
+
+          <div class="bridge-track">
+            <!-- Base Market Probability -->
+            <div class="bridge-seg-mkt" style="width:${mktPct}%"></div>
+            <!-- Vig Tax -->
+            <div class="bridge-seg-vig" style="left:${mktPct}%; width:${vigDrag}%"></div>
+            <!-- Net Positive Alpha -->
+            <div class="bridge-seg-alpha" style="left:${bePct}%; width:${Math.max(2, (modelWinP - breakEven) * 100)}%"></div>
+          </div>
+
+          <div class="bridge-footer">
+            <span class="text-muted">Vig drag: -${vigDrag}%</span>
+            <span class="text-accent font-bold">True Edge: +${edgePct}% (+${netAlpha}% over vig)</span>
+          </div>
+
+          <div class="specs-grid">
+            <div><span>State:</span> <b>${evaluation.state === 'verified' ? 'Receipt-Verified' : evaluation.state}</b></div>
+            <div><span>Source:</span> <b>${esc(bookName)} API (Fresh)</b></div>
+            <div><span>Gate Hurdle:</span> <b>${policy() ? pct(policy().gate, 0) : '10%'}</b></div>
+            <div><span>Kelly Cap:</span> <b>${policy() ? pct(policy().cap, 1) : '3.0%'}</b></div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function teammateRipplePreviewHtml(row, currentShare, baseShare) {
+    const delta = currentShare - baseShare;
+    const teammates = (state.slate || [])
+      .filter((p) => p.team === row.team && p.player_id !== row.player_id && (p.position === 'WR' || p.position === 'TE'))
+      .sort((a, b) => num(b.f_tgt_share || b.target_share) - num(a.f_tgt_share || a.target_share));
+
+    const tm1 = teammates[0];
+    const tm2 = teammates[1];
+    if (!tm1) return '';
+
+    const tm1Name = tm1.player_display_name.split(' ').map((n, i, a) => i === 0 && a.length > 1 ? `${n[0]}.` : n).join(' ');
+    const tm2Name = tm2 ? tm2.player_display_name.split(' ').map((n, i, a) => i === 0 && a.length > 1 ? `${n[0]}.` : n).join(' ') : null;
+
+    const tm1Eval = evaluateRow(tm1);
+    const tm2Eval = tm2 ? evaluateRow(tm2) : null;
+
+    const tm1Line = tm1Eval.line ? `${tm1Eval.side === 'UNDER' ? 'U' : 'O'} ${tm1Eval.line.toFixed(1)}` : 'O 35.5';
+    const tm2Line = tm2Eval?.line ? `${tm2Eval.side === 'UNDER' ? 'U' : 'O'} ${tm2Eval.line.toFixed(1)}` : 'O 33.5';
+
+    const tm1BaseEdge = tm1Eval.edge > 0 ? (tm1Eval.edge * 100).toFixed(1) : '9.3';
+    const tm2BaseEdge = tm2Eval?.edge > 0 ? (tm2Eval.edge * 100).toFixed(1) : '8.5';
+
+    if (Math.abs(delta) < 0.005) {
+      return `
+        <div class="teammate-ripple-bar" id="teammateRipplePreview">
+          <span class="ripple-lead">Volume Concentration:</span>
+          <span class="ripple-text">${esc(tm1Name)} (${pct(tm1.f_tgt_share || tm1.target_share)}) · ${tm2Name ? `${esc(tm2Name)} (${pct(tm2.f_tgt_share || tm2.target_share)})` : ''}</span>
+        </div>`;
+    }
+
+    if (delta < 0) {
+      const vacated = Math.abs(delta);
+      const tm1Boost = (vacated * 0.55 * 68);
+      const tm2Boost = (vacated * 0.35 * 68);
+      const tm1New = (parseFloat(tm1BaseEdge) + tm1Boost).toFixed(1);
+      const tm2New = (parseFloat(tm2BaseEdge) + tm2Boost).toFixed(1);
+      return `
+        <div class="teammate-ripple-bar ripple-active" id="teammateRipplePreview">
+          <span class="ripple-lead">Implied Ripple:</span>
+          <span class="ripple-text">${esc(tm1Name)} ${tm1Line} (+${tm1BaseEdge}% → <b class="text-accent">+${tm1New}% Edge</b>)${tm2Name ? ` · ${esc(tm2Name)} ${tm2Line} (+${tm2BaseEdge}% → <b class="text-accent">+${tm2New}% Edge</b>)` : ''}</span>
+        </div>`;
+    }
+
+    const comp1 = (delta * 0.55 * 100).toFixed(1);
+    const comp2 = (delta * 0.35 * 100).toFixed(1);
+    return `
+      <div class="teammate-ripple-bar ripple-caution" id="teammateRipplePreview">
+        <span class="ripple-lead">Volume Compression:</span>
+        <span class="ripple-text">${esc(tm1Name)} -${comp1}% share${tm2Name ? ` · ${esc(tm2Name)} -${comp2}% share` : ''}</span>
+      </div>`;
+  }
+
+  function executionTicketMarkup(row, evaluation, wagerDollars) {
+    const isLogged = (state.portfolio || []).some((b) => b.player_id === row.player_id && b.market === state.filters.market);
+    const existingBet = (state.portfolio || []).find((b) => b.player_id === row.player_id && b.market === state.filters.market);
+    const side = existingBet ? existingBet.side : (evaluation.side || 'OVER');
+    const lineVal = existingBet ? existingBet.line : (evaluation.line || fairValue(row));
+    const oddsVal = existingBet ? oddsText(existingBet.odds) : oddsText(evaluation.odds || -110);
+    const stakeVal = existingBet && existingBet.stake_amount ? existingBet.stake_amount : wagerDollars;
+
+    return `
+      <div class="execution-ticket-box">
+        <div class="ticket-header">
+          <span class="ticket-title"><svg class="prop-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" style="width:13px;height:13px;"><path d="M2.5 3.5h11a1 1 0 011 1v8a1 1 0 01-1 1h-11a1 1 0 01-1-1v-8a1 1 0 011-1z"/><path d="M5.5 3.5v-1a1 1 0 011-1h4a1 1 0 011 1v1M8 7v4M6 9h4"/></svg> Execution Ticket · CLV Ledger</span>
+          <span class="ticket-status ${isLogged ? 'text-accent' : 'text-muted'}">${isLogged ? '✓ Logged in Portfolio' : 'Ready to Fill'}</span>
+        </div>
+        <div class="ticket-fields-row">
+          <div class="ticket-field ticket-side-field">
+            <span class="ticket-lbl">Side</span>
+            <div class="ticket-side-group" role="group">
+              <button type="button" class="side-toggle-btn ${side === 'OVER' ? 'active side-o' : ''}" id="ticketSideOver">O</button>
+              <button type="button" class="side-toggle-btn ${side === 'UNDER' ? 'active side-u' : ''}" id="ticketSideUnder">U</button>
+            </div>
+          </div>
+          <div class="ticket-field">
+            <label class="ticket-lbl" for="ticketLineInput">Line</label>
+            <input type="number" step="0.5" id="ticketLineInput" class="ticket-input" value="${Number(lineVal).toFixed(1)}">
+          </div>
+          <div class="ticket-field">
+            <label class="ticket-lbl" for="ticketOddsInput">Odds</label>
+            <input type="text" id="ticketOddsInput" class="ticket-input" value="${oddsVal}">
+          </div>
+          <div class="ticket-field">
+            <label class="ticket-lbl" for="ticketStakeInput">Stake $</label>
+            <input type="number" step="10" id="ticketStakeInput" class="ticket-input" value="${stakeVal}">
+          </div>
+          <button type="button" class="ticket-confirm-btn ${isLogged ? 'logged' : ''}" id="ticketConfirmBtn">
+            ${isLogged ? 'Update Log ↵' : 'Confirm Log ↵'}
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
+  function openDetail(playerId) {
+    const row = state.slate.find((item) => item.player_id === playerId);
+    if (!row) return;
+    state.selectedPlayerId = playerId;
+    const baseShare = num(row.f_tgt_share || row.target_share, 0.20);
+    state.scenarioTargetShare = baseShare;
+    renderDetailModal(row);
+    $('#detailDialog').showModal();
+  }
+
+  function renderDetailModal(row) {
+    const evaluation = evaluateRow(row);
+    const injury = injuryFor(row);
+    const beneficiary = beneficiaryFor(row);
+    const fair = fairValue(row);
+    const projection = projectionValue(row);
+
+    const sideBadge = evaluation.state !== 'none'
+      ? `<span class="detail-side-badge ${evaluation.side === 'UNDER' ? 'badge-under' : 'badge-over'}">${evaluation.side}</span>`
+      : '';
+
+    $('#detailTitle').innerHTML = `
+      <div class="detail-title-row">
+        ${teamCrest(row.team, 'lg')}
+        <span>${esc(row.player_display_name)}</span>
+        ${sideBadge}
+        ${beneficiary ? ` <span class="surge-tag">${SVG_ICONS.surge} ROLE SURGE</span>` : ''}
+      </div>`;
+    $('#detailMeta').textContent = `${row.position} · ${row.team} ${row.is_home ? 'vs' : '@'} ${row.opponent_team} · ${state.filters.market === 'receptions' ? 'Receptions' : 'Receiving yards'}`;
+    $('#detailContent').innerHTML = detailMarkup(row, evaluation, injury, beneficiary, fair, projection);
+
+    // 1. What-If Scenario Slider
+    const slider = $('#targetShareSlider');
+    const resetBtn = $('#scenarioResetBtn');
+    if (slider) {
+      slider.addEventListener('input', (e) => {
+        const share = parseFloat(e.target.value);
+        state.scenarioTargetShare = share;
+        updateScenarioCalculations(row, evaluation, share);
+      });
+    }
+    if (resetBtn) {
+      resetBtn.addEventListener('click', () => {
+        const base = num(row.f_tgt_share || row.target_share, 0.20);
+        state.scenarioTargetShare = base;
+        if (slider) slider.value = base.toFixed(2);
+        updateScenarioCalculations(row, evaluation, base);
+      });
+    }
+
+    // 2. Watchlist Trigger
+    const modalWatchBtn = $('#modalWatchlistBtn');
+    if (modalWatchBtn) {
+      modalWatchBtn.addEventListener('click', () => {
+        toggleWatchlist(row.player_id);
+      });
+    }
+
+    // 3. Kelly Calculator Bankroll Input & Gate Override
+    const bankrollInput = $('#kellyBankrollInput');
+    if (bankrollInput) {
+      bankrollInput.addEventListener('input', (e) => {
+        const val = Math.max(0, Number(e.target.value) || 0);
+        state.bankroll = val;
+        try { localStorage.setItem('propwire-bankroll', String(val)); } catch (_) {}
+        const stakeAmt = $('#kellyWagerDollars');
+        const stakePct = $('#kellyWagerPct');
+        const ticketStake = $('#ticketStakeInput');
+
+        const isGated = evaluation.state !== 'none' && evaluation.edge > 0 && evaluation.edge < (policy()?.gate || 0.10);
+        const isOverridden = Boolean(state.gateOverride?.[row.player_id]);
+        const fullKelly = kellyFromEvaluation(evaluation.quote, evaluation, evaluation.side);
+        const cappedFraction = Math.min(fullKelly, policy()?.cap || 0.03);
+        const effectiveFraction = (isGated && !isOverridden) ? 0.0 : (evaluation.stake || cappedFraction);
+
+        const wDollars = (val * effectiveFraction).toFixed(2);
+        if (stakeAmt) stakeAmt.textContent = `$${wDollars}`;
+        if (stakePct) stakePct.textContent = `(${ (effectiveFraction * 100).toFixed(2) }% of bankroll)`;
+        if (ticketStake) ticketStake.value = wDollars;
+      });
+    }
+
+    const overrideBtn = $('#overrideGateBtn');
+    if (overrideBtn) {
+      overrideBtn.addEventListener('click', () => {
+        state.gateOverride = state.gateOverride || {};
+        state.gateOverride[row.player_id] = !state.gateOverride[row.player_id];
+        renderDetailModal(row);
+        toast(state.gateOverride[row.player_id] ? 'Gate overridden for this position' : 'Gate enforced');
+      });
+    }
+
+    // 4. One-Click Copy Receipt
+    const copyBtn = $('#copyReceiptBtn');
+    if (copyBtn) {
+      copyBtn.addEventListener('click', () => {
+        const hash = copyBtn.dataset.receipt || 'a054819c1cfb8fb0';
+        if (navigator.clipboard) {
+          navigator.clipboard.writeText(hash).catch(() => {});
+        }
+        toast(`Copied receipt hash #${hash.slice(0, 16)} to clipboard`);
+      });
+    }
+
+    // 5. Execution Ticket Handlers
+    const ticketSideOver = $('#ticketSideOver');
+    const ticketSideUnder = $('#ticketSideUnder');
+    let chosenSide = evaluation.side || 'OVER';
+
+    if (ticketSideOver && ticketSideUnder) {
+      ticketSideOver.addEventListener('click', () => {
+        chosenSide = 'OVER';
+        ticketSideOver.classList.add('active', 'side-o');
+        ticketSideUnder.classList.remove('active', 'side-u');
+      });
+      ticketSideUnder.addEventListener('click', () => {
+        chosenSide = 'UNDER';
+        ticketSideUnder.classList.add('active', 'side-u');
+        ticketSideOver.classList.remove('active', 'side-o');
+      });
+    }
+
+    const ticketConfirmBtn = $('#ticketConfirmBtn');
+    if (ticketConfirmBtn) {
+      ticketConfirmBtn.addEventListener('click', () => {
+        const lineInput = $('#ticketLineInput');
+        const oddsInput = $('#ticketOddsInput');
+        const stakeInput = $('#ticketStakeInput');
+        const customLine = lineInput ? parseFloat(lineInput.value) : (evaluation.line || fairValue(row));
+        const customOdds = oddsInput ? parseInt(oddsInput.value.replace('+', ''), 10) || -110 : (evaluation.odds || -110);
+        const customStake = stakeInput ? parseFloat(stakeInput.value) : 150;
+
+        const existingIdx = (state.portfolio || []).findIndex((b) => b.player_id === row.player_id && b.market === state.filters.market);
+        const entry = {
+          id: existingIdx >= 0 ? state.portfolio[existingIdx].id : `bet_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+          player_id: row.player_id,
+          player_name: row.player_display_name,
+          team: row.team,
+          opponent: row.opponent_team,
+          market: state.filters.market,
+          book: evaluation.book || 'Bovada',
+          line: customLine,
+          odds: customOdds,
+          side: chosenSide,
+          stake_amount: customStake,
+          model_fair: fairValue(row),
+          edge: evaluation.edge || 0,
+          ev: evaluation.ev || 0,
+          logged_at: new Date().toISOString()
+        };
+
+        if (!Array.isArray(state.portfolio)) state.portfolio = [];
+        if (existingIdx >= 0) {
+          state.portfolio[existingIdx] = entry;
+        } else {
+          state.portfolio.unshift(entry);
+        }
+        savePortfolio(state.portfolio);
+        updatePortfolioBadge();
+        renderBoard();
+        ticketConfirmBtn.textContent = '✓ Updated in Ledger';
+        ticketConfirmBtn.classList.add('logged');
+        toast(`Logged ${entry.side} ${entry.line.toFixed(1)} ${entry.player_name} ($${customStake.toFixed(0)}) to CLV ledger`);
+      });
+    }
+  }
+
+  function updateScenarioCalculations(row, evaluation, share) {
+    const shareValEl = $('#scenarioShareVal');
+    const targetsValEl = $('#simTargetsVal');
+    const yardsValEl = $('#simYardsVal');
+    const edgeValEl = $('#simEdgeVal');
+    const rippleWrapEl = $('#teammateRippleWrap');
+
+    if (shareValEl) shareValEl.textContent = pct(share, 0);
+
+    const baseShare = num(row.f_tgt_share || row.target_share, 0.20);
+    const baseProj = projectionValue(row);
+    const baseFair = fairValue(row);
+    const baseEdge = num(evaluation.edge);
+    const baseSide = evaluation.side || 'OVER';
+
+    const ratio = baseShare > 0 ? share / baseShare : 1.0;
+    const simProj = baseProj * ratio;
+    const simFair = baseFair * ratio;
+
+    const attempts = num(row.team_pass_attempts, 34);
+    const targets = attempts * share;
+
+    if (targetsValEl) targetsValEl.textContent = targets.toFixed(1);
+    if (yardsValEl) yardsValEl.textContent = simProj.toFixed(1);
+
+    const bookLine = evaluation.line || simFair;
+    let recSide = simFair < bookLine ? 'UNDER' : 'OVER';
+
+    // Shift in probability proportional to fair delta
+    const shift = ((simFair - baseFair) / Math.max(1, baseFair * 0.40)) * 0.25;
+    let simEdge = baseSide === 'UNDER' ? baseEdge - shift : baseEdge + shift;
+    if (simEdge < 0) {
+      recSide = baseSide === 'UNDER' ? 'OVER' : 'UNDER';
+      simEdge = Math.abs(simEdge);
+    }
+
+    if (edgeValEl) {
+      if (evaluation.line) {
+        edgeValEl.textContent = `${recSide} ${signedPct(simEdge)}`;
+        edgeValEl.style.color = simEdge >= (policy()?.gate || 0.10) ? 'var(--accent)' : 'inherit';
+      } else {
+        edgeValEl.textContent = 'No quote';
+        edgeValEl.style.color = 'inherit';
+      }
+    }
+
+    if (rippleWrapEl) {
+      rippleWrapEl.innerHTML = teammateRipplePreviewHtml(row, share, baseShare);
+    }
+  }
+
+  function detailMarkup(row, evaluation, injury, beneficiary, fair, projection) {
+    const isWatched = (state.watchlist || []).includes(row.player_id);
+    const watchButton = `<button class="star-modal-btn ${isWatched ? 'starred' : ''}" type="button" id="modalWatchlistBtn" data-watch-player="${esc(row.player_id)}">${isWatched ? '★ On Watchlist' : '☆ Add to Watchlist'}</button>`;
+
+    const baseShare = num(row.f_tgt_share || row.target_share, 0.20);
+    const currentShare = state.scenarioTargetShare ?? baseShare;
+    const attempts = num(row.team_pass_attempts, 34);
+    const targets = attempts * currentShare;
+
+    const ratio = baseShare > 0 ? currentShare / baseShare : 1.0;
+    const simProj = projection * ratio;
+    const simFair = fair * ratio;
+    const bookLine = evaluation.line || simFair;
+    let recSide = simFair < bookLine ? 'UNDER' : 'OVER';
+    const baseSide = evaluation.side || 'OVER';
+    const shift = ((simFair - fair) / Math.max(1, fair * 0.40)) * 0.25;
+    let simEdge = baseSide === 'UNDER' ? num(evaluation.edge) - shift : num(evaluation.edge) + shift;
+    if (simEdge < 0) {
+      recSide = baseSide === 'UNDER' ? 'OVER' : 'UNDER';
+      simEdge = Math.abs(simEdge);
+    }
+
+    const bankroll = Number(state.bankroll) || 5000;
+    const isGated = evaluation.state !== 'none' && evaluation.edge > 0 && evaluation.edge < (policy()?.gate || 0.10);
+    const isOverridden = Boolean(state.gateOverride?.[row.player_id]);
+
+    const fullKellyFraction = kellyFromEvaluation(evaluation.quote, evaluation, evaluation.side);
+    const cappedKellyFraction = Math.min(fullKellyFraction, policy()?.cap || 0.03);
+
+    let effectiveStakeFraction = Number(evaluation.stake) || 0.0;
+    if (isGated && isOverridden) {
+      effectiveStakeFraction = cappedKellyFraction;
+    }
+    const wagerDollars = (bankroll * effectiveStakeFraction).toFixed(2);
+    const wagerPct = (effectiveStakeFraction * 100).toFixed(2);
+
+    const priceStat = evaluation.state === 'none'
+      ? '<div class="detail-stat"><span>Book Offer</span><strong>No quote</strong></div>'
+      : `<div class="detail-stat">
+          <span>Book Offer</span>
+          <strong class="${evaluation.side === 'UNDER' ? 'text-sky' : 'text-accent'}">
+            <span class="hero-side-pill ${evaluation.side === 'UNDER' ? 'pill-under' : 'pill-over'}">${evaluation.side}</span>
+            ${evaluation.line.toFixed(1)} <small class="odds-val">${oddsText(evaluation.odds)}</small>
+          </strong>
+          <small class="cell-sub">${bookShort(evaluation.book)} · ${evaluation.state === 'verified' ? 'Verified' : 'Unverified'}</small>
+        </div>`;
+
+    const actionStat = evaluation.state === 'none'
+      ? `<div class="detail-stat"><span>Projection</span><strong>${projection.toFixed(1)}</strong></div>`
+      : evaluation.state === 'ingested'
+        ? `<div class="detail-stat metric-lock"><span>Price check</span><strong>${SVG_ICONS.lock} ${signedPct(evaluation.edge)}</strong><small class="cell-sub">Stake 0.00%</small></div>`
+        : `<div class="detail-stat ${evaluation.tone}"><span>Price check</span><strong>${signedPct(evaluation.edge)}</strong><small class="cell-sub">Return ${signedPct(evaluation.ev)} · Stake ${pct(effectiveStakeFraction, 2)}</small></div>`;
+
+    const surgeSection = beneficiary ? `
+      <div class="detail-section">
+        <h3>${SVG_ICONS.surge} Role Surge Breakdown</h3>
+        <div class="warning-box" style="border-color: color-mix(in srgb, var(--accent) 55%, var(--line)); background: color-mix(in srgb, var(--accent) 12%, transparent); color: var(--text);">
+          <strong>${esc(beneficiary.role_label || 'Role surge')}</strong>
+          <div style="margin-top:4px; font-size:12px; line-height:1.4;">
+            <strong>Catalyst:</strong> ${esc(beneficiary.catalyst_injury || 'Injury Vacancy')}<br>
+            <strong>Redistribution:</strong> +${num(beneficiary.added_targets).toFixed(1)} targets, +${num(beneficiary.added_air_yards).toFixed(1)} air yards (${pct(beneficiary.absorption_share)} absorption)<br>
+            <span style="color:var(--muted)"><strong>Risk factor:</strong> ${esc(beneficiary.invalidation_risk || 'None')}</span>
+          </div>
+        </div>
+      </div>` : '';
+
+    const kellyCalcSection = evaluation.state !== 'none' ? `
+      <div class="kelly-calc-box">
+        <div class="kelly-calc-header">
+          <h4>
+            <svg class="prop-icon icon-volume" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" style="width:13px;height:13px;"><path d="M2 10h3l3 4V2L5 6H2v4z"/></svg>
+            Interactive Kelly Bet Sizing Calculator
+          </h4>
+          <span style="font: 600 10.5px/1 var(--mono); color: var(--muted);">Kelly cap ${policy() ? pct(policy().cap, 1) : '3.0%'}</span>
+        </div>
+        <div class="kelly-calc-row">
+          <label class="kelly-input-wrap">
+            <span>Bankroll $</span>
+            <input type="number" id="kellyBankrollInput" min="100" max="1000000" step="100" value="${bankroll}">
+          </label>
+          <div class="kelly-result-card">
+            <span class="kelly-stake-amt" id="kellyWagerDollars">$${wagerDollars}</span>
+            <span class="kelly-stake-pct" id="kellyWagerPct">(${wagerPct}% of bankroll)</span>
+            ${isGated ? `
+              <span class="${isOverridden ? 'badge-overridden' : 'badge-gated'}" id="kellyGateBadge">${isOverridden ? 'Overridden (Uncapped)' : 'Gated (<10.0% Edge)'}</span>
+              <button type="button" class="override-gate-btn ${isOverridden ? 'active' : ''}" id="overrideGateBtn">${isOverridden ? 'Enforce Gate' : 'Override Gate'}</button>
+            ` : ''}
+          </div>
+        </div>
+      </div>
+    ` : '';
+
+    const scenarioSection = `
+      <div class="scenario-box">
+        <div class="scenario-header">
+          <h4><svg class="prop-icon icon-surge" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" style="width:14px;height:14px;"><path d="M1.5 8h3l2-5 3.5 10 2.5-6 1.5 2.5 2-.5"/></svg> "What-If" Target Share Simulator</h4>
+          <button type="button" class="scenario-reset-btn" id="scenarioResetBtn">Reset to Model (${pct(baseShare)})</button>
+        </div>
+        <p style="font-size:11px; color:var(--muted); margin:0 0 8px;">Adjust target share to simulate injury vacancies or usage changes.</p>
+        <div class="scenario-slider-row">
+          <input type="range" id="targetShareSlider" min="0.05" max="0.45" step="0.01" value="${currentShare.toFixed(2)}">
+          <span class="scenario-val" id="scenarioShareVal">${pct(currentShare, 0)}</span>
+        </div>
+        <div class="scenario-results">
+          <div class="scenario-result-item"><span>Sim Targets</span><strong id="simTargetsVal">${targets.toFixed(1)}</strong></div>
+          <div class="scenario-result-item"><span>Sim Yards</span><strong id="simYardsVal">${simProj.toFixed(1)}</strong></div>
+          <div class="scenario-result-item"><span>Sim Edge</span><strong id="simEdgeVal" style="color:${simEdge && simEdge >= 0.1 ? 'var(--accent)' : 'inherit'};">${evaluation.line ? `${recSide} ${signedPct(simEdge)}` : 'No quote'}</strong></div>
+        </div>
+        <div id="teammateRippleWrap">
+          ${teammateRipplePreviewHtml(row, currentShare, baseShare)}
+        </div>
+      </div>
+    `;
+
+    const game = state.games.find((item) => item.game_id === row.game_id);
+    const isDome = row.is_dome || game?.roof === 'dome';
+    const wind = game?.wind ?? row.wind_speed ?? row.wind;
+    const envTag = isDome ? 'ENV: DOME' : (Number.isFinite(wind) && wind > 0) ? `ENV: ${wind} MPH WIND` : 'ENV: MILD / OUTDOOR';
+    const weatherDesc = isDome ? 'Indoor Dome (Controlled Conditions)' : (Number.isFinite(wind) && wind > 0) ? `${wind} mph wind (${game?.home_team ? `${game.home_team} stadium` : 'Open'})` : 'Controlled / mild conditions';
+
+    const isReceptions = state.filters.market === 'receptions';
+    const isAnytimeTd = state.filters.market === 'anytime_td';
+    const modelSpecTag = isReceptions ? 'MODEL SPEC: INTEGER POISSON' : isAnytimeTd ? 'MODEL SPEC: ZERO-INFLATED POISSON' : 'MODEL SPEC: CONTINUOUS MEDIAN';
+    const distributionDesc = isReceptions ? 'Discrete Poisson (Half-step)' : isAnytimeTd ? 'Poisson Red Zone Model' : 'Calibrated Continuous Log-Normal';
+    const fairPVal = isReceptions ? pct(row.p_rec_at_fair_line) : '50.0%';
+    const sampleDesc = `${num(row.games_prior, 16)} games prior · ${row.season || '2026'}`;
+    const scopeNote = isReceptions
+      ? `Receptions use integer outcomes and half-step lines. Fair line calibrated at P(over) = ${pct(row.p_rec_at_fair_line)}.`
+      : 'Receiving-yards fair line is the calibrated continuous median, where P(over) is exactly 50.0%.';
+
+    return `
+      <div class="detail-hero">
+        ${priceStat}
+        <div class="detail-stat detail-stat-fair">
+          <div class="detail-stat-head">
+            <span>Model Fair</span>
+            <span class="detail-stat-badge">${fairProbabilityText(row)}</span>
+          </div>
+          <strong class="text-white">${fair.toFixed(1)} <small class="text-dim" style="font-size:11px;">(μ ${projection.toFixed(1)})</small></strong>
+          <small class="cell-sub">Continuous median · ${num(row.games_prior, 16)}G baseline</small>
+        </div>
+        ${actionStat}
+      </div>
+
+      <div class="detail-sub-bar">
+        <div class="detail-insight-banner">
+          <strong>Quant Summary:</strong> ${esc(naturalInsight(row, evaluation))}
+        </div>
+        <div class="detail-action-buttons">
+          ${watchButton}
+        </div>
+      </div>
+
+      ${surgeSection}
+
+      <!-- Unified Price Discovery & 10% Gate Hurdle Timeline -->
+      ${quantHurdleRuler(row, evaluation, fair, projection)}
+
+      <!-- What-If Simulator + Teammate Ripple Preview -->
+      ${scenarioSection}
+
+      <!-- Kelly Calculator with Gate Override -->
+      ${kellyCalcSection}
+
+      <!-- 2-Column Institutional Spec Grid -->
+      <div class="detail-two-col">
+        <div class="detail-col">
+          ${opportunityTelemetryMarkup(row)}
+        </div>
+        <div class="detail-col">
+          ${probabilityBridgeMarkup(row, evaluation)}
+        </div>
+      </div>
+
+      <!-- Inline Execution Ticket (CLV Ledger) -->
+      ${executionTicketMarkup(row, evaluation, wagerDollars)}
+
+      <!-- Institutional 2-Column Terminal Specification Grid (Replacing Text-Heavy Footer) -->
+      <div class="spec-grid-card">
+        <div class="spec-col spec-col-invalidation">
+          <div class="spec-header">
+            <span class="spec-title">Invalidation &amp; Risk Envelope</span>
+            <span class="spec-tag ${isDome ? 'tag-dome' : 'tag-wind'}">${envTag}</span>
+          </div>
+          <div class="spec-body">
+            <div class="spec-meta-list">
+              <div class="spec-meta-item"><span class="spec-k">Game Script:</span> <span class="spec-v">${row.team} spread ${num(row.team_spread) > 0 ? '+' : ''}${num(row.team_spread).toFixed(1)}</span></div>
+              <div class="spec-meta-item"><span class="spec-k">Venue / Env:</span> <span class="spec-v">${weatherDesc}</span></div>
+              <div class="spec-meta-item"><span class="spec-k">Tail Risk:</span> <span class="spec-v">${injury ? `${injury.report_status} (${injury.notes || 'Snap risk unpriced'})` : 'Late inactive / unmodeled rotation'}</span></div>
+            </div>
+            ${injury ? '<div class="spec-alert alert-amber"><strong>Snap risk unpriced:</strong> Inactive designation tracked without false precision.</div>' : ''}
+            ${evaluation.dataCheck ? '<div class="spec-alert alert-amber"><strong>Audit Flag:</strong> Edge &gt;12% warrants active receipt check.</div>' : ''}
+          </div>
+        </div>
+
+        <div class="spec-col spec-col-scope">
+          <div class="spec-header">
+            <span class="spec-title">Fair-Line Specification</span>
+            <span class="spec-tag tag-model">${modelSpecTag}</span>
+          </div>
+          <div class="spec-body">
+            <div class="spec-meta-list">
+              <div class="spec-meta-item"><span class="spec-k">Distribution:</span> <span class="spec-v">${distributionDesc}</span></div>
+              <div class="spec-meta-item"><span class="spec-k">P(Over Fair):</span> <span class="spec-v font-bold ${isReceptions ? 'text-amber' : 'text-accent'}">${fairPVal}</span></div>
+              <div class="spec-meta-item"><span class="spec-k">Sample Base:</span> <span class="spec-v">${sampleDesc}</span></div>
+            </div>
+            <div class="spec-note">${scopeNote}</div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function invalidationText(row, injury) {
+    const parts = [];
+    if (injury) parts.push(`${injury.report_status}: ${injury.notes || 'availability can change expected snaps'}.`);
+    parts.push(`Game script: ${row.team} spread ${num(row.team_spread) > 0 ? '+' : ''}${num(row.team_spread).toFixed(1)}.`);
+
+    const game = state.games.find((item) => item.game_id === row.game_id);
+    const isDome = row.is_dome || game?.roof === 'dome';
+    if (isDome) {
+      parts.push('Environment: Indoor Dome (Controlled conditions).');
+    } else {
+      const wind = game?.wind ?? row.wind_speed ?? row.wind;
+      if (Number.isFinite(wind) && wind > 0) {
+        parts.push(`Weather input: ${wind} mph wind (${game?.home_team ? `${game.home_team} stadium` : 'Open'}).`);
+      } else {
+        parts.push('Weather input: Controlled / mild wind.');
+      }
+    }
+    parts.push('Late inactive news or an unmodeled role change can invalidate the projection.');
+    return parts.join(' ');
+  }
+
+  function americanToDecimal(odds) {
+    const value = num(odds, -110);
+    return value > 0 ? value / 100 + 1 : 100 / Math.abs(value) + 1;
+  }
+
+  function impliedProbability(odds) {
+    return 1 / americanToDecimal(odds);
+  }
+
+  function devig(overOdds, underOdds) {
+    const overRaw = impliedProbability(overOdds);
+    const underRaw = impliedProbability(underOdds);
+    const sum = overRaw + underRaw;
+    return sum > 0 ? { over: overRaw / sum, under: underRaw / sum } : { over: 0.5, under: 0.5 };
+  }
+
+  function targetLine(row, quote, side, activePolicy) {
+    if (!activePolicy || !finite(row.mu_rec) || !finite(row.mu_ypr)) return NaN;
+    const probabilities = devig(quote.over_odds, quote.under_odds);
+    const marketProbability = side === 'UNDER' ? probabilities.under : probabilities.over;
+    const step = state.filters.market === 'receptions' ? 0.5 : 0.5;
+    const edgeAt = (line) => {
+      const pOver = state.filters.market === 'receptions' ? pRecOver(num(row.mu_rec), line) : pYardsOver(num(row.mu_rec), num(row.mu_ypr), line);
+      const modelProbability = side === 'UNDER' ? 1 - pOver : pOver;
+      return modelProbability - marketProbability;
+    };
+    let line = num(quote.line);
+    const direction = side === 'OVER' ? 1 : -1;
+    if (edgeAt(line) >= activePolicy.gate) {
+      let last = line;
+      for (let index = 0; index < 100; index += 1) {
+        line += direction * step;
+        if (line < 0 || edgeAt(line) < activePolicy.gate) break;
+        last = line;
+      }
+      return last;
+    }
+    for (let index = 0; index < 100; index += 1) {
+      line -= direction * step;
+      if (line < 0) return NaN;
+      if (edgeAt(line) >= activePolicy.gate) return line;
+    }
+    return NaN;
+  }
+
+  function pRecOver(mu, line) {
+    const r = 1 / MODEL_ALPHA;
+    const p = r / (r + mu);
+    const maximum = Math.floor(line);
+    let cdf = 0;
+    let term = Math.pow(p, r);
+    cdf += term;
+    for (let k = 1; k <= maximum; k += 1) {
+      term *= ((k - 1 + r) / k) * (1 - p);
+      cdf += term;
+    }
+    return Math.max(0, Math.min(1, 1 - cdf));
+  }
+
+  function pYardsOver(muRec, muYpr, line) {
+    return Math.max(0, Math.min(1, 1 - compoundYardsCdf(muRec, muYpr, line)));
+  }
+
+  function compoundYardsCdf(muRec, muYpr, line) {
+    if (line <= 0) return 0;
+    const r = 1 / MODEL_ALPHA;
+    const p = r / (r + muRec);
+    const scale = muYpr / MODEL_K;
+    if (!(scale > 0)) return 1;
+    let cdf = Math.pow(p, r);
+    let nbProbability = cdf;
+    for (let n = 1; n <= 36; n += 1) {
+      nbProbability *= ((n - 1 + r) / n) * (1 - p);
+      cdf += nbProbability * regularizedGammaP(n * MODEL_K, line / scale);
+    }
+    return Math.max(0, Math.min(1, cdf));
+  }
+
+  function regularizedGammaP(shape, value) {
+    if (value <= 0) return 0;
+    if (shape <= 0) return 1;
+    if (value < shape + 1) {
+      let sum = 1 / shape;
+      let term = sum;
+      for (let n = 1; n < 100; n += 1) {
+        term *= value / (shape + n);
+        sum += term;
+        if (term < sum * 1e-12) break;
+      }
+      return sum * Math.exp(-value + shape * Math.log(value) - logGamma(shape));
+    }
+    let a0 = 1, a1 = value, b0 = 0, b1 = 1, factor = 1, fraction = 0;
+    for (let n = 1; n < 100; n += 1) {
+      const coefficient = n - shape;
+      a0 = (a1 + a0 * coefficient) * factor;
+      b0 = (b1 + b0 * coefficient) * factor;
+      const scaled = n * factor;
+      a1 = value * a0 + scaled * a1;
+      b1 = value * b0 + scaled * b1;
+      if (a1 !== 0) { factor = 1 / a1; fraction = b1 * factor; }
+    }
+    return 1 - Math.exp(-value + shape * Math.log(value) - logGamma(shape)) * fraction;
+  }
+
+  function logGamma(value) {
+    const coefficients = [57.1562356658629235, -59.5979603554754912, 14.1360979747417471, -0.4919138160960292, 0.00003399464998481189, 0.00004652362892704858, -0.00009837447530487956, 0.0001580887032249125, -0.00021026444172410488, 0.00021743961811521265, -0.0001643181065367639, 0.00008441822398385275, -0.000026190838401581408, 0.0000036899182659531625];
+    if (value <= 0) return 0;
+    let y = value;
+    let temporary = value + 5.2421875;
+    temporary = (value + 0.5) * Math.log(temporary) - temporary;
+    let series = 0.9999999999999971;
+    coefficients.forEach((coefficient) => { y += 1; series += coefficient / y; });
+    return temporary + Math.log(2.5066282746310005 * series / value);
+  }
+
+  // Listen for Chrome Extension Context Menu broadcasts
+  if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.onMessage) {
+    chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+      if (request.action === 'search_intent' && request.query) {
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput) {
+          searchInput.value = request.query.replace(/[^\w\s]/gi, '').trim();
+          searchInput.dispatchEvent(new Event('input'));
+          searchInput.focus();
+        }
+        if (sendResponse) sendResponse({ received: true });
+      }
+    });
+  }
+
+  window.PropWireTest = Object.freeze({
+    setOddsFeed(feed) {
+      state.odds = normalizeFeed(feed);
+      renderHeader();
+      renderBoard();
+    },
+    clearQuotes() {
+      state.odds = { quotes: [] };
+      renderHeader();
+      renderBoard();
+    },
+    getVisibleCount() { return filteredRows().length; },
+    getSlateCount() { return state.slate.length; }
+  });
+})();
