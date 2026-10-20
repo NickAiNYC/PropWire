@@ -12,3 +12,5 @@ __pycache__/
 .vercel
 .env*
 dist/
+node_modules/
+/*.png

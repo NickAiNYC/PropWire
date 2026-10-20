@@ -1,11 +1,11 @@
 {
-  "name": "PropWire",
-  "short_name": "PropWire",
+  "name": "PROP·WIRE",
+  "short_name": "PROP·WIRE",
   "description": "Quantitative NFL Receiving Props & Market Terminal",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0D1117",
-  "theme_color": "#B6F36B",
+  "background_color": "#090d16",
+  "theme_color": "#090d16",
   "orientation": "portrait-primary",
   "icons": [
     {

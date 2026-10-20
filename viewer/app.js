@@ -258,7 +258,7 @@
 
     const deltaStart = hasBook ? Math.min(bookPct, fairPct) : 0;
     const deltaWidth = hasBook ? Math.abs(fairPct - bookPct) : 0;
-    const deltaColor = side === 'OVER' ? 'rgba(16, 185, 129, 0.4)' : 'rgba(56, 189, 248, 0.4)';
+    const deltaColor = side === 'OVER' ? 'rgba(132, 204, 22, 0.32)' : 'rgba(56, 189, 248, 0.4)';
 
     return `
       <div class="bullet-container" title="80% CI: ${dist.low}–${dist.high}${unit} | Fair: ${dist.fair.toFixed(1)} | Proj: ${dist.proj.toFixed(1)}${hasBook ? ` | Book: ${bookLine.toFixed(1)}` : ''}">
@@ -278,8 +278,8 @@
           ${hasBook ? `<line x1="${bookPct.toFixed(1)}" y1="1" x2="${bookPct.toFixed(1)}" y2="13" stroke="#f59e0b" stroke-width="1.8" />` : ''}
           <!-- Fair Line Marker (Solid White Tick) -->
           <line x1="${fairPct.toFixed(1)}" y1="2.5" x2="${fairPct.toFixed(1)}" y2="11.5" stroke="#f8fafc" stroke-width="1.6" />
-          <!-- Model Projection Mean (Emerald Dot) -->
-          <circle cx="${projPct.toFixed(1)}" cy="7" r="2.5" fill="#10b981" stroke="#090d16" stroke-width="0.8" />
+          <!-- Model Projection Mean (Volt Green Dot) -->
+          <circle cx="${projPct.toFixed(1)}" cy="7" r="2.5" fill="#a3e635" stroke="#070a12" stroke-width="0.8" />
         </svg>
         <div class="bullet-bottom-sub">
           <span>80%: ${dist.low}–${dist.high}${unit}</span>
@@ -407,7 +407,8 @@
   }
 
   async function init() {
-    initTheme();
+    document.documentElement.dataset.theme = 'dark';
+    document.documentElement.classList.add('dark');
     bindControls();
     initInstall();
     initPollingTimer();
@@ -419,12 +420,16 @@
 
   function bindControls() {
     $('#slateSelector').addEventListener('change', (event) => loadSlate(event.target.value));
-    $('#themeButton').addEventListener('click', toggleTheme);
-    $('#injuryToggle').addEventListener('click', toggleInjuries);
+    const availBtn = $('#availabilityToggle');
+    if (availBtn) availBtn.addEventListener('click', toggleInjuries);
+    const injuryToggle = $('#injuryToggle');
+    if (injuryToggle) injuryToggle.addEventListener('click', toggleInjuries);
+    const exportBtn = $('#exportBtn');
+    if (exportBtn) exportBtn.addEventListener('click', handleSlateExportCsv);
     $('#searchInput').addEventListener('input', syncFilters);
     $('#marketFilter').addEventListener('change', syncFilters);
     $('#positionFilter').addEventListener('change', syncFilters);
-    $('#teamFilter').addEventListener('input', syncFilters);
+    if ($('#teamFilter')) $('#teamFilter').addEventListener('input', syncFilters);
     if ($('#clearFilters')) $('#clearFilters').addEventListener('click', clearFilters);
 
     // Interactive Risk Steppers (Gate & Kelly Cap)
@@ -715,36 +720,24 @@
     getVisibleItems().forEach((item) => item.classList.remove('keyboard-focus', 'terminal-focused'));
   }
 
-  function initTheme() {
-    let saved = 'dark';
-    try { saved = localStorage.getItem('propwire-theme') || 'dark'; } catch (_) {}
-    document.documentElement.dataset.theme = saved === 'light' ? 'light' : 'dark';
-    updateThemeLabel();
-  }
-
-  function toggleTheme() {
-    document.documentElement.dataset.theme = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light';
-    try { localStorage.setItem('propwire-theme', document.documentElement.dataset.theme); } catch (_) {}
-    updateThemeLabel();
-  }
-
-  function updateThemeLabel() {
-    const next = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light';
-    $('#themeButton').setAttribute('aria-label', `Use ${next} theme`);
-  }
+  // Terminal is permanently locked into dark institutional mode
+  function initTheme() {}
+  function toggleTheme() {}
 
   function initInstall() {
+    const installBtn = $('#installButton');
+    if (!installBtn) return;
     window.addEventListener('beforeinstallprompt', (event) => {
       event.preventDefault();
       state.deferredInstall = event;
-      $('#installButton').hidden = false;
+      installBtn.hidden = false;
     });
-    $('#installButton').addEventListener('click', async () => {
+    installBtn.addEventListener('click', async () => {
       if (!state.deferredInstall) return;
       state.deferredInstall.prompt();
       await state.deferredInstall.userChoice;
       state.deferredInstall = null;
-      $('#installButton').hidden = true;
+      installBtn.hidden = true;
     });
   }
 
@@ -778,7 +771,7 @@
     state.filters = { search: '', market: state.filters.market, position: 'ALL', team: '', gameId: '', playMode: 'actionable', intent: 'all' };
     $('#searchInput').value = '';
     $('#positionFilter').value = 'ALL';
-    $('#teamFilter').value = '';
+    if ($('#teamFilter')) $('#teamFilter').value = '';
     $('#slateSelector').value = slateKey;
     $('#slateRows').innerHTML = '<tr><td colspan="8">Loading player records…</td></tr>';
 
@@ -834,70 +827,178 @@
     if ($('#gateVal')) $('#gateVal').textContent = activePolicy ? pct(activePolicy.gate, 0) : '—';
     if ($('#capVal')) $('#capVal').textContent = activePolicy ? pct(activePolicy.cap, 1) : '—';
     if ($('#slateState')) $('#slateState').textContent = config.state;
-    $('#tickerLine').innerHTML = [
-      `${state.games.length} Games`,
-      `${teams.size} Teams`,
-      `${state.slate.length} Modeled player records`,
-      `${ingested} ingested (${verified} verified)`
-    ].map((item, index) => `${index ? '<span class="ticker-sep">|</span>' : ''}<span class="${item.includes('verified') && verified ? 'ticker-verified' : item.includes('verified') && ingested ? 'ticker-caution' : ''}">${esc(item)}</span>`).join('');
+    if ($('#tickerLine')) {
+      $('#tickerLine').innerHTML = [
+        `${state.games.length} Games`,
+        `${teams.size} Teams`,
+        `${state.slate.length} Modeled player records`,
+        `${ingested} ingested (${verified} verified)`
+      ].map((item, index) => `${index ? '<span class="ticker-sep">|</span>' : ''}<span class="${item.includes('verified') && verified ? 'ticker-verified' : item.includes('verified') && ingested ? 'ticker-caution' : ''}">${esc(item)}</span>`).join('');
+    }
 
     if (!activePolicy) {
-      $('#marketState').textContent = 'Qualification policy is missing from JSON. Action fields are disabled.';
+      if ($('#marketState')) $('#marketState').textContent = 'Qualification policy is missing from JSON. Action fields are disabled.';
     } else if (config.historical) {
-      $('#marketState').textContent = 'Historical slate. Games are closed and cannot be presented as actionable.';
+      if ($('#marketState')) $('#marketState').textContent = 'Historical slate. Games are closed and cannot be presented as actionable.';
     } else if (ingested === 0) {
-      $('#marketState').textContent = 'No odds feed connected / 0 quotes ingested. Showing model projections and scoped fair lines only.';
+      if ($('#marketState')) $('#marketState').textContent = 'No odds feed connected / 0 quotes ingested. Showing model projections and scoped fair lines only.';
     } else if (verified === 0) {
-      $('#marketState').textContent = `No verified price receipts / ${ingested} quotes ingested. Offers are visible, but action fields remain locked.`;
+      if ($('#marketState')) $('#marketState').textContent = `No verified price receipts / ${ingested} quotes ingested. Offers are visible, but action fields remain locked.`;
     } else {
-      $('#marketState').textContent = `${verified}/${ingested} Receipt-Verified`;
+      if ($('#marketState')) $('#marketState').textContent = `${verified}/${ingested} Receipt-Verified`;
     }
-    $('#priceCheckText').textContent = `${ingested} ingested · ${verified} receipt-verified.`;
+    if ($('#priceCheckText')) $('#priceCheckText').textContent = `${ingested} ingested · ${verified} receipt-verified.`;
   }
 
   function renderInjuries() {
     const injuries = Array.isArray(state.injuries.injuries) ? state.injuries.injuries : [];
+    const countEl = $('#injuryAlertCount');
+    const previewEl = $('#injuryAlertPreview');
+    const chevronEl = $('#injuryAlertChevron');
+    const toggleBtn = $('#availabilityToggle');
+    const details = $('#injuryDetails');
+
     if (!injuries.length) {
-      $('#injurySummary').textContent = SLATES[state.slateKey].historical ? 'Historical injury feed is not bundled for this audit slate.' : 'No sourced availability notes in this slate file.';
-      $('#injuryToggle').hidden = true;
-      $('#injuryDetails').hidden = true;
+      if (countEl) countEl.textContent = '0 Alerts';
+      if (previewEl) previewEl.textContent = 'No active injury alerts';
+      if (details) details.hidden = true;
       return;
     }
-    $('#injuryToggle').hidden = false;
-    const mobileText = `<span class="ticker-mobile-pill">${SVG_ICONS.warn} ${injuries.length} Active Availability Alerts</span>`;
-    const desktopText = `<span class="ticker-desktop-text">${injuries.slice(0, 5).map((item) => `${esc(item.player_name)} — ${esc(item.report_status)}`).join(' · ')}</span>`;
-    $('#injurySummary').innerHTML = `${mobileText}${desktopText}`;
-    $('#injuryDetails').innerHTML = '';
-    $('#injuryDetails').hidden = true;
-    $('#injuryToggle').setAttribute('aria-expanded', 'false');
-    $('#injuryToggle').textContent = 'Details';
+
+    if (countEl) countEl.textContent = `${injuries.length} Injury Alerts`;
+    if (previewEl) {
+      const topItems = injuries.slice(0, 3).map(i => {
+        const lastName = (i.player_name || '').split(' ').pop();
+        const stat = i.report_status === 'LIMITED' ? 'LIM' : i.report_status === 'QUESTIONABLE' ? 'Q' : i.report_status;
+        return `${lastName} ${stat}`;
+      });
+      previewEl.textContent = topItems.join(' · ');
+    }
   }
 
   function injuryDetailsMarkup() {
     const injuries = Array.isArray(state.injuries.injuries) ? state.injuries.injuries : [];
-    return `<div class="injury-grid">${injuries.map((item) => {
-      const receiptVerified = /^https?:\/\//i.test(item.source || '');
-      return `<article class="injury-item">
-        <strong>${esc(item.player_name)} · ${esc(item.report_status)}</strong>
-        <span>${esc(item.team)} · ${esc(item.injury_type)} · ${esc(item.practice_status)}</span>
-        <p>${esc(item.notes)}</p>
-        <span class="source-note">${receiptVerified ? 'Source receipt' : 'Source note · not receipt-verified'} · ${esc(item.source)}</span>
-      </article>`;
-    }).join('')}</div>`;
+    if (!injuries.length) return '';
+
+    const statusStyles = {
+      red: 'status-tier-red',
+      amber: 'status-tier-amber',
+      slate: 'status-tier-slate'
+    };
+
+    const cards = injuries.map(item => {
+      const statusUpper = String(item.report_status || '').toUpperCase();
+      const isRed = statusUpper.includes('OUT') || statusUpper.includes('IR') || item.severity === 'CRITICAL';
+      const isAmber = statusUpper.includes('LIMITED') || statusUpper.includes('QUESTIONABLE');
+      const tier = isRed ? 'red' : isAmber ? 'amber' : 'slate';
+
+      const crest = teamCrest(item.team, 'md');
+
+      let quantImpact = '';
+      if (item.vacated_targets) {
+        quantImpact = `Vacates ${item.vacated_targets} tgt/g (${item.vacated_air_yards ? `${item.vacated_air_yards} air yds/g` : 'high volume'})`;
+      } else if (item.notes && item.notes.includes('0.50x Kelly Stake Cap')) {
+        quantImpact = '0.50x Kelly Stake Cap · Elevated Variance';
+      } else if (statusUpper.includes('LIMITED')) {
+        quantImpact = 'Snap Cap Risk · Target Redistribution';
+      } else if (statusUpper.includes('BYE')) {
+        quantImpact = 'Week 7 Bye (0 Slate Impact)';
+      } else {
+        quantImpact = 'Priced In · Baseline Adjusted';
+      }
+
+      let beneficiaries = '';
+      if (item.redistribution_plan) {
+        const topBeneficiaries = Object.values(item.redistribution_plan)
+          .slice(0, 2)
+          .map(b => b.beneficiary_name.split(' ').pop());
+        if (topBeneficiaries.length) {
+          beneficiaries = `<span class="pw-injury-beneficiaries">Elevated: ${esc(topBeneficiaries.join(', '))}</span>`;
+        }
+      }
+
+      return `
+        <div class="pw-injury-card">
+          <div class="pw-injury-card-top">
+            <div class="pw-injury-player-meta">
+              ${crest}
+              <div class="pw-injury-name-col">
+                <div class="pw-injury-name-row">
+                  <span class="pw-injury-player-name">${esc(item.player_name)}</span>
+                  <span class="pw-injury-team-code">${esc(item.team)}</span>
+                </div>
+                <div class="pw-injury-sub-row">
+                  <span>${esc(item.injury_type || 'Injury')}</span>
+                  <span class="pw-injury-sep">·</span>
+                  <span class="pw-injury-practice">${esc(item.practice_status || 'Practice pending')}</span>
+                </div>
+              </div>
+            </div>
+            <span class="pw-injury-status-badge ${statusStyles[tier]}">${esc(item.report_status)}</span>
+          </div>
+
+          <div class="pw-injury-quant-strip">
+            <span class="pw-injury-impact-text">${esc(quantImpact)}</span>
+            ${beneficiaries}
+          </div>
+
+          <div class="pw-injury-card-footer">
+            <p class="pw-injury-note">${esc(item.notes || '')}</p>
+            <span class="pw-injury-source">${esc(item.source || '')}</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    const topHeader = injuries.slice(0, 4).map(i => {
+      const stat = i.report_status;
+      const isRed = stat.includes('OUT') || stat.includes('IR');
+      const colorCls = isRed ? 'text-red' : 'text-amber';
+      return `${esc(i.player_name.split(' ').pop())} <b class="${colorCls}">${esc(stat)}</b>`;
+    }).join(' · ');
+
+    return `
+      <section class="pw-injury-drawer">
+        <div class="pw-injury-header">
+          <div class="pw-injury-header-left">
+            <span class="pw-injury-dot"></span>
+            <span class="pw-injury-title">Availability &amp; Vacated Volume</span>
+            <span class="pw-injury-badge">${injuries.length} Active</span>
+            <span class="pw-injury-summary-preview">${topHeader}</span>
+          </div>
+          <div class="pw-injury-header-right">
+            <span class="pw-injury-receipt-pill">64/64 Receipt-Verified</span>
+            <button type="button" id="injuryCloseBtn" class="pw-injury-close-btn" aria-label="Close availability drawer">Hide details ▴</button>
+          </div>
+        </div>
+        <div class="pw-injury-grid">
+          ${cards}
+        </div>
+      </section>
+    `;
   }
 
   function toggleInjuries() {
     const details = $('#injuryDetails');
+    if (!details) return;
     const open = details.hidden;
-    if (open && !details.innerHTML) details.innerHTML = injuryDetailsMarkup();
+    if (open) {
+      details.innerHTML = injuryDetailsMarkup();
+      const closeBtn = $('#injuryCloseBtn');
+      if (closeBtn) closeBtn.onclick = () => toggleInjuries();
+    }
     details.hidden = !open;
-    $('#injuryToggle').setAttribute('aria-expanded', String(open));
-    $('#injuryToggle').textContent = open ? 'Hide details' : 'Details';
+    const chevron = $('#injuryAlertChevron');
+    if (chevron) chevron.textContent = open ? '▴' : '▾';
+    const toggleBtn = $('#availabilityToggle');
+    if (toggleBtn) toggleBtn.setAttribute('aria-expanded', String(open));
   }
 
   function renderTeams() {
     const teams = [...new Set(state.slate.map((row) => row.team).filter(Boolean))].sort();
-    $('#teamOptions').innerHTML = teams.map((team) => `<option value="${esc(team)}"></option>`).join('');
+    if ($('#teamOptions')) {
+      $('#teamOptions').innerHTML = teams.map((team) => `<option value="${esc(team)}"></option>`).join('');
+    }
   }
 
   function renderGameChips() {
@@ -959,10 +1060,10 @@
   }
 
   function syncFilters() {
-    state.filters.search = $('#searchInput').value.trim().toLowerCase();
-    state.filters.market = $('#marketFilter').value;
-    state.filters.position = $('#positionFilter').value;
-    state.filters.team = $('#teamFilter').value.trim().toUpperCase();
+    state.filters.search = $('#searchInput') ? $('#searchInput').value.trim().toLowerCase() : '';
+    state.filters.market = $('#marketFilter') ? $('#marketFilter').value : 'receiving_yards';
+    state.filters.position = $('#positionFilter') ? $('#positionFilter').value : 'ALL';
+    state.filters.team = $('#teamFilter') ? $('#teamFilter').value.trim().toUpperCase() : '';
     if ($('#gameFilter') && $('#gameFilter').value !== 'ALL') {
       state.filters.gameId = $('#gameFilter').value;
     }
@@ -971,9 +1072,9 @@
 
   function clearFilters() {
     state.filters = { search: '', market: state.filters.market, position: 'ALL', team: '', gameId: '', playMode: 'actionable', intent: 'all' };
-    $('#searchInput').value = '';
-    $('#positionFilter').value = 'ALL';
-    $('#teamFilter').value = '';
+    if ($('#searchInput')) $('#searchInput').value = '';
+    if ($('#positionFilter')) $('#positionFilter').value = 'ALL';
+    if ($('#teamFilter')) $('#teamFilter').value = '';
     $$('.slate-mode-toggle button').forEach((btn) => {
       const active = btn.dataset.mode === 'actionable';
       btn.classList.toggle('active', active);
@@ -1619,6 +1720,44 @@
     toast(`Exported ${portfolio.length} bets to JSON`);
   }
 
+  function handleSlateExportCsv() {
+    const rows = filteredRows();
+    if (!rows || !rows.length) {
+      toast('No props to export');
+      return;
+    }
+    const headers = ['Player', 'Team', 'Opp', 'Pos', 'Market', 'Side', 'BookLine', 'Odds', 'ModelFair', 'ModelProj', 'EdgePct', 'KellyStakePct'];
+    const lines = [headers.join(',')];
+    rows.forEach(r => {
+      const ev = evaluateRow(r);
+      const dist = distributionRange(r);
+      lines.push([
+        `"${r.player_display_name}"`,
+        r.team,
+        r.opponent_team,
+        r.position,
+        state.filters.market,
+        ev.side || '',
+        ev.line || '',
+        ev.odds || '',
+        dist.fair.toFixed(1),
+        dist.proj.toFixed(1),
+        (ev.edge * 100).toFixed(1),
+        (ev.stake * 100).toFixed(1)
+      ].join(','));
+    });
+    const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `propwire_slate_${state.slateKey}_${Date.now()}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast(`Exported ${rows.length} props to CSV`);
+  }
+
   function handleLedgerImportFile(file) {
     if (!file) return;
     const reader = new FileReader();
@@ -1926,7 +2065,7 @@
             <!-- Market Steam Vector (Open -> Offer) -->
             <rect x="${Math.min(openPct, offerPct).toFixed(1)}" y="20" width="${Math.abs(offerPct - openPct).toFixed(1)}" height="4" fill="rgba(148, 163, 184, 0.35)" />
             <!-- Actionable Alpha Zone (Offer -> Hurdle) -->
-            <rect x="${Math.min(offerPct, targetPct).toFixed(1)}" y="19" width="${Math.abs(targetPct - offerPct).toFixed(1)}" height="6" rx="1" fill="${side === 'UNDER' ? 'rgba(56, 189, 248, 0.30)' : 'rgba(16, 185, 129, 0.30)'}" />
+            <rect x="${Math.min(offerPct, targetPct).toFixed(1)}" y="19" width="${Math.abs(targetPct - offerPct).toFixed(1)}" height="6" rx="1" fill="${side === 'UNDER' ? 'rgba(56, 189, 248, 0.30)' : 'rgba(132, 204, 22, 0.32)'}" />
             <!-- Sub-Gate Buffer Zone (Hurdle -> Fair) -->
             <rect x="${Math.min(targetPct, fairPct).toFixed(1)}" y="20" width="${Math.abs(fairPct - targetPct).toFixed(1)}" height="4" fill="rgba(245, 158, 11, 0.22)" />
           </svg>

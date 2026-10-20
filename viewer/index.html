@@ -1,59 +1,78 @@
 <!doctype html>
-<html lang="en" data-theme="dark">
+<html lang="en" class="dark" style="color-scheme: dark;">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#0d1117">
-  <meta name="build-hash" content="a8b92c4">
+  <meta name="theme-color" content="#090d16">
+  <meta name="build-hash" content="2026-w7-v2">
   <meta name="description" content="PropWire NFL receiving props research terminal.">
-  <title>PropWire · NFL Receiving Props</title>
+  <title>PROP·WIRE · NFL Receiving Props</title>
+
+  <!-- Standard Desktop & Android Favicons -->
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=2026">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=2026">
+
+  <!-- iOS Home Screen Icon (MUST be 180x180 PNG + non-transparent + cache-busted) -->
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=2026">
+  <link rel="apple-touch-icon-precomposed" sizes="180x180" href="/apple-touch-icon.png?v=2026">
+
+  <!-- iOS Standalone Quant Terminal Mode (Hides Safari URL Bar when opened from Home Screen) -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="PropWire">
-  <meta name="application-name" content="PropWire">
-  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-title" content="PROP·WIRE">
+  <meta name="application-name" content="PROP·WIRE">
+
+  <!-- Web App Manifest -->
+  <link rel="manifest" href="/site.webmanifest?v=2026">
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="icon" href="favicon.svg" type="image/svg+xml">
-  <link rel="manifest" href="manifest.json">
-  <link rel="stylesheet" href="style.css?v=a8b92c4">
-  <script src="app.js?v=a8b92c4" defer></script>
+  <link rel="stylesheet" href="style.css?v=2026">
+  <script src="app.js?v=2026" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#slateBoard">Skip to slate</a>
 
-  <header class="site-header">
-    <div class="header-main shell">
-      <a class="brand" href="/" aria-label="PROP WIRE home">
-        <svg class="brand-mark" viewBox="0 0 200 200" fill="currentColor" aria-hidden="true">
-          <path d="M 146.1 12.0 L 179.3 12.0 L 182.8 14.0 L 184.4 17.0 L 184.4 52.2 L 183.6 54.0 L 181.1 56.3 L 178.1 57.0 L 175.1 56.3 L 172.8 54.2 L 171.5 50.2 L 171.5 35.6 L 171.0 35.4 L 115.7 92.0 L 108.9 97.2 L 101.9 100.8 L 93.3 103.0 L 89.3 103.5 L 58.1 103.8 L 58.1 181.7 L 56.9 185.2 L 54.6 187.2 L 52.4 188.0 L 21.4 188.0 L 17.7 186.2 L 16.4 184.7 L 15.6 182.5 L 15.6 24.6 L 16.7 22.3 L 18.4 20.5 L 20.7 19.5 L 96.6 19.5 L 100.6 20.0 L 107.7 21.6 L 112.2 23.1 L 120.5 26.8 L 125.0 29.6 L 131.3 34.4 L 134.3 37.4 L 135.6 39.9 L 135.6 42.7 L 134.1 45.7 L 131.6 47.5 L 128.0 47.7 L 124.8 46.2 L 121.0 42.7 L 113.5 37.6 L 107.9 35.1 L 99.4 32.9 L 95.9 32.4 L 28.5 32.6 L 28.5 174.7 L 44.8 174.9 L 45.3 174.2 L 45.3 95.5 L 46.1 93.7 L 47.3 92.2 L 50.1 90.7 L 87.8 90.7 L 91.8 90.2 L 98.4 88.2 L 105.4 83.9 L 162.5 25.8 L 162.5 24.8 L 146.6 24.8 L 143.4 23.3 L 142.1 21.8 L 141.4 19.8 L 141.4 16.8 L 142.6 14.3 L 144.4 12.8 L 145.9 12.3 Z"/>
-          <path d="M 146.1 66.6 L 149.2 66.6 L 151.4 67.6 L 152.9 69.1 L 153.9 71.3 L 154.2 87.7 L 153.4 93.7 L 150.7 103.8 L 147.9 110.1 L 143.9 116.8 L 138.1 124.1 L 131.8 129.9 L 123.0 135.7 L 115.2 139.2 L 104.4 142.0 L 100.1 142.5 L 71.2 142.5 L 69.5 141.7 L 67.2 139.5 L 66.4 137.7 L 66.4 134.4 L 68.4 131.2 L 71.7 129.7 L 97.9 129.7 L 106.4 128.4 L 111.2 126.9 L 117.7 123.9 L 125.5 118.4 L 132.8 110.3 L 138.3 100.0 L 139.9 95.5 L 141.4 86.7 L 141.4 71.6 L 142.4 69.3 L 144.1 67.6 L 145.9 66.8 Z"/>
-        </svg>
-        <span class="brand-word">PROP<span>·WIRE</span></span>
-      </a>
-
-      <div class="header-context">
-        <label class="sr-only" for="slateSelector">Slate</label>
-        <select id="slateSelector" class="control compact-control">
+  <header class="pw-terminal-chrome">
+    <!-- TIER 1: Global Terminal Header (46px) -->
+    <div class="pw-topbar">
+      <!-- Left: Brand + Slate Selector + Compact Availability Trigger -->
+      <div class="pw-topbar-left">
+        <a href="#slateBoard" class="pw-brand" aria-label="PROP WIRE home">
+          <span class="pw-brand-mark">P↗</span>
+          <span class="pw-brand-text">PROP<span class="pw-dot">·</span>WIRE</span>
+        </a>
+        <div class="pw-divider"></div>
+        <select id="slateSelector" class="pw-select pw-select-slate" aria-label="Select Slate">
           <option value="2026_w7">NFL · Week 7 upcoming</option>
           <option value="2026_w1">NFL · Week 1 audit</option>
         </select>
+        <!-- Compact Availability Trigger (Replaces the full-width yellow banner) -->
+        <button type="button" id="availabilityToggle" class="pw-alert-pill" title="Click to view availability &amp; vacated volume" aria-expanded="false" aria-controls="injuryDetails">
+          <span class="pw-alert-dot"></span>
+          <span class="pw-alert-count" id="injuryAlertCount">7 Injury Alerts</span>
+          <span class="pw-alert-preview" id="injuryAlertPreview">Doubs OUT · Evans OUT · A.J. Brown LIM</span>
+          <span class="pw-alert-chevron" id="injuryAlertChevron">▾</span>
+        </button>
+      </div>
 
-        <!-- Interactive Bankroll Risk Steppers (Moved to Top Nav to prevent Command Bar flex-crush) -->
-        <div class="risk-steppers-group" id="headerRiskSteppers">
-          <div class="risk-stepper" title="Gate: Minimum statistical edge required before recommendation">
-            <span class="stepper-label">Gate</span>
-            <button type="button" class="stepper-btn" id="gateMinus" aria-label="Decrease gate">−</button>
-            <span class="stepper-val" id="gateVal">10%</span>
-            <button type="button" class="stepper-btn" id="gatePlus" aria-label="Increase gate">+</button>
+      <!-- Right: Single Authoritative Risk Steppers + Live Polling + Verification + Actions -->
+      <div class="pw-topbar-right">
+        <!-- Interactive Risk Policy Controls (Only place they exist!) -->
+        <div class="pw-risk-group" id="headerRiskSteppers">
+          <div class="pw-stepper" title="Gate: Minimum statistical edge required before recommendation">
+            <span class="pw-stepper-label">Gate</span>
+            <button type="button" class="pw-step-btn" id="gateMinus" aria-label="Decrease gate">−</button>
+            <span id="gateVal" class="pw-stepper-val">10%</span>
+            <button type="button" class="pw-step-btn" id="gatePlus" aria-label="Increase gate">+</button>
           </div>
-          <span class="stepper-divider" aria-hidden="true">|</span>
-          <div class="risk-stepper" title="Kelly Cap: Maximum bankroll allocation per play">
-            <span class="stepper-label">Cap</span>
-            <button type="button" class="stepper-btn" id="capMinus" aria-label="Decrease Kelly cap">−</button>
-            <span class="stepper-val" id="capVal">3.0%</span>
-            <button type="button" class="stepper-btn" id="capPlus" aria-label="Increase Kelly cap">+</button>
+          <span class="pw-risk-sep">|</span>
+          <div class="pw-stepper" title="Kelly Cap: Maximum bankroll allocation per play">
+            <span class="pw-stepper-label">Kelly Cap</span>
+            <button type="button" class="pw-step-btn" id="capMinus" aria-label="Decrease Kelly cap">−</button>
+            <span id="capVal" class="pw-stepper-val">3.0%</span>
+            <button type="button" class="pw-step-btn" id="capPlus" aria-label="Increase Kelly cap">+</button>
           </div>
         </div>
 
@@ -67,155 +86,90 @@
             </svg>
           </button>
         </div>
-      </div>
 
-      <div class="header-actions">
-        <button class="clv-button" id="clvReportBtn" type="button" title="Week 7 Public CLV Validation Report" aria-label="Public CLV Report">
-          <svg class="prop-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 13.5h12M4 10l3-3 2.5 2.5L13.5 5"/></svg>
-          <span class="clv-btn-text">CLV Report</span>
-        </button>
-        <button class="portfolio-button" id="portfolioBtn" type="button" title="Personal CLV Ledger & Portfolio" aria-label="Portfolio and CLV Scorecard">
-          <svg class="prop-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 3.5h11a1 1 0 011 1v8a1 1 0 01-1 1h-11a1 1 0 01-1-1v-8a1 1 0 011-1z"/><path d="M5.5 3.5v-1a1 1 0 011-1h4a1 1 0 011 1v1M8 7v4M6 9h4"/></svg>
-          <span class="portfolio-btn-text">Ledger</span>
+        <!-- Receipt Status Pill -->
+        <div class="pw-receipt-badge" title="All 64 quotes verified via SHA-256 content receipt">
+          <span class="pw-receipt-dot"></span>
+          <span id="marketState">64/64 Verified</span>
+        </div>
+
+        <!-- Action Buttons (Light mode toggle permanently removed) -->
+        <button type="button" id="clvReportBtn" class="pw-btn-nav" title="Week 7 Public CLV Validation Report">CLV Report</button>
+        <button type="button" id="portfolioBtn" class="pw-btn-nav pw-btn-ledger" title="Personal CLV Ledger &amp; Portfolio">
+          <span>Ledger</span>
           <span class="portfolio-count-badge" id="portfolioCountBadge" hidden>0</span>
         </button>
-        <button class="icon-button" id="installButton" type="button" title="Install app" aria-label="Install PROP WIRE" hidden>
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v11m0 0 4-4m-4 4-4-4M5 17v3h14v-3"/></svg>
-        </button>
-        <button class="icon-button" id="themeButton" type="button" title="Change color theme" aria-label="Use light theme">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4a8 8 0 1 0 8 8 6 6 0 0 1-8-8Z"/></svg>
-        </button>
+        <button type="button" id="exportBtn" class="pw-btn-icon" aria-label="Export CSV" title="Export CSV">↓</button>
       </div>
     </div>
 
-    <div class="ticker" aria-label="Slate totals">
-      <div class="shell ticker-inner" id="tickerLine" aria-live="polite">Loading slate…</div>
-    </div>
+    <!-- TIER 2: Filter & Matchup Control Bar (42px) -->
+    <div class="pw-filterbar">
+      <!-- Dataset Mode Switcher -->
+      <div class="pw-segmented dataset-switcher" role="tablist" aria-label="Dataset mode">
+        <button type="button" class="pw-seg-btn active seg-btn" data-mode="actionable" id="modeActionableBtn" role="tab" aria-selected="true" title="Show plays clearing edge gate">
+          <span>⚡ Active</span>
+          <span class="pw-seg-count" id="actionableCount">33</span>
+        </button>
+        <button type="button" class="pw-seg-btn seg-btn" data-mode="all" id="modeAllBtn" role="tab" aria-selected="false" title="Show all modeled player projections">
+          <span>All Proj</span>
+          <span class="pw-seg-count" id="allCount">390</span>
+        </button>
+      </div>
 
-    <div class="sticky-context-bar" id="stickyContextBar">
-      <div class="shell sticky-context-inner">
-        <span class="sticky-pill-label" id="stickyFilterLabel"><svg class="prop-icon icon-edge" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 1.5L2.5 9h5l-1 5.5L13.5 7h-5l1-5.5z"/></svg> Active Opportunities · All Positions</span>
-        <div class="sticky-actions">
-          <span class="sticky-count-pill" id="stickyCountPill">0 plays</span>
-          <button type="button" class="sticky-top-btn" id="stickyTopBtn" title="Scroll to top" aria-label="Scroll to top">↑ Top</button>
-        </div>
+      <!-- Search Input (Locked minimum width so it NEVER crushes to "F") -->
+      <div class="pw-search-wrap command-search-wrap">
+        <input type="search" id="searchInput" class="pw-search-input" placeholder="Search player or team... (/)" autocomplete="off">
+        <kbd class="pw-kbd">/</kbd>
+      </div>
+
+      <!-- Compact Facet Selects (Clean labels, zero truncation) -->
+      <div class="pw-facets">
+        <label class="pw-facet" title="Select prop market">
+          <span class="pw-facet-label">Mkt</span>
+          <select id="marketFilter">
+            <option value="receiving_yards">Rec Yards</option>
+            <option value="receptions">Receptions</option>
+            <option value="anytime_td">Anytime TD</option>
+          </select>
+        </label>
+        <label class="pw-facet" title="Filter by player position">
+          <span class="pw-facet-label">Pos</span>
+          <select id="positionFilter">
+            <option value="ALL">All</option>
+            <option value="WR">WR</option>
+            <option value="TE">TE</option>
+            <option value="RB">RB</option>
+          </select>
+        </label>
+        <label class="pw-facet" title="Filter by signal / player archetype">
+          <span class="pw-facet-label">Signal</span>
+          <select id="intentFilter">
+            <option value="all">All Signals</option>
+            <option value="edge">Highest Edge</option>
+            <option value="surge">Role Surges</option>
+            <option value="volume">High Floor (7+ Tgt)</option>
+            <option value="deep">Deep Threats (12+ aDOT)</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="pw-divider"></div>
+
+      <!-- Single Scrollable Matchup Strip (Replaces duplicate Slate dropdown + Game pill row) -->
+      <div class="pw-game-strip prime-chips" id="primeChips" role="tablist" aria-label="Game Filter"></div>
+
+      <!-- Right-Aligned View Switcher -->
+      <div class="pw-segmented pw-view-toggle view-switch" role="group" aria-label="View layout switcher">
+        <button type="button" data-view="table" class="pw-seg-btn active">Table</button>
+        <button type="button" data-view="cards" class="pw-seg-btn">Grid</button>
       </div>
     </div>
   </header>
 
   <main class="shell page" id="slateBoard">
-    <!-- Single-Line Collapsible Availability & Verification Status -->
-    <section class="availability-bar" id="availabilityBar" aria-labelledby="injuryTitle">
-      <div class="availability-lead">
-        <span class="badge-amber" id="injuryTitle">
-          <svg class="prop-icon icon-warn" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2.5L1.5 13.5h13L8 2.5z"/><path d="M8 6.5v3M8 11.5v.5"/></svg>
-          AVAILABILITY:
-        </span>
-        <span class="availability-text" id="injurySummary">Checking availability…</span>
-      </div>
-      <div class="availability-actions">
-        <span class="receipt-count-pill" id="marketState">64/64 Receipt-Verified</span>
-        <button class="text-button" id="injuryToggle" type="button" aria-expanded="false" aria-controls="injuryDetails">Details ▾</button>
-      </div>
-    </section>
-    <div class="injury-details" id="injuryDetails" hidden></div>
-
-    <!-- Linear-Style Quant Command Bar (Replaces multi-row filters & bulky hero) -->
-    <section class="quant-command-bar" id="quantCommandBar" aria-label="Quant Command Plane">
-      <div class="command-bar-left">
-        <!-- Segmented Dataset Switcher -->
-        <div class="dataset-switcher" role="tablist" aria-label="Dataset mode">
-          <button type="button" class="seg-btn active" data-mode="actionable" id="modeActionableBtn" role="tab" aria-selected="true" title="Show plays clearing edge gate">
-            <span>⚡ Active</span>
-            <span class="seg-count" id="actionableCount">33</span>
-          </button>
-          <button type="button" class="seg-btn" data-mode="all" id="modeAllBtn" role="tab" aria-selected="false" title="Show all modeled player projections">
-            <span>All Proj</span>
-            <span class="seg-count" id="allCount">390</span>
-          </button>
-        </div>
-
-        <span class="bar-divider" aria-hidden="true"></span>
-
-        <!-- Compact Search -->
-        <div class="command-search-wrap">
-          <input id="searchInput" type="search" placeholder="Filter player, team... (/)" autocomplete="off">
-          <kbd class="search-kbd-hint">/</kbd>
-        </div>
-
-        <!-- Faceted Dropdown Pills -->
-        <div class="faceted-pills" id="facetedPills">
-          <label class="facet-pill" title="Select prop market">
-            <span class="facet-label">Mkt:</span>
-            <select id="marketFilter" class="facet-select">
-              <option value="receiving_yards">Rec Yards</option>
-              <option value="receptions">Receptions</option>
-              <option value="anytime_td">Anytime TD</option>
-            </select>
-            <span class="facet-arrow" aria-hidden="true">▾</span>
-          </label>
-
-          <label class="facet-pill" title="Filter by player archetype / edge">
-            <span class="facet-label">Intent:</span>
-            <select id="intentFilter" class="facet-select">
-              <option value="all">All Intent</option>
-              <option value="edge">Highest Edge</option>
-              <option value="surge">Role Surges</option>
-              <option value="volume">High Floor (7+ Tgt)</option>
-              <option value="deep">Deep Threats (12+ aDOT)</option>
-            </select>
-            <span class="facet-arrow" aria-hidden="true">▾</span>
-          </label>
-
-          <label class="facet-pill" title="Filter by player position">
-            <span class="facet-label">Pos:</span>
-            <select id="positionFilter" class="facet-select">
-              <option value="ALL">All Pos</option>
-              <option value="WR">WR</option>
-              <option value="TE">TE</option>
-              <option value="RB">RB</option>
-            </select>
-            <span class="facet-arrow" aria-hidden="true">▾</span>
-          </label>
-
-          <label class="facet-pill facet-game" title="Filter by matchup">
-            <span class="facet-label">Slate:</span>
-            <select id="gameFilter" class="facet-select">
-              <option value="ALL">All Games</option>
-            </select>
-            <span class="facet-arrow" aria-hidden="true">▾</span>
-          </label>
-
-          <label class="facet-pill facet-team" title="Filter by NFL team">
-            <span class="facet-label">Team:</span>
-            <input id="teamFilter" class="facet-input" type="search" list="teamOptions" placeholder="All" autocomplete="off">
-            <datalist id="teamOptions"></datalist>
-          </label>
-        </div>
-      </div>
-
-      <div class="command-bar-right">
-        <!-- Hotkey Legend (Desktop Only) -->
-        <div class="desktop-kbd-legend" aria-hidden="true">
-          <kbd>J</kbd> <kbd>K</kbd> <span>Row</span>
-          <span class="kbd-dot">·</span>
-          <kbd>Enter</kbd> <span>Inspect</span>
-          <span class="kbd-dot">·</span>
-          <kbd>L</kbd> <span>Log</span>
-        </div>
-
-        <!-- View Switcher -->
-        <div class="view-switch" role="group" aria-label="View layout switcher">
-          <button type="button" data-view="table" class="active">Table</button>
-          <button type="button" data-view="cards">Grid</button>
-        </div>
-      </div>
-    </section>
-
-    <!-- Horizontal Swipeable Game Matchup Strip -->
-    <div class="prime-chips-strip" id="primeChipsWrap">
-      <div class="prime-chips" id="primeChips" aria-label="Matchup filter"></div>
-    </div>
+    <!-- Structured Institutional Injury & Vacated-Volume Card Grid Drawer -->
+    <div class="injury-drawer-wrap" id="injuryDetails" hidden></div>
 
     <!-- Hidden compatibility elements -->
     <span id="slateState" hidden>Upcoming slate</span>
