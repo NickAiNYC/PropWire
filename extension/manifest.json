@@ -1,0 +1,29 @@
+{
+  "manifest_version": 3,
+  "name": "PROP·WIRE Terminal",
+  "version": "1.2.0",
+  "description": "Institutional quantitative receiving props terminal and CLV ledger.",
+  "permissions": [
+    "sidePanel",
+    "contextMenus",
+    "storage"
+  ],
+  "host_permissions": [
+    "https://propwire.vercel.app/*",
+    "https://receiving-props-agent.vercel.app/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "side_panel": {
+    "default_path": "index.html"
+  },
+  "action": {
+    "default_title": "Open PROP·WIRE"
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}

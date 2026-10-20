@@ -1667,6 +1667,21 @@
     return temporary + Math.log(2.5066282746310005 * series / value);
   }
 
+  // Listen for Chrome Extension Context Menu broadcasts
+  if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.onMessage) {
+    chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+      if (request.action === 'search_intent' && request.query) {
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput) {
+          searchInput.value = request.query.replace(/[^\w\s]/gi, '').trim();
+          searchInput.dispatchEvent(new Event('input'));
+          searchInput.focus();
+        }
+        if (sendResponse) sendResponse({ received: true });
+      }
+    });
+  }
+
   window.PropWireTest = Object.freeze({
     setOddsFeed(feed) {
       state.odds = normalizeFeed(feed);

@@ -1,11 +1,12 @@
 {
   "name": "propwire-research-app",
-  "version": "0.1.0",
+  "version": "1.2.0",
   "private": true,
-  "description": "Trust-first NFL player prop research with receipt-gated market quotes.",
+  "description": "Institutional quantitative receiving props terminal and CLV ledger.",
   "scripts": {
     "test": "node --test",
-    "check": "node --check app.js && node --test"
+    "check": "node --check app.js && node --test",
+    "build:extension": "bash scripts/package_extension.sh"
   },
   "engines": {
     "node": ">=20"
