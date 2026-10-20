@@ -229,7 +229,6 @@ button { color: inherit; }
   .filter-panel { padding: 10px; }
   .result-line { padding-top: 3px; }
   .table-scroll { display: none; }
-  .card-grid[hidden] { display: grid; }
   .card-grid { grid-template-columns: 1fr; }
   .detail-hero { grid-template-columns: 1fr; }
   .detail-list { grid-template-columns: 1fr; }
