@@ -1,0 +1,12 @@
+<svg width="440" height="96" viewBox="0 0 440 96" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">PROP·WIRE</title>
+  <desc id="desc">A P-shaped line rising into an arrow beside the PROP·WIRE wordmark.</desc>
+  <g stroke="#B6F36B" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M18 78V18h29c13 0 22 7 25 18"/>
+    <path d="M18 51h25c12 0 20-6 25-15L82 17"/>
+    <path d="M70 17h12v12"/>
+    <path d="M34 64h12c13 0 22-9 22-22"/>
+  </g>
+  <text x="108" y="61" fill="#17181B" font-family="Montserrat, Plus Jakarta Sans, Arial, sans-serif" font-size="38" font-weight="700" letter-spacing="3">PROP</text>
+  <text x="222" y="61" fill="#B6F36B" font-family="Montserrat, Plus Jakarta Sans, Arial, sans-serif" font-size="38" font-weight="700">·WIRE</text>
+</svg>

@@ -1,0 +1,339 @@
+{
+  "feed_status": "INGESTED_UNVERIFIED",
+  "feed_origin": "bundled_demonstration_fixture",
+  "feed_disclosure": "Synthetic/manual demonstration quotes. No provider response receipts are stored; these records cannot qualify or receive a stake.",
+  "updated_at": "2026-10-20T06:23:18.051353+00:00",
+  "slate": "2026-W07",
+  "verified_books_count": 0,
+  "monitored_books": [
+    "BetMGM",
+    "DraftKings",
+    "FanDuel",
+    "Pinnacle"
+  ],
+  "total_quotes": 10,
+  "qualified_count": 0,
+  "quotes": [
+    {
+      "quote_id": "dk_ne_chi_douglas_yds_open",
+      "book": "DraftKings",
+      "player_id": "00-0038621",
+      "player_name": "DeMario Douglas",
+      "team": "NE",
+      "opponent": "CHI",
+      "game_id": "2026_07_NE_CHI",
+      "position": "WR",
+      "market": "receiving_yards",
+      "line": 34.5,
+      "fair_line": 43.5,
+      "over_odds": -110,
+      "under_odds": -110,
+      "observed_at": "2026-10-20T06:23:18.002524+00:00",
+      "source": "DraftKings Early Openers (TNF Verified Feed)",
+      "evaluation": {
+        "is_qualified": false,
+        "status": "DATA_CHECK",
+        "best_side": "OVER",
+        "prob_edge": 0.1053,
+        "break_even_adv": 0.0814,
+        "expected_return": 0.1555,
+        "actionable_stake": 0.0,
+        "catalyst": "both",
+        "injury_context": "Romeo Doubs (Shoulder OUT)"
+      },
+      "verification": {
+        "status": "UNVERIFIED",
+        "reason": "provider receipt or source URL missing"
+      }
+    },
+    {
+      "quote_id": "fd_ne_chi_douglas_rec_open",
+      "book": "FanDuel",
+      "player_id": "00-0038621",
+      "player_name": "DeMario Douglas",
+      "team": "NE",
+      "opponent": "CHI",
+      "game_id": "2026_07_NE_CHI",
+      "position": "WR",
+      "market": "receptions",
+      "line": 3.5,
+      "fair_line": 4.5,
+      "over_odds": 105,
+      "under_odds": -135,
+      "observed_at": "2026-10-20T06:23:18.002524+00:00",
+      "source": "FanDuel Early Openers (TNF Verified Feed)",
+      "evaluation": {
+        "is_qualified": false,
+        "status": "DATA_CHECK",
+        "best_side": "OVER",
+        "prob_edge": 0.0825,
+        "break_even_adv": 0.0539,
+        "expected_return": 0.1105,
+        "actionable_stake": 0.0,
+        "catalyst": "football_news",
+        "injury_context": "Romeo Doubs (Shoulder OUT)"
+      },
+      "verification": {
+        "status": "UNVERIFIED",
+        "reason": "provider receipt or source URL missing"
+      }
+    },
+    {
+      "quote_id": "mgm_ne_chi_henry_yds_open",
+      "book": "BetMGM",
+      "player_id": "00-0033090",
+      "player_name": "Hunter Henry",
+      "team": "NE",
+      "opponent": "CHI",
+      "game_id": "2026_07_NE_CHI",
+      "position": "TE",
+      "market": "receiving_yards",
+      "line": 31.5,
+      "fair_line": 39.5,
+      "over_odds": -115,
+      "under_odds": -115,
+      "observed_at": "2026-10-20T06:23:18.002524+00:00",
+      "source": "BetMGM Early Openers (TNF Verified Feed)",
+      "evaluation": {
+        "is_qualified": false,
+        "status": "DATA_CHECK",
+        "best_side": "OVER",
+        "prob_edge": 0.1129,
+        "break_even_adv": 0.078,
+        "expected_return": 0.1458,
+        "actionable_stake": 0.0,
+        "catalyst": "both",
+        "injury_context": "Romeo Doubs (Shoulder OUT)"
+      },
+      "verification": {
+        "status": "UNVERIFIED",
+        "reason": "provider receipt or source URL missing"
+      }
+    },
+    {
+      "quote_id": "dk_ne_chi_henry_rec_open",
+      "book": "DraftKings",
+      "player_id": "00-0033090",
+      "player_name": "Hunter Henry",
+      "team": "NE",
+      "opponent": "CHI",
+      "game_id": "2026_07_NE_CHI",
+      "position": "TE",
+      "market": "receptions",
+      "line": 3.5,
+      "fair_line": 4.5,
+      "over_odds": 110,
+      "under_odds": -140,
+      "observed_at": "2026-10-20T06:23:18.002524+00:00",
+      "source": "DraftKings Early Openers (TNF Verified Feed)",
+      "evaluation": {
+        "is_qualified": false,
+        "status": "DATA_CHECK",
+        "best_side": "OVER",
+        "prob_edge": 0.1642,
+        "break_even_adv": 0.1375,
+        "expected_return": 0.2887,
+        "actionable_stake": 0.0,
+        "catalyst": "football_news",
+        "injury_context": "Romeo Doubs (Shoulder OUT)"
+      },
+      "verification": {
+        "status": "UNVERIFIED",
+        "reason": "provider receipt or source URL missing"
+      }
+    },
+    {
+      "quote_id": "pin_ne_chi_hollins_yds_open",
+      "book": "Pinnacle",
+      "player_id": "00-0033555",
+      "player_name": "Mack Hollins",
+      "team": "NE",
+      "opponent": "CHI",
+      "game_id": "2026_07_NE_CHI",
+      "position": "WR",
+      "market": "receiving_yards",
+      "line": 29.5,
+      "fair_line": 45.5,
+      "over_odds": -108,
+      "under_odds": -108,
+      "observed_at": "2026-10-20T06:23:18.002524+00:00",
+      "source": "Pinnacle Sharp Early Openers (TNF Verified Feed)",
+      "evaluation": {
+        "is_qualified": false,
+        "status": "DATA_CHECK",
+        "best_side": "OVER",
+        "prob_edge": 0.1874,
+        "break_even_adv": 0.1682,
+        "expected_return": 0.3239,
+        "actionable_stake": 0.0,
+        "catalyst": "both",
+        "injury_context": "Romeo Doubs (Shoulder OUT)"
+      },
+      "verification": {
+        "status": "UNVERIFIED",
+        "reason": "provider receipt or source URL missing"
+      }
+    },
+    {
+      "quote_id": "dk_sf_atl_kittle_yds_open",
+      "book": "DraftKings",
+      "player_id": "00-0033288",
+      "player_name": "George Kittle",
+      "team": "SF",
+      "opponent": "ATL",
+      "game_id": "2026_07_SF_ATL",
+      "position": "TE",
+      "market": "receiving_yards",
+      "line": 48.5,
+      "fair_line": 61.0,
+      "over_odds": -112,
+      "under_odds": -112,
+      "observed_at": "2026-10-20T06:23:18.002524+00:00",
+      "source": "DraftKings Early Openers (Week 7 Verified Feed)",
+      "evaluation": {
+        "is_qualified": false,
+        "status": "DATA_CHECK",
+        "best_side": "OVER",
+        "prob_edge": 0.1251,
+        "break_even_adv": 0.0968,
+        "expected_return": 0.1833,
+        "actionable_stake": 0.0,
+        "catalyst": "both",
+        "injury_context": "Mike Evans (Achilles OUT)"
+      },
+      "verification": {
+        "status": "UNVERIFIED",
+        "reason": "provider receipt or source URL missing"
+      }
+    },
+    {
+      "quote_id": "fd_sf_atl_kittle_rec_open",
+      "book": "FanDuel",
+      "player_id": "00-0033288",
+      "player_name": "George Kittle",
+      "team": "SF",
+      "opponent": "ATL",
+      "game_id": "2026_07_SF_ATL",
+      "position": "TE",
+      "market": "receptions",
+      "line": 4.5,
+      "fair_line": 6.5,
+      "over_odds": -105,
+      "under_odds": -125,
+      "observed_at": "2026-10-20T06:23:18.002524+00:00",
+      "source": "FanDuel Early Openers (Week 7 Verified Feed)",
+      "evaluation": {
+        "is_qualified": false,
+        "status": "DATA_CHECK",
+        "best_side": "OVER",
+        "prob_edge": 0.1685,
+        "break_even_adv": 0.136,
+        "expected_return": 0.2654,
+        "actionable_stake": 0.0,
+        "catalyst": "football_news",
+        "injury_context": "Mike Evans (Achilles OUT)"
+      },
+      "verification": {
+        "status": "UNVERIFIED",
+        "reason": "provider receipt or source URL missing"
+      }
+    },
+    {
+      "quote_id": "mgm_sf_atl_cmc_yds_open",
+      "book": "BetMGM",
+      "player_id": "00-0033280",
+      "player_name": "Christian McCaffrey",
+      "team": "SF",
+      "opponent": "ATL",
+      "game_id": "2026_07_SF_ATL",
+      "position": "RB",
+      "market": "receiving_yards",
+      "line": 32.5,
+      "fair_line": 41.5,
+      "over_odds": -115,
+      "under_odds": -115,
+      "observed_at": "2026-10-20T06:23:18.002524+00:00",
+      "source": "BetMGM Early Openers (Week 7 Verified Feed)",
+      "evaluation": {
+        "is_qualified": false,
+        "status": "DATA_CHECK",
+        "best_side": "OVER",
+        "prob_edge": 0.1325,
+        "break_even_adv": 0.0976,
+        "expected_return": 0.1825,
+        "actionable_stake": 0.0,
+        "catalyst": "both",
+        "injury_context": "Mike Evans (Achilles OUT)"
+      },
+      "verification": {
+        "status": "UNVERIFIED",
+        "reason": "provider receipt or source URL missing"
+      }
+    },
+    {
+      "quote_id": "dk_ne_chi_ajb_yds_open",
+      "book": "DraftKings",
+      "player_id": "00-0035676",
+      "player_name": "A.J. Brown",
+      "team": "NE",
+      "opponent": "CHI",
+      "game_id": "2026_07_NE_CHI",
+      "position": "WR",
+      "market": "receiving_yards",
+      "line": 64.5,
+      "fair_line": 61.0,
+      "over_odds": -115,
+      "under_odds": -115,
+      "observed_at": "2026-10-20T06:23:18.002524+00:00",
+      "source": "DraftKings Early Openers (TNF Verified Feed)",
+      "evaluation": {
+        "is_qualified": false,
+        "status": "DATA_CHECK",
+        "best_side": "UNDER",
+        "prob_edge": 0.034,
+        "break_even_adv": -0.0009,
+        "expected_return": -0.0016,
+        "actionable_stake": 0.0,
+        "catalyst": "pricing",
+        "injury_context": null
+      },
+      "verification": {
+        "status": "UNVERIFIED",
+        "reason": "provider receipt or source URL missing"
+      }
+    },
+    {
+      "quote_id": "pin_det_gb_amonra_yds_open",
+      "book": "Pinnacle",
+      "player_id": "00-0036963",
+      "player_name": "Amon-Ra St. Brown",
+      "team": "DET",
+      "opponent": "GB",
+      "game_id": "2026_07_GB_DET",
+      "position": "WR",
+      "market": "receiving_yards",
+      "line": 112.5,
+      "fair_line": 113.0,
+      "over_odds": -110,
+      "under_odds": -110,
+      "observed_at": "2026-10-20T06:23:18.002524+00:00",
+      "source": "Pinnacle Sharp Early Openers (Week 7 Verified Feed)",
+      "evaluation": {
+        "is_qualified": false,
+        "status": "DATA_CHECK",
+        "best_side": "OVER",
+        "prob_edge": 0.0019,
+        "break_even_adv": -0.0219,
+        "expected_return": -0.0419,
+        "actionable_stake": 0.0,
+        "catalyst": "pricing",
+        "injury_context": null
+      },
+      "verification": {
+        "status": "UNVERIFIED",
+        "reason": "provider receipt or source URL missing"
+      }
+    }
+  ],
+  "validation_note": "Quotes lack provider receipts or source URLs. Display-only; qualification and staking are disabled."
+}
