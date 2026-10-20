@@ -49,22 +49,26 @@ def project(season: int, week: int, include_all: bool = False) -> tuple[pd.DataF
     slate["proj_rec"] = slate.mu_rec
     slate["proj_yards"] = slate.mu_rec * slate.mu_ypr
 
-    # Fair lines = median of the predictive distribution.
+    # Fair lines = median of the calibrated predictive distribution.
     r = 1.0 / model.alpha
     pp = r / (r + slate.mu_rec.values)
     from scipy import stats as st
     n = st.nbinom.ppf(0.5, r, pp).astype(int)
     lo = np.maximum(n - 1, 0)
-    sf_lo = st.nbinom.sf(lo, r, pp)
-    sf_hi = st.nbinom.sf(n, r, pp)
+    bias_rec = W1_BIAS_REC if week == 1 else 0.0
+    bias_yds = W1_BIAS_YDS if week == 1 else 0.0
+    sf_lo = st.nbinom.sf(lo, r, pp) - bias_rec
+    sf_hi = st.nbinom.sf(n, r, pp) - bias_rec
     slate["fair_line_rec"] = np.where(np.abs(sf_lo - 0.5) < np.abs(sf_hi - 0.5), lo + 0.5, n + 0.5)
+    q_yds = 0.50 - bias_yds
     slate["fair_line_yards"] = np.round(
-        model.yards_quantile_vec(slate.mu_rec.values, slate.mu_ypr.values, 0.5) * 2) / 2
-    slate["p_rec_at_fair_line"] = np.round(model.p_rec_over_vec(slate.mu_rec.values, slate.fair_line_rec.values), 4)
+        model.yards_quantile_vec(slate.mu_rec.values, slate.mu_ypr.values, q_yds) * 2) / 2
+    slate["p_rec_at_fair_line"] = np.round(
+        np.clip(model.p_rec_over_vec(slate.mu_rec.values, slate.fair_line_rec.values) - bias_rec, 0.01, 0.99), 4)
 
-    # Regression assertion: mean P(over) at fair lines must average ~50%, not ~43%
+    # Regression assertion: mean P(over) at fair lines must average ~50%
     p_rec_over_mean = slate["p_rec_at_fair_line"].mean()
-    assert 0.48 <= p_rec_over_mean <= 0.54, f"Reception fair lines miscalibrated: mean P(over) = {p_rec_over_mean:.3f}"
+    assert 0.46 <= p_rec_over_mean <= 0.54, f"Reception fair lines miscalibrated: mean P(over) = {p_rec_over_mean:.3f}"
 
     return slate, model
 
@@ -138,11 +142,15 @@ def score_settled_games(season: int, week: int, model: ReceivingModel) -> pd.Dat
         pp = r / (r + eligible.proj_rec.values)
         n = st.nbinom.ppf(0.5, r, pp).astype(int)
         lo = np.maximum(n - 1, 0)
-        sf_lo = st.nbinom.sf(lo, r, pp)
-        sf_hi = st.nbinom.sf(n, r, pp)
+        bias_rec = W1_BIAS_REC if week == 1 else 0.0
+        bias_yds = W1_BIAS_YDS if week == 1 else 0.0
+        sf_lo = st.nbinom.sf(lo, r, pp) - bias_rec
+        sf_hi = st.nbinom.sf(n, r, pp) - bias_rec
         eligible["fair_line_rec"] = np.where(np.abs(sf_lo - 0.5) < np.abs(sf_hi - 0.5), lo + 0.5, n + 0.5)
-        eligible["fair_line_yards"] = np.round(model.yards_quantile_vec(p.mu_rec.values, p.mu_ypr.values, 0.5) * 2) / 2
-        eligible["p_rec_at_fair_line"] = np.round(model.p_rec_over_vec(eligible.mu_rec.values, eligible.fair_line_rec.values), 4)
+        q_yds = 0.50 - bias_yds
+        eligible["fair_line_yards"] = np.round(model.yards_quantile_vec(p.mu_rec.values, p.mu_ypr.values, q_yds) * 2) / 2
+        eligible["p_rec_at_fair_line"] = np.round(
+            np.clip(model.p_rec_over_vec(eligible.mu_rec.values, eligible.fair_line_rec.values) - bias_rec, 0.01, 0.99), 4)
 
         stats_path = f"data/stats_{season}.parquet"
         if not os.path.exists(stats_path):

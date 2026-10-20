@@ -175,8 +175,10 @@ def record_closing(path: str, closing: dict) -> None:
         key = (r["player"], r["market"], r["line"])
         if key in closing:
             r["closing_prob"] = closing[key]
-            r["clv"] = r["model_prob"] - closing[key] if r["side"] == "over" \
-                else (1 - closing[key]) - r["model_prob"]
+            entry_mkt = r.get("market_prob", 0.5)
+            # CLV measures whether entry market price beat the closing market price
+            r["clv"] = (closing[key] - entry_mkt) if r["side"] == "over" \
+                else (entry_mkt - closing[key])
     with open(path, "w") as f:
         for r in rows:
             f.write(json.dumps(r) + "\n")
