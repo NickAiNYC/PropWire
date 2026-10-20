@@ -1065,6 +1065,9 @@ function getEvaluatedPlayerRow(p) {
     isVerifiedQuote = true;
     observedAt = verifiedQuote.observed_at;
     catalyst = verifiedQuote.evaluation ? verifiedQuote.evaluation.catalyst : 'pricing';
+    if (verifiedQuote.fair_line) {
+      fairLine = verifiedQuote.fair_line;
+    }
   } else if (inlinePlayerLines[p.player_id] && inlinePlayerLines[p.player_id].line !== undefined) {
     bookLine = inlinePlayerLines[p.player_id].line;
     isCustomScenario = Math.abs(bookLine - fairLine) > 0.01;
@@ -1079,6 +1082,12 @@ function getEvaluatedPlayerRow(p) {
   }
 
   const metrics = evaluateLineAndOdds(muRec, muYpr, market, bookLine, odds, bias);
+  if (verifiedQuote && verifiedQuote.evaluation && currentViewMode !== 'baseline') {
+    if (verifiedQuote.evaluation.expected_return !== undefined) metrics.expectedReturn = verifiedQuote.evaluation.expected_return;
+    if (verifiedQuote.evaluation.prob_edge !== undefined) metrics.probEdge = verifiedQuote.evaluation.prob_edge;
+    if (verifiedQuote.evaluation.break_even_adv !== undefined) metrics.breakEvenAdvantage = verifiedQuote.evaluation.break_even_adv;
+    if (verifiedQuote.evaluation.best_side !== undefined) metrics.bestSide = verifiedQuote.evaluation.best_side;
+  }
   const priceBoundaries = calculatePriceBoundaries(muRec, muYpr, market, fairLine);
   
   let roleShift = detectPlayerRoleShift(p);
@@ -1112,7 +1121,10 @@ function getEvaluatedPlayerRow(p) {
     // 1. isVerifiedQuote is true OR isCustomScenario is true (demonstrating user what-if)
     // AND
     // 2. Clear edge hurdle >= minEdge (10%) and expectedReturn > 0
-    if ((isVerifiedQuote || isCustomScenario) && metrics.expectedReturn > 0 && metrics.probEdge >= minEdge) {
+    if (verifiedQuote && verifiedQuote.evaluation && currentViewMode !== 'baseline' && verifiedQuote.evaluation.is_qualified) {
+      isQualified = true;
+      status = verifiedQuote.evaluation.status || 'QUALIFIED';
+    } else if ((isVerifiedQuote || isCustomScenario) && metrics.expectedReturn > 0 && metrics.probEdge >= minEdge) {
       isQualified = true;
       status = 'QUALIFIED';
     } else if ((isVerifiedQuote || isCustomScenario) && metrics.expectedReturn > 0 && metrics.probEdge >= (minEdge * 0.5)) {
@@ -1124,7 +1136,9 @@ function getEvaluatedPlayerRow(p) {
 
   // Kelly stake: Strictly 0.0% if not qualified or negative EV
   let actionableStake = 0.0;
-  if (isQualified && metrics.expectedReturn > 0) {
+  if (verifiedQuote && verifiedQuote.evaluation && currentViewMode !== 'baseline' && verifiedQuote.evaluation.actionable_stake) {
+    actionableStake = verifiedQuote.evaluation.actionable_stake;
+  } else if (isQualified && metrics.expectedReturn > 0) {
     const rawKelly = metrics.expectedReturn / (metrics.decOdds - 1.0);
     const quarterKelly = rawKelly * 0.25;
     actionableStake = Math.max(0.001, Math.min(maxKelly, quarterKelly));
@@ -1650,7 +1664,7 @@ function renderBoard() {
       : '';
 
     return `
-      <tr>
+      <tr class="${row.isQualified ? 'row-qualified' : ''}">
         <td style="text-align:center;">
           <button class="${starClass}" onclick="quickSaveCondition('${row.player_id}')" title="Save Condition">
             ★
@@ -1679,7 +1693,13 @@ function renderBoard() {
           </div>
         </td>
         <td class="num-col"><strong>${Number(row.projVol).toFixed(1)}</strong></td>
-        <td class="num-col" style="color:var(--accent-editorial); font-weight:700;">${Number(row.fairLine).toFixed(1)}</td>
+        <td class="num-col">
+          <div style="color:var(--accent-editorial); font-weight:700; font-family:var(--font-mono);">${Number(row.fairLine).toFixed(1)}</div>
+          <div class="mini-divergence-track" title="Model Fair: ${Number(row.fairLine).toFixed(1)} vs Book: ${row.bookLine} (${row.expectedReturn > 0 ? '+' : ''}${(row.expectedReturn * 100).toFixed(1)}% EV)">
+            <div class="mini-divergence-fill ${row.expectedReturn > 0 ? 'fill-positive' : 'fill-neutral'}" style="width:${Math.round(Math.min(95, Math.max(10, (Number(row.bookLine) / Math.max(1, Number(row.fairLine) * 1.25)) * 100)))}%;"></div>
+            <div class="mini-divergence-pin" style="left:${Math.round(Math.min(95, Math.max(10, (Number(row.bookLine) / Math.max(1, Number(row.fairLine) * 1.25)) * 100)))}%;"></div>
+          </div>
+        </td>
         <td>
           <div class="inline-line-ctrl">
             <span style="font-weight:700; font-family:var(--font-mono); font-size:11px; color:${row.bestSide === 'OVER' ? 'var(--accent-editorial)' : 'var(--status-amber)'};">${row.bestSide}</span>
@@ -1705,8 +1725,9 @@ function renderBoard() {
           <button class="action-inspect-btn" onclick="openDrawerForPlayer('${row.player_display_name}')">
             Inspect &rarr;
           </button>
-          <button class="action-x-btn" onclick="openXCardModal('${row.player_id}')" title="Export 𝕏 Slip" style="margin-left:4px;">
-            𝕏
+          <button class="btn-x-card-mini" onclick="openXCardModal('${row.player_id}')" title="Export to 𝕏 Card" style="margin-left:4px;">
+            <svg class="icon-svg" viewBox="0 0 24 24" fill="currentColor" style="width:11px;height:11px;"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 23.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+            Export to 𝕏 Card
           </button>
         </td>
       </tr>
@@ -2780,6 +2801,11 @@ function copyDrawerSlip() {
   });
 }
 
+function exportDrawerToXCard() {
+  if (!selectedDrawerPlayer) return;
+  openXCardModal(selectedDrawerPlayer.player_id);
+}
+
 // --------------------------------------------------------------------------
 // Research & SGP Bivariate Simulator
 // --------------------------------------------------------------------------
@@ -3343,20 +3369,24 @@ function getTweetTextForPlayer(row) {
     ? (currentInjuriesData.impacted_beneficiaries[row.player_id] || Object.values(currentInjuriesData.impacted_beneficiaries).find(b => b.name === row.player_display_name))
     : null;
 
-  const unit = row.market === 'receptions' ? 'receptions' : 'receiving yards';
+  const unit = row.market === 'receptions' ? 'Rec' : 'Yds';
   const evStr = row.expectedReturn > 0 ? `+${(row.expectedReturn * 100).toFixed(1)}%` : `${(row.expectedReturn * 100).toFixed(1)}%`;
-  const bookName = row.quoteBook || 'DraftKings';
+  const bookName = row.quoteBook || 'Sportsbook';
   const oddsStr = row.odds > 0 ? `+${row.odds}` : `${row.odds}`;
 
+  let trigger = 'Model Role Shift';
   if (ben) {
-    return `🚨 INJURY ROLE SHIFT ALERT\n\nWith ${ben.vacated_player_name} OUT (${ben.injury_event}), our NegBin-Gamma GLM model projects ${row.player_display_name} for ${Number(row.projVol).toFixed(1)} ${unit} against ${row.opponent_team}.\n\n📉 ${bookName} Line: ${row.bookLine} (${oddsStr})\n📐 Model Fair Line: ${Number(row.fairLine).toFixed(1)}\n💰 Edge / EV: ${evStr} EV (${row.status === 'QUALIFIED' ? 'Qualified Play' : 'Lean'})\n\nTrack live shifts on PROP·WIRE:\nhttps://receiving-props-agent.vercel.app/`;
+    trigger = `${ben.vacated_player_name} OUT`;
+  } else if (row.roleShift && row.roleShift.type === 'SUSTAINED_SURGE') {
+    trigger = `Sustained Target Surge (+${Math.round((row.roleShift.diff || 0.05) * 100)}%)`;
   }
 
-  if (row.roleShift.type === 'SUSTAINED_SURGE') {
-    return `⚡ ROLE EXPANSION ALERT\n\n${row.player_display_name} target share jumped +${Math.round((row.roleShift.diff || 0.05) * 100)}% over the last 3 weeks. Our NegBin-Gamma GLM model projects ${Number(row.projVol).toFixed(1)} ${unit}.\n\n📉 ${bookName} Line: ${row.bookLine} (${oddsStr})\n📐 Model Fair Line: ${Number(row.fairLine).toFixed(1)}\n💰 Edge / EV: ${evStr} EV\n\nAudited by SHA-256 pre-line freeze on PROP·WIRE:\nhttps://receiving-props-agent.vercel.app/`;
-  }
-
-  return `📊 PROP·WIRE QUANT SIGNAL\n\n${row.player_display_name} (${row.team} vs ${row.opponent_team})\nModel projects ${Number(row.projVol).toFixed(1)} ${unit} (Fair Line: ${Number(row.fairLine).toFixed(1)}).\n\n📉 ${bookName} Line: ${row.bookLine} (${oddsStr})\n💰 Edge / EV: ${evStr} EV\n\nVerified sports betting intelligence:\nhttps://receiving-props-agent.vercel.app/`;
+  return `🚨 Model Role Shift Alert\n\n` +
+    `${trigger} triggers a massive role surge for ${row.player_display_name} against ${row.opponent_team}.\n\n` +
+    `📐 Model Fair: ${Number(row.fairLine).toFixed(1)} ${unit}\n` +
+    `📉 ${bookName} Quote: ${row.bookLine} (${oddsStr})\n` +
+    `💰 Edge: ${evStr} EV (${row.status === 'QUALIFIED' ? 'Qualified Play' : 'Lean'})\n\n` +
+    `Track live redistribution matrices on PROP·WIRE:`;
 }
 
 function openXCardModal(playerId) {
@@ -3497,13 +3527,13 @@ function generateXCard(row) {
     : null;
 
   if (ben) {
-    ctx.fillStyle = 'rgba(245, 158, 11, 0.12)';
-    ctx.strokeStyle = 'rgba(245, 158, 11, 0.4)';
+    ctx.fillStyle = 'rgba(245, 158, 11, 0.14)';
+    ctx.strokeStyle = 'rgba(245, 158, 11, 0.45)';
     canvasRoundRect(ctx, 50, 96, 1100, 44, 8, true, true);
 
     ctx.fillStyle = '#f59e0b';
     ctx.font = 'bold 13.5px -apple-system, BlinkMacSystemFont, sans-serif';
-    ctx.fillText(`🚨 INJURY ROLE SHIFT: ${ben.vacated_player_name} OUT (${ben.injury_event})`, 68, 123);
+    ctx.fillText(`⚡ PROVISIONAL SURGE: ${ben.vacated_player_name} OUT ➔ ${row.player_display_name} Role Surge`, 68, 123);
 
     ctx.fillStyle = '#fbbf24';
     ctx.font = '700 11.5px "SF Mono", monospace';
@@ -3656,16 +3686,16 @@ function generateXCard(row) {
 
   ctx.fillStyle = '#94a3b8';
   ctx.font = '700 11px "SF Mono", monospace';
-  ctx.fillText('EXPECTED VALUE (EV)', 827, cardY + 30);
+  ctx.fillText('EDGE / EXPECTED VALUE', 827, cardY + 30);
 
   ctx.fillStyle = row.expectedReturn > 0 ? '#10b981' : '#cbd5e1';
   ctx.font = 'bold 42px "SF Mono", monospace';
   const evSign = row.expectedReturn > 0 ? '+' : '';
-  ctx.fillText(`${evSign}${(row.expectedReturn * 100).toFixed(1)}%`, 827, cardY + 84);
+  ctx.fillText(`${evSign}${(row.expectedReturn * 100).toFixed(1)}% EV`, 827, cardY + 84);
 
   ctx.fillStyle = '#34d399';
   ctx.font = '700 14px -apple-system, sans-serif';
-  ctx.fillText(`Prob Edge: +${(row.probEdge * 100).toFixed(1)}% vs 50%`, 827, cardY + 118);
+  ctx.fillText(`${row.status === 'QUALIFIED' ? '✓ Qualified Play' : 'Model Lean'} (+${(row.probEdge * 100).toFixed(1)}% Edge)`, 827, cardY + 118);
 
   ctx.fillStyle = '#64748b';
   ctx.font = '11.5px "SF Mono", monospace';
@@ -3755,7 +3785,7 @@ function generateXCard(row) {
 
   ctx.fillStyle = '#64748b';
   ctx.font = '700 11px "SF Mono", monospace';
-  ctx.fillText('🔒 SHA-256 HOLDOUT FREEZE: 9f8a...3e12  •  AUDITED PRE-GAME PROOF LEDGER  •  PROP-WIRE V2', 50, 634);
+  ctx.fillText('🔒 SHA-256 VERIFIED IMMUTABLE SNAPSHOT  •  AUDITED PRE-GAME PROOF LEDGER', 50, 634);
 
   ctx.fillStyle = '#10b981';
   ctx.font = '700 13px "SF Mono", monospace';
@@ -3803,8 +3833,8 @@ async function copyXCardImage() {
 function launchTweetIntent() {
   const tweetTextarea = document.getElementById('xCardTweetText');
   const text = tweetTextarea ? tweetTextarea.value : '';
-  const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
-  window.open(url, '_blank', 'noopener,noreferrer');
+  const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent("https://receiving-props-agent.vercel.app/")}`;
+  window.open(url, '_blank', 'width=600,height=440,noopener,noreferrer');
 }
 
 function copyTweetText() {

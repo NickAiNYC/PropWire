@@ -83,6 +83,7 @@
             Updated Oct 20, 2026 &bull; 01:15 EDT
           </div>
           <div class="snapshot-status-badge" id="headerSnapshotBadge" onclick="openAdminModal('freeze')" title="Pre-kickoff immutable snapshot audit trail">
+            <span class="snapshot-ticker-pulse"></span>
             <span class="snapshot-lock-icon">🔒</span>
             <span id="headerSnapshotText">SNAPSHOT: TNF ACTIVE</span>
           </div>
@@ -703,8 +704,12 @@
         <button class="btn-secondary" id="drawerWatchlistBtn" onclick="toggleDrawerWatchlist()">
           ★ Watch Condition
         </button>
-        <button class="btn-secondary" onclick="copyDrawerSlip()">
+        <button class="btn-secondary" onclick="copyDrawerSlip()" title="Copy slip to clipboard">
           Copy Slip
+        </button>
+        <button class="btn-x-card" onclick="exportDrawerToXCard()" style="display:inline-flex; align-items:center; gap:6px;" title="Export high-contrast receipt card to 𝕏">
+          <svg class="icon-svg" viewBox="0 0 24 24" fill="currentColor" style="width:13px;height:13px;"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 23.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+          Export to 𝕏 Card
         </button>
         <button class="btn-primary" onclick="logDrawerPick()">
           Log to CLV Proof Ledger
