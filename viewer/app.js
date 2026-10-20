@@ -179,32 +179,71 @@
     }
   }
 
-  function distSparklineSvg(dist, bookLine, w = 68, h = 18) {
+  function propBulletGraphSvg(dist, evaluation, side = 'OVER') {
     if (dist.isTd) {
-      return `<svg class="dist-sparkline td-prob-bar" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" aria-hidden="true"><rect x="1" y="5" width="${w - 2}" height="8" rx="4" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.12)" stroke-width="1"/><rect x="1" y="5" width="${Math.max(4, Math.round((w - 2) * dist.prob))}" height="8" rx="4" fill="var(--accent)"/></svg>`;
+      const probPct = Math.min(100, Math.max(0, dist.prob * 100));
+      return `
+        <div class="bullet-container td-bullet">
+          <div class="bullet-top-readout">
+            <span class="bullet-dim">P(TD)</span> <strong class="bullet-bold text-accent">${pct(dist.prob, 0)}</strong>
+          </div>
+          <svg class="bullet-svg" viewBox="0 0 100 14" preserveAspectRatio="none" aria-hidden="true">
+            <rect x="0" y="5" width="100" height="4" rx="2" fill="rgba(255,255,255,0.06)" />
+            <rect x="0" y="4.5" width="${probPct.toFixed(1)}" height="5" rx="2" fill="var(--accent)" />
+          </svg>
+          <div class="bullet-bottom-sub"><span>Model: ${pct(dist.prob, 1)}</span></div>
+        </div>`;
     }
-    const minX = Math.max(0, dist.low - (dist.fair - dist.low) * 0.6);
-    const maxX = Math.max(minX + 10, dist.high + (dist.high - dist.fair) * 0.6);
-    const span = maxX - minX;
-    const sigma = Math.max(2, (dist.high - dist.low) / 2.56);
-    const pts = [];
-    for (let i = 0; i <= 10; i++) {
-      const val = minX + (i / 10) * span;
-      const z = (val - dist.fair) / sigma;
-      const dens = Math.exp(-0.5 * z * z);
-      const px = (i / 10) * w;
-      const py = (h - 2) - dens * (h - 5);
-      pts.push({ x: px, y: py });
-    }
-    const fillPath = `M 0,${h} L ${pts.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' L ')} L ${w},${h} Z`;
-    const strokePath = `M ${pts.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' L ')}`;
-    const medX = Math.max(2, Math.min(w - 2, ((dist.fair - minX) / span) * w));
-    let bookMarker = '';
-    if (Number.isFinite(bookLine) && bookLine >= minX && bookLine <= maxX) {
-      const bX = Math.max(2, Math.min(w - 2, ((bookLine - minX) / span) * w));
-      bookMarker = `<line x1="${bX.toFixed(1)}" y1="1" x2="${bX.toFixed(1)}" y2="${h}" class="dist-book-line" stroke-dasharray="2,2"/>`;
-    }
-    return `<svg class="dist-sparkline" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" aria-hidden="true"><path d="${fillPath}" class="dist-fill"/><path d="${strokePath}" class="dist-stroke"/><line x1="${medX.toFixed(1)}" y1="1" x2="${medX.toFixed(1)}" y2="${h}" class="dist-median-line"/>${bookMarker}</svg>`;
+
+    const isRec = Boolean(dist.isRec);
+    const maxScale = isRec ? 14 : 190;
+    const unit = isRec ? 'rec' : 'y';
+    const toPct = (val) => Math.min(100, Math.max(0, (val / maxScale) * 100));
+
+    const lowPct = toPct(dist.low);
+    const highPct = toPct(dist.high);
+    const widthPct = Math.max(2, highPct - lowPct);
+
+    const hasBook = evaluation && evaluation.state !== 'none' && Number.isFinite(evaluation.line);
+    const bookLine = hasBook ? evaluation.line : null;
+    const bookPct = hasBook ? toPct(bookLine) : 0;
+    const fairPct = toPct(dist.fair);
+    const projPct = toPct(dist.proj);
+
+    const deltaStart = hasBook ? Math.min(bookPct, fairPct) : 0;
+    const deltaWidth = hasBook ? Math.abs(fairPct - bookPct) : 0;
+    const deltaColor = side === 'OVER' ? 'rgba(16, 185, 129, 0.4)' : 'rgba(56, 189, 248, 0.4)';
+
+    return `
+      <div class="bullet-container" title="80% CI: ${dist.low}–${dist.high}${unit} | Fair: ${dist.fair.toFixed(1)} | Proj: ${dist.proj.toFixed(1)}${hasBook ? ` | Book: ${bookLine.toFixed(1)}` : ''}">
+        <div class="bullet-top-readout">
+          <div><span class="bullet-dim">FAIR</span> <strong class="bullet-bold text-fair">${dist.fair.toFixed(1)}</strong></div>
+          <span class="split-divider">|</span>
+          <div><span class="bullet-dim">PROJ</span> <strong class="bullet-bold text-accent">${dist.proj.toFixed(1)}</strong></div>
+        </div>
+        <svg class="bullet-svg" viewBox="0 0 100 14" preserveAspectRatio="none" aria-hidden="true">
+          <!-- Background Track (0 to maxScale) -->
+          <rect x="0" y="5" width="100" height="4" rx="1.5" fill="rgba(255,255,255,0.06)" />
+          <!-- 80% Confidence Interval Bar -->
+          <rect x="${lowPct.toFixed(1)}" y="4.5" width="${widthPct.toFixed(1)}" height="5" rx="1" fill="rgba(148, 163, 184, 0.22)" />
+          <!-- Edge Delta Highlight -->
+          ${hasBook && deltaWidth > 0 ? `<rect x="${deltaStart.toFixed(1)}" y="4.5" width="${deltaWidth.toFixed(1)}" height="5" fill="${deltaColor}" />` : ''}
+          <!-- Book Line Marker (Crisp Vertical Amber Tick) -->
+          ${hasBook ? `<line x1="${bookPct.toFixed(1)}" y1="1" x2="${bookPct.toFixed(1)}" y2="13" stroke="#f59e0b" stroke-width="1.8" />` : ''}
+          <!-- Fair Line Marker (Solid White Tick) -->
+          <line x1="${fairPct.toFixed(1)}" y1="2.5" x2="${fairPct.toFixed(1)}" y2="11.5" stroke="#f8fafc" stroke-width="1.6" />
+          <!-- Model Projection Mean (Emerald Dot) -->
+          <circle cx="${projPct.toFixed(1)}" cy="7" r="2.5" fill="#10b981" stroke="#090d16" stroke-width="0.8" />
+        </svg>
+        <div class="bullet-bottom-sub">
+          <span>80%: ${dist.low}–${dist.high}${unit}</span>
+          <span class="bullet-bk">${hasBook ? `Bk ${bookLine.toFixed(1)}` : 'No quote'}</span>
+        </div>
+      </div>`;
+  }
+
+  function distSparklineSvg(dist, bookLine, w = 68, h = 18) {
+    return propBulletGraphSvg(dist, { state: Number.isFinite(bookLine) ? 'verified' : 'none', line: bookLine });
   }
 
   function predictionInterval(row) {
@@ -270,8 +309,51 @@
     $('#marketFilter').addEventListener('change', syncFilters);
     $('#positionFilter').addEventListener('change', syncFilters);
     $('#teamFilter').addEventListener('input', syncFilters);
-    $('#clearFilters').addEventListener('click', clearFilters);
-    $$('.slate-mode-toggle button').forEach((button) => button.addEventListener('click', () => setPlayMode(button.dataset.mode)));
+    if ($('#clearFilters')) $('#clearFilters').addEventListener('click', clearFilters);
+
+    // Interactive Risk Steppers (Gate & Kelly Cap)
+    const gateMinus = $('#gateMinus');
+    const gatePlus = $('#gatePlus');
+    const capMinus = $('#capMinus');
+    const capPlus = $('#capPlus');
+
+    if (gateMinus && gatePlus) {
+      gateMinus.addEventListener('click', () => {
+        state.picks.gate_edge = Math.max(0.01, +( (Number(state.picks.gate_edge) || 0.10) - 0.01 ).toFixed(3));
+        renderHeader();
+        renderBoard();
+      });
+      gatePlus.addEventListener('click', () => {
+        state.picks.gate_edge = Math.min(0.30, +( (Number(state.picks.gate_edge) || 0.10) + 0.01 ).toFixed(3));
+        renderHeader();
+        renderBoard();
+      });
+    }
+
+    if (capMinus && capPlus) {
+      capMinus.addEventListener('click', () => {
+        state.picks.kelly_cap = Math.max(0.005, +( (Number(state.picks.kelly_cap) || 0.03) - 0.005 ).toFixed(3));
+        renderHeader();
+        renderBoard();
+      });
+      capPlus.addEventListener('click', () => {
+        state.picks.kelly_cap = Math.min(0.10, +( (Number(state.picks.kelly_cap) || 0.03) + 0.005 ).toFixed(3));
+        renderHeader();
+        renderBoard();
+      });
+    }
+
+    const intentFilter = $('#intentFilter');
+    if (intentFilter) {
+      intentFilter.addEventListener('change', (e) => setIntent(e.target.value));
+    }
+
+    const modeActionableBtn = $('#modeActionableBtn');
+    const modeAllBtn = $('#modeAllBtn');
+    if (modeActionableBtn) modeActionableBtn.addEventListener('click', () => setPlayMode('actionable'));
+    if (modeAllBtn) modeAllBtn.addEventListener('click', () => setPlayMode('all'));
+
+    $$('.slate-mode-toggle button, .dataset-switcher button').forEach((button) => button.addEventListener('click', () => setPlayMode(button.dataset.mode)));
     $$('.intent-chips .intent-chip').forEach((button) => button.addEventListener('click', () => setIntent(button.dataset.intent)));
     $$('.view-switch button').forEach((button) => button.addEventListener('click', () => setView(button.dataset.view)));
     $('#slateRows').addEventListener('click', inspectFromEvent);
@@ -372,6 +454,17 @@
       });
     }
 
+    window.addEventListener('scroll', () => {
+      const bar = $('#stickyContextBar');
+      if (bar) {
+        if (window.scrollY > 180) {
+          bar.classList.add('is-visible');
+        } else {
+          bar.classList.remove('is-visible');
+        }
+      }
+    }, { passive: true });
+
     initKeyboardNav();
     updatePortfolioBadge();
     updateWatchlistBadge();
@@ -379,7 +472,7 @@
   }
 
   function initKeyboardNav() {
-    document.addEventListener('keydown', (e) => {
+    const handleKeyNav = (e) => {
       // 1. Ignore shortcuts if the user is already typing in an input (except Escape)
       const activeTag = (document.activeElement?.tagName || '').toUpperCase();
       if (['INPUT', 'TEXTAREA', 'SELECT'].includes(activeTag) || document.activeElement?.isContentEditable) {
@@ -418,14 +511,20 @@
         case 'J':
         case 'ArrowDown':
           e.preventDefault();
-          if (rows.length && focusedRowIndex < rows.length - 1) {
+          if (rows.length) {
             if (focusedRowIndex >= 0 && rows[focusedRowIndex]) {
               rows[focusedRowIndex].classList.remove('keyboard-focus', 'terminal-focused');
             }
-            focusedRowIndex++;
+            if (focusedRowIndex < rows.length - 1) {
+              focusedRowIndex++;
+            } else if (focusedRowIndex === -1) {
+              focusedRowIndex = 0;
+            }
             state.focusedIndex = focusedRowIndex;
-            rows[focusedRowIndex].classList.add('keyboard-focus', 'terminal-focused');
-            rows[focusedRowIndex].scrollIntoView({ block: 'nearest' });
+            if (rows[focusedRowIndex]) {
+              rows[focusedRowIndex].classList.add('keyboard-focus', 'terminal-focused');
+              rows[focusedRowIndex].scrollIntoView({ block: 'nearest' });
+            }
           }
           break;
 
@@ -439,8 +538,10 @@
             }
             focusedRowIndex--;
             state.focusedIndex = focusedRowIndex;
-            rows[focusedRowIndex].classList.add('keyboard-focus', 'terminal-focused');
-            rows[focusedRowIndex].scrollIntoView({ block: 'nearest' });
+            if (rows[focusedRowIndex]) {
+              rows[focusedRowIndex].classList.add('keyboard-focus', 'terminal-focused');
+              rows[focusedRowIndex].scrollIntoView({ block: 'nearest' });
+            }
           }
           break;
 
@@ -457,8 +558,21 @@
           const currentView = document.querySelector('.view-switch .active')?.dataset?.view || state.view;
           setView(currentView === 'table' ? 'cards' : 'table');
           break;
+
+        case 'l': // One-key bet logging
+        case 'L':
+          e.preventDefault();
+          const targetIdx = focusedRowIndex >= 0 ? focusedRowIndex : (rows.length ? 0 : -1);
+          if (targetIdx >= 0 && rows[targetIdx]) {
+            const playerId = rows[targetIdx].dataset.playerId;
+            if (playerId) logBet(playerId);
+          }
+          break;
       }
-    });
+    };
+
+    window.addEventListener('keydown', handleKeyNav);
+    document.addEventListener('keydown', handleKeyNav);
   }
 
   function getVisibleItems() {
@@ -587,9 +701,11 @@
     const ingested = state.odds.quotes.length;
     const verified = state.odds.quotes.filter((quote) => quoteState(quote) === 'verified').length;
     const teams = new Set(state.slate.flatMap((row) => [row.team, row.opponent_team]).filter(Boolean));
-    $('#gateChip').textContent = activePolicy ? `Gate ${pct(activePolicy.gate, 0)}` : 'Gate missing';
-    $('#capChip').textContent = activePolicy ? `Kelly cap ${pct(activePolicy.cap, 1)}` : 'Kelly cap missing';
-    $('#slateState').textContent = config.state;
+    if ($('#gateChip')) $('#gateChip').textContent = activePolicy ? `Gate ${pct(activePolicy.gate, 0)}` : 'Gate missing';
+    if ($('#capChip')) $('#capChip').textContent = activePolicy ? `Kelly cap ${pct(activePolicy.cap, 1)}` : 'Kelly cap missing';
+    if ($('#gateVal')) $('#gateVal').textContent = activePolicy ? pct(activePolicy.gate, 0) : '—';
+    if ($('#capVal')) $('#capVal').textContent = activePolicy ? pct(activePolicy.cap, 1) : '—';
+    if ($('#slateState')) $('#slateState').textContent = config.state;
     $('#tickerLine').innerHTML = [
       `${state.games.length} Games`,
       `${teams.size} Teams`,
@@ -606,7 +722,7 @@
     } else if (verified === 0) {
       $('#marketState').textContent = `No verified price receipts / ${ingested} quotes ingested. Offers are visible, but action fields remain locked.`;
     } else {
-      $('#marketState').textContent = `${verified} receipt-verified quotes. Edge compares model probability with the de-vigged market probability at the same line and side.`;
+      $('#marketState').textContent = `${verified}/${ingested} Receipt-Verified`;
     }
     $('#priceCheckText').textContent = `${ingested} ingested · ${verified} receipt-verified.`;
   }
@@ -657,18 +773,34 @@
   }
 
   function renderGameChips() {
-    const prime = state.games.filter((game) => {
+    const allGames = state.games || [];
+    const prime = allGames.filter((game) => {
       const hour = Number(String(game.gametime || '').split(':')[0]);
       return hour >= 20 || hour < 11;
     });
-    const labels = ['All games', ...prime.map((game) => `${game.away_team} @ ${game.home_team} · ${primeLabel(game)}`)];
-    const ids = ['', ...prime.map((game) => game.game_id)];
-    $('#primeChips').innerHTML = labels.map((label, index) => `<button class="game-chip ${state.filters.gameId === ids[index] ? 'active' : ''}" type="button" data-game-id="${esc(ids[index])}">${esc(label)}</button>`).join('');
-    $$('#primeChips .game-chip').forEach((button) => button.addEventListener('click', () => {
-      state.filters.gameId = button.dataset.gameId;
-      renderGameChips();
-      renderBoard();
-    }));
+    const chipGames = prime.length ? prime : allGames;
+    const labels = ['All games', ...chipGames.map((game) => `${game.away_team} @ ${game.home_team} · ${primeLabel(game)}`)];
+    const ids = ['', ...chipGames.map((game) => game.game_id)];
+    if ($('#primeChips')) {
+      $('#primeChips').innerHTML = labels.map((label, index) => `<button class="game-chip ${state.filters.gameId === ids[index] ? 'active' : ''}" type="button" data-game-id="${esc(ids[index])}">${esc(label)}</button>`).join('');
+      $$('#primeChips .game-chip').forEach((button) => button.addEventListener('click', () => {
+        state.filters.gameId = button.dataset.gameId;
+        if ($('#gameFilter')) $('#gameFilter').value = state.filters.gameId || 'ALL';
+        renderGameChips();
+        renderBoard();
+      }));
+    }
+
+    const gameFilterEl = $('#gameFilter');
+    if (gameFilterEl) {
+      gameFilterEl.innerHTML = `<option value="ALL">All (${allGames.length} Games)</option>` +
+        allGames.map((g) => `<option value="${esc(g.game_id)}" ${state.filters.gameId === g.game_id ? 'selected' : ''}>${esc(g.away_team)} @ ${esc(g.home_team)}</option>`).join('');
+      gameFilterEl.onchange = () => {
+        state.filters.gameId = gameFilterEl.value === 'ALL' ? '' : gameFilterEl.value;
+        renderGameChips();
+        renderBoard();
+      };
+    }
   }
 
   function primeLabel(game) {
@@ -686,6 +818,9 @@
     state.filters.market = $('#marketFilter').value;
     state.filters.position = $('#positionFilter').value;
     state.filters.team = $('#teamFilter').value.trim().toUpperCase();
+    if ($('#gameFilter') && $('#gameFilter').value !== 'ALL') {
+      state.filters.gameId = $('#gameFilter').value;
+    }
     renderBoard();
   }
 
@@ -708,7 +843,7 @@
 
   function setPlayMode(mode) {
     state.filters.playMode = mode;
-    $$('.slate-mode-toggle button').forEach((btn) => {
+    $$('.slate-mode-toggle button, .dataset-switcher .seg-btn').forEach((btn) => {
       const active = btn.dataset.mode === mode;
       btn.classList.toggle('active', active);
       btn.setAttribute('aria-selected', String(active));
@@ -718,6 +853,7 @@
 
   function setIntent(intent) {
     state.filters.intent = intent;
+    if ($('#intentFilter')) $('#intentFilter').value = intent;
     $$('.intent-chips .intent-chip').forEach((btn) => {
       btn.classList.toggle('active', btn.dataset.intent === intent);
     });
@@ -773,15 +909,23 @@
     if ($('#allCount')) $('#allCount').textContent = totalCount;
     if ($('#actionableCount')) $('#actionableCount').textContent = quotedCount;
     if (state.bottomTab === 'watchlist') {
-      $('#resultCount').textContent = `${rows.length} watched ${rows.length === 1 ? 'player' : 'players'} of ${state.slate.length} modeled`;
+      if ($('#resultCount')) $('#resultCount').textContent = `${rows.length} watched ${rows.length === 1 ? 'player' : 'players'} of ${state.slate.length} modeled`;
       $('#emptyState').textContent = 'Your Watchlist is empty. Tap the star icon on any player to track their line movements and edge shifts.';
     } else {
-      $('#resultCount').textContent = `${rows.length} of ${state.slate.length} player records`;
+      if ($('#resultCount')) $('#resultCount').textContent = `${rows.length} of ${state.slate.length} player records`;
       $('#emptyState').textContent = 'No player records match these filters.';
     }
     $('#slateHead').innerHTML = tableHead(hasPrices);
-    $('#slateRows').innerHTML = rows.map((row, idx) => tableRow(row, hasPrices, idx)).join('');
-    $('#cardView').innerHTML = rows.map((row, idx) => propCard(row, idx)).join('');
+
+    // Stop Dual-Rendering: populate only the active view layout to save DOM weight and boost performance
+    if (state.view === 'table') {
+      $('#slateRows').innerHTML = rows.map((row, idx) => tableRow(row, hasPrices, idx)).join('');
+      $('#cardView').innerHTML = '';
+    } else {
+      $('#slateRows').innerHTML = '';
+      $('#cardView').innerHTML = rows.map((row, idx) => propCard(row, idx)).join('');
+    }
+
     $('#emptyState').hidden = rows.length !== 0;
     $('#tableView').hidden = state.view !== 'table' || rows.length === 0;
     $('#cardView').hidden = state.view !== 'cards' || rows.length === 0;
@@ -875,11 +1019,11 @@
 
   function tableHead(hasPrices) {
     return `<tr>
-      <th style="width:28%">Player / Driver</th>
+      <th style="width:27%">Player / Driver</th>
       <th style="width:11%">Matchup</th>
       <th class="th-num" style="width:18%">Book & Status <span class="help-bubble" title="Sportsbook line, odds, and quote verification status">?</span></th>
-      <th class="th-num" style="width:21%">Model (Fair | Proj) <span class="help-bubble" title="Model fair line is calibrated median; Proj is expected mean with 80% prediction interval. Hover ⓘ for summary.">?</span></th>
-      ${hasPrices ? '<th class="th-num" style="width:14%">Price Check / Edge <span class="help-bubble" title="Mathematical edge vs de-vigged market line. Bright green = verified edge clearing gate.">?</span></th><th class="th-num" style="width:8%">Hurdle <span class="help-bubble" title="Visual gauge: Fair vs Target hurdle vs Book offer">?</span></th>' : ''}
+      <th class="th-num" style="width:23%">Model (Fair | Proj | 80% CI) <span class="help-bubble" title="True-scale bullet graph: Amber tick is Book line, White tick is Model Fair, Green dot is Proj Mean, Shaded bar is 80% CI.">?</span></th>
+      ${hasPrices ? '<th class="th-num" style="width:13%">Price Check / Edge <span class="help-bubble" title="Mathematical edge vs de-vigged market line.">?</span></th><th class="th-num" style="width:8%">Hurdle <span class="help-bubble" title="Visual gauge: Fair vs Target hurdle vs Book offer">?</span></th>' : ''}
     </tr>`;
   }
 
@@ -887,14 +1031,12 @@
     const evaluation = evaluateRow(row);
     const injury = injuryFor(row);
     const beneficiary = beneficiaryFor(row);
-    const fair = fairValue(row);
-    const projection = projectionValue(row);
     const dist = distributionRange(row);
     const isTopEdge = evaluation.edge >= 0.15;
     const isWatched = (state.watchlist || []).includes(row.player_id);
     const starBtn = `<button class="star-btn ${isWatched ? 'starred' : ''}" type="button" data-watch-player="${esc(row.player_id)}" title="${isWatched ? 'Remove from Watchlist' : 'Add to Watchlist'}" aria-label="Watch">${isWatched ? '★' : '☆'}</button>`;
     const logoImg = `<img class="team-logo-badge" src="${esc(teamLogoUrl(row.team))}" alt="${esc(row.team)}" width="24" height="24" loading="lazy" onerror="this.style.display='none'">`;
-    const sparklineSvg = distSparklineSvg(dist, evaluation.state !== 'none' ? evaluation.line : null, 64, 18);
+    const bulletSvg = propBulletGraphSvg(dist, evaluation, evaluation.side || 'OVER');
 
     return `<tr class="slate-row ${isTopEdge ? 'top-edge-play' : ''}" data-testid="slate-row" data-player-id="${esc(row.player_id)}" style="--row-index:${Math.min(index, 14)};" tabindex="0" role="button" aria-label="Inspect ${esc(row.player_display_name)}">
       <td>
@@ -912,20 +1054,7 @@
       </td>
       <td><span class="number-main">${esc(row.team)}</span><span class="cell-sub">${row.is_home ? 'vs' : '@'} ${esc(row.opponent_team)}${venueBadge(row)}</span></td>
       <td class="td-num">${bookCell(evaluation, injury)}</td>
-      <td class="td-num">
-        <div class="split-cell">
-          <div class="model-num-row">
-            <span class="label-dim">Fair</span> <strong class="num-bold">${fair.toFixed(1)}</strong>
-            <span class="split-divider">|</span>
-            <span class="label-dim">Proj</span> <strong class="num-bold">${projection.toFixed(1)}</strong>
-            <span class="info-trigger" title="${esc(naturalInsight(row, evaluation))}" aria-label="Quant summary">ⓘ</span>
-          </div>
-          <div class="model-dist-row">
-            <span class="ci-range">${esc(predictionInterval(row))}</span>
-            ${sparklineSvg}
-          </div>
-        </div>
-      </td>
+      <td class="td-num">${bulletSvg}</td>
       ${hasPrices ? `<td class="td-num">${priceCheckCell(evaluation)}</td><td class="td-num">${gaugeCell(row, evaluation)}</td>` : ''}
     </tr>`;
   }
@@ -933,61 +1062,72 @@
   function propCard(row, index = 0) {
     const evaluation = evaluateRow(row);
     const injury = injuryFor(row);
-    const beneficiary = beneficiaryFor(row);
-    const fair = fairValue(row);
-    const projection = projectionValue(row);
     const dist = distributionRange(row);
     const isLogged = (state.portfolio || []).some((b) => b.player_id === row.player_id && b.market === state.filters.market);
     const isWatched = (state.watchlist || []).includes(row.player_id);
     const isTopEdge = evaluation.edge >= 0.15;
-    const starBtn = `<button class="star-btn ${isWatched ? 'starred' : ''}" type="button" data-watch-player="${esc(row.player_id)}" title="${isWatched ? 'Remove from Watchlist' : 'Add to Watchlist'}" aria-label="Watch">${isWatched ? '★' : '☆'}</button>`;
-    const logoImg = `<img class="team-logo-badge" src="${esc(teamLogoUrl(row.team))}" alt="${esc(row.team)}" width="22" height="22" loading="lazy" onerror="this.style.display='none'">`;
-    const sparklineSvg = distSparklineSvg(dist, evaluation.state !== 'none' ? evaluation.line : null, 68, 20);
+    const activePolicy = policy();
+    const isSubGate = activePolicy && evaluation.edge < activePolicy.gate;
+    const stakeDisplay = isSubGate ? 'Sub-Gate' : evaluation.stake > 0 ? `${(evaluation.stake * 100).toFixed(1)}%` : '0.0%';
 
-    return `<article class="prop-card ${isTopEdge ? 'top-edge-play' : ''}" data-testid="slate-card" data-player-id="${esc(row.player_id)}" style="--row-index:${Math.min(index, 12)};" tabindex="0" role="button">
-      <!-- Row 1: The Identity & The Edge (Pushed far right) -->
-      <div class="card-row-lead">
-        <div class="card-name-group">
-          ${logoImg}
-          <h2 class="card-player-name">${starBtn} ${esc(row.player_display_name)}${injury ? `<span class="injury-tag" title="Injury Status">${esc(injury.report_status)}</span>` : ''}</h2>
-        </div>
-        <div class="card-edge-badge-wrap">
-          ${statePill(row, evaluation)}
-        </div>
-      </div>
+    const env = row.is_dome ? 'Dome' : row.wind_speed && row.wind_speed >= 12 ? `${row.wind_speed}mph` : 'Open';
+    const role = roleLabel(row);
 
-      <!-- Row 2: The Context (Position, Matchup, Venue, Role Drivers) -->
-      <div class="card-row-context">
-        <span class="card-context-matchup">${esc(row.position)} · ${esc(row.team)} ${row.is_home ? 'vs' : '@'} ${esc(row.opponent_team)}${venueBadge(row)}</span>
-        <div class="card-context-drivers">
-          ${keyDriverTag(row, beneficiary)}
+    return `
+      <article class="mobile-quant-row ${isTopEdge ? 'top-edge-play' : ''}" data-testid="slate-card" data-player-id="${esc(row.player_id)}" style="--row-index:${Math.min(index, 12)};" tabindex="0" role="button" aria-label="Inspect ${esc(row.player_display_name)}">
+        <!-- Line 1: Player Identity (Left) + Primary Actionable Edge (Right) -->
+        <div class="mq-line-1">
+          <div class="mq-id-group">
+            <button class="star-btn ${isWatched ? 'starred' : ''}" type="button" data-watch-player="${esc(row.player_id)}" title="${isWatched ? 'Remove from Watchlist' : 'Add to Watchlist'}" aria-label="Watch">${isWatched ? '★' : '☆'}</button>
+            <span class="mq-pos-badge">${esc(row.position)}</span>
+            <span class="mq-player-name">${esc(row.player_display_name)}</span>
+            <span class="mq-matchup">${esc(row.team)} ${row.is_home ? 'vs' : '@'} ${esc(row.opponent_team)}</span>
+            <span class="mq-env-badge">${esc(env)}</span>
+            ${injury ? `<span class="injury-tag">${esc(injury.report_status)}</span>` : ''}
+          </div>
+          <div class="mq-edge-wrap">
+            ${evaluation.closed
+              ? '<span class="mq-edge-closed">CLOSED</span>'
+              : evaluation.dataCheck
+                ? `<span class="mq-edge-verify">VERIFY ${signedPct(evaluation.edge)}</span>`
+                : evaluation.edge > 0
+                  ? `<span class="mq-edge-val">${signedPct(evaluation.edge)} EDGE</span>`
+                  : '<span class="mq-edge-none">NO EDGE</span>'}
+          </div>
         </div>
-      </div>
 
-      <!-- Row 3: The Action (High Contrast Background Block) -->
-      <div class="card-action-bar">
-        <div class="card-action-stat">
-          <span class="action-stat-label">BOOK</span>
-          <span class="action-stat-val">${evaluation.state === 'none' ? 'No quote' : `${evaluation.line.toFixed(1)} <small>(${oddsText(evaluation.odds)})</small>`}</span>
-        </div>
-        <div class="card-action-stat">
-          <span class="action-stat-label">MODEL</span>
-          <span class="action-stat-val">${projection.toFixed(1)} <small>(Fair ${fair.toFixed(1)})</small></span>
-        </div>
-        <div class="card-action-sparkline" title="${esc(predictionInterval(row))}">
-          ${sparklineSvg}
-        </div>
-      </div>
+        <!-- Line 2: 3-Column Quant Strip (Book Offer | Model Fair/Proj | Staking/Log) -->
+        <div class="mq-line-2">
+          <!-- Col 1: Book Quote -->
+          <div class="mq-col-book">
+            <span class="${evaluation.side === 'OVER' ? 'mq-side-over' : 'mq-side-under'}">${evaluation.side === 'OVER' ? 'O' : 'U'}</span>
+            <span class="mq-book-line">${evaluation.state === 'none' ? '—' : evaluation.line.toFixed(1)}</span>
+            <span class="mq-book-odds">(${evaluation.state === 'none' ? '—' : oddsText(evaluation.odds)})</span>
+          </div>
 
-      <!-- Row 4: Range & Apple HIG 44px Controls -->
-      <div class="card-row-footer">
-        <span class="card-ci-sub">${esc(predictionInterval(row))}</span>
-        <div class="card-actions-group">
-          <button class="log-bet-btn ${isLogged ? 'logged' : ''}" type="button" data-log-bet="${esc(row.player_id)}">${isLogged ? `${SVG_ICONS.check} Logged` : '+ Log'}</button>
-          <button class="inspect-button" type="button" data-inspect="${esc(row.player_id)}">Inspect</button>
+          <!-- Col 2: Model Fair & 80% Range -->
+          <div class="mq-col-model">
+            <div class="mq-model-nums">
+              <span>FAIR <b>${dist.fair.toFixed(1)}</b></span>
+              <span>μ <b class="text-accent">${dist.proj.toFixed(1)}</b></span>
+            </div>
+            <div class="mq-model-sub">
+              80%: ${dist.low}–${dist.high}${state.filters.market === 'receptions' ? 'rec' : 'y'} · ${esc(role)}
+            </div>
+          </div>
+
+          <!-- Col 3: Kelly Stake & Quick-Log Trigger -->
+          <div class="mq-col-stake">
+            <div class="mq-stake-info">
+              <span class="mq-stake-label">KELLY</span>
+              <span class="mq-stake-val ${isSubGate ? 'text-subgate' : evaluation.stake > 0 ? 'text-accent' : 'text-dim'}">${stakeDisplay}</span>
+            </div>
+            <button class="mq-log-btn ${isLogged ? 'logged' : ''}" type="button" data-log-bet="${esc(row.player_id)}" aria-label="${isLogged ? 'In Ledger' : 'Log Bet'}" title="Log to Ledger">
+              ${isLogged ? '✓' : '+'}
+            </button>
+          </div>
         </div>
-      </div>
-    </article>`;
+      </article>`;
   }
 
   function fairValue(row) {
@@ -1096,26 +1236,30 @@
   function priceCheckCell(evaluation) {
     if (evaluation.state === 'none') return '<span class="cell-sub">No price comparison</span>';
     if (evaluation.state === 'ingested') {
-      return `<div class="edge-box unverified" data-quote-state="ingested">
-        <span class="edge-badge-unverified" title="Ingested price quote pending receipt verification">${SVG_ICONS.lock} ${signedPct(evaluation.edge)} Edge</span>
-        <span class="edge-sub-meta">Return ${signedPct(evaluation.ev)} · Stake 0.00%</span>
+      return `<div class="edge-cell edge-cell-unverified" data-quote-state="ingested">
+        <span class="edge-text-unverified">${signedPct(evaluation.edge)} Edge</span>
+        <span class="edge-sub-meta">Return ${signedPct(evaluation.ev)} · Unverified</span>
       </div>`;
     }
     if (evaluation.closed) {
-      return `<div class="edge-box closed">
-        <span class="edge-badge-closed">Closed</span>
+      return `<div class="edge-cell edge-cell-closed">
+        <span class="edge-text-closed">Closed</span>
         <span class="edge-sub-meta">Kickoff passed</span>
       </div>`;
     }
     if (evaluation.dataCheck) {
-      return `<div class="edge-box caution" data-quote-state="verified">
-        <span class="edge-badge-caution" title="Verify before acting: edge > 12%">${SVG_ICONS.warn} ${signedPct(evaluation.edge)} Edge</span>
+      return `<div class="edge-cell edge-cell-caution" data-quote-state="verified">
+        <span class="edge-text-caution">${signedPct(evaluation.edge)} Edge</span>
         <span class="edge-sub-meta hover-help" title="Likely causes: stale price, name mismatch, unmodeled injury, or role change.">Verify before acting</span>
       </div>`;
     }
-    return `<div class="edge-box actionable" data-quote-state="verified">
-      <span class="edge-badge-pop" title="Verified edge: ${signedPct(evaluation.edge)}">${SVG_ICONS.edge} ${signedPct(evaluation.edge)} Edge</span>
-      <span class="edge-sub-meta">Return ${signedPct(evaluation.ev)} · Stake ${pct(evaluation.stake, 2)}</span>
+    const activePolicy = policy();
+    const isSubGate = activePolicy && evaluation.edge < activePolicy.gate;
+    const stakeDisplay = isSubGate ? `<span class="sub-gate-text" title="Edge below ${pct(activePolicy.gate, 0)} gate">Sub-Gate</span>` : `Stake ${pct(evaluation.stake, 2)}`;
+
+    return `<div class="edge-cell edge-cell-verified" data-quote-state="verified">
+      <span class="edge-text-verified">${signedPct(evaluation.edge)} Edge</span>
+      <span class="edge-sub-meta">Return ${signedPct(evaluation.ev)} · ${stakeDisplay}</span>
     </div>`;
   }
 
@@ -1216,6 +1360,24 @@
       openDetail(card.dataset.playerId);
     }
   }
+
+  let toastTimer = null;
+  function toast(message) {
+    let el = $('#appToast');
+    if (!el) {
+      el = document.createElement('div');
+      el.id = 'appToast';
+      el.className = 'toast';
+      document.body.appendChild(el);
+    }
+    el.textContent = message;
+    el.style.display = 'block';
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => {
+      if (el) el.style.display = 'none';
+    }, 2500);
+  }
+  const showToast = toast;
 
   function logBet(playerId) {
     const row = state.slate.find((item) => item.player_id === playerId);

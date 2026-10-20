@@ -78,96 +78,139 @@
   </header>
 
   <main class="shell page" id="slateBoard">
-    <section class="injury-strip" aria-labelledby="injuryTitle">
-      <div class="injury-line">
-        <span class="injury-icon-wrap" aria-hidden="true">
-          <svg class="prop-icon icon-warn" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2.5L1.5 13.5h13L8 2.5z"/><path d="M8 6.5v3M8 11.5v.5"/></svg>
+    <!-- Single-Line Collapsible Availability & Verification Status -->
+    <section class="availability-bar" id="availabilityBar" aria-labelledby="injuryTitle">
+      <div class="availability-lead">
+        <span class="badge-amber" id="injuryTitle">
+          <svg class="prop-icon icon-warn" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2.5L1.5 13.5h13L8 2.5z"/><path d="M8 6.5v3M8 11.5v.5"/></svg>
+          AVAILABILITY:
         </span>
-        <span class="eyebrow amber" id="injuryTitle">Availability</span>
-        <div class="injury-summary" id="injurySummary">Checking injury notes…</div>
-        <button class="text-button" id="injuryToggle" type="button" aria-expanded="false" aria-controls="injuryDetails">Details</button>
+        <span class="availability-text" id="injurySummary">Checking availability…</span>
       </div>
-      <div class="injury-details" id="injuryDetails" hidden></div>
-    </section>
-
-    <section class="board-heading">
-      <div class="board-heading-lead">
-        <div class="board-title-line">
-          <h1>Receiving props, priced with receipts.</h1>
-          <span class="status-badge-inline" id="slateState">Upcoming slate</span>
-        </div>
-        <p class="lede" id="marketState">Loading price state…</p>
-      </div>
-      <div class="view-switch" role="group" aria-label="View layout switcher">
-        <button type="button" data-view="table" class="active">Table</button>
-        <button type="button" data-view="cards">Grid</button>
+      <div class="availability-actions">
+        <span class="receipt-count-pill" id="marketState">64/64 Receipt-Verified</span>
+        <button class="text-button" id="injuryToggle" type="button" aria-expanded="false" aria-controls="injuryDetails">Details ▾</button>
       </div>
     </section>
+    <div class="injury-details" id="injuryDetails" hidden></div>
 
-    <section class="filter-panel" aria-label="Slate filters">
-      <div class="filter-top-bar">
-        <div class="slate-mode-toggle" role="tablist" aria-label="Filter play status">
-          <button type="button" class="mode-pill active" data-mode="actionable" role="tab" aria-selected="true" id="modeActionableBtn">
-            <span class="mode-icon"><svg class="prop-icon icon-edge" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 1.5L2.5 9h5l-1 5.5L13.5 7h-5l1-5.5z"/></svg></span> Active Opportunities <span class="mode-count" id="actionableCount">33</span>
+    <!-- Linear-Style Quant Command Bar (Replaces multi-row filters & bulky hero) -->
+    <section class="quant-command-bar" id="quantCommandBar" aria-label="Quant Command Plane">
+      <div class="command-bar-left">
+        <!-- Segmented Dataset Switcher -->
+        <div class="dataset-switcher" role="tablist" aria-label="Dataset mode">
+          <button type="button" class="seg-btn active" data-mode="actionable" id="modeActionableBtn" role="tab" aria-selected="true" title="Show plays clearing edge gate">
+            <span>⚡ Active</span>
+            <span class="seg-count" id="actionableCount">33</span>
           </button>
-          <button type="button" class="mode-pill" data-mode="all" role="tab" aria-selected="false" id="modeAllBtn">
-            <span class="mode-icon"><svg class="prop-icon icon-depth" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 5l6-3 6 3-6 3-6-3zM2 9.5l6 3 6-3M2 13l6 3 6-3"/></svg></span> All Projections (Reference) <span class="mode-count" id="allCount">390</span>
-          </button>
-        </div>
-        <div class="intent-chips" role="group" aria-label="Quick intent filters">
-          <button type="button" class="intent-chip active" data-intent="all">All Intent</button>
-          <button type="button" class="intent-chip" data-intent="edge"><svg class="prop-icon icon-edge" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 1.5L2.5 9h5l-1 5.5L13.5 7h-5l1-5.5z"/></svg> Highest Edge</button>
-          <button type="button" class="intent-chip" data-intent="surge"><svg class="prop-icon icon-surge" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1.5 8h3l2-5 3.5 10 2.5-6 1.5 2.5 2-.5"/></svg> Role Surges</button>
-          <button type="button" class="intent-chip" data-intent="volume"><svg class="prop-icon icon-volume" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 13.5v-4M6.5 13.5v-7M10.5 13.5v-10M14.5 13.5v-6"/></svg> High Floor (7+ Tgt)</button>
-          <button type="button" class="intent-chip" data-intent="deep"><svg class="prop-icon icon-deep" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 1v14M1 8h14"/><circle cx="8" cy="8" r="5.5"/></svg> Deep Threats (12+ aDOT)</button>
-        </div>
-      </div>
-      <div class="prime-chips" id="primeChips" aria-label="Prime-time games"></div>
-      <div class="filters-container">
-        <div class="search-row-mobile">
-          <label class="search-control">
-            <span>Search</span>
-            <input id="searchInput" type="search" placeholder="Player, team, opponent (/ to focus)" autocomplete="off">
-          </label>
-          <button type="button" id="mobileFilterToggle" class="mobile-filter-btn" aria-expanded="false" aria-controls="collapsibleFilters">
-            <svg class="prop-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M1.5 3h13M3.5 8h9M6 13h4"/></svg>
-            <span>Filters</span>
-            <span id="activeFilterBadge" class="filter-count-badge" hidden>0</span>
+          <button type="button" class="seg-btn" data-mode="all" id="modeAllBtn" role="tab" aria-selected="false" title="Show all modeled player projections">
+            <span>All Proj</span>
+            <span class="seg-count" id="allCount">390</span>
           </button>
         </div>
-        <div class="filters collapsible-filters" id="collapsibleFilters">
-          <label>
-            <span>Market</span>
-            <select id="marketFilter" class="control">
-              <option value="receiving_yards">Receiving yards</option>
+
+        <span class="bar-divider" aria-hidden="true"></span>
+
+        <!-- Compact Search -->
+        <div class="command-search-wrap">
+          <input id="searchInput" type="search" placeholder="Filter player, team... (/)" autocomplete="off">
+          <kbd class="search-kbd-hint">/</kbd>
+        </div>
+
+        <!-- Faceted Dropdown Pills -->
+        <div class="faceted-pills" id="facetedPills">
+          <label class="facet-pill" title="Select prop market">
+            <span class="facet-label">Mkt:</span>
+            <select id="marketFilter" class="facet-select">
+              <option value="receiving_yards">Rec Yards</option>
               <option value="receptions">Receptions</option>
-              <option value="anytime_td">Anytime TD (Poisson Model)</option>
+              <option value="anytime_td">Anytime TD</option>
             </select>
+            <span class="facet-arrow" aria-hidden="true">▾</span>
           </label>
-          <label>
-            <span>Position</span>
-            <select id="positionFilter" class="control">
-              <option value="ALL">All positions</option>
+
+          <label class="facet-pill" title="Filter by player archetype / edge">
+            <span class="facet-label">Intent:</span>
+            <select id="intentFilter" class="facet-select">
+              <option value="all">All Intent</option>
+              <option value="edge">Highest Edge</option>
+              <option value="surge">Role Surges</option>
+              <option value="volume">High Floor (7+ Tgt)</option>
+              <option value="deep">Deep Threats (12+ aDOT)</option>
+            </select>
+            <span class="facet-arrow" aria-hidden="true">▾</span>
+          </label>
+
+          <label class="facet-pill" title="Filter by player position">
+            <span class="facet-label">Pos:</span>
+            <select id="positionFilter" class="facet-select">
+              <option value="ALL">All Pos</option>
               <option value="WR">WR</option>
               <option value="TE">TE</option>
               <option value="RB">RB</option>
             </select>
+            <span class="facet-arrow" aria-hidden="true">▾</span>
           </label>
-          <label>
-            <span>Team</span>
-            <input id="teamFilter" class="control" type="search" list="teamOptions" placeholder="All teams" autocomplete="off">
+
+          <label class="facet-pill facet-game" title="Filter by matchup">
+            <span class="facet-label">Slate:</span>
+            <select id="gameFilter" class="facet-select">
+              <option value="ALL">All Games</option>
+            </select>
+            <span class="facet-arrow" aria-hidden="true">▾</span>
+          </label>
+
+          <label class="facet-pill facet-team" title="Filter by NFL team">
+            <span class="facet-label">Team:</span>
+            <input id="teamFilter" class="facet-input" type="search" list="teamOptions" placeholder="All" autocomplete="off">
             <datalist id="teamOptions"></datalist>
           </label>
         </div>
       </div>
-      <div class="result-line">
-        <span id="resultCount">33 actionable opportunities (390 modeled)</span>
-        <div class="result-line-right">
-          <span class="kbd-hint"><span class="kbd">J</span><span class="kbd">K</span> Navigate &bull; <span class="kbd">/</span> Search &bull; <span class="kbd">T</span> View &bull; <span class="kbd">Enter</span> Inspect</span>
-          <button id="clearFilters" class="text-button" type="button">Clear filters</button>
+
+      <div class="command-bar-right">
+        <!-- Interactive Bankroll Risk Steppers -->
+        <div class="risk-steppers-group">
+          <div class="risk-stepper" title="Gate: Minimum statistical edge required">
+            <span class="stepper-label">Gate</span>
+            <button type="button" class="stepper-btn" id="gateMinus" aria-label="Decrease gate">−</button>
+            <span class="stepper-val" id="gateVal">10%</span>
+            <button type="button" class="stepper-btn" id="gatePlus" aria-label="Increase gate">+</button>
+          </div>
+          <span class="stepper-divider" aria-hidden="true">|</span>
+          <div class="risk-stepper" title="Kelly Cap: Max bankroll allocation per play">
+            <span class="stepper-label">Kelly Cap</span>
+            <button type="button" class="stepper-btn" id="capMinus" aria-label="Decrease Kelly cap">−</button>
+            <span class="stepper-val" id="capVal">3.0%</span>
+            <button type="button" class="stepper-btn" id="capPlus" aria-label="Increase Kelly cap">+</button>
+          </div>
+        </div>
+
+        <!-- Hotkey Legend (Desktop Only) -->
+        <div class="desktop-kbd-legend" aria-hidden="true">
+          <kbd>J</kbd> <kbd>K</kbd> <span>Row</span>
+          <span class="kbd-dot">·</span>
+          <kbd>Enter</kbd> <span>Inspect</span>
+          <span class="kbd-dot">·</span>
+          <kbd>L</kbd> <span>Log</span>
+        </div>
+
+        <!-- View Switcher -->
+        <div class="view-switch" role="group" aria-label="View layout switcher">
+          <button type="button" data-view="table" class="active">Table</button>
+          <button type="button" data-view="cards">Grid</button>
         </div>
       </div>
     </section>
+
+    <!-- Horizontal Swipeable Game Matchup Strip -->
+    <div class="prime-chips-strip" id="primeChipsWrap">
+      <div class="prime-chips" id="primeChips" aria-label="Matchup filter"></div>
+    </div>
+
+    <!-- Hidden compatibility elements -->
+    <span id="slateState" hidden>Upcoming slate</span>
+    <span id="resultCount" hidden>33 actionable</span>
 
     <section class="data-board" aria-label="Player slate">
       <noscript>
