@@ -68990,5 +68990,3245 @@
     },
     "scenario_assumptions": null,
     "content_hash": "787b8adfe0d8b7e0d974d4cada00996e5dcef92e420a492a4073995f3bad53d9"
+  },
+  {
+    "snapshot_id": "de39036f-c520-40b9-bcaa-4968525a1a02",
+    "snapshot_type": "first_published",
+    "created_at": "2026-10-20T06:11:19.995948+00:00",
+    "slate": "2026-W07",
+    "game_id": "2026_07_NE_CHI",
+    "player_id": "00-0038621",
+    "player_name": "DeMario Douglas",
+    "team": "NE",
+    "opponent": "CHI",
+    "position": "WR",
+    "market": "receiving_yards",
+    "model": {
+      "version": "negbin-gamma-v3.2",
+      "alpha": 0.1097,
+      "k": 1.555,
+      "calibration_bias": 0.0,
+      "input_cutoff": "2026-10-20T06:11:19.995948+00:00"
+    },
+    "role": {
+      "label": "none",
+      "is_provisional": true,
+      "provisional_note": "Role labels and thresholds remain provisional pending chronological holdout validation.",
+      "recent_window": "last_1_game",
+      "baseline_window": "prior_8_games_ewma",
+      "recent_target_share": 0.2258,
+      "baseline_target_share": 0.1367,
+      "delta": 0.0891,
+      "career_games": 47,
+      "target_sd": 1.07,
+      "missing_route_data": true,
+      "raw_observations": {
+        "targets": 7,
+        "receptions": 5,
+        "receiving_yards": 20,
+        "f_targets": 3.84,
+        "f_rec": 2.67,
+        "f_yards": 20.31,
+        "air_yards_share": 0.1991,
+        "f_ay_share": 0.136,
+        "adot": 6.29,
+        "f_adot": 10.09
+      }
+    },
+    "projection": {
+      "fair_line": 43.5,
+      "proj_volume": 43.5,
+      "distribution_params": {
+        "mu_rec": 0.6053,
+        "alpha": 0.1097,
+        "k": 1.555
+      },
+      "p_over": 0.6053,
+      "p_under": 0.3947,
+      "p_push": 0.0
+    },
+    "price_boundaries": {
+      "max_acceptable_over_line_at_minus_110": 40.5,
+      "min_acceptable_under_line_at_minus_110": 46.5,
+      "breakeven_odds_at_fair": "-110"
+    },
+    "qualification_policy": {
+      "version": "edge_10pct_v1",
+      "edge_hurdle": 0.1,
+      "require_positive_ev": true
+    },
+    "quote": {
+      "status": "verified",
+      "quote_id": "dk_ne_chi_douglas_yds_open",
+      "source": "DraftKings Early Openers (TNF Verified Feed)",
+      "book": "DraftKings",
+      "line": 34.5,
+      "over_odds": -110,
+      "under_odds": -110,
+      "observed_at": "2026-10-20T06:11:19.985603+00:00",
+      "evaluation": {
+        "is_qualified": true,
+        "status": "QUALIFIED",
+        "best_side": "OVER",
+        "prob_edge": 0.1053,
+        "break_even_adv": 0.0814,
+        "expected_return": 0.1555,
+        "actionable_stake": 0.03,
+        "catalyst": "both",
+        "injury_context": "Romeo Doubs (Shoulder OUT)"
+      }
+    },
+    "scenario_assumptions": "Romeo Doubs (Shoulder OUT)",
+    "content_hash": "3217826645f7b79960b9f6da7e5f51bf14e4477ebb4257bdd93fd7134dc256b9"
+  },
+  {
+    "snapshot_id": "7c0fe69d-a06f-4003-bf2b-bb06872342ce",
+    "snapshot_type": "first_published",
+    "created_at": "2026-10-20T06:11:19.995948+00:00",
+    "slate": "2026-W07",
+    "game_id": "2026_07_NE_CHI",
+    "player_id": "00-0038621",
+    "player_name": "DeMario Douglas",
+    "team": "NE",
+    "opponent": "CHI",
+    "position": "WR",
+    "market": "receptions",
+    "model": {
+      "version": "negbin-gamma-v3.2",
+      "alpha": 0.1097,
+      "k": 1.555,
+      "calibration_bias": 0.0,
+      "input_cutoff": "2026-10-20T06:11:19.995948+00:00"
+    },
+    "role": {
+      "label": "none",
+      "is_provisional": true,
+      "provisional_note": "Role labels and thresholds remain provisional pending chronological holdout validation.",
+      "recent_window": "last_1_game",
+      "baseline_window": "prior_8_games_ewma",
+      "recent_target_share": 0.2258,
+      "baseline_target_share": 0.1367,
+      "delta": 0.0891,
+      "career_games": 47,
+      "target_sd": 1.07,
+      "missing_route_data": true,
+      "raw_observations": {
+        "targets": 7,
+        "receptions": 5,
+        "receiving_yards": 20,
+        "f_targets": 3.84,
+        "f_rec": 2.67,
+        "f_yards": 20.31,
+        "air_yards_share": 0.1991,
+        "f_ay_share": 0.136,
+        "adot": 6.29,
+        "f_adot": 10.09
+      }
+    },
+    "projection": {
+      "fair_line": 4.5,
+      "proj_volume": 4.5,
+      "distribution_params": {
+        "mu_rec": 0.5417,
+        "alpha": 0.1097,
+        "k": 1.555
+      },
+      "p_over": 0.5417,
+      "p_under": 0.4583,
+      "p_push": 0.0
+    },
+    "price_boundaries": {
+      "max_acceptable_over_line_at_minus_110": 1.5,
+      "min_acceptable_under_line_at_minus_110": 7.5,
+      "breakeven_odds_at_fair": "-110"
+    },
+    "qualification_policy": {
+      "version": "edge_10pct_v1",
+      "edge_hurdle": 0.1,
+      "require_positive_ev": true
+    },
+    "quote": {
+      "status": "verified",
+      "quote_id": "fd_ne_chi_douglas_rec_open",
+      "source": "FanDuel Early Openers (TNF Verified Feed)",
+      "book": "FanDuel",
+      "line": 3.5,
+      "over_odds": 105,
+      "under_odds": -135,
+      "observed_at": "2026-10-20T06:11:19.985603+00:00",
+      "evaluation": {
+        "is_qualified": false,
+        "status": "LEAN",
+        "best_side": "OVER",
+        "prob_edge": 0.0825,
+        "break_even_adv": 0.0539,
+        "expected_return": 0.1105,
+        "actionable_stake": 0.0,
+        "catalyst": "football_news",
+        "injury_context": "Romeo Doubs (Shoulder OUT)"
+      }
+    },
+    "scenario_assumptions": "Romeo Doubs (Shoulder OUT)",
+    "content_hash": "ae2ade7666bf10f90d76538fe568dfedf8e1345e35098e44d1e281166d6ea24a"
+  },
+  {
+    "snapshot_id": "b4991e54-6cbe-4962-b048-033a723105ac",
+    "snapshot_type": "first_published",
+    "created_at": "2026-10-20T06:11:19.995948+00:00",
+    "slate": "2026-W07",
+    "game_id": "2026_07_NE_CHI",
+    "player_id": "00-0033090",
+    "player_name": "Hunter Henry",
+    "team": "NE",
+    "opponent": "CHI",
+    "position": "TE",
+    "market": "receiving_yards",
+    "model": {
+      "version": "negbin-gamma-v3.2",
+      "alpha": 0.1097,
+      "k": 1.555,
+      "calibration_bias": 0.0,
+      "input_cutoff": "2026-10-20T06:11:19.995948+00:00"
+    },
+    "role": {
+      "label": "none",
+      "is_provisional": true,
+      "provisional_note": "Role labels and thresholds remain provisional pending chronological holdout validation.",
+      "recent_window": "last_1_game",
+      "baseline_window": "prior_8_games_ewma",
+      "recent_target_share": 0.0968,
+      "baseline_target_share": 0.1581,
+      "delta": -0.0613,
+      "career_games": 130,
+      "target_sd": 2.33,
+      "missing_route_data": true,
+      "raw_observations": {
+        "targets": 3,
+        "receptions": 3,
+        "receiving_yards": 26,
+        "f_targets": 4.28,
+        "f_rec": 3.76,
+        "f_yards": 41.49,
+        "air_yards_share": 0.0543,
+        "f_ay_share": 0.0968,
+        "adot": 4.0,
+        "f_adot": 5.94
+      }
+    },
+    "projection": {
+      "fair_line": 39.5,
+      "proj_volume": 39.5,
+      "distribution_params": {
+        "mu_rec": 0.6129,
+        "alpha": 0.1097,
+        "k": 1.555
+      },
+      "p_over": 0.6129,
+      "p_under": 0.3871,
+      "p_push": 0.0
+    },
+    "price_boundaries": {
+      "max_acceptable_over_line_at_minus_110": 36.5,
+      "min_acceptable_under_line_at_minus_110": 42.5,
+      "breakeven_odds_at_fair": "-110"
+    },
+    "qualification_policy": {
+      "version": "edge_10pct_v1",
+      "edge_hurdle": 0.1,
+      "require_positive_ev": true
+    },
+    "quote": {
+      "status": "verified",
+      "quote_id": "mgm_ne_chi_henry_yds_open",
+      "source": "BetMGM Early Openers (TNF Verified Feed)",
+      "book": "BetMGM",
+      "line": 31.5,
+      "over_odds": -115,
+      "under_odds": -115,
+      "observed_at": "2026-10-20T06:11:19.985603+00:00",
+      "evaluation": {
+        "is_qualified": true,
+        "status": "QUALIFIED",
+        "best_side": "OVER",
+        "prob_edge": 0.1129,
+        "break_even_adv": 0.078,
+        "expected_return": 0.1458,
+        "actionable_stake": 0.03,
+        "catalyst": "both",
+        "injury_context": "Romeo Doubs (Shoulder OUT)"
+      }
+    },
+    "scenario_assumptions": "Romeo Doubs (Shoulder OUT)",
+    "content_hash": "bd80a1d5c47919d863c2cbf43afd78e2cc6c331dec11e00548ada6aef5b9eb03"
+  },
+  {
+    "snapshot_id": "54bc278b-b9ed-4626-b445-1ed02c52d6ee",
+    "snapshot_type": "first_published",
+    "created_at": "2026-10-20T06:11:19.995948+00:00",
+    "slate": "2026-W07",
+    "game_id": "2026_07_NE_CHI",
+    "player_id": "00-0033090",
+    "player_name": "Hunter Henry",
+    "team": "NE",
+    "opponent": "CHI",
+    "position": "TE",
+    "market": "receptions",
+    "model": {
+      "version": "negbin-gamma-v3.2",
+      "alpha": 0.1097,
+      "k": 1.555,
+      "calibration_bias": 0.0,
+      "input_cutoff": "2026-10-20T06:11:19.995948+00:00"
+    },
+    "role": {
+      "label": "none",
+      "is_provisional": true,
+      "provisional_note": "Role labels and thresholds remain provisional pending chronological holdout validation.",
+      "recent_window": "last_1_game",
+      "baseline_window": "prior_8_games_ewma",
+      "recent_target_share": 0.0968,
+      "baseline_target_share": 0.1581,
+      "delta": -0.0613,
+      "career_games": 130,
+      "target_sd": 2.33,
+      "missing_route_data": true,
+      "raw_observations": {
+        "targets": 3,
+        "receptions": 3,
+        "receiving_yards": 26,
+        "f_targets": 4.28,
+        "f_rec": 3.76,
+        "f_yards": 41.49,
+        "air_yards_share": 0.0543,
+        "f_ay_share": 0.0968,
+        "adot": 4.0,
+        "f_adot": 5.94
+      }
+    },
+    "projection": {
+      "fair_line": 4.5,
+      "proj_volume": 4.5,
+      "distribution_params": {
+        "mu_rec": 0.6137,
+        "alpha": 0.1097,
+        "k": 1.555
+      },
+      "p_over": 0.6137,
+      "p_under": 0.3863,
+      "p_push": 0.0
+    },
+    "price_boundaries": {
+      "max_acceptable_over_line_at_minus_110": 1.5,
+      "min_acceptable_under_line_at_minus_110": 7.5,
+      "breakeven_odds_at_fair": "-110"
+    },
+    "qualification_policy": {
+      "version": "edge_10pct_v1",
+      "edge_hurdle": 0.1,
+      "require_positive_ev": true
+    },
+    "quote": {
+      "status": "verified",
+      "quote_id": "dk_ne_chi_henry_rec_open",
+      "source": "DraftKings Early Openers (TNF Verified Feed)",
+      "book": "DraftKings",
+      "line": 3.5,
+      "over_odds": 110,
+      "under_odds": -140,
+      "observed_at": "2026-10-20T06:11:19.985603+00:00",
+      "evaluation": {
+        "is_qualified": true,
+        "status": "QUALIFIED",
+        "best_side": "OVER",
+        "prob_edge": 0.1642,
+        "break_even_adv": 0.1375,
+        "expected_return": 0.2887,
+        "actionable_stake": 0.03,
+        "catalyst": "football_news",
+        "injury_context": "Romeo Doubs (Shoulder OUT)"
+      }
+    },
+    "scenario_assumptions": "Romeo Doubs (Shoulder OUT)",
+    "content_hash": "96d4b6dc89357120d4316ca3bc852975781eb232957043fc4dfe1d3f408f8856"
+  },
+  {
+    "snapshot_id": "036dabe3-d89d-4dce-acb7-fa3f4793d89d",
+    "snapshot_type": "first_published",
+    "created_at": "2026-10-20T06:11:19.995948+00:00",
+    "slate": "2026-W07",
+    "game_id": "2026_07_NE_CHI",
+    "player_id": "00-0033555",
+    "player_name": "Mack Hollins",
+    "team": "NE",
+    "opponent": "CHI",
+    "position": "WR",
+    "market": "receiving_yards",
+    "model": {
+      "version": "negbin-gamma-v3.2",
+      "alpha": 0.1097,
+      "k": 1.555,
+      "calibration_bias": 0.0,
+      "input_cutoff": "2026-10-20T06:11:19.995948+00:00"
+    },
+    "role": {
+      "label": "none",
+      "is_provisional": true,
+      "provisional_note": "Role labels and thresholds remain provisional pending chronological holdout validation.",
+      "recent_window": "last_1_game",
+      "baseline_window": "prior_8_games_ewma",
+      "recent_target_share": 0.1613,
+      "baseline_target_share": 0.2049,
+      "delta": -0.0436,
+      "career_games": 111,
+      "target_sd": 2.67,
+      "missing_route_data": true,
+      "raw_observations": {
+        "targets": 5,
+        "receptions": 4,
+        "receiving_yards": 51,
+        "f_targets": 6.35,
+        "f_rec": 4.44,
+        "f_yards": 50.65,
+        "air_yards_share": 0.2805,
+        "f_ay_share": 0.2981,
+        "adot": 12.4,
+        "f_adot": 13.47
+      }
+    },
+    "projection": {
+      "fair_line": 45.5,
+      "proj_volume": 45.5,
+      "distribution_params": {
+        "mu_rec": 0.6874,
+        "alpha": 0.1097,
+        "k": 1.555
+      },
+      "p_over": 0.6874,
+      "p_under": 0.3126,
+      "p_push": 0.0
+    },
+    "price_boundaries": {
+      "max_acceptable_over_line_at_minus_110": 42.5,
+      "min_acceptable_under_line_at_minus_110": 48.5,
+      "breakeven_odds_at_fair": "-110"
+    },
+    "qualification_policy": {
+      "version": "edge_10pct_v1",
+      "edge_hurdle": 0.1,
+      "require_positive_ev": true
+    },
+    "quote": {
+      "status": "verified",
+      "quote_id": "pin_ne_chi_hollins_yds_open",
+      "source": "Pinnacle Sharp Early Openers (TNF Verified Feed)",
+      "book": "Pinnacle",
+      "line": 29.5,
+      "over_odds": -108,
+      "under_odds": -108,
+      "observed_at": "2026-10-20T06:11:19.985603+00:00",
+      "evaluation": {
+        "is_qualified": true,
+        "status": "QUALIFIED",
+        "best_side": "OVER",
+        "prob_edge": 0.1874,
+        "break_even_adv": 0.1682,
+        "expected_return": 0.3239,
+        "actionable_stake": 0.03,
+        "catalyst": "both",
+        "injury_context": "Romeo Doubs (Shoulder OUT)"
+      }
+    },
+    "scenario_assumptions": "Romeo Doubs (Shoulder OUT)",
+    "content_hash": "5eddc3984c2bd46662e63b40f560caaeeda54da0014864480a0d8c8a4fdd3aea"
+  },
+  {
+    "snapshot_id": "27afc3bf-f5dd-4187-814e-ec3bc1ad4d81",
+    "snapshot_type": "first_published",
+    "created_at": "2026-10-20T06:11:19.995948+00:00",
+    "slate": "2026-W07",
+    "game_id": "2026_07_SF_ATL",
+    "player_id": "00-0033288",
+    "player_name": "George Kittle",
+    "team": "SF",
+    "opponent": "ATL",
+    "position": "TE",
+    "market": "receiving_yards",
+    "model": {
+      "version": "negbin-gamma-v3.2",
+      "alpha": 0.1097,
+      "k": 1.555,
+      "calibration_bias": 0.0,
+      "input_cutoff": "2026-10-20T06:11:19.995948+00:00"
+    },
+    "role": {
+      "label": "none",
+      "is_provisional": true,
+      "provisional_note": "Role labels and thresholds remain provisional pending chronological holdout validation.",
+      "recent_window": "last_1_game",
+      "baseline_window": "prior_8_games_ewma",
+      "recent_target_share": 0.1471,
+      "baseline_target_share": 0.2198,
+      "delta": -0.0727,
+      "career_games": 125,
+      "target_sd": 2.12,
+      "missing_route_data": true,
+      "raw_observations": {
+        "targets": 5,
+        "receptions": 2,
+        "receiving_yards": 12,
+        "f_targets": 6.58,
+        "f_rec": 4.62,
+        "f_yards": 49.05,
+        "air_yards_share": 0.255,
+        "f_ay_share": 0.2336,
+        "adot": 7.6,
+        "f_adot": 7.2
+      }
+    },
+    "projection": {
+      "fair_line": 61.0,
+      "proj_volume": 61.0,
+      "distribution_params": {
+        "mu_rec": 0.6251,
+        "alpha": 0.1097,
+        "k": 1.555
+      },
+      "p_over": 0.6251,
+      "p_under": 0.3749,
+      "p_push": 0.0
+    },
+    "price_boundaries": {
+      "max_acceptable_over_line_at_minus_110": 58.0,
+      "min_acceptable_under_line_at_minus_110": 64.0,
+      "breakeven_odds_at_fair": "-110"
+    },
+    "qualification_policy": {
+      "version": "edge_10pct_v1",
+      "edge_hurdle": 0.1,
+      "require_positive_ev": true
+    },
+    "quote": {
+      "status": "verified",
+      "quote_id": "dk_sf_atl_kittle_yds_open",
+      "source": "DraftKings Early Openers (Week 7 Verified Feed)",
+      "book": "DraftKings",
+      "line": 48.5,
+      "over_odds": -112,
+      "under_odds": -112,
+      "observed_at": "2026-10-20T06:11:19.985603+00:00",
+      "evaluation": {
+        "is_qualified": true,
+        "status": "QUALIFIED",
+        "best_side": "OVER",
+        "prob_edge": 0.1251,
+        "break_even_adv": 0.0968,
+        "expected_return": 0.1833,
+        "actionable_stake": 0.03,
+        "catalyst": "both",
+        "injury_context": "Mike Evans (Achilles OUT)"
+      }
+    },
+    "scenario_assumptions": "Mike Evans (Achilles OUT)",
+    "content_hash": "7696678d1886b1bd24bed4f9b353dbb8788375d3d6c14bf2ce6f0097103b9905"
+  },
+  {
+    "snapshot_id": "1faf2f49-f5c1-4df8-ba4a-e63eac92a2f2",
+    "snapshot_type": "first_published",
+    "created_at": "2026-10-20T06:11:19.995948+00:00",
+    "slate": "2026-W07",
+    "game_id": "2026_07_SF_ATL",
+    "player_id": "00-0033288",
+    "player_name": "George Kittle",
+    "team": "SF",
+    "opponent": "ATL",
+    "position": "TE",
+    "market": "receptions",
+    "model": {
+      "version": "negbin-gamma-v3.2",
+      "alpha": 0.1097,
+      "k": 1.555,
+      "calibration_bias": 0.0,
+      "input_cutoff": "2026-10-20T06:11:19.995948+00:00"
+    },
+    "role": {
+      "label": "none",
+      "is_provisional": true,
+      "provisional_note": "Role labels and thresholds remain provisional pending chronological holdout validation.",
+      "recent_window": "last_1_game",
+      "baseline_window": "prior_8_games_ewma",
+      "recent_target_share": 0.1471,
+      "baseline_target_share": 0.2198,
+      "delta": -0.0727,
+      "career_games": 125,
+      "target_sd": 2.12,
+      "missing_route_data": true,
+      "raw_observations": {
+        "targets": 5,
+        "receptions": 2,
+        "receiving_yards": 12,
+        "f_targets": 6.58,
+        "f_rec": 4.62,
+        "f_yards": 49.05,
+        "air_yards_share": 0.255,
+        "f_ay_share": 0.2336,
+        "adot": 7.6,
+        "f_adot": 7.2
+      }
+    },
+    "projection": {
+      "fair_line": 6.5,
+      "proj_volume": 6.5,
+      "distribution_params": {
+        "mu_rec": 0.6482,
+        "alpha": 0.1097,
+        "k": 1.555
+      },
+      "p_over": 0.6482,
+      "p_under": 0.3518,
+      "p_push": 0.0
+    },
+    "price_boundaries": {
+      "max_acceptable_over_line_at_minus_110": 3.5,
+      "min_acceptable_under_line_at_minus_110": 9.5,
+      "breakeven_odds_at_fair": "-110"
+    },
+    "qualification_policy": {
+      "version": "edge_10pct_v1",
+      "edge_hurdle": 0.1,
+      "require_positive_ev": true
+    },
+    "quote": {
+      "status": "verified",
+      "quote_id": "fd_sf_atl_kittle_rec_open",
+      "source": "FanDuel Early Openers (Week 7 Verified Feed)",
+      "book": "FanDuel",
+      "line": 4.5,
+      "over_odds": -105,
+      "under_odds": -125,
+      "observed_at": "2026-10-20T06:11:19.985603+00:00",
+      "evaluation": {
+        "is_qualified": true,
+        "status": "QUALIFIED",
+        "best_side": "OVER",
+        "prob_edge": 0.1685,
+        "break_even_adv": 0.136,
+        "expected_return": 0.2654,
+        "actionable_stake": 0.03,
+        "catalyst": "football_news",
+        "injury_context": "Mike Evans (Achilles OUT)"
+      }
+    },
+    "scenario_assumptions": "Mike Evans (Achilles OUT)",
+    "content_hash": "d9f2769434b80cc58d58d20ebc5833a5270cb4711e56d9762f6e6e8c2ae2a756"
+  },
+  {
+    "snapshot_id": "8e61f4a5-9bfb-4c40-8060-76e16b96441c",
+    "snapshot_type": "first_published",
+    "created_at": "2026-10-20T06:11:19.995948+00:00",
+    "slate": "2026-W07",
+    "game_id": "2026_07_SF_ATL",
+    "player_id": "00-0033280",
+    "player_name": "Christian McCaffrey",
+    "team": "SF",
+    "opponent": "ATL",
+    "position": "RB",
+    "market": "receiving_yards",
+    "model": {
+      "version": "negbin-gamma-v3.2",
+      "alpha": 0.1097,
+      "k": 1.555,
+      "calibration_bias": 0.0,
+      "input_cutoff": "2026-10-20T06:11:19.995948+00:00"
+    },
+    "role": {
+      "label": "established_volume",
+      "is_provisional": true,
+      "provisional_note": "Role labels and thresholds remain provisional pending chronological holdout validation.",
+      "recent_window": "last_1_game",
+      "baseline_window": "prior_8_games_ewma",
+      "recent_target_share": 0.2353,
+      "baseline_target_share": 0.2178,
+      "delta": 0.0175,
+      "career_games": 113,
+      "target_sd": 2.7,
+      "missing_route_data": true,
+      "raw_observations": {
+        "targets": 8,
+        "receptions": 5,
+        "receiving_yards": 20,
+        "f_targets": 6.78,
+        "f_rec": 4.98,
+        "f_yards": 29.83,
+        "air_yards_share": -0.0201,
+        "f_ay_share": 0.0569,
+        "adot": -0.38,
+        "f_adot": 1.72
+      }
+    },
+    "projection": {
+      "fair_line": 41.5,
+      "proj_volume": 41.5,
+      "distribution_params": {
+        "mu_rec": 0.6325,
+        "alpha": 0.1097,
+        "k": 1.555
+      },
+      "p_over": 0.6325,
+      "p_under": 0.3675,
+      "p_push": 0.0
+    },
+    "price_boundaries": {
+      "max_acceptable_over_line_at_minus_110": 38.5,
+      "min_acceptable_under_line_at_minus_110": 44.5,
+      "breakeven_odds_at_fair": "-110"
+    },
+    "qualification_policy": {
+      "version": "edge_10pct_v1",
+      "edge_hurdle": 0.1,
+      "require_positive_ev": true
+    },
+    "quote": {
+      "status": "verified",
+      "quote_id": "mgm_sf_atl_cmc_yds_open",
+      "source": "BetMGM Early Openers (Week 7 Verified Feed)",
+      "book": "BetMGM",
+      "line": 32.5,
+      "over_odds": -115,
+      "under_odds": -115,
+      "observed_at": "2026-10-20T06:11:19.985603+00:00",
+      "evaluation": {
+        "is_qualified": true,
+        "status": "QUALIFIED",
+        "best_side": "OVER",
+        "prob_edge": 0.1325,
+        "break_even_adv": 0.0976,
+        "expected_return": 0.1825,
+        "actionable_stake": 0.03,
+        "catalyst": "both",
+        "injury_context": "Mike Evans (Achilles OUT)"
+      }
+    },
+    "scenario_assumptions": "Mike Evans (Achilles OUT)",
+    "content_hash": "bd8ed90a5484795d89a638004aa6c54e61df01c35effd49899d0f860284c1a81"
+  },
+  {
+    "snapshot_id": "3f85a3d9-689e-4053-8766-75cef137c408",
+    "snapshot_type": "first_published",
+    "created_at": "2026-10-20T06:11:19.995948+00:00",
+    "slate": "2026-W07",
+    "game_id": "2026_07_NE_CHI",
+    "player_id": "00-0035676",
+    "player_name": "A.J. Brown",
+    "team": "NE",
+    "opponent": "CHI",
+    "position": "WR",
+    "market": "receiving_yards",
+    "model": {
+      "version": "negbin-gamma-v3.2",
+      "alpha": 0.1097,
+      "k": 1.555,
+      "calibration_bias": 0.0,
+      "input_cutoff": "2026-10-20T06:11:19.995948+00:00"
+    },
+    "role": {
+      "label": "contraction",
+      "is_provisional": true,
+      "provisional_note": "Role labels and thresholds remain provisional pending chronological holdout validation.",
+      "recent_window": "last_1_game",
+      "baseline_window": "prior_8_games_ewma",
+      "recent_target_share": 0.129,
+      "baseline_target_share": 0.2511,
+      "delta": -0.1221,
+      "career_games": 106,
+      "target_sd": 4.27,
+      "missing_route_data": true,
+      "raw_observations": {
+        "targets": 4,
+        "receptions": 3,
+        "receiving_yards": 26,
+        "f_targets": 6.99,
+        "f_rec": 4.99,
+        "f_yards": 60.65,
+        "air_yards_share": 0.086,
+        "f_ay_share": 0.2813,
+        "adot": 4.75,
+        "f_adot": 9.9
+      }
+    },
+    "projection": {
+      "fair_line": 61.0,
+      "proj_volume": 61.0,
+      "distribution_params": {
+        "mu_rec": 0.466,
+        "alpha": 0.1097,
+        "k": 1.555
+      },
+      "p_over": 0.466,
+      "p_under": 0.534,
+      "p_push": 0.0
+    },
+    "price_boundaries": {
+      "max_acceptable_over_line_at_minus_110": 58.0,
+      "min_acceptable_under_line_at_minus_110": 64.0,
+      "breakeven_odds_at_fair": "-110"
+    },
+    "qualification_policy": {
+      "version": "edge_10pct_v1",
+      "edge_hurdle": 0.1,
+      "require_positive_ev": true
+    },
+    "quote": {
+      "status": "verified",
+      "quote_id": "dk_ne_chi_ajb_yds_open",
+      "source": "DraftKings Early Openers (TNF Verified Feed)",
+      "book": "DraftKings",
+      "line": 64.5,
+      "over_odds": -115,
+      "under_odds": -115,
+      "observed_at": "2026-10-20T06:11:19.985603+00:00",
+      "evaluation": {
+        "is_qualified": false,
+        "status": "PASS",
+        "best_side": "UNDER",
+        "prob_edge": 0.034,
+        "break_even_adv": -0.0009,
+        "expected_return": -0.0016,
+        "actionable_stake": 0.0,
+        "catalyst": "pricing",
+        "injury_context": null
+      }
+    },
+    "scenario_assumptions": null,
+    "content_hash": "c7848604ea8954db81cab6b889eedbfac9b25e7714673d6801d34cdc00e226e2"
+  },
+  {
+    "snapshot_id": "9ce09702-4009-403c-9a99-cc2c13101fe6",
+    "snapshot_type": "first_published",
+    "created_at": "2026-10-20T06:11:19.995948+00:00",
+    "slate": "2026-W07",
+    "game_id": "2026_07_GB_DET",
+    "player_id": "00-0036963",
+    "player_name": "Amon-Ra St. Brown",
+    "team": "DET",
+    "opponent": "GB",
+    "position": "WR",
+    "market": "receiving_yards",
+    "model": {
+      "version": "negbin-gamma-v3.2",
+      "alpha": 0.1097,
+      "k": 1.555,
+      "calibration_bias": 0.0,
+      "input_cutoff": "2026-10-20T06:11:19.995948+00:00"
+    },
+    "role": {
+      "label": "established_volume",
+      "is_provisional": true,
+      "provisional_note": "Role labels and thresholds remain provisional pending chronological holdout validation.",
+      "recent_window": "last_1_game",
+      "baseline_window": "prior_8_games_ewma",
+      "recent_target_share": 0.4167,
+      "baseline_target_share": 0.3605,
+      "delta": 0.0561,
+      "career_games": 82,
+      "target_sd": 4.96,
+      "missing_route_data": true,
+      "raw_observations": {
+        "targets": 15,
+        "receptions": 11,
+        "receiving_yards": 139,
+        "f_targets": 12.63,
+        "f_rec": 8.29,
+        "f_yards": 99.8,
+        "air_yards_share": 0.58,
+        "f_ay_share": 0.4137,
+        "adot": 9.67,
+        "f_adot": 7.23
+      }
+    },
+    "projection": {
+      "fair_line": 113.0,
+      "proj_volume": 113.0,
+      "distribution_params": {
+        "mu_rec": 0.5019,
+        "alpha": 0.1097,
+        "k": 1.555
+      },
+      "p_over": 0.5019,
+      "p_under": 0.4981,
+      "p_push": 0.0
+    },
+    "price_boundaries": {
+      "max_acceptable_over_line_at_minus_110": 110.0,
+      "min_acceptable_under_line_at_minus_110": 116.0,
+      "breakeven_odds_at_fair": "-110"
+    },
+    "qualification_policy": {
+      "version": "edge_10pct_v1",
+      "edge_hurdle": 0.1,
+      "require_positive_ev": true
+    },
+    "quote": {
+      "status": "verified",
+      "quote_id": "pin_det_gb_amonra_yds_open",
+      "source": "Pinnacle Sharp Early Openers (Week 7 Verified Feed)",
+      "book": "Pinnacle",
+      "line": 112.5,
+      "over_odds": -110,
+      "under_odds": -110,
+      "observed_at": "2026-10-20T06:11:19.985603+00:00",
+      "evaluation": {
+        "is_qualified": false,
+        "status": "PASS",
+        "best_side": "OVER",
+        "prob_edge": 0.0019,
+        "break_even_adv": -0.0219,
+        "expected_return": -0.0419,
+        "actionable_stake": 0.0,
+        "catalyst": "pricing",
+        "injury_context": null
+      }
+    },
+    "scenario_assumptions": null,
+    "content_hash": "aca3bc8bd94419e445bae61a026a203b4051a3de9516b661335c8ed7548dcfbb"
+  },
+  {
+    "snapshot_id": "fc09dc99-966b-4f44-a584-d7ad2877f6ab",
+    "snapshot_type": "material_revision",
+    "created_at": "2026-10-20T06:12:03.113203+00:00",
+    "slate": "2026-W07",
+    "game_id": "2026_07_NE_CHI",
+    "player_id": "00-0038621",
+    "player_name": "DeMario Douglas",
+    "team": "NE",
+    "opponent": "CHI",
+    "position": "WR",
+    "market": "receiving_yards",
+    "model": {
+      "version": "negbin-gamma-v3.2",
+      "alpha": 0.1097,
+      "k": 1.555,
+      "calibration_bias": 0.0,
+      "input_cutoff": "2026-10-20T06:12:03.113203+00:00"
+    },
+    "role": {
+      "label": "none",
+      "is_provisional": true,
+      "provisional_note": "Role labels and thresholds remain provisional pending chronological holdout validation.",
+      "recent_window": "last_1_game",
+      "baseline_window": "prior_8_games_ewma",
+      "recent_target_share": 0.2258,
+      "baseline_target_share": 0.1367,
+      "delta": 0.0891,
+      "career_games": 47,
+      "target_sd": 1.07,
+      "missing_route_data": true,
+      "raw_observations": {
+        "targets": 7,
+        "receptions": 5,
+        "receiving_yards": 20,
+        "f_targets": 3.84,
+        "f_rec": 2.67,
+        "f_yards": 20.31,
+        "air_yards_share": 0.1991,
+        "f_ay_share": 0.136,
+        "adot": 6.29,
+        "f_adot": 10.09
+      }
+    },
+    "projection": {
+      "fair_line": 43.5,
+      "proj_volume": 43.5,
+      "distribution_params": {
+        "mu_rec": 0.6053,
+        "alpha": 0.1097,
+        "k": 1.555
+      },
+      "p_over": 0.6053,
+      "p_under": 0.3947,
+      "p_push": 0.0
+    },
+    "price_boundaries": {
+      "max_acceptable_over_line_at_minus_110": 40.5,
+      "min_acceptable_under_line_at_minus_110": 46.5,
+      "breakeven_odds_at_fair": "-110"
+    },
+    "qualification_policy": {
+      "version": "edge_10pct_v1",
+      "edge_hurdle": 0.1,
+      "require_positive_ev": true
+    },
+    "quote": {
+      "status": "verified",
+      "quote_id": "dk_ne_chi_douglas_yds_open",
+      "source": "DraftKings Early Openers (TNF Verified Feed)",
+      "book": "DraftKings",
+      "line": 34.5,
+      "over_odds": -110,
+      "under_odds": -110,
+      "observed_at": "2026-10-20T06:12:03.103828+00:00",
+      "evaluation": {
+        "is_qualified": true,
+        "status": "QUALIFIED",
+        "best_side": "OVER",
+        "prob_edge": 0.1053,
+        "break_even_adv": 0.0814,
+        "expected_return": 0.1555,
+        "actionable_stake": 0.03,
+        "catalyst": "both",
+        "injury_context": "Romeo Doubs (Shoulder OUT)"
+      }
+    },
+    "scenario_assumptions": "Romeo Doubs (Shoulder OUT)",
+    "content_hash": "d7676e8a0906d1f454a6304395f18ca51bf84ab7b9d275a2c87e3e7d442ad616"
+  },
+  {
+    "snapshot_id": "6ce44bb0-a5d7-4f52-ba8c-04f19ad9477d",
+    "snapshot_type": "material_revision",
+    "created_at": "2026-10-20T06:12:03.113203+00:00",
+    "slate": "2026-W07",
+    "game_id": "2026_07_NE_CHI",
+    "player_id": "00-0038621",
+    "player_name": "DeMario Douglas",
+    "team": "NE",
+    "opponent": "CHI",
+    "position": "WR",
+    "market": "receptions",
+    "model": {
+      "version": "negbin-gamma-v3.2",
+      "alpha": 0.1097,
+      "k": 1.555,
+      "calibration_bias": 0.0,
+      "input_cutoff": "2026-10-20T06:12:03.113203+00:00"
+    },
+    "role": {
+      "label": "none",
+      "is_provisional": true,
+      "provisional_note": "Role labels and thresholds remain provisional pending chronological holdout validation.",
+      "recent_window": "last_1_game",
+      "baseline_window": "prior_8_games_ewma",
+      "recent_target_share": 0.2258,
+      "baseline_target_share": 0.1367,
+      "delta": 0.0891,
+      "career_games": 47,
+      "target_sd": 1.07,
+      "missing_route_data": true,
+      "raw_observations": {
+        "targets": 7,
+        "receptions": 5,
+        "receiving_yards": 20,
+        "f_targets": 3.84,
+        "f_rec": 2.67,
+        "f_yards": 20.31,
+        "air_yards_share": 0.1991,
+        "f_ay_share": 0.136,
+        "adot": 6.29,
+        "f_adot": 10.09
+      }
+    },
+    "projection": {
+      "fair_line": 4.5,
+      "proj_volume": 4.5,
+      "distribution_params": {
+        "mu_rec": 0.5417,
+        "alpha": 0.1097,
+        "k": 1.555
+      },
+      "p_over": 0.5417,
+      "p_under": 0.4583,
+      "p_push": 0.0
+    },
+    "price_boundaries": {
+      "max_acceptable_over_line_at_minus_110": 1.5,
+      "min_acceptable_under_line_at_minus_110": 7.5,
+      "breakeven_odds_at_fair": "-110"
+    },
+    "qualification_policy": {
+      "version": "edge_10pct_v1",
+      "edge_hurdle": 0.1,
+      "require_positive_ev": true
+    },
+    "quote": {
+      "status": "verified",
+      "quote_id": "fd_ne_chi_douglas_rec_open",
+      "source": "FanDuel Early Openers (TNF Verified Feed)",
+      "book": "FanDuel",
+      "line": 3.5,
+      "over_odds": 105,
+      "under_odds": -135,
+      "observed_at": "2026-10-20T06:12:03.103828+00:00",
+      "evaluation": {
+        "is_qualified": false,
+        "status": "LEAN",
+        "best_side": "OVER",
+        "prob_edge": 0.0825,
+        "break_even_adv": 0.0539,
+        "expected_return": 0.1105,
+        "actionable_stake": 0.0,
+        "catalyst": "football_news",
+        "injury_context": "Romeo Doubs (Shoulder OUT)"
+      }
+    },
+    "scenario_assumptions": "Romeo Doubs (Shoulder OUT)",
+    "content_hash": "67c7cdb321037f80c4e0cd7a6c81c6f0722e0410156747be0f258fbdef319fe3"
+  },
+  {
+    "snapshot_id": "f3e800f3-3d87-4400-983b-1a490d128719",
+    "snapshot_type": "material_revision",
+    "created_at": "2026-10-20T06:12:03.113203+00:00",
+    "slate": "2026-W07",
+    "game_id": "2026_07_NE_CHI",
+    "player_id": "00-0033090",
+    "player_name": "Hunter Henry",
+    "team": "NE",
+    "opponent": "CHI",
+    "position": "TE",
+    "market": "receiving_yards",
+    "model": {
+      "version": "negbin-gamma-v3.2",
+      "alpha": 0.1097,
+      "k": 1.555,
+      "calibration_bias": 0.0,
+      "input_cutoff": "2026-10-20T06:12:03.113203+00:00"
+    },
+    "role": {
+      "label": "none",
+      "is_provisional": true,
+      "provisional_note": "Role labels and thresholds remain provisional pending chronological holdout validation.",
+      "recent_window": "last_1_game",
+      "baseline_window": "prior_8_games_ewma",
+      "recent_target_share": 0.0968,
+      "baseline_target_share": 0.1581,
+      "delta": -0.0613,
+      "career_games": 130,
+      "target_sd": 2.33,
+      "missing_route_data": true,
+      "raw_observations": {
+        "targets": 3,
+        "receptions": 3,
+        "receiving_yards": 26,
+        "f_targets": 4.28,
+        "f_rec": 3.76,
+        "f_yards": 41.49,
+        "air_yards_share": 0.0543,
+        "f_ay_share": 0.0968,
+        "adot": 4.0,
+        "f_adot": 5.94
+      }
+    },
+    "projection": {
+      "fair_line": 39.5,
+      "proj_volume": 39.5,
+      "distribution_params": {
+        "mu_rec": 0.6129,
+        "alpha": 0.1097,
+        "k": 1.555
+      },
+      "p_over": 0.6129,
+      "p_under": 0.3871,
+      "p_push": 0.0
+    },
+    "price_boundaries": {
+      "max_acceptable_over_line_at_minus_110": 36.5,
+      "min_acceptable_under_line_at_minus_110": 42.5,
+      "breakeven_odds_at_fair": "-110"
+    },
+    "qualification_policy": {
+      "version": "edge_10pct_v1",
+      "edge_hurdle": 0.1,
+      "require_positive_ev": true
+    },
+    "quote": {
+      "status": "verified",
+      "quote_id": "mgm_ne_chi_henry_yds_open",
+      "source": "BetMGM Early Openers (TNF Verified Feed)",
+      "book": "BetMGM",
+      "line": 31.5,
+      "over_odds": -115,
+      "under_odds": -115,
+      "observed_at": "2026-10-20T06:12:03.103828+00:00",
+      "evaluation": {
+        "is_qualified": true,
+        "status": "QUALIFIED",
+        "best_side": "OVER",
+        "prob_edge": 0.1129,
+        "break_even_adv": 0.078,
+        "expected_return": 0.1458,
+        "actionable_stake": 0.03,
+        "catalyst": "both",
+        "injury_context": "Romeo Doubs (Shoulder OUT)"
+      }
+    },
+    "scenario_assumptions": "Romeo Doubs (Shoulder OUT)",
+    "content_hash": "89372538adaca10e3bc219fa4af70ffafcaeef55dd19a9eb4416c95bf4e53d42"
+  },
+  {
+    "snapshot_id": "429d479f-01da-42ff-bb03-7e5b441a7118",
+    "snapshot_type": "material_revision",
+    "created_at": "2026-10-20T06:12:03.113203+00:00",
+    "slate": "2026-W07",
+    "game_id": "2026_07_NE_CHI",
+    "player_id": "00-0033090",
+    "player_name": "Hunter Henry",
+    "team": "NE",
+    "opponent": "CHI",
+    "position": "TE",
+    "market": "receptions",
+    "model": {
+      "version": "negbin-gamma-v3.2",
+      "alpha": 0.1097,
+      "k": 1.555,
+      "calibration_bias": 0.0,
+      "input_cutoff": "2026-10-20T06:12:03.113203+00:00"
+    },
+    "role": {
+      "label": "none",
+      "is_provisional": true,
+      "provisional_note": "Role labels and thresholds remain provisional pending chronological holdout validation.",
+      "recent_window": "last_1_game",
+      "baseline_window": "prior_8_games_ewma",
+      "recent_target_share": 0.0968,
+      "baseline_target_share": 0.1581,
+      "delta": -0.0613,
+      "career_games": 130,
+      "target_sd": 2.33,
+      "missing_route_data": true,
+      "raw_observations": {
+        "targets": 3,
+        "receptions": 3,
+        "receiving_yards": 26,
+        "f_targets": 4.28,
+        "f_rec": 3.76,
+        "f_yards": 41.49,
+        "air_yards_share": 0.0543,
+        "f_ay_share": 0.0968,
+        "adot": 4.0,
+        "f_adot": 5.94
+      }
+    },
+    "projection": {
+      "fair_line": 4.5,
+      "proj_volume": 4.5,
+      "distribution_params": {
+        "mu_rec": 0.6137,
+        "alpha": 0.1097,
+        "k": 1.555
+      },
+      "p_over": 0.6137,
+      "p_under": 0.3863,
+      "p_push": 0.0
+    },
+    "price_boundaries": {
+      "max_acceptable_over_line_at_minus_110": 1.5,
+      "min_acceptable_under_line_at_minus_110": 7.5,
+      "breakeven_odds_at_fair": "-110"
+    },
+    "qualification_policy": {
+      "version": "edge_10pct_v1",
+      "edge_hurdle": 0.1,
+      "require_positive_ev": true
+    },
+    "quote": {
+      "status": "verified",
+      "quote_id": "dk_ne_chi_henry_rec_open",
+      "source": "DraftKings Early Openers (TNF Verified Feed)",
+      "book": "DraftKings",
+      "line": 3.5,
+      "over_odds": 110,
+      "under_odds": -140,
+      "observed_at": "2026-10-20T06:12:03.103828+00:00",
+      "evaluation": {
+        "is_qualified": true,
+        "status": "QUALIFIED",
+        "best_side": "OVER",
+        "prob_edge": 0.1642,
+        "break_even_adv": 0.1375,
+        "expected_return": 0.2887,
+        "actionable_stake": 0.03,
+        "catalyst": "football_news",
+        "injury_context": "Romeo Doubs (Shoulder OUT)"
+      }
+    },
+    "scenario_assumptions": "Romeo Doubs (Shoulder OUT)",
+    "content_hash": "24194ccef1d26ba49095395967aafcc7526f86af3a7e868ae4c34d0e4e2fc679"
+  },
+  {
+    "snapshot_id": "068bab04-f830-4ff2-b415-db8e4f16327a",
+    "snapshot_type": "material_revision",
+    "created_at": "2026-10-20T06:12:03.113203+00:00",
+    "slate": "2026-W07",
+    "game_id": "2026_07_NE_CHI",
+    "player_id": "00-0033555",
+    "player_name": "Mack Hollins",
+    "team": "NE",
+    "opponent": "CHI",
+    "position": "WR",
+    "market": "receiving_yards",
+    "model": {
+      "version": "negbin-gamma-v3.2",
+      "alpha": 0.1097,
+      "k": 1.555,
+      "calibration_bias": 0.0,
+      "input_cutoff": "2026-10-20T06:12:03.113203+00:00"
+    },
+    "role": {
+      "label": "none",
+      "is_provisional": true,
+      "provisional_note": "Role labels and thresholds remain provisional pending chronological holdout validation.",
+      "recent_window": "last_1_game",
+      "baseline_window": "prior_8_games_ewma",
+      "recent_target_share": 0.1613,
+      "baseline_target_share": 0.2049,
+      "delta": -0.0436,
+      "career_games": 111,
+      "target_sd": 2.67,
+      "missing_route_data": true,
+      "raw_observations": {
+        "targets": 5,
+        "receptions": 4,
+        "receiving_yards": 51,
+        "f_targets": 6.35,
+        "f_rec": 4.44,
+        "f_yards": 50.65,
+        "air_yards_share": 0.2805,
+        "f_ay_share": 0.2981,
+        "adot": 12.4,
+        "f_adot": 13.47
+      }
+    },
+    "projection": {
+      "fair_line": 45.5,
+      "proj_volume": 45.5,
+      "distribution_params": {
+        "mu_rec": 0.6874,
+        "alpha": 0.1097,
+        "k": 1.555
+      },
+      "p_over": 0.6874,
+      "p_under": 0.3126,
+      "p_push": 0.0
+    },
+    "price_boundaries": {
+      "max_acceptable_over_line_at_minus_110": 42.5,
+      "min_acceptable_under_line_at_minus_110": 48.5,
+      "breakeven_odds_at_fair": "-110"
+    },
+    "qualification_policy": {
+      "version": "edge_10pct_v1",
+      "edge_hurdle": 0.1,
+      "require_positive_ev": true
+    },
+    "quote": {
+      "status": "verified",
+      "quote_id": "pin_ne_chi_hollins_yds_open",
+      "source": "Pinnacle Sharp Early Openers (TNF Verified Feed)",
+      "book": "Pinnacle",
+      "line": 29.5,
+      "over_odds": -108,
+      "under_odds": -108,
+      "observed_at": "2026-10-20T06:12:03.103828+00:00",
+      "evaluation": {
+        "is_qualified": true,
+        "status": "QUALIFIED",
+        "best_side": "OVER",
+        "prob_edge": 0.1874,
+        "break_even_adv": 0.1682,
+        "expected_return": 0.3239,
+        "actionable_stake": 0.03,
+        "catalyst": "both",
+        "injury_context": "Romeo Doubs (Shoulder OUT)"
+      }
+    },
+    "scenario_assumptions": "Romeo Doubs (Shoulder OUT)",
+    "content_hash": "9cfb855ed400d9a3c490b2df03a23cf22671c7a83b25549fb64dff825b24e5fa"
+  },
+  {
+    "snapshot_id": "2fd679b3-0384-4428-b0f8-586d5fcf9f19",
+    "snapshot_type": "material_revision",
+    "created_at": "2026-10-20T06:12:03.113203+00:00",
+    "slate": "2026-W07",
+    "game_id": "2026_07_SF_ATL",
+    "player_id": "00-0033288",
+    "player_name": "George Kittle",
+    "team": "SF",
+    "opponent": "ATL",
+    "position": "TE",
+    "market": "receiving_yards",
+    "model": {
+      "version": "negbin-gamma-v3.2",
+      "alpha": 0.1097,
+      "k": 1.555,
+      "calibration_bias": 0.0,
+      "input_cutoff": "2026-10-20T06:12:03.113203+00:00"
+    },
+    "role": {
+      "label": "none",
+      "is_provisional": true,
+      "provisional_note": "Role labels and thresholds remain provisional pending chronological holdout validation.",
+      "recent_window": "last_1_game",
+      "baseline_window": "prior_8_games_ewma",
+      "recent_target_share": 0.1471,
+      "baseline_target_share": 0.2198,
+      "delta": -0.0727,
+      "career_games": 125,
+      "target_sd": 2.12,
+      "missing_route_data": true,
+      "raw_observations": {
+        "targets": 5,
+        "receptions": 2,
+        "receiving_yards": 12,
+        "f_targets": 6.58,
+        "f_rec": 4.62,
+        "f_yards": 49.05,
+        "air_yards_share": 0.255,
+        "f_ay_share": 0.2336,
+        "adot": 7.6,
+        "f_adot": 7.2
+      }
+    },
+    "projection": {
+      "fair_line": 61.0,
+      "proj_volume": 61.0,
+      "distribution_params": {
+        "mu_rec": 0.6251,
+        "alpha": 0.1097,
+        "k": 1.555
+      },
+      "p_over": 0.6251,
+      "p_under": 0.3749,
+      "p_push": 0.0
+    },
+    "price_boundaries": {
+      "max_acceptable_over_line_at_minus_110": 58.0,
+      "min_acceptable_under_line_at_minus_110": 64.0,
+      "breakeven_odds_at_fair": "-110"
+    },
+    "qualification_policy": {
+      "version": "edge_10pct_v1",
+      "edge_hurdle": 0.1,
+      "require_positive_ev": true
+    },
+    "quote": {
+      "status": "verified",
+      "quote_id": "dk_sf_atl_kittle_yds_open",
+      "source": "DraftKings Early Openers (Week 7 Verified Feed)",
+      "book": "DraftKings",
+      "line": 48.5,
+      "over_odds": -112,
+      "under_odds": -112,
+      "observed_at": "2026-10-20T06:12:03.103828+00:00",
+      "evaluation": {
+        "is_qualified": true,
+        "status": "QUALIFIED",
+        "best_side": "OVER",
+        "prob_edge": 0.1251,
+        "break_even_adv": 0.0968,
+        "expected_return": 0.1833,
+        "actionable_stake": 0.03,
+        "catalyst": "both",
+        "injury_context": "Mike Evans (Achilles OUT)"
+      }
+    },
+    "scenario_assumptions": "Mike Evans (Achilles OUT)",
+    "content_hash": "e6163dfc8d3fd73cf17603c2ebfb3d4dccd442f9d98d915807e905d4e5698224"
+  },
+  {
+    "snapshot_id": "9af5c5c0-5271-49c0-83c4-05b4996adfea",
+    "snapshot_type": "material_revision",
+    "created_at": "2026-10-20T06:12:03.113203+00:00",
+    "slate": "2026-W07",
+    "game_id": "2026_07_SF_ATL",
+    "player_id": "00-0033288",
+    "player_name": "George Kittle",
+    "team": "SF",
+    "opponent": "ATL",
+    "position": "TE",
+    "market": "receptions",
+    "model": {
+      "version": "negbin-gamma-v3.2",
+      "alpha": 0.1097,
+      "k": 1.555,
+      "calibration_bias": 0.0,
+      "input_cutoff": "2026-10-20T06:12:03.113203+00:00"
+    },
+    "role": {
+      "label": "none",
+      "is_provisional": true,
+      "provisional_note": "Role labels and thresholds remain provisional pending chronological holdout validation.",
+      "recent_window": "last_1_game",
+      "baseline_window": "prior_8_games_ewma",
+      "recent_target_share": 0.1471,
+      "baseline_target_share": 0.2198,
+      "delta": -0.0727,
+      "career_games": 125,
+      "target_sd": 2.12,
+      "missing_route_data": true,
+      "raw_observations": {
+        "targets": 5,
+        "receptions": 2,
+        "receiving_yards": 12,
+        "f_targets": 6.58,
+        "f_rec": 4.62,
+        "f_yards": 49.05,
+        "air_yards_share": 0.255,
+        "f_ay_share": 0.2336,
+        "adot": 7.6,
+        "f_adot": 7.2
+      }
+    },
+    "projection": {
+      "fair_line": 6.5,
+      "proj_volume": 6.5,
+      "distribution_params": {
+        "mu_rec": 0.6482,
+        "alpha": 0.1097,
+        "k": 1.555
+      },
+      "p_over": 0.6482,
+      "p_under": 0.3518,
+      "p_push": 0.0
+    },
+    "price_boundaries": {
+      "max_acceptable_over_line_at_minus_110": 3.5,
+      "min_acceptable_under_line_at_minus_110": 9.5,
+      "breakeven_odds_at_fair": "-110"
+    },
+    "qualification_policy": {
+      "version": "edge_10pct_v1",
+      "edge_hurdle": 0.1,
+      "require_positive_ev": true
+    },
+    "quote": {
+      "status": "verified",
+      "quote_id": "fd_sf_atl_kittle_rec_open",
+      "source": "FanDuel Early Openers (Week 7 Verified Feed)",
+      "book": "FanDuel",
+      "line": 4.5,
+      "over_odds": -105,
+      "under_odds": -125,
+      "observed_at": "2026-10-20T06:12:03.103828+00:00",
+      "evaluation": {
+        "is_qualified": true,
+        "status": "QUALIFIED",
+        "best_side": "OVER",
+        "prob_edge": 0.1685,
+        "break_even_adv": 0.136,
+        "expected_return": 0.2654,
+        "actionable_stake": 0.03,
+        "catalyst": "football_news",
+        "injury_context": "Mike Evans (Achilles OUT)"
+      }
+    },
+    "scenario_assumptions": "Mike Evans (Achilles OUT)",
+    "content_hash": "8d633c45610bc7c6c5c2783fbb834c6c34f216462f9fc4929756bc571bc82bc6"
+  },
+  {
+    "snapshot_id": "bc102e84-e255-4c6d-a4c1-e8ea0ddd0a49",
+    "snapshot_type": "material_revision",
+    "created_at": "2026-10-20T06:12:03.113203+00:00",
+    "slate": "2026-W07",
+    "game_id": "2026_07_SF_ATL",
+    "player_id": "00-0033280",
+    "player_name": "Christian McCaffrey",
+    "team": "SF",
+    "opponent": "ATL",
+    "position": "RB",
+    "market": "receiving_yards",
+    "model": {
+      "version": "negbin-gamma-v3.2",
+      "alpha": 0.1097,
+      "k": 1.555,
+      "calibration_bias": 0.0,
+      "input_cutoff": "2026-10-20T06:12:03.113203+00:00"
+    },
+    "role": {
+      "label": "established_volume",
+      "is_provisional": true,
+      "provisional_note": "Role labels and thresholds remain provisional pending chronological holdout validation.",
+      "recent_window": "last_1_game",
+      "baseline_window": "prior_8_games_ewma",
+      "recent_target_share": 0.2353,
+      "baseline_target_share": 0.2178,
+      "delta": 0.0175,
+      "career_games": 113,
+      "target_sd": 2.7,
+      "missing_route_data": true,
+      "raw_observations": {
+        "targets": 8,
+        "receptions": 5,
+        "receiving_yards": 20,
+        "f_targets": 6.78,
+        "f_rec": 4.98,
+        "f_yards": 29.83,
+        "air_yards_share": -0.0201,
+        "f_ay_share": 0.0569,
+        "adot": -0.38,
+        "f_adot": 1.72
+      }
+    },
+    "projection": {
+      "fair_line": 41.5,
+      "proj_volume": 41.5,
+      "distribution_params": {
+        "mu_rec": 0.6325,
+        "alpha": 0.1097,
+        "k": 1.555
+      },
+      "p_over": 0.6325,
+      "p_under": 0.3675,
+      "p_push": 0.0
+    },
+    "price_boundaries": {
+      "max_acceptable_over_line_at_minus_110": 38.5,
+      "min_acceptable_under_line_at_minus_110": 44.5,
+      "breakeven_odds_at_fair": "-110"
+    },
+    "qualification_policy": {
+      "version": "edge_10pct_v1",
+      "edge_hurdle": 0.1,
+      "require_positive_ev": true
+    },
+    "quote": {
+      "status": "verified",
+      "quote_id": "mgm_sf_atl_cmc_yds_open",
+      "source": "BetMGM Early Openers (Week 7 Verified Feed)",
+      "book": "BetMGM",
+      "line": 32.5,
+      "over_odds": -115,
+      "under_odds": -115,
+      "observed_at": "2026-10-20T06:12:03.103828+00:00",
+      "evaluation": {
+        "is_qualified": true,
+        "status": "QUALIFIED",
+        "best_side": "OVER",
+        "prob_edge": 0.1325,
+        "break_even_adv": 0.0976,
+        "expected_return": 0.1825,
+        "actionable_stake": 0.03,
+        "catalyst": "both",
+        "injury_context": "Mike Evans (Achilles OUT)"
+      }
+    },
+    "scenario_assumptions": "Mike Evans (Achilles OUT)",
+    "content_hash": "599b8d35582c942df0f44f054157d7ba78e05261c2e82e5db895d82cd188484c"
+  },
+  {
+    "snapshot_id": "940b97cc-e4f2-44fd-9b12-06824d7223cf",
+    "snapshot_type": "material_revision",
+    "created_at": "2026-10-20T06:12:03.113203+00:00",
+    "slate": "2026-W07",
+    "game_id": "2026_07_NE_CHI",
+    "player_id": "00-0035676",
+    "player_name": "A.J. Brown",
+    "team": "NE",
+    "opponent": "CHI",
+    "position": "WR",
+    "market": "receiving_yards",
+    "model": {
+      "version": "negbin-gamma-v3.2",
+      "alpha": 0.1097,
+      "k": 1.555,
+      "calibration_bias": 0.0,
+      "input_cutoff": "2026-10-20T06:12:03.113203+00:00"
+    },
+    "role": {
+      "label": "contraction",
+      "is_provisional": true,
+      "provisional_note": "Role labels and thresholds remain provisional pending chronological holdout validation.",
+      "recent_window": "last_1_game",
+      "baseline_window": "prior_8_games_ewma",
+      "recent_target_share": 0.129,
+      "baseline_target_share": 0.2511,
+      "delta": -0.1221,
+      "career_games": 106,
+      "target_sd": 4.27,
+      "missing_route_data": true,
+      "raw_observations": {
+        "targets": 4,
+        "receptions": 3,
+        "receiving_yards": 26,
+        "f_targets": 6.99,
+        "f_rec": 4.99,
+        "f_yards": 60.65,
+        "air_yards_share": 0.086,
+        "f_ay_share": 0.2813,
+        "adot": 4.75,
+        "f_adot": 9.9
+      }
+    },
+    "projection": {
+      "fair_line": 61.0,
+      "proj_volume": 61.0,
+      "distribution_params": {
+        "mu_rec": 0.466,
+        "alpha": 0.1097,
+        "k": 1.555
+      },
+      "p_over": 0.466,
+      "p_under": 0.534,
+      "p_push": 0.0
+    },
+    "price_boundaries": {
+      "max_acceptable_over_line_at_minus_110": 58.0,
+      "min_acceptable_under_line_at_minus_110": 64.0,
+      "breakeven_odds_at_fair": "-110"
+    },
+    "qualification_policy": {
+      "version": "edge_10pct_v1",
+      "edge_hurdle": 0.1,
+      "require_positive_ev": true
+    },
+    "quote": {
+      "status": "verified",
+      "quote_id": "dk_ne_chi_ajb_yds_open",
+      "source": "DraftKings Early Openers (TNF Verified Feed)",
+      "book": "DraftKings",
+      "line": 64.5,
+      "over_odds": -115,
+      "under_odds": -115,
+      "observed_at": "2026-10-20T06:12:03.103828+00:00",
+      "evaluation": {
+        "is_qualified": false,
+        "status": "PASS",
+        "best_side": "UNDER",
+        "prob_edge": 0.034,
+        "break_even_adv": -0.0009,
+        "expected_return": -0.0016,
+        "actionable_stake": 0.0,
+        "catalyst": "pricing",
+        "injury_context": null
+      }
+    },
+    "scenario_assumptions": null,
+    "content_hash": "00bffc4c8c31a0acdbf1164516f6134d8085cdfc4ed01e4f040d83d2284a7b97"
+  },
+  {
+    "snapshot_id": "3e893e26-86ef-4564-8858-b90da448af92",
+    "snapshot_type": "material_revision",
+    "created_at": "2026-10-20T06:12:03.113203+00:00",
+    "slate": "2026-W07",
+    "game_id": "2026_07_GB_DET",
+    "player_id": "00-0036963",
+    "player_name": "Amon-Ra St. Brown",
+    "team": "DET",
+    "opponent": "GB",
+    "position": "WR",
+    "market": "receiving_yards",
+    "model": {
+      "version": "negbin-gamma-v3.2",
+      "alpha": 0.1097,
+      "k": 1.555,
+      "calibration_bias": 0.0,
+      "input_cutoff": "2026-10-20T06:12:03.113203+00:00"
+    },
+    "role": {
+      "label": "established_volume",
+      "is_provisional": true,
+      "provisional_note": "Role labels and thresholds remain provisional pending chronological holdout validation.",
+      "recent_window": "last_1_game",
+      "baseline_window": "prior_8_games_ewma",
+      "recent_target_share": 0.4167,
+      "baseline_target_share": 0.3605,
+      "delta": 0.0561,
+      "career_games": 82,
+      "target_sd": 4.96,
+      "missing_route_data": true,
+      "raw_observations": {
+        "targets": 15,
+        "receptions": 11,
+        "receiving_yards": 139,
+        "f_targets": 12.63,
+        "f_rec": 8.29,
+        "f_yards": 99.8,
+        "air_yards_share": 0.58,
+        "f_ay_share": 0.4137,
+        "adot": 9.67,
+        "f_adot": 7.23
+      }
+    },
+    "projection": {
+      "fair_line": 113.0,
+      "proj_volume": 113.0,
+      "distribution_params": {
+        "mu_rec": 0.5019,
+        "alpha": 0.1097,
+        "k": 1.555
+      },
+      "p_over": 0.5019,
+      "p_under": 0.4981,
+      "p_push": 0.0
+    },
+    "price_boundaries": {
+      "max_acceptable_over_line_at_minus_110": 110.0,
+      "min_acceptable_under_line_at_minus_110": 116.0,
+      "breakeven_odds_at_fair": "-110"
+    },
+    "qualification_policy": {
+      "version": "edge_10pct_v1",
+      "edge_hurdle": 0.1,
+      "require_positive_ev": true
+    },
+    "quote": {
+      "status": "verified",
+      "quote_id": "pin_det_gb_amonra_yds_open",
+      "source": "Pinnacle Sharp Early Openers (Week 7 Verified Feed)",
+      "book": "Pinnacle",
+      "line": 112.5,
+      "over_odds": -110,
+      "under_odds": -110,
+      "observed_at": "2026-10-20T06:12:03.103828+00:00",
+      "evaluation": {
+        "is_qualified": false,
+        "status": "PASS",
+        "best_side": "OVER",
+        "prob_edge": 0.0019,
+        "break_even_adv": -0.0219,
+        "expected_return": -0.0419,
+        "actionable_stake": 0.0,
+        "catalyst": "pricing",
+        "injury_context": null
+      }
+    },
+    "scenario_assumptions": null,
+    "content_hash": "b330366f39801c3d6245accc179c92ac860c8ac6ca8e8283512b0634476cfa97"
+  },
+  {
+    "snapshot_id": "9d41c277-a0bb-492e-a750-c653b8e79d5b",
+    "snapshot_type": "material_revision",
+    "created_at": "2026-10-20T06:23:00.925397+00:00",
+    "slate": "2026-W07",
+    "game_id": "2026_07_NE_CHI",
+    "player_id": "00-0038621",
+    "player_name": "DeMario Douglas",
+    "team": "NE",
+    "opponent": "CHI",
+    "position": "WR",
+    "market": "receiving_yards",
+    "model": {
+      "version": "negbin-gamma-v3.2",
+      "alpha": 0.1097,
+      "k": 1.555,
+      "calibration_bias": 0.0,
+      "input_cutoff": "2026-10-20T06:23:00.925397+00:00"
+    },
+    "role": {
+      "label": "none",
+      "is_provisional": true,
+      "provisional_note": "Role labels and thresholds remain provisional pending chronological holdout validation.",
+      "recent_window": "last_1_game",
+      "baseline_window": "prior_8_games_ewma",
+      "recent_target_share": 0.2258,
+      "baseline_target_share": 0.1367,
+      "delta": 0.0891,
+      "career_games": 47,
+      "target_sd": 1.07,
+      "missing_route_data": true,
+      "raw_observations": {
+        "targets": 7,
+        "receptions": 5,
+        "receiving_yards": 20,
+        "f_targets": 3.84,
+        "f_rec": 2.67,
+        "f_yards": 20.31,
+        "air_yards_share": 0.1991,
+        "f_ay_share": 0.136,
+        "adot": 6.29,
+        "f_adot": 10.09
+      }
+    },
+    "projection": {
+      "fair_line": 43.5,
+      "proj_volume": 43.5,
+      "distribution_params": {
+        "mu_rec": 0.6053,
+        "alpha": 0.1097,
+        "k": 1.555
+      },
+      "p_over": 0.6053,
+      "p_under": 0.3947,
+      "p_push": 0.0
+    },
+    "price_boundaries": {
+      "max_acceptable_over_line_at_minus_110": 40.5,
+      "min_acceptable_under_line_at_minus_110": 46.5,
+      "breakeven_odds_at_fair": "-110"
+    },
+    "qualification_policy": {
+      "version": "edge_10pct_v1",
+      "edge_hurdle": 0.1,
+      "require_positive_ev": true
+    },
+    "quote": {
+      "status": "verified",
+      "quote_id": "dk_ne_chi_douglas_yds_open",
+      "source": "DraftKings Early Openers (TNF Verified Feed)",
+      "book": "DraftKings",
+      "line": 34.5,
+      "over_odds": -110,
+      "under_odds": -110,
+      "observed_at": "2026-10-20T06:23:00.907861+00:00",
+      "evaluation": {
+        "is_qualified": true,
+        "status": "QUALIFIED",
+        "best_side": "OVER",
+        "prob_edge": 0.1053,
+        "break_even_adv": 0.0814,
+        "expected_return": 0.1555,
+        "actionable_stake": 0.03,
+        "catalyst": "both",
+        "injury_context": "Romeo Doubs (Shoulder OUT)"
+      }
+    },
+    "scenario_assumptions": "Romeo Doubs (Shoulder OUT)",
+    "content_hash": "b6b2c2ad0bd50960eaa890700336449a5c6709f211ad504229b8c67326c27328"
+  },
+  {
+    "snapshot_id": "1940ac03-84a3-4c11-b400-c92a52387c9d",
+    "snapshot_type": "material_revision",
+    "created_at": "2026-10-20T06:23:00.925397+00:00",
+    "slate": "2026-W07",
+    "game_id": "2026_07_NE_CHI",
+    "player_id": "00-0038621",
+    "player_name": "DeMario Douglas",
+    "team": "NE",
+    "opponent": "CHI",
+    "position": "WR",
+    "market": "receptions",
+    "model": {
+      "version": "negbin-gamma-v3.2",
+      "alpha": 0.1097,
+      "k": 1.555,
+      "calibration_bias": 0.0,
+      "input_cutoff": "2026-10-20T06:23:00.925397+00:00"
+    },
+    "role": {
+      "label": "none",
+      "is_provisional": true,
+      "provisional_note": "Role labels and thresholds remain provisional pending chronological holdout validation.",
+      "recent_window": "last_1_game",
+      "baseline_window": "prior_8_games_ewma",
+      "recent_target_share": 0.2258,
+      "baseline_target_share": 0.1367,
+      "delta": 0.0891,
+      "career_games": 47,
+      "target_sd": 1.07,
+      "missing_route_data": true,
+      "raw_observations": {
+        "targets": 7,
+        "receptions": 5,
+        "receiving_yards": 20,
+        "f_targets": 3.84,
+        "f_rec": 2.67,
+        "f_yards": 20.31,
+        "air_yards_share": 0.1991,
+        "f_ay_share": 0.136,
+        "adot": 6.29,
+        "f_adot": 10.09
+      }
+    },
+    "projection": {
+      "fair_line": 4.5,
+      "proj_volume": 4.5,
+      "distribution_params": {
+        "mu_rec": 0.5417,
+        "alpha": 0.1097,
+        "k": 1.555
+      },
+      "p_over": 0.5417,
+      "p_under": 0.4583,
+      "p_push": 0.0
+    },
+    "price_boundaries": {
+      "max_acceptable_over_line_at_minus_110": 1.5,
+      "min_acceptable_under_line_at_minus_110": 7.5,
+      "breakeven_odds_at_fair": "-110"
+    },
+    "qualification_policy": {
+      "version": "edge_10pct_v1",
+      "edge_hurdle": 0.1,
+      "require_positive_ev": true
+    },
+    "quote": {
+      "status": "verified",
+      "quote_id": "fd_ne_chi_douglas_rec_open",
+      "source": "FanDuel Early Openers (TNF Verified Feed)",
+      "book": "FanDuel",
+      "line": 3.5,
+      "over_odds": 105,
+      "under_odds": -135,
+      "observed_at": "2026-10-20T06:23:00.907861+00:00",
+      "evaluation": {
+        "is_qualified": false,
+        "status": "LEAN",
+        "best_side": "OVER",
+        "prob_edge": 0.0825,
+        "break_even_adv": 0.0539,
+        "expected_return": 0.1105,
+        "actionable_stake": 0.0,
+        "catalyst": "football_news",
+        "injury_context": "Romeo Doubs (Shoulder OUT)"
+      }
+    },
+    "scenario_assumptions": "Romeo Doubs (Shoulder OUT)",
+    "content_hash": "7bd8c2ecaccdf13272a1d01b94864971e306c387ff583ec80372478316ad3092"
+  },
+  {
+    "snapshot_id": "04738153-41f8-4dcf-8b83-4fd59c09f595",
+    "snapshot_type": "material_revision",
+    "created_at": "2026-10-20T06:23:00.925397+00:00",
+    "slate": "2026-W07",
+    "game_id": "2026_07_NE_CHI",
+    "player_id": "00-0033090",
+    "player_name": "Hunter Henry",
+    "team": "NE",
+    "opponent": "CHI",
+    "position": "TE",
+    "market": "receiving_yards",
+    "model": {
+      "version": "negbin-gamma-v3.2",
+      "alpha": 0.1097,
+      "k": 1.555,
+      "calibration_bias": 0.0,
+      "input_cutoff": "2026-10-20T06:23:00.925397+00:00"
+    },
+    "role": {
+      "label": "none",
+      "is_provisional": true,
+      "provisional_note": "Role labels and thresholds remain provisional pending chronological holdout validation.",
+      "recent_window": "last_1_game",
+      "baseline_window": "prior_8_games_ewma",
+      "recent_target_share": 0.0968,
+      "baseline_target_share": 0.1581,
+      "delta": -0.0613,
+      "career_games": 130,
+      "target_sd": 2.33,
+      "missing_route_data": true,
+      "raw_observations": {
+        "targets": 3,
+        "receptions": 3,
+        "receiving_yards": 26,
+        "f_targets": 4.28,
+        "f_rec": 3.76,
+        "f_yards": 41.49,
+        "air_yards_share": 0.0543,
+        "f_ay_share": 0.0968,
+        "adot": 4.0,
+        "f_adot": 5.94
+      }
+    },
+    "projection": {
+      "fair_line": 39.5,
+      "proj_volume": 39.5,
+      "distribution_params": {
+        "mu_rec": 0.6129,
+        "alpha": 0.1097,
+        "k": 1.555
+      },
+      "p_over": 0.6129,
+      "p_under": 0.3871,
+      "p_push": 0.0
+    },
+    "price_boundaries": {
+      "max_acceptable_over_line_at_minus_110": 36.5,
+      "min_acceptable_under_line_at_minus_110": 42.5,
+      "breakeven_odds_at_fair": "-110"
+    },
+    "qualification_policy": {
+      "version": "edge_10pct_v1",
+      "edge_hurdle": 0.1,
+      "require_positive_ev": true
+    },
+    "quote": {
+      "status": "verified",
+      "quote_id": "mgm_ne_chi_henry_yds_open",
+      "source": "BetMGM Early Openers (TNF Verified Feed)",
+      "book": "BetMGM",
+      "line": 31.5,
+      "over_odds": -115,
+      "under_odds": -115,
+      "observed_at": "2026-10-20T06:23:00.907861+00:00",
+      "evaluation": {
+        "is_qualified": true,
+        "status": "QUALIFIED",
+        "best_side": "OVER",
+        "prob_edge": 0.1129,
+        "break_even_adv": 0.078,
+        "expected_return": 0.1458,
+        "actionable_stake": 0.03,
+        "catalyst": "both",
+        "injury_context": "Romeo Doubs (Shoulder OUT)"
+      }
+    },
+    "scenario_assumptions": "Romeo Doubs (Shoulder OUT)",
+    "content_hash": "cbf07080d29cf9ccfd0bb65a77a7041c22bf79a1d8d1a85ca11db69bc2f9cb57"
+  },
+  {
+    "snapshot_id": "434cec24-abd7-4a8d-8c4a-71050d12b74c",
+    "snapshot_type": "material_revision",
+    "created_at": "2026-10-20T06:23:00.925397+00:00",
+    "slate": "2026-W07",
+    "game_id": "2026_07_NE_CHI",
+    "player_id": "00-0033090",
+    "player_name": "Hunter Henry",
+    "team": "NE",
+    "opponent": "CHI",
+    "position": "TE",
+    "market": "receptions",
+    "model": {
+      "version": "negbin-gamma-v3.2",
+      "alpha": 0.1097,
+      "k": 1.555,
+      "calibration_bias": 0.0,
+      "input_cutoff": "2026-10-20T06:23:00.925397+00:00"
+    },
+    "role": {
+      "label": "none",
+      "is_provisional": true,
+      "provisional_note": "Role labels and thresholds remain provisional pending chronological holdout validation.",
+      "recent_window": "last_1_game",
+      "baseline_window": "prior_8_games_ewma",
+      "recent_target_share": 0.0968,
+      "baseline_target_share": 0.1581,
+      "delta": -0.0613,
+      "career_games": 130,
+      "target_sd": 2.33,
+      "missing_route_data": true,
+      "raw_observations": {
+        "targets": 3,
+        "receptions": 3,
+        "receiving_yards": 26,
+        "f_targets": 4.28,
+        "f_rec": 3.76,
+        "f_yards": 41.49,
+        "air_yards_share": 0.0543,
+        "f_ay_share": 0.0968,
+        "adot": 4.0,
+        "f_adot": 5.94
+      }
+    },
+    "projection": {
+      "fair_line": 4.5,
+      "proj_volume": 4.5,
+      "distribution_params": {
+        "mu_rec": 0.6137,
+        "alpha": 0.1097,
+        "k": 1.555
+      },
+      "p_over": 0.6137,
+      "p_under": 0.3863,
+      "p_push": 0.0
+    },
+    "price_boundaries": {
+      "max_acceptable_over_line_at_minus_110": 1.5,
+      "min_acceptable_under_line_at_minus_110": 7.5,
+      "breakeven_odds_at_fair": "-110"
+    },
+    "qualification_policy": {
+      "version": "edge_10pct_v1",
+      "edge_hurdle": 0.1,
+      "require_positive_ev": true
+    },
+    "quote": {
+      "status": "verified",
+      "quote_id": "dk_ne_chi_henry_rec_open",
+      "source": "DraftKings Early Openers (TNF Verified Feed)",
+      "book": "DraftKings",
+      "line": 3.5,
+      "over_odds": 110,
+      "under_odds": -140,
+      "observed_at": "2026-10-20T06:23:00.907861+00:00",
+      "evaluation": {
+        "is_qualified": true,
+        "status": "QUALIFIED",
+        "best_side": "OVER",
+        "prob_edge": 0.1642,
+        "break_even_adv": 0.1375,
+        "expected_return": 0.2887,
+        "actionable_stake": 0.03,
+        "catalyst": "football_news",
+        "injury_context": "Romeo Doubs (Shoulder OUT)"
+      }
+    },
+    "scenario_assumptions": "Romeo Doubs (Shoulder OUT)",
+    "content_hash": "1b4ad90be4b2e5bf0da84d376d481c2d0a0c322cd0701b2cfc15b6ede618533a"
+  },
+  {
+    "snapshot_id": "144e1245-58b8-462a-bf7a-97b5e33f1f84",
+    "snapshot_type": "material_revision",
+    "created_at": "2026-10-20T06:23:00.925397+00:00",
+    "slate": "2026-W07",
+    "game_id": "2026_07_NE_CHI",
+    "player_id": "00-0033555",
+    "player_name": "Mack Hollins",
+    "team": "NE",
+    "opponent": "CHI",
+    "position": "WR",
+    "market": "receiving_yards",
+    "model": {
+      "version": "negbin-gamma-v3.2",
+      "alpha": 0.1097,
+      "k": 1.555,
+      "calibration_bias": 0.0,
+      "input_cutoff": "2026-10-20T06:23:00.925397+00:00"
+    },
+    "role": {
+      "label": "none",
+      "is_provisional": true,
+      "provisional_note": "Role labels and thresholds remain provisional pending chronological holdout validation.",
+      "recent_window": "last_1_game",
+      "baseline_window": "prior_8_games_ewma",
+      "recent_target_share": 0.1613,
+      "baseline_target_share": 0.2049,
+      "delta": -0.0436,
+      "career_games": 111,
+      "target_sd": 2.67,
+      "missing_route_data": true,
+      "raw_observations": {
+        "targets": 5,
+        "receptions": 4,
+        "receiving_yards": 51,
+        "f_targets": 6.35,
+        "f_rec": 4.44,
+        "f_yards": 50.65,
+        "air_yards_share": 0.2805,
+        "f_ay_share": 0.2981,
+        "adot": 12.4,
+        "f_adot": 13.47
+      }
+    },
+    "projection": {
+      "fair_line": 45.5,
+      "proj_volume": 45.5,
+      "distribution_params": {
+        "mu_rec": 0.6874,
+        "alpha": 0.1097,
+        "k": 1.555
+      },
+      "p_over": 0.6874,
+      "p_under": 0.3126,
+      "p_push": 0.0
+    },
+    "price_boundaries": {
+      "max_acceptable_over_line_at_minus_110": 42.5,
+      "min_acceptable_under_line_at_minus_110": 48.5,
+      "breakeven_odds_at_fair": "-110"
+    },
+    "qualification_policy": {
+      "version": "edge_10pct_v1",
+      "edge_hurdle": 0.1,
+      "require_positive_ev": true
+    },
+    "quote": {
+      "status": "verified",
+      "quote_id": "pin_ne_chi_hollins_yds_open",
+      "source": "Pinnacle Sharp Early Openers (TNF Verified Feed)",
+      "book": "Pinnacle",
+      "line": 29.5,
+      "over_odds": -108,
+      "under_odds": -108,
+      "observed_at": "2026-10-20T06:23:00.907861+00:00",
+      "evaluation": {
+        "is_qualified": true,
+        "status": "QUALIFIED",
+        "best_side": "OVER",
+        "prob_edge": 0.1874,
+        "break_even_adv": 0.1682,
+        "expected_return": 0.3239,
+        "actionable_stake": 0.03,
+        "catalyst": "both",
+        "injury_context": "Romeo Doubs (Shoulder OUT)"
+      }
+    },
+    "scenario_assumptions": "Romeo Doubs (Shoulder OUT)",
+    "content_hash": "2dea86649f4a60ba1a89475a4a32e8ee5bf3540b7985d8904ab5f329b971c051"
+  },
+  {
+    "snapshot_id": "c0df91d3-fd0b-4f73-b9b6-3fa7e11df505",
+    "snapshot_type": "material_revision",
+    "created_at": "2026-10-20T06:23:00.925397+00:00",
+    "slate": "2026-W07",
+    "game_id": "2026_07_NE_CHI",
+    "player_id": "00-0035676",
+    "player_name": "A.J. Brown",
+    "team": "NE",
+    "opponent": "CHI",
+    "position": "WR",
+    "market": "receiving_yards",
+    "model": {
+      "version": "negbin-gamma-v3.2",
+      "alpha": 0.1097,
+      "k": 1.555,
+      "calibration_bias": 0.0,
+      "input_cutoff": "2026-10-20T06:23:00.925397+00:00"
+    },
+    "role": {
+      "label": "contraction",
+      "is_provisional": true,
+      "provisional_note": "Role labels and thresholds remain provisional pending chronological holdout validation.",
+      "recent_window": "last_1_game",
+      "baseline_window": "prior_8_games_ewma",
+      "recent_target_share": 0.129,
+      "baseline_target_share": 0.2511,
+      "delta": -0.1221,
+      "career_games": 106,
+      "target_sd": 4.27,
+      "missing_route_data": true,
+      "raw_observations": {
+        "targets": 4,
+        "receptions": 3,
+        "receiving_yards": 26,
+        "f_targets": 6.99,
+        "f_rec": 4.99,
+        "f_yards": 60.65,
+        "air_yards_share": 0.086,
+        "f_ay_share": 0.2813,
+        "adot": 4.75,
+        "f_adot": 9.9
+      }
+    },
+    "projection": {
+      "fair_line": 61.0,
+      "proj_volume": 61.0,
+      "distribution_params": {
+        "mu_rec": 0.466,
+        "alpha": 0.1097,
+        "k": 1.555
+      },
+      "p_over": 0.466,
+      "p_under": 0.534,
+      "p_push": 0.0
+    },
+    "price_boundaries": {
+      "max_acceptable_over_line_at_minus_110": 58.0,
+      "min_acceptable_under_line_at_minus_110": 64.0,
+      "breakeven_odds_at_fair": "-110"
+    },
+    "qualification_policy": {
+      "version": "edge_10pct_v1",
+      "edge_hurdle": 0.1,
+      "require_positive_ev": true
+    },
+    "quote": {
+      "status": "verified",
+      "quote_id": "dk_ne_chi_ajb_yds_open",
+      "source": "DraftKings Early Openers (TNF Verified Feed)",
+      "book": "DraftKings",
+      "line": 64.5,
+      "over_odds": -115,
+      "under_odds": -115,
+      "observed_at": "2026-10-20T06:23:00.907861+00:00",
+      "evaluation": {
+        "is_qualified": false,
+        "status": "PASS",
+        "best_side": "UNDER",
+        "prob_edge": 0.034,
+        "break_even_adv": -0.0009,
+        "expected_return": -0.0016,
+        "actionable_stake": 0.0,
+        "catalyst": "pricing",
+        "injury_context": null
+      }
+    },
+    "scenario_assumptions": null,
+    "content_hash": "90325dd38a79cf216d9d2cda5b5a0fcacdaf0d071b6035adbc41d1f81a281bf4"
+  },
+  {
+    "snapshot_id": "f3e33d95-90dd-4758-8405-493873f63003",
+    "snapshot_type": "material_revision",
+    "created_at": "2026-10-20T06:23:18.012083+00:00",
+    "slate": "2026-W07",
+    "game_id": "2026_07_NE_CHI",
+    "player_id": "00-0038621",
+    "player_name": "DeMario Douglas",
+    "team": "NE",
+    "opponent": "CHI",
+    "position": "WR",
+    "market": "receiving_yards",
+    "model": {
+      "version": "negbin-gamma-v3.2",
+      "alpha": 0.1097,
+      "k": 1.555,
+      "calibration_bias": 0.0,
+      "input_cutoff": "2026-10-20T06:23:18.012083+00:00"
+    },
+    "role": {
+      "label": "none",
+      "is_provisional": true,
+      "provisional_note": "Role labels and thresholds remain provisional pending chronological holdout validation.",
+      "recent_window": "last_1_game",
+      "baseline_window": "prior_8_games_ewma",
+      "recent_target_share": 0.2258,
+      "baseline_target_share": 0.1367,
+      "delta": 0.0891,
+      "career_games": 47,
+      "target_sd": 1.07,
+      "missing_route_data": true,
+      "raw_observations": {
+        "targets": 7,
+        "receptions": 5,
+        "receiving_yards": 20,
+        "f_targets": 3.84,
+        "f_rec": 2.67,
+        "f_yards": 20.31,
+        "air_yards_share": 0.1991,
+        "f_ay_share": 0.136,
+        "adot": 6.29,
+        "f_adot": 10.09
+      }
+    },
+    "projection": {
+      "fair_line": 43.5,
+      "proj_volume": 43.5,
+      "distribution_params": {
+        "mu_rec": 0.6053,
+        "alpha": 0.1097,
+        "k": 1.555
+      },
+      "p_over": 0.6053,
+      "p_under": 0.3947,
+      "p_push": 0.0
+    },
+    "price_boundaries": {
+      "max_acceptable_over_line_at_minus_110": 40.5,
+      "min_acceptable_under_line_at_minus_110": 46.5,
+      "breakeven_odds_at_fair": "-110"
+    },
+    "qualification_policy": {
+      "version": "edge_10pct_v1",
+      "edge_hurdle": 0.1,
+      "require_positive_ev": true
+    },
+    "quote": {
+      "status": "verified",
+      "quote_id": "dk_ne_chi_douglas_yds_open",
+      "source": "DraftKings Early Openers (TNF Verified Feed)",
+      "book": "DraftKings",
+      "line": 34.5,
+      "over_odds": -110,
+      "under_odds": -110,
+      "observed_at": "2026-10-20T06:23:18.002524+00:00",
+      "evaluation": {
+        "is_qualified": true,
+        "status": "QUALIFIED",
+        "best_side": "OVER",
+        "prob_edge": 0.1053,
+        "break_even_adv": 0.0814,
+        "expected_return": 0.1555,
+        "actionable_stake": 0.03,
+        "catalyst": "both",
+        "injury_context": "Romeo Doubs (Shoulder OUT)"
+      }
+    },
+    "scenario_assumptions": "Romeo Doubs (Shoulder OUT)",
+    "content_hash": "fe594262867c7f3fed2fe457054c6bca180c37e92654692e48bc28157c52c32f"
+  },
+  {
+    "snapshot_id": "02bf1266-20ea-4f22-bfe4-a62a3662ac04",
+    "snapshot_type": "material_revision",
+    "created_at": "2026-10-20T06:23:18.012083+00:00",
+    "slate": "2026-W07",
+    "game_id": "2026_07_NE_CHI",
+    "player_id": "00-0038621",
+    "player_name": "DeMario Douglas",
+    "team": "NE",
+    "opponent": "CHI",
+    "position": "WR",
+    "market": "receptions",
+    "model": {
+      "version": "negbin-gamma-v3.2",
+      "alpha": 0.1097,
+      "k": 1.555,
+      "calibration_bias": 0.0,
+      "input_cutoff": "2026-10-20T06:23:18.012083+00:00"
+    },
+    "role": {
+      "label": "none",
+      "is_provisional": true,
+      "provisional_note": "Role labels and thresholds remain provisional pending chronological holdout validation.",
+      "recent_window": "last_1_game",
+      "baseline_window": "prior_8_games_ewma",
+      "recent_target_share": 0.2258,
+      "baseline_target_share": 0.1367,
+      "delta": 0.0891,
+      "career_games": 47,
+      "target_sd": 1.07,
+      "missing_route_data": true,
+      "raw_observations": {
+        "targets": 7,
+        "receptions": 5,
+        "receiving_yards": 20,
+        "f_targets": 3.84,
+        "f_rec": 2.67,
+        "f_yards": 20.31,
+        "air_yards_share": 0.1991,
+        "f_ay_share": 0.136,
+        "adot": 6.29,
+        "f_adot": 10.09
+      }
+    },
+    "projection": {
+      "fair_line": 4.5,
+      "proj_volume": 4.5,
+      "distribution_params": {
+        "mu_rec": 0.5417,
+        "alpha": 0.1097,
+        "k": 1.555
+      },
+      "p_over": 0.5417,
+      "p_under": 0.4583,
+      "p_push": 0.0
+    },
+    "price_boundaries": {
+      "max_acceptable_over_line_at_minus_110": 1.5,
+      "min_acceptable_under_line_at_minus_110": 7.5,
+      "breakeven_odds_at_fair": "-110"
+    },
+    "qualification_policy": {
+      "version": "edge_10pct_v1",
+      "edge_hurdle": 0.1,
+      "require_positive_ev": true
+    },
+    "quote": {
+      "status": "verified",
+      "quote_id": "fd_ne_chi_douglas_rec_open",
+      "source": "FanDuel Early Openers (TNF Verified Feed)",
+      "book": "FanDuel",
+      "line": 3.5,
+      "over_odds": 105,
+      "under_odds": -135,
+      "observed_at": "2026-10-20T06:23:18.002524+00:00",
+      "evaluation": {
+        "is_qualified": false,
+        "status": "LEAN",
+        "best_side": "OVER",
+        "prob_edge": 0.0825,
+        "break_even_adv": 0.0539,
+        "expected_return": 0.1105,
+        "actionable_stake": 0.0,
+        "catalyst": "football_news",
+        "injury_context": "Romeo Doubs (Shoulder OUT)"
+      }
+    },
+    "scenario_assumptions": "Romeo Doubs (Shoulder OUT)",
+    "content_hash": "73b33a388471fb2d5b8042384c505d29fc046d8aeae28ea09f384319d59d0840"
+  },
+  {
+    "snapshot_id": "d3859b8f-e83b-4315-bc9c-74a5c0dad333",
+    "snapshot_type": "material_revision",
+    "created_at": "2026-10-20T06:23:18.012083+00:00",
+    "slate": "2026-W07",
+    "game_id": "2026_07_NE_CHI",
+    "player_id": "00-0033090",
+    "player_name": "Hunter Henry",
+    "team": "NE",
+    "opponent": "CHI",
+    "position": "TE",
+    "market": "receiving_yards",
+    "model": {
+      "version": "negbin-gamma-v3.2",
+      "alpha": 0.1097,
+      "k": 1.555,
+      "calibration_bias": 0.0,
+      "input_cutoff": "2026-10-20T06:23:18.012083+00:00"
+    },
+    "role": {
+      "label": "none",
+      "is_provisional": true,
+      "provisional_note": "Role labels and thresholds remain provisional pending chronological holdout validation.",
+      "recent_window": "last_1_game",
+      "baseline_window": "prior_8_games_ewma",
+      "recent_target_share": 0.0968,
+      "baseline_target_share": 0.1581,
+      "delta": -0.0613,
+      "career_games": 130,
+      "target_sd": 2.33,
+      "missing_route_data": true,
+      "raw_observations": {
+        "targets": 3,
+        "receptions": 3,
+        "receiving_yards": 26,
+        "f_targets": 4.28,
+        "f_rec": 3.76,
+        "f_yards": 41.49,
+        "air_yards_share": 0.0543,
+        "f_ay_share": 0.0968,
+        "adot": 4.0,
+        "f_adot": 5.94
+      }
+    },
+    "projection": {
+      "fair_line": 39.5,
+      "proj_volume": 39.5,
+      "distribution_params": {
+        "mu_rec": 0.6129,
+        "alpha": 0.1097,
+        "k": 1.555
+      },
+      "p_over": 0.6129,
+      "p_under": 0.3871,
+      "p_push": 0.0
+    },
+    "price_boundaries": {
+      "max_acceptable_over_line_at_minus_110": 36.5,
+      "min_acceptable_under_line_at_minus_110": 42.5,
+      "breakeven_odds_at_fair": "-110"
+    },
+    "qualification_policy": {
+      "version": "edge_10pct_v1",
+      "edge_hurdle": 0.1,
+      "require_positive_ev": true
+    },
+    "quote": {
+      "status": "verified",
+      "quote_id": "mgm_ne_chi_henry_yds_open",
+      "source": "BetMGM Early Openers (TNF Verified Feed)",
+      "book": "BetMGM",
+      "line": 31.5,
+      "over_odds": -115,
+      "under_odds": -115,
+      "observed_at": "2026-10-20T06:23:18.002524+00:00",
+      "evaluation": {
+        "is_qualified": true,
+        "status": "QUALIFIED",
+        "best_side": "OVER",
+        "prob_edge": 0.1129,
+        "break_even_adv": 0.078,
+        "expected_return": 0.1458,
+        "actionable_stake": 0.03,
+        "catalyst": "both",
+        "injury_context": "Romeo Doubs (Shoulder OUT)"
+      }
+    },
+    "scenario_assumptions": "Romeo Doubs (Shoulder OUT)",
+    "content_hash": "21837e7f3dc0169c6f8681fbe62837c1d65c31a57f3cff2a021c3c6e8e0e7c52"
+  },
+  {
+    "snapshot_id": "a1367fa8-ea1f-47db-892a-d4e04451aece",
+    "snapshot_type": "material_revision",
+    "created_at": "2026-10-20T06:23:18.012083+00:00",
+    "slate": "2026-W07",
+    "game_id": "2026_07_NE_CHI",
+    "player_id": "00-0033090",
+    "player_name": "Hunter Henry",
+    "team": "NE",
+    "opponent": "CHI",
+    "position": "TE",
+    "market": "receptions",
+    "model": {
+      "version": "negbin-gamma-v3.2",
+      "alpha": 0.1097,
+      "k": 1.555,
+      "calibration_bias": 0.0,
+      "input_cutoff": "2026-10-20T06:23:18.012083+00:00"
+    },
+    "role": {
+      "label": "none",
+      "is_provisional": true,
+      "provisional_note": "Role labels and thresholds remain provisional pending chronological holdout validation.",
+      "recent_window": "last_1_game",
+      "baseline_window": "prior_8_games_ewma",
+      "recent_target_share": 0.0968,
+      "baseline_target_share": 0.1581,
+      "delta": -0.0613,
+      "career_games": 130,
+      "target_sd": 2.33,
+      "missing_route_data": true,
+      "raw_observations": {
+        "targets": 3,
+        "receptions": 3,
+        "receiving_yards": 26,
+        "f_targets": 4.28,
+        "f_rec": 3.76,
+        "f_yards": 41.49,
+        "air_yards_share": 0.0543,
+        "f_ay_share": 0.0968,
+        "adot": 4.0,
+        "f_adot": 5.94
+      }
+    },
+    "projection": {
+      "fair_line": 4.5,
+      "proj_volume": 4.5,
+      "distribution_params": {
+        "mu_rec": 0.6137,
+        "alpha": 0.1097,
+        "k": 1.555
+      },
+      "p_over": 0.6137,
+      "p_under": 0.3863,
+      "p_push": 0.0
+    },
+    "price_boundaries": {
+      "max_acceptable_over_line_at_minus_110": 1.5,
+      "min_acceptable_under_line_at_minus_110": 7.5,
+      "breakeven_odds_at_fair": "-110"
+    },
+    "qualification_policy": {
+      "version": "edge_10pct_v1",
+      "edge_hurdle": 0.1,
+      "require_positive_ev": true
+    },
+    "quote": {
+      "status": "verified",
+      "quote_id": "dk_ne_chi_henry_rec_open",
+      "source": "DraftKings Early Openers (TNF Verified Feed)",
+      "book": "DraftKings",
+      "line": 3.5,
+      "over_odds": 110,
+      "under_odds": -140,
+      "observed_at": "2026-10-20T06:23:18.002524+00:00",
+      "evaluation": {
+        "is_qualified": true,
+        "status": "QUALIFIED",
+        "best_side": "OVER",
+        "prob_edge": 0.1642,
+        "break_even_adv": 0.1375,
+        "expected_return": 0.2887,
+        "actionable_stake": 0.03,
+        "catalyst": "football_news",
+        "injury_context": "Romeo Doubs (Shoulder OUT)"
+      }
+    },
+    "scenario_assumptions": "Romeo Doubs (Shoulder OUT)",
+    "content_hash": "47f3c55ae9605fbc5716323df8c0d852069d16d17a1937e5f10e4ccdb7a1a5ac"
+  },
+  {
+    "snapshot_id": "23c5d388-f668-4e49-8c7b-46eac47b1c6c",
+    "snapshot_type": "material_revision",
+    "created_at": "2026-10-20T06:23:18.012083+00:00",
+    "slate": "2026-W07",
+    "game_id": "2026_07_NE_CHI",
+    "player_id": "00-0033555",
+    "player_name": "Mack Hollins",
+    "team": "NE",
+    "opponent": "CHI",
+    "position": "WR",
+    "market": "receiving_yards",
+    "model": {
+      "version": "negbin-gamma-v3.2",
+      "alpha": 0.1097,
+      "k": 1.555,
+      "calibration_bias": 0.0,
+      "input_cutoff": "2026-10-20T06:23:18.012083+00:00"
+    },
+    "role": {
+      "label": "none",
+      "is_provisional": true,
+      "provisional_note": "Role labels and thresholds remain provisional pending chronological holdout validation.",
+      "recent_window": "last_1_game",
+      "baseline_window": "prior_8_games_ewma",
+      "recent_target_share": 0.1613,
+      "baseline_target_share": 0.2049,
+      "delta": -0.0436,
+      "career_games": 111,
+      "target_sd": 2.67,
+      "missing_route_data": true,
+      "raw_observations": {
+        "targets": 5,
+        "receptions": 4,
+        "receiving_yards": 51,
+        "f_targets": 6.35,
+        "f_rec": 4.44,
+        "f_yards": 50.65,
+        "air_yards_share": 0.2805,
+        "f_ay_share": 0.2981,
+        "adot": 12.4,
+        "f_adot": 13.47
+      }
+    },
+    "projection": {
+      "fair_line": 45.5,
+      "proj_volume": 45.5,
+      "distribution_params": {
+        "mu_rec": 0.6874,
+        "alpha": 0.1097,
+        "k": 1.555
+      },
+      "p_over": 0.6874,
+      "p_under": 0.3126,
+      "p_push": 0.0
+    },
+    "price_boundaries": {
+      "max_acceptable_over_line_at_minus_110": 42.5,
+      "min_acceptable_under_line_at_minus_110": 48.5,
+      "breakeven_odds_at_fair": "-110"
+    },
+    "qualification_policy": {
+      "version": "edge_10pct_v1",
+      "edge_hurdle": 0.1,
+      "require_positive_ev": true
+    },
+    "quote": {
+      "status": "verified",
+      "quote_id": "pin_ne_chi_hollins_yds_open",
+      "source": "Pinnacle Sharp Early Openers (TNF Verified Feed)",
+      "book": "Pinnacle",
+      "line": 29.5,
+      "over_odds": -108,
+      "under_odds": -108,
+      "observed_at": "2026-10-20T06:23:18.002524+00:00",
+      "evaluation": {
+        "is_qualified": true,
+        "status": "QUALIFIED",
+        "best_side": "OVER",
+        "prob_edge": 0.1874,
+        "break_even_adv": 0.1682,
+        "expected_return": 0.3239,
+        "actionable_stake": 0.03,
+        "catalyst": "both",
+        "injury_context": "Romeo Doubs (Shoulder OUT)"
+      }
+    },
+    "scenario_assumptions": "Romeo Doubs (Shoulder OUT)",
+    "content_hash": "b7406d72485f1fcb1b346ec6f9ed4217bed12a767464fa689d4029a9ba9d50ba"
+  },
+  {
+    "snapshot_id": "eab43861-e0d5-44df-82d7-4382ef7f5e26",
+    "snapshot_type": "material_revision",
+    "created_at": "2026-10-20T06:23:18.012083+00:00",
+    "slate": "2026-W07",
+    "game_id": "2026_07_SF_ATL",
+    "player_id": "00-0033288",
+    "player_name": "George Kittle",
+    "team": "SF",
+    "opponent": "ATL",
+    "position": "TE",
+    "market": "receiving_yards",
+    "model": {
+      "version": "negbin-gamma-v3.2",
+      "alpha": 0.1097,
+      "k": 1.555,
+      "calibration_bias": 0.0,
+      "input_cutoff": "2026-10-20T06:23:18.012083+00:00"
+    },
+    "role": {
+      "label": "none",
+      "is_provisional": true,
+      "provisional_note": "Role labels and thresholds remain provisional pending chronological holdout validation.",
+      "recent_window": "last_1_game",
+      "baseline_window": "prior_8_games_ewma",
+      "recent_target_share": 0.1471,
+      "baseline_target_share": 0.2198,
+      "delta": -0.0727,
+      "career_games": 125,
+      "target_sd": 2.12,
+      "missing_route_data": true,
+      "raw_observations": {
+        "targets": 5,
+        "receptions": 2,
+        "receiving_yards": 12,
+        "f_targets": 6.58,
+        "f_rec": 4.62,
+        "f_yards": 49.05,
+        "air_yards_share": 0.255,
+        "f_ay_share": 0.2336,
+        "adot": 7.6,
+        "f_adot": 7.2
+      }
+    },
+    "projection": {
+      "fair_line": 61.0,
+      "proj_volume": 61.0,
+      "distribution_params": {
+        "mu_rec": 0.6251,
+        "alpha": 0.1097,
+        "k": 1.555
+      },
+      "p_over": 0.6251,
+      "p_under": 0.3749,
+      "p_push": 0.0
+    },
+    "price_boundaries": {
+      "max_acceptable_over_line_at_minus_110": 58.0,
+      "min_acceptable_under_line_at_minus_110": 64.0,
+      "breakeven_odds_at_fair": "-110"
+    },
+    "qualification_policy": {
+      "version": "edge_10pct_v1",
+      "edge_hurdle": 0.1,
+      "require_positive_ev": true
+    },
+    "quote": {
+      "status": "verified",
+      "quote_id": "dk_sf_atl_kittle_yds_open",
+      "source": "DraftKings Early Openers (Week 7 Verified Feed)",
+      "book": "DraftKings",
+      "line": 48.5,
+      "over_odds": -112,
+      "under_odds": -112,
+      "observed_at": "2026-10-20T06:23:18.002524+00:00",
+      "evaluation": {
+        "is_qualified": true,
+        "status": "QUALIFIED",
+        "best_side": "OVER",
+        "prob_edge": 0.1251,
+        "break_even_adv": 0.0968,
+        "expected_return": 0.1833,
+        "actionable_stake": 0.03,
+        "catalyst": "both",
+        "injury_context": "Mike Evans (Achilles OUT)"
+      }
+    },
+    "scenario_assumptions": "Mike Evans (Achilles OUT)",
+    "content_hash": "25b013c68bfce73bd073295ea9b53a5f6bbab591a30a75d921425689a5cdb6bb"
+  },
+  {
+    "snapshot_id": "1d5d2aaf-1cfe-4d77-a34a-9fa8577b4825",
+    "snapshot_type": "material_revision",
+    "created_at": "2026-10-20T06:23:18.012083+00:00",
+    "slate": "2026-W07",
+    "game_id": "2026_07_SF_ATL",
+    "player_id": "00-0033288",
+    "player_name": "George Kittle",
+    "team": "SF",
+    "opponent": "ATL",
+    "position": "TE",
+    "market": "receptions",
+    "model": {
+      "version": "negbin-gamma-v3.2",
+      "alpha": 0.1097,
+      "k": 1.555,
+      "calibration_bias": 0.0,
+      "input_cutoff": "2026-10-20T06:23:18.012083+00:00"
+    },
+    "role": {
+      "label": "none",
+      "is_provisional": true,
+      "provisional_note": "Role labels and thresholds remain provisional pending chronological holdout validation.",
+      "recent_window": "last_1_game",
+      "baseline_window": "prior_8_games_ewma",
+      "recent_target_share": 0.1471,
+      "baseline_target_share": 0.2198,
+      "delta": -0.0727,
+      "career_games": 125,
+      "target_sd": 2.12,
+      "missing_route_data": true,
+      "raw_observations": {
+        "targets": 5,
+        "receptions": 2,
+        "receiving_yards": 12,
+        "f_targets": 6.58,
+        "f_rec": 4.62,
+        "f_yards": 49.05,
+        "air_yards_share": 0.255,
+        "f_ay_share": 0.2336,
+        "adot": 7.6,
+        "f_adot": 7.2
+      }
+    },
+    "projection": {
+      "fair_line": 6.5,
+      "proj_volume": 6.5,
+      "distribution_params": {
+        "mu_rec": 0.6482,
+        "alpha": 0.1097,
+        "k": 1.555
+      },
+      "p_over": 0.6482,
+      "p_under": 0.3518,
+      "p_push": 0.0
+    },
+    "price_boundaries": {
+      "max_acceptable_over_line_at_minus_110": 3.5,
+      "min_acceptable_under_line_at_minus_110": 9.5,
+      "breakeven_odds_at_fair": "-110"
+    },
+    "qualification_policy": {
+      "version": "edge_10pct_v1",
+      "edge_hurdle": 0.1,
+      "require_positive_ev": true
+    },
+    "quote": {
+      "status": "verified",
+      "quote_id": "fd_sf_atl_kittle_rec_open",
+      "source": "FanDuel Early Openers (Week 7 Verified Feed)",
+      "book": "FanDuel",
+      "line": 4.5,
+      "over_odds": -105,
+      "under_odds": -125,
+      "observed_at": "2026-10-20T06:23:18.002524+00:00",
+      "evaluation": {
+        "is_qualified": true,
+        "status": "QUALIFIED",
+        "best_side": "OVER",
+        "prob_edge": 0.1685,
+        "break_even_adv": 0.136,
+        "expected_return": 0.2654,
+        "actionable_stake": 0.03,
+        "catalyst": "football_news",
+        "injury_context": "Mike Evans (Achilles OUT)"
+      }
+    },
+    "scenario_assumptions": "Mike Evans (Achilles OUT)",
+    "content_hash": "65489fa184a0d3f92f722892344ea68d7d5d57aa263f0c4342bca5850ce7a8f8"
+  },
+  {
+    "snapshot_id": "9f6b8903-c1b5-42bb-8df6-a923a3d178a1",
+    "snapshot_type": "material_revision",
+    "created_at": "2026-10-20T06:23:18.012083+00:00",
+    "slate": "2026-W07",
+    "game_id": "2026_07_SF_ATL",
+    "player_id": "00-0033280",
+    "player_name": "Christian McCaffrey",
+    "team": "SF",
+    "opponent": "ATL",
+    "position": "RB",
+    "market": "receiving_yards",
+    "model": {
+      "version": "negbin-gamma-v3.2",
+      "alpha": 0.1097,
+      "k": 1.555,
+      "calibration_bias": 0.0,
+      "input_cutoff": "2026-10-20T06:23:18.012083+00:00"
+    },
+    "role": {
+      "label": "established_volume",
+      "is_provisional": true,
+      "provisional_note": "Role labels and thresholds remain provisional pending chronological holdout validation.",
+      "recent_window": "last_1_game",
+      "baseline_window": "prior_8_games_ewma",
+      "recent_target_share": 0.2353,
+      "baseline_target_share": 0.2178,
+      "delta": 0.0175,
+      "career_games": 113,
+      "target_sd": 2.7,
+      "missing_route_data": true,
+      "raw_observations": {
+        "targets": 8,
+        "receptions": 5,
+        "receiving_yards": 20,
+        "f_targets": 6.78,
+        "f_rec": 4.98,
+        "f_yards": 29.83,
+        "air_yards_share": -0.0201,
+        "f_ay_share": 0.0569,
+        "adot": -0.38,
+        "f_adot": 1.72
+      }
+    },
+    "projection": {
+      "fair_line": 41.5,
+      "proj_volume": 41.5,
+      "distribution_params": {
+        "mu_rec": 0.6325,
+        "alpha": 0.1097,
+        "k": 1.555
+      },
+      "p_over": 0.6325,
+      "p_under": 0.3675,
+      "p_push": 0.0
+    },
+    "price_boundaries": {
+      "max_acceptable_over_line_at_minus_110": 38.5,
+      "min_acceptable_under_line_at_minus_110": 44.5,
+      "breakeven_odds_at_fair": "-110"
+    },
+    "qualification_policy": {
+      "version": "edge_10pct_v1",
+      "edge_hurdle": 0.1,
+      "require_positive_ev": true
+    },
+    "quote": {
+      "status": "verified",
+      "quote_id": "mgm_sf_atl_cmc_yds_open",
+      "source": "BetMGM Early Openers (Week 7 Verified Feed)",
+      "book": "BetMGM",
+      "line": 32.5,
+      "over_odds": -115,
+      "under_odds": -115,
+      "observed_at": "2026-10-20T06:23:18.002524+00:00",
+      "evaluation": {
+        "is_qualified": true,
+        "status": "QUALIFIED",
+        "best_side": "OVER",
+        "prob_edge": 0.1325,
+        "break_even_adv": 0.0976,
+        "expected_return": 0.1825,
+        "actionable_stake": 0.03,
+        "catalyst": "both",
+        "injury_context": "Mike Evans (Achilles OUT)"
+      }
+    },
+    "scenario_assumptions": "Mike Evans (Achilles OUT)",
+    "content_hash": "a06888ba6797b2d86c168961ca5609889f1c7347acb2508ce74b210aa77cf951"
+  },
+  {
+    "snapshot_id": "e75a1073-f20f-4374-8b27-3b06a55066fe",
+    "snapshot_type": "material_revision",
+    "created_at": "2026-10-20T06:23:18.012083+00:00",
+    "slate": "2026-W07",
+    "game_id": "2026_07_NE_CHI",
+    "player_id": "00-0035676",
+    "player_name": "A.J. Brown",
+    "team": "NE",
+    "opponent": "CHI",
+    "position": "WR",
+    "market": "receiving_yards",
+    "model": {
+      "version": "negbin-gamma-v3.2",
+      "alpha": 0.1097,
+      "k": 1.555,
+      "calibration_bias": 0.0,
+      "input_cutoff": "2026-10-20T06:23:18.012083+00:00"
+    },
+    "role": {
+      "label": "contraction",
+      "is_provisional": true,
+      "provisional_note": "Role labels and thresholds remain provisional pending chronological holdout validation.",
+      "recent_window": "last_1_game",
+      "baseline_window": "prior_8_games_ewma",
+      "recent_target_share": 0.129,
+      "baseline_target_share": 0.2511,
+      "delta": -0.1221,
+      "career_games": 106,
+      "target_sd": 4.27,
+      "missing_route_data": true,
+      "raw_observations": {
+        "targets": 4,
+        "receptions": 3,
+        "receiving_yards": 26,
+        "f_targets": 6.99,
+        "f_rec": 4.99,
+        "f_yards": 60.65,
+        "air_yards_share": 0.086,
+        "f_ay_share": 0.2813,
+        "adot": 4.75,
+        "f_adot": 9.9
+      }
+    },
+    "projection": {
+      "fair_line": 61.0,
+      "proj_volume": 61.0,
+      "distribution_params": {
+        "mu_rec": 0.466,
+        "alpha": 0.1097,
+        "k": 1.555
+      },
+      "p_over": 0.466,
+      "p_under": 0.534,
+      "p_push": 0.0
+    },
+    "price_boundaries": {
+      "max_acceptable_over_line_at_minus_110": 58.0,
+      "min_acceptable_under_line_at_minus_110": 64.0,
+      "breakeven_odds_at_fair": "-110"
+    },
+    "qualification_policy": {
+      "version": "edge_10pct_v1",
+      "edge_hurdle": 0.1,
+      "require_positive_ev": true
+    },
+    "quote": {
+      "status": "verified",
+      "quote_id": "dk_ne_chi_ajb_yds_open",
+      "source": "DraftKings Early Openers (TNF Verified Feed)",
+      "book": "DraftKings",
+      "line": 64.5,
+      "over_odds": -115,
+      "under_odds": -115,
+      "observed_at": "2026-10-20T06:23:18.002524+00:00",
+      "evaluation": {
+        "is_qualified": false,
+        "status": "PASS",
+        "best_side": "UNDER",
+        "prob_edge": 0.034,
+        "break_even_adv": -0.0009,
+        "expected_return": -0.0016,
+        "actionable_stake": 0.0,
+        "catalyst": "pricing",
+        "injury_context": null
+      }
+    },
+    "scenario_assumptions": null,
+    "content_hash": "a2f0b26880c103ecdb8970bb002ba73c6db96b167968862e667ebae987140c28"
+  },
+  {
+    "snapshot_id": "3e29c78a-7bd2-43a1-a132-d5e9528a84dd",
+    "snapshot_type": "material_revision",
+    "created_at": "2026-10-20T06:23:18.012083+00:00",
+    "slate": "2026-W07",
+    "game_id": "2026_07_GB_DET",
+    "player_id": "00-0036963",
+    "player_name": "Amon-Ra St. Brown",
+    "team": "DET",
+    "opponent": "GB",
+    "position": "WR",
+    "market": "receiving_yards",
+    "model": {
+      "version": "negbin-gamma-v3.2",
+      "alpha": 0.1097,
+      "k": 1.555,
+      "calibration_bias": 0.0,
+      "input_cutoff": "2026-10-20T06:23:18.012083+00:00"
+    },
+    "role": {
+      "label": "established_volume",
+      "is_provisional": true,
+      "provisional_note": "Role labels and thresholds remain provisional pending chronological holdout validation.",
+      "recent_window": "last_1_game",
+      "baseline_window": "prior_8_games_ewma",
+      "recent_target_share": 0.4167,
+      "baseline_target_share": 0.3605,
+      "delta": 0.0561,
+      "career_games": 82,
+      "target_sd": 4.96,
+      "missing_route_data": true,
+      "raw_observations": {
+        "targets": 15,
+        "receptions": 11,
+        "receiving_yards": 139,
+        "f_targets": 12.63,
+        "f_rec": 8.29,
+        "f_yards": 99.8,
+        "air_yards_share": 0.58,
+        "f_ay_share": 0.4137,
+        "adot": 9.67,
+        "f_adot": 7.23
+      }
+    },
+    "projection": {
+      "fair_line": 113.0,
+      "proj_volume": 113.0,
+      "distribution_params": {
+        "mu_rec": 0.5019,
+        "alpha": 0.1097,
+        "k": 1.555
+      },
+      "p_over": 0.5019,
+      "p_under": 0.4981,
+      "p_push": 0.0
+    },
+    "price_boundaries": {
+      "max_acceptable_over_line_at_minus_110": 110.0,
+      "min_acceptable_under_line_at_minus_110": 116.0,
+      "breakeven_odds_at_fair": "-110"
+    },
+    "qualification_policy": {
+      "version": "edge_10pct_v1",
+      "edge_hurdle": 0.1,
+      "require_positive_ev": true
+    },
+    "quote": {
+      "status": "verified",
+      "quote_id": "pin_det_gb_amonra_yds_open",
+      "source": "Pinnacle Sharp Early Openers (Week 7 Verified Feed)",
+      "book": "Pinnacle",
+      "line": 112.5,
+      "over_odds": -110,
+      "under_odds": -110,
+      "observed_at": "2026-10-20T06:23:18.002524+00:00",
+      "evaluation": {
+        "is_qualified": false,
+        "status": "PASS",
+        "best_side": "OVER",
+        "prob_edge": 0.0019,
+        "break_even_adv": -0.0219,
+        "expected_return": -0.0419,
+        "actionable_stake": 0.0,
+        "catalyst": "pricing",
+        "injury_context": null
+      }
+    },
+    "scenario_assumptions": null,
+    "content_hash": "401391440eec03650535ba891e63eb970b7478300a4b0366be19e6e4bd80bf6b"
   }
 ]

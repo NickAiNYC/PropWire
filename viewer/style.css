@@ -1832,3 +1832,263 @@ body {
   justify-content: space-between;
   gap: 8px;
 }
+
+/* ==========================================================================
+   WHAT CHANGED: INJURY & ROLE SHIFT RADAR
+   ========================================================================== */
+
+.injury-radar-section {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-medium);
+  border-left: 4px solid var(--accent-editorial);
+  border-radius: 8px;
+  padding: 18px 20px;
+  margin-bottom: 24px;
+}
+
+.radar-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.radar-title-wrap h3 {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--text-ink);
+  margin: 4px 0 4px 0;
+}
+
+.radar-title-wrap p {
+  font-size: 12px;
+  color: var(--text-ink-secondary);
+  margin: 0;
+  max-width: 720px;
+  line-height: 1.45;
+}
+
+.radar-action-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.radar-timestamp {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-ink-tertiary);
+}
+
+.btn-radar-filter {
+  background: var(--bg-surface-subtle);
+  border: 1px solid var(--border-medium);
+  color: var(--text-ink);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-radar-filter:hover {
+  background: var(--accent-editorial);
+  color: #fff;
+  border-color: var(--accent-editorial);
+}
+
+.injury-radar-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 14px;
+}
+
+.radar-card {
+  background: var(--bg-surface-subtle);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.radar-card:hover {
+  border-color: var(--accent-editorial);
+  transform: translateY(-1px);
+}
+
+.radar-card.card-tnf {
+  border-left: 3px solid #38bdf8;
+  background: linear-gradient(180deg, rgba(56, 189, 248, 0.04) 0%, var(--bg-surface-subtle) 100%);
+}
+
+.radar-card.card-mnf {
+  border-left: 3px solid #f97316;
+  background: linear-gradient(180deg, rgba(249, 115, 22, 0.04) 0%, var(--bg-surface-subtle) 100%);
+}
+
+.radar-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+}
+
+.radar-player-name {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--text-ink);
+}
+
+.radar-matchup {
+  font-size: 11px;
+  color: var(--text-ink-tertiary);
+  margin-top: 2px;
+}
+
+.radar-pill-out {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+}
+
+.radar-pill-limited {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+}
+
+.radar-pill-tnf {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.4);
+}
+
+.radar-impact-box {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  padding: 8px 10px;
+  margin: 8px 0;
+  font-size: 11.5px;
+  line-height: 1.45;
+}
+
+.radar-impact-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.radar-boundary-highlight {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--status-green);
+}
+
+.radar-invalidation-text {
+  font-size: 11px;
+  color: var(--text-ink-tertiary);
+  margin-top: 6px;
+  line-height: 1.4;
+}
+
+.radar-card-footer {
+  margin-top: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 8px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.btn-inspect-shift {
+  background: transparent;
+  border: none;
+  color: var(--accent-editorial);
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.15s ease;
+}
+
+.btn-inspect-shift:hover {
+  text-decoration: underline;
+}
+
+.verified-quote-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 800;
+  color: #22c55e;
+  background: rgba(34, 197, 94, 0.12);
+  border: 1px solid rgba(34, 197, 94, 0.4);
+  padding: 1px 5px;
+  border-radius: 4px;
+  letter-spacing: 0.03em;
+}
+
+.verified-quote-badge.book-dk {
+  color: #55a3ff;
+  background: rgba(85, 163, 255, 0.12);
+  border-color: rgba(85, 163, 255, 0.4);
+}
+
+.verified-quote-badge.book-fd {
+  color: #00d2ff;
+  background: rgba(0, 210, 255, 0.12);
+  border-color: rgba(0, 210, 255, 0.4);
+}
+
+.catalyst-pill {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 3px;
+  text-transform: uppercase;
+}
+
+.catalyst-both {
+  background: rgba(168, 85, 247, 0.15);
+  color: #c084fc;
+  border: 1px solid rgba(168, 85, 247, 0.35);
+}
+
+.catalyst-football {
+  background: rgba(249, 115, 22, 0.15);
+  color: #fb923c;
+  border: 1px solid rgba(249, 115, 22, 0.35);
+}
+
+.catalyst-pricing {
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.35);
+}

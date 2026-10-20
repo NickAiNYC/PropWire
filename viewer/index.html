@@ -182,31 +182,57 @@
         </div>
       </section>
 
+      <!-- INJURY & ROLE SHIFT RADAR (What Changed — Pre-Line Ingestion) -->
+      <section class="injury-radar-section" id="injuryRadarSection">
+        <div class="radar-header-row">
+          <div class="radar-title-wrap">
+            <div class="badge-tag" style="background:rgba(239,68,68,0.12); color:#ef4444; border-color:rgba(239,68,68,0.35); margin-bottom:4px;">
+              <span class="status-pulse" style="background:#ef4444; margin-right:4px;"></span>
+              WHAT CHANGED: INJURY &amp; ROLE SHIFT RADAR
+            </div>
+            <h3>Breaking Injury Role Redistribution (Tuesday AM Update)</h3>
+            <p>
+              Pre-line offensive vacancies from official injury feeds, practice walkthrough estimations, and beat reporting.
+              Player-specific target/route redistribution matrices with required price qualification boundaries.
+            </p>
+          </div>
+          <div class="radar-action-wrap">
+            <span class="radar-timestamp" id="injuryRadarTimestamp">Updated: Tuesday 2:00 AM ET</span>
+            <button class="btn-radar-filter" onclick="setViewMode('injury_surges')">
+              Filter Affected Players &rarr;
+            </button>
+          </div>
+        </div>
+
+        <div class="injury-radar-grid" id="injuryRadarGrid">
+          <!-- Dynamically populated breaking injury cards -->
+        </div>
+      </section>
+
       <!-- OPPORTUNITY SUMMARY & EMPTY STATES (Honest proof infrastructure) -->
       <section class="opportunity-summary-card">
         <div class="summary-header-row">
           <div class="summary-title-wrap">
             <div class="badge-tag" style="margin-bottom:4px;">DECISION SUPPORT STATUS</div>
-            <h3 id="oppSummaryTitle">Market State: Unquoted Pre-Line Phase</h3>
+            <h3 id="oppSummaryTitle">Market State: Early Openers Ingestion Active</h3>
             <p id="oppSummarySub">
-              Live sportsbook prop lines have not yet been ingested for this slate. The model will never fabricate bookmaker quotes.
+              Live sportsbook prop lines matched to calibrated projections. Model never turns hypotheticals into verified plays.
             </p>
           </div>
           <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
             <span style="font-family:var(--font-mono); font-size:11px; color:var(--text-ink-tertiary);">VIEW MODE:</span>
             <div class="segmented-control" id="viewModeGroup">
-              <button class="seg-btn active" id="btnModeBaseline" onclick="setViewMode('baseline')">Model Baselines</button>
+              <button class="seg-btn" id="btnModeBaseline" onclick="setViewMode('baseline')">Model Baselines</button>
               <button class="seg-btn" id="btnModeSurges" onclick="setViewMode('surges')">Role Surges (12)</button>
+              <button class="seg-btn" id="btnModeInjurySurges" onclick="setViewMode('injury_surges')">Injury Shifts (6)</button>
+              <button class="seg-btn active" id="btnModeVerifiedQuotes" onclick="setViewMode('verified_quotes')">Verified Quotes (<span id="verifiedQuotesTabCount">10</span>)</button>
               <button class="seg-btn" id="btnModeDemoQuotes" onclick="setViewMode('demo_quotes')">Explore Scenarios</button>
             </div>
           </div>
         </div>
 
         <div class="empty-state-notice" id="emptyStateNotice">
-          <strong>No Verified Sportsbook Feeds Available:</strong>
-          Sportsbooks have not opened receiving prop lines for Week 7 yet. All displayed lines below represent our <strong>calibrated 50/50 fair lines</strong>.
-          No betting edge or Kelly stake can be recommended until verified quotes are ingested.
-          Use the <em>Role Surges</em> tab to inspect sustained usage shifts or use the in-row <em>quick-adjust chips</em> to test hypothetical market prices.
+          <!-- Dynamically updated based on view mode and verified feed availability -->
         </div>
       </section>
 
@@ -703,6 +729,42 @@
               <div class="form-col" style="align-self:flex-end;">
                 <button class="btn-primary" id="executeFreezeBtn" onclick="executeAdminFreeze()" style="background:#0284c7; border-color:#0369a1;">
                   Execute Freeze Snapshot
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- LIVE ODDS INGESTION ADAPTER CONSOLE -->
+          <div style="background:var(--bg-surface-subtle); border:1px solid rgba(34,197,94,0.3); border-radius:8px; padding:14px; margin-bottom:16px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span style="font-weight:700; font-size:13px; color:var(--text-ink);">⚡ Live Odds Ingestion Adapter</span>
+                <span class="provisional-badge" style="color:#22c55e; background:rgba(34,197,94,0.12); border-color:rgba(34,197,94,0.35);">AUTO-EVAL</span>
+              </div>
+              <span id="oddsFeedStatusPill" style="font-family:var(--font-mono); font-size:11px; color:var(--status-green);">4 Books Verified</span>
+            </div>
+            <p style="font-size:11px; line-height:1.5; color:var(--text-ink-secondary); margin-bottom:12px;">
+              Polls opening quotes from verified books (The Odds API, Optic Odds, direct book feeds), normalizes player names, evaluates against frozen state and qualification policy, and emits immutable <code>first_published</code> or <code>material_revision</code> snapshots.
+            </p>
+            <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end;">
+              <div class="form-col" style="flex:1; min-width:180px;">
+                <label for="adminOddsScopeSelect">Scope:</label>
+                <select id="adminOddsScopeSelect" class="filter-select">
+                  <option value="2026_07_NE_CHI" selected>TNF: Patriots @ Bears (2026_07_NE_CHI)</option>
+                  <option value="ALL">Full Week 7 Slate</option>
+                </select>
+              </div>
+              <div class="form-col" style="flex:1; min-width:180px;">
+                <label for="adminOddsProviderSelect">Provider / Source:</label>
+                <select id="adminOddsProviderSelect" class="filter-select">
+                  <option value="openers" selected>Early Market Openers (DK, FD, MGM, PINN)</option>
+                  <option value="the_odds_api">The Odds API (API Key)</option>
+                  <option value="feed">Local Feed File</option>
+                </select>
+              </div>
+              <div class="form-col">
+                <button class="btn-primary" id="executeIngestOddsBtn" onclick="executeAdminIngestOdds()" style="background:#16a34a; border-color:#15803d;">
+                  Ingest &amp; Evaluate Odds
                 </button>
               </div>
             </div>

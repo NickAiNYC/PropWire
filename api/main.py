@@ -334,6 +334,57 @@ async def post_freeze(request: Request):
         raise HTTPException(500, f"Freeze failed: {str(exc)}")
 
 
+@app.get("/api/injuries")
+def get_injuries(
+    season: int = Query(2026, description="NFL Season"),
+    week: int = Query(7, description="NFL Week")
+):
+    """
+    Returns live injury feed and target redistribution matrices for the slate.
+    """
+    filename = f"injuries_{season}_w{week}.json"
+    p = os.path.join(VIEWER_DIR, filename)
+    if os.path.exists(p):
+        with open(p, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return JSONResponse({"status": "no_injuries_feed", "injuries": [], "impacted_beneficiaries": {}})
+
+
+@app.get("/api/live-odds")
+def get_live_odds():
+    """
+    Returns live verified odds feed and evaluation against frozen projections.
+    """
+    p = os.path.join(VIEWER_DIR, "live_odds_feed.json")
+    if os.path.exists(p):
+        with open(p, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return JSONResponse({"feed_status": "AWAITING_OPENERS", "verified_books_count": 0, "quotes": []})
+
+
+@app.post("/api/ingest-odds")
+async def post_ingest_odds(request: Request):
+    """
+    Triggers live odds ingestion adapter, evaluates quotes against frozen state,
+    and emits immutable first_published / material_revision snapshots.
+    """
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    season = int(body.get("season", 2026))
+    week = int(body.get("week", 7))
+    game_id = body.get("game_id")
+
+    try:
+        from odds_adapter import OddsIngestionAdapter, EarlyMarketOpenersProvider
+        adapter = OddsIngestionAdapter(season=season, week=week, provider=EarlyMarketOpenersProvider())
+        summary = adapter.run_ingestion(game_id=game_id)
+        return {"status": "ok", "summary": summary}
+    except Exception as exc:
+        raise HTTPException(500, f"Odds ingestion failed: {str(exc)}")
+
+
 @app.get("/api/holdout-eval")
 def get_holdout_eval(
     season: int = Query(2026, description="NFL Season"),
