@@ -125,7 +125,64 @@ body {
 .nav-brand {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
+}
+
+.brand-header-lockup {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.brand-logo-unit {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  cursor: pointer;
+  user-select: none;
+  transition: opacity 0.15s ease;
+}
+
+.brand-logo-unit:hover {
+  opacity: 0.85;
+}
+
+.brand-logo-mark {
+  width: 44px;
+  height: 22px;
+  flex-shrink: 0;
+  display: block;
+  color: var(--text-ink);
+}
+
+.brand-logo-text {
+  display: inline-flex;
+  align-items: baseline;
+  font-size: 20px;
+  line-height: 1;
+}
+
+.logo-prop {
+  font-family: var(--font-sans);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--text-ink);
+}
+
+.logo-dot {
+  color: var(--status-green);
+  font-weight: 800;
+  margin: 0 2px;
+  font-size: 20px;
+}
+
+.logo-wire {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--text-ink);
 }
 
 .brand-badge-row {
