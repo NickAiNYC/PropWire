@@ -828,6 +828,66 @@
     updatePortfolioBadge();
     updateWatchlistBadge();
     updateActiveFilterBadge();
+
+    // Wire native bottom-sheet behaviors: tap backdrop to close + swipe down to dismiss
+    [$('#detailDialog'), $('#settingsDialog'), $('#moreFiltersDialog'), $('#portfolioDialog'), $('#clvDialog')].forEach(setupBottomSheet);
+  }
+
+  function setupBottomSheet(dialog) {
+    if (!dialog) return;
+
+    // 1. Tap outside (backdrop click) to dismiss
+    dialog.addEventListener('click', (e) => {
+      if (e.target === dialog) {
+        triggerHaptic('light');
+        dialog.close();
+      }
+    });
+
+    // 2. Swipe down on drag handle or header to dismiss
+    let startY = 0;
+    let currentY = 0;
+    let isDragging = false;
+
+    const dragHandle = dialog.querySelector('.dialog-sheet-handle') || dialog.querySelector('.dialog-header');
+    if (dragHandle) {
+      dragHandle.addEventListener('touchstart', (e) => {
+        if (!dialog.open) return;
+        startY = e.touches[0].clientY;
+        currentY = startY;
+        isDragging = true;
+      }, { passive: true });
+
+      dragHandle.addEventListener('touchmove', (e) => {
+        if (!isDragging) return;
+        currentY = e.touches[0].clientY;
+        const deltaY = currentY - startY;
+        if (deltaY > 0) {
+          dialog.style.transform = `translateY(${deltaY}px)`;
+        }
+      }, { passive: true });
+
+      dragHandle.addEventListener('touchend', () => {
+        if (!isDragging) return;
+        isDragging = false;
+        const deltaY = currentY - startY;
+        if (deltaY > 50) {
+          triggerHaptic('light');
+          dialog.style.transform = 'translateY(100%)';
+          setTimeout(() => {
+            dialog.close();
+            dialog.style.transform = '';
+          }, 150);
+        } else {
+          dialog.style.transform = '';
+        }
+      });
+
+      dragHandle.addEventListener('touchcancel', () => {
+        isDragging = false;
+        dialog.style.transform = '';
+      });
+    }
   }
 
   function initKeyboardNav() {

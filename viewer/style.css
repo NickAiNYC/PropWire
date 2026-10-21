@@ -4360,10 +4360,13 @@ tr[data-focused="true"], article[data-focused="true"] {
   }
 
   /* Cards over Tables (Default & Locked on Mobile) */
+  #tableView,
   .desktop-table-container,
-  .table-scroll {
+  .table-scroll,
+  .slate-table {
     display: none !important;
   }
+  #cardView,
   .card-grid {
     display: flex !important;
     flex-direction: column !important;
@@ -4509,15 +4512,23 @@ tr[data-focused="true"], article[data-focused="true"] {
     font-weight: 800 !important;
     color: #ffffff !important;
     font-family: var(--mono) !important;
+    font-variant-numeric: tabular-nums !important;
+    font-feature-settings: "tnum" 1 !important;
   }
   .mq-odds-val {
     font-size: 11px !important;
     color: #94a3b8 !important;
+    font-family: var(--mono) !important;
+    font-variant-numeric: tabular-nums !important;
+    font-feature-settings: "tnum" 1 !important;
   }
   .mq-fair-val {
     font-size: 11px !important;
     color: #64748b !important;
     margin-left: 2px !important;
+    font-family: var(--mono) !important;
+    font-variant-numeric: tabular-nums !important;
+    font-feature-settings: "tnum" 1 !important;
   }
   .mq-edge-and-log {
     display: flex !important;
