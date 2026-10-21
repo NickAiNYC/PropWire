@@ -282,7 +282,7 @@
           <circle cx="${projPct.toFixed(1)}" cy="7" r="2.5" fill="#a3e635" stroke="#070a12" stroke-width="0.8" />
         </svg>
         <div class="bullet-bottom-sub">
-          <span>80%: ${dist.low}–${dist.high}${unit}</span>
+          <span class="bullet-ci-wrap">80% <span class="bullet-ci-tag">${dist.low}–${dist.high}${unit}</span></span>
           <span class="bullet-bk">${hasBook ? `Bk ${bookLine.toFixed(1)}` : 'No quote'}</span>
         </div>
       </div>`;
@@ -933,6 +933,7 @@
           if (rows.length) {
             if (focusedRowIndex >= 0 && rows[focusedRowIndex]) {
               rows[focusedRowIndex].classList.remove('keyboard-focus', 'terminal-focused');
+              rows[focusedRowIndex].removeAttribute('data-focused');
             }
             if (focusedRowIndex < rows.length - 1) {
               focusedRowIndex++;
@@ -942,6 +943,7 @@
             state.focusedIndex = focusedRowIndex;
             if (rows[focusedRowIndex]) {
               rows[focusedRowIndex].classList.add('keyboard-focus', 'terminal-focused');
+              rows[focusedRowIndex].setAttribute('data-focused', 'true');
               rows[focusedRowIndex].scrollIntoView({ block: 'nearest' });
             }
           }
@@ -954,11 +956,13 @@
           if (rows.length && focusedRowIndex > 0) {
             if (rows[focusedRowIndex]) {
               rows[focusedRowIndex].classList.remove('keyboard-focus', 'terminal-focused');
+              rows[focusedRowIndex].removeAttribute('data-focused');
             }
             focusedRowIndex--;
             state.focusedIndex = focusedRowIndex;
             if (rows[focusedRowIndex]) {
               rows[focusedRowIndex].classList.add('keyboard-focus', 'terminal-focused');
+              rows[focusedRowIndex].setAttribute('data-focused', 'true');
               rows[focusedRowIndex].scrollIntoView({ block: 'nearest' });
             }
           }
@@ -1003,7 +1007,10 @@
 
   function clearFocusedRow() {
     state.focusedIndex = -1;
-    getVisibleItems().forEach((item) => item.classList.remove('keyboard-focus', 'terminal-focused'));
+    getVisibleItems().forEach((item) => {
+      item.classList.remove('keyboard-focus', 'terminal-focused');
+      item.removeAttribute('data-focused');
+    });
   }
 
   // Terminal is permanently locked into dark institutional mode
@@ -1567,12 +1574,19 @@
     }
   }
 
-  function updatePortfolioBadge() {
+  function updatePortfolioBadge(shouldPulse = false) {
     const count = (state.portfolio || []).length;
     const badge = $('#portfolioCountBadge');
     if (badge) {
       badge.textContent = count;
       badge.hidden = count === 0;
+    }
+    const ledgerBtn = $('#portfolioBtn');
+    if (ledgerBtn && shouldPulse) {
+      ledgerBtn.classList.remove('ledger-pulse');
+      void ledgerBtn.offsetWidth; // trigger reflow
+      ledgerBtn.classList.add('ledger-pulse');
+      setTimeout(() => ledgerBtn.classList.remove('ledger-pulse'), 800);
     }
     const mobileBadge = $('#bottomNavBadge');
     if (mobileBadge) {
@@ -1644,6 +1658,7 @@
     const dist = distributionRange(row);
     const isTopEdge = evaluation.edge >= 0.15;
     const isWatched = (state.watchlist || []).includes(row.player_id);
+    const isLogged = (state.portfolio || []).some((b) => b.player_id === row.player_id && b.market === state.filters.market);
     const starBtn = `<button class="star-btn ${isWatched ? 'starred' : ''}" type="button" data-watch-player="${esc(row.player_id)}" title="${isWatched ? 'Remove from Watchlist' : 'Add to Watchlist'}" aria-label="Watch">${isWatched ? '★' : '☆'}</button>`;
     const logoImg = teamCrest(row.team, 'md');
     const bulletSvg = propBulletGraphSvg(dist, evaluation, evaluation.side || 'OVER');
@@ -1677,7 +1692,7 @@
       </td>
       <td class="td-num">${bookCell(evaluation, injury)}</td>
       <td class="td-num">${bulletSvg}</td>
-      <td class="td-num">${priceCheckCell(evaluation)}</td>
+      <td class="td-num">${priceCheckCell(evaluation, row, isLogged)}</td>
     </tr>`;
   }
 
@@ -1864,33 +1879,52 @@
     </div>`;
   }
 
-  function priceCheckCell(evaluation) {
-    if (evaluation.state === 'none') return '<span class="cell-sub">No price comparison</span>';
-    if (evaluation.state === 'ingested') {
-      return `<div class="edge-cell edge-cell-unverified" data-quote-state="ingested">
-        <span class="edge-text-unverified">${signedPct(evaluation.edge)} Edge</span>
-        <span class="edge-sub-meta">Return ${signedPct(evaluation.ev)} · Unverified</span>
+  function priceCheckCell(evaluation, row = null, isLogged = false) {
+    const logBtn = row ? `<button class="row-log-btn ${isLogged ? 'logged' : ''}" type="button" data-log-bet="${esc(row.player_id)}" title="${isLogged ? 'In Ledger (Click to remove)' : 'Quick-Log to Ledger'}" aria-label="Log to Ledger">${isLogged ? '✓' : '+'}</button>` : '';
+
+    if (evaluation.state === 'none') {
+      return `<div class="edge-cell-wrap">
+        <div class="edge-cell edge-cell-none">
+          <span class="edge-line-top text-muted">—</span>
+          <span class="exec-tag exec-tag-none">[NO QUOTE]</span>
+        </div>
       </div>`;
     }
     if (evaluation.closed) {
-      return `<div class="edge-cell edge-cell-closed">
-        <span class="edge-text-closed">Closed</span>
-        <span class="edge-sub-meta">Kickoff passed</span>
+      return `<div class="edge-cell-wrap">
+        <div class="edge-cell edge-cell-closed">
+          <span class="edge-line-top text-closed">CLOSED</span>
+          <span class="exec-tag exec-tag-closed">[CLOSED]</span>
+        </div>
+      </div>`;
+    }
+    if (evaluation.state === 'ingested') {
+      return `<div class="edge-cell-wrap">
+        <div class="edge-cell edge-cell-unverified" data-quote-state="ingested">
+          <span class="edge-line-top text-unverified">${signedPct(evaluation.edge)}</span>
+          <span class="exec-tag exec-tag-unverified">[UNVERIFIED]</span>
+        </div>
+        ${logBtn}
       </div>`;
     }
     if (evaluation.dataCheck) {
-      return `<div class="edge-cell edge-cell-caution" data-quote-state="verified">
-        <span class="edge-text-caution">${signedPct(evaluation.edge)} Edge</span>
-        <span class="edge-sub-meta hover-help" title="Likely causes: stale price, name mismatch, unmodeled injury, or role change.">Verify before acting</span>
+      return `<div class="edge-cell-wrap">
+        <div class="edge-cell edge-cell-caution" data-quote-state="verified">
+          <span class="edge-line-top text-caution">${signedPct(evaluation.edge)}</span>
+          <span class="exec-tag exec-tag-verify" title="Verify before acting: edge > 12%">[VERIFY]</span>
+        </div>
+        ${logBtn}
       </div>`;
     }
     const activePolicy = policy();
     const isSubGate = activePolicy && evaluation.edge < activePolicy.gate;
-    const stakeDisplay = isSubGate ? `<span class="sub-gate-text" title="Edge below ${pct(activePolicy.gate, 0)} gate">Sub-Gate</span>` : `Stake ${pct(evaluation.stake, 2)}`;
 
-    return `<div class="edge-cell edge-cell-verified" data-quote-state="verified">
-      <span class="edge-text-verified">${signedPct(evaluation.edge)} Edge</span>
-      <span class="edge-sub-meta">Return ${signedPct(evaluation.ev)} · ${stakeDisplay}</span>
+    return `<div class="edge-cell-wrap">
+      <div class="edge-cell ${isSubGate ? 'edge-cell-subgate' : 'edge-cell-verified'}" data-quote-state="verified">
+        <span class="edge-line-top ${isSubGate ? 'text-subgate' : 'text-verified'}">${signedPct(evaluation.edge)}</span>
+        <span class="exec-tag ${isSubGate ? 'exec-tag-subgate' : 'exec-tag-active'}">${isSubGate ? '[SUB-GATE]' : '[ACTIVE]'}</span>
+      </div>
+      ${logBtn}
     </div>`;
   }
 
@@ -2005,12 +2039,19 @@
       el.className = 'toast';
       document.body.appendChild(el);
     }
-    el.textContent = message;
+    el.innerHTML = `<div class="toast-content"><span class="toast-indicator">●</span> <span class="toast-msg">${esc(message)}</span></div>`;
     el.style.display = 'block';
+    void el.offsetWidth; // force reflow for CSS animation
+    el.classList.add('visible');
     if (toastTimer) clearTimeout(toastTimer);
     toastTimer = setTimeout(() => {
-      if (el) el.style.display = 'none';
-    }, 2500);
+      if (el) {
+        el.classList.remove('visible');
+        setTimeout(() => {
+          if (el && !el.classList.contains('visible')) el.style.display = 'none';
+        }, 220);
+      }
+    }, 1500);
   }
   const showToast = toast;
 
@@ -2021,10 +2062,12 @@
     const existingIndex = (state.portfolio || []).findIndex((b) => b.player_id === playerId && b.market === state.filters.market);
     if (existingIndex >= 0) {
       state.portfolio.splice(existingIndex, 1);
-      toast(`Removed ${row.player_display_name} from CLV ledger`);
+      toast(`✓ Removed: ${row.player_display_name} from Ledger`);
     } else {
+      const ticketId = Math.random().toString(36).slice(2, 6).toUpperCase();
       const entry = {
-        id: `bet_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+        id: `bet_${Date.now()}_${ticketId.toLowerCase()}`,
+        ticket_id: ticketId,
         player_id: row.player_id,
         player_name: row.player_display_name,
         team: row.team,
@@ -2041,10 +2084,10 @@
       };
       if (!Array.isArray(state.portfolio)) state.portfolio = [];
       state.portfolio.unshift(entry);
-      toast(`Logged ${entry.side} ${entry.line.toFixed(1)} ${entry.player_name} to CLV ledger`);
+      toast(`✓ Logged: ${entry.player_name} ${entry.side} ${entry.line.toFixed(1)} (${oddsText(entry.odds)}) to Ledger · Ticket #${ticketId}`);
     }
     savePortfolio(state.portfolio);
-    updatePortfolioBadge();
+    updatePortfolioBadge(true);
     renderBoard();
     if ($('#detailDialog').open && state.selectedPlayerId === playerId) {
       renderDetailModal(row);
