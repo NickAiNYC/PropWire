@@ -1631,26 +1631,40 @@ select {
 
 .exec-tag {
   font-family: var(--mono);
-  font-size: 9px;
+  font-size: 8.5px;
   font-weight: 800;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   line-height: 1;
   margin-top: 2px;
+  display: inline-block;
+  padding: 1.5px 6px;
+  border-radius: 999px;
+  box-sizing: border-box;
 }
 .exec-tag-active {
-  color: #84cc16;
+  background: rgba(132, 204, 22, 0.18);
+  border: 1px solid rgba(132, 204, 22, 0.5);
+  color: #bef264;
 }
 .exec-tag-verify {
-  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.22);
+  border: 1px solid rgba(245, 158, 11, 0.55);
+  color: #fde68a;
 }
 .exec-tag-subgate {
-  color: #64748b;
+  background: rgba(100, 116, 139, 0.2);
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  color: #cbd5e1;
 }
 .exec-tag-closed {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   color: var(--faint);
 }
 .exec-tag-unverified {
+  background: rgba(148, 163, 184, 0.12);
+  border: 1px solid rgba(148, 163, 184, 0.3);
   color: #94a3b8;
 }
 .exec-tag-none {
@@ -2460,7 +2474,7 @@ select {
   color: #f8fafc;
   font-family: var(--mono);
   font-size: 12px;
-  pointer-events: none;
+  pointer-events: auto;
   opacity: 0;
   transform: translateY(12px) scale(0.98);
   transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
@@ -2472,17 +2486,46 @@ select {
 .toast-content {
   display: flex;
   align-items: center;
-  gap: 9px;
+  gap: 10px;
 }
 .toast-indicator {
   color: #84cc16;
   font-size: 10px;
   animation: pulse-dot 1.2s infinite ease-in-out;
+  flex-shrink: 0;
 }
 .toast-msg {
   font-weight: 600;
   letter-spacing: -0.01em;
   color: #f1f5f9;
+  flex: 1;
+  min-width: 0;
+}
+.toast-undo-btn {
+  background: rgba(132, 204, 22, 0.18);
+  border: 1px solid rgba(132, 204, 22, 0.5);
+  border-radius: 5px;
+  color: #bef264;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 800;
+  padding: 4px 10px;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+  min-height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  touch-action: manipulation;
+  transition: all 0.15s ease;
+}
+.toast-undo-btn:hover, .toast-undo-btn:active {
+  background: rgba(132, 204, 22, 0.35);
+  border-color: #bef264;
+  color: #ffffff;
+  transform: scale(1.05);
 }
 
 @keyframes pulse-dot {
@@ -5139,6 +5182,56 @@ article[data-focused="true"] {
   .bottom-nav-item {
     min-height: 44px !important;
     touch-action: manipulation !important;
+  }
+
+  /* Mobile Centered Toast with Safe-Area Tab Bar Clearance */
+  .toast {
+    right: auto !important;
+    left: 50% !important;
+    bottom: calc(64px + env(safe-area-inset-bottom, 16px) + 12px) !important;
+    transform: translate(-50%, 14px) scale(0.98) !important;
+    max-width: calc(100% - 32px) !important;
+    width: max-content !important;
+    padding: 8px 12px !important;
+  }
+  .toast.visible {
+    transform: translate(-50%, 0) scale(1) !important;
+  }
+
+  /* Mobile Swipe-Right-to-Log Visual Feedback */
+  .mobile-quant-row.swipe-log-ready {
+    border-left: 3px solid #84cc16 !important;
+    background: linear-gradient(90deg, rgba(132, 204, 22, 0.16) 0%, rgba(13, 19, 32, 0.95) 100%) !important;
+    box-shadow: 0 4px 20px rgba(132, 204, 22, 0.25) !important;
+  }
+}
+
+/* 375px Ultra-Compact Viewport Tuning (iPhone SE / Standard Width) */
+@media (max-width: 400px) {
+  .mobile-quant-row {
+    padding: 10px 12px !important;
+    gap: 7px !important;
+  }
+  .mq-player-name {
+    font-size: 13.5px !important;
+  }
+  .mq-team-matchup {
+    font-size: 10px !important;
+  }
+  .mq-line-val {
+    font-size: 14px !important;
+  }
+  .mq-edge-prominent {
+    font-size: 14.5px !important;
+  }
+  .mq-edge-and-log {
+    gap: 8px !important;
+  }
+  .mq-log-btn {
+    width: 42px !important;
+    height: 42px !important;
+    min-width: 42px !important;
+    min-height: 42px !important;
   }
 }
 

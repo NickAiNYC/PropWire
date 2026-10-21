@@ -831,6 +831,72 @@
 
     // Wire native bottom-sheet behaviors: tap backdrop to close + swipe down to dismiss
     [$('#detailDialog'), $('#settingsDialog'), $('#moreFiltersDialog'), $('#portfolioDialog'), $('#clvDialog')].forEach(setupBottomSheet);
+
+    initMobileSwipeGestures();
+  }
+
+  let wasCardSwiped = false;
+  function initMobileSwipeGestures() {
+    const cardView = $('#cardView');
+    if (!cardView) return;
+
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let activeCard = null;
+    let isSwiping = false;
+
+    cardView.addEventListener('touchstart', (e) => {
+      const card = e.target.closest('article.mobile-quant-row');
+      if (!card || e.target.closest('button') || e.target.closest('input')) {
+        activeCard = null;
+        return;
+      }
+      activeCard = card;
+      touchStartX = e.touches[0].clientX;
+      touchStartY = e.touches[0].clientY;
+      isSwiping = false;
+    }, { passive: true });
+
+    cardView.addEventListener('touchmove', (e) => {
+      if (!activeCard) return;
+      const currentX = e.touches[0].clientX;
+      const currentY = e.touches[0].clientY;
+      const deltaX = currentX - touchStartX;
+      const deltaY = currentY - touchStartY;
+
+      // Only engage if swiping right horizontally
+      if (deltaX > 10 && Math.abs(deltaX) > Math.abs(deltaY) * 1.3) {
+        isSwiping = true;
+        const translateX = deltaX <= 80 ? deltaX : 80 + (deltaX - 80) * 0.3;
+        activeCard.style.transform = `translateX(${translateX}px)`;
+        activeCard.classList.toggle('swipe-log-ready', deltaX >= 65);
+      }
+    }, { passive: true });
+
+    const finishSwipe = (e) => {
+      if (!activeCard) return;
+      const card = activeCard;
+      activeCard = null;
+
+      if (isSwiping) {
+        const deltaX = (e.changedTouches ? e.changedTouches[0].clientX : 0) - touchStartX;
+        if (deltaX >= 65) {
+          wasCardSwiped = true;
+          triggerHaptic('medium');
+          const playerId = card.dataset.playerId;
+          if (playerId) logBet(playerId);
+          setTimeout(() => { wasCardSwiped = false; }, 380);
+        }
+      }
+      card.style.transition = 'transform 0.22s cubic-bezier(0.16, 1, 0.3, 1)';
+      card.style.transform = '';
+      card.classList.remove('swipe-log-ready');
+      setTimeout(() => { card.style.transition = ''; }, 240);
+      isSwiping = false;
+    };
+
+    cardView.addEventListener('touchend', finishSwipe);
+    cardView.addEventListener('touchcancel', finishSwipe);
   }
 
   function setupBottomSheet(dialog) {
@@ -1055,6 +1121,36 @@
     return null;
   }
 
+  function renderSkeletons() {
+    const tableSkeleton = Array.from({ length: 6 }).map((_, i) => `
+      <tr class="skeleton-row" style="--row-index:${i}">
+        <td><div style="display:flex;align-items:center;gap:10px;"><div class="skeleton-block" style="width:28px;height:28px;border-radius:50%;"></div><div style="display:flex;flex-direction:column;gap:5px;"><div class="skeleton-block" style="width:110px;height:12px;"></div><div class="skeleton-block" style="width:70px;height:10px;"></div></div></div></td>
+        <td><div class="skeleton-block" style="width:60px;height:16px;"></div></td>
+        <td><div class="skeleton-block" style="width:90px;height:18px;"></div></td>
+        <td><div class="skeleton-block" style="width:140px;height:24px;"></div></td>
+        <td class="td-num"><div class="skeleton-block" style="width:75px;height:28px;border-radius:6px;float:right;"></div></td>
+      </tr>
+    `).join('');
+    if ($('#slateRows')) $('#slateRows').innerHTML = tableSkeleton;
+
+    const cardSkeleton = Array.from({ length: 5 }).map((_, i) => `
+      <article class="mobile-quant-row skeleton-card" style="--row-index:${i}; opacity: 0.6; min-height: 98px; justify-content: space-between; padding: 12px 14px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div class="skeleton-block" style="width:26px;height:26px;border-radius:50%;"></div>
+            <div style="display:flex;flex-direction:column;gap:5px;"><div class="skeleton-block" style="width:115px;height:14px;"></div><div class="skeleton-block" style="width:75px;height:10px;"></div></div>
+          </div>
+          <div class="skeleton-block" style="width:55px;height:18px;border-radius:4px;"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;">
+          <div class="skeleton-block" style="width:130px;height:16px;"></div>
+          <div class="skeleton-block" style="width:65px;height:26px;border-radius:6px;"></div>
+        </div>
+      </article>
+    `).join('');
+    if ($('#cardView')) $('#cardView').innerHTML = cardSkeleton;
+  }
+
   async function loadSlate(slateKey) {
     const config = SLATES[slateKey];
     if (!config) return;
@@ -1064,7 +1160,7 @@
     if ($('#positionFilter')) $('#positionFilter').value = 'ALL';
     if ($('#teamFilter')) $('#teamFilter').value = '';
     if ($('#slateSelector')) $('#slateSelector').value = slateKey;
-    if ($('#slateRows')) $('#slateRows').innerHTML = '<tr><td colspan="8">Loading player records…</td></tr>';
+    renderSkeletons();
 
     const [slate, games, picks, injuries, odds, clvReport] = await Promise.all([
       fetchJson(config.slate, []),
@@ -1593,6 +1689,13 @@
       mobileBadge.textContent = count;
       mobileBadge.hidden = count === 0;
     }
+    const mobileNavBtn = $('#bottomNavLedger');
+    if (mobileNavBtn && shouldPulse) {
+      mobileNavBtn.classList.remove('ledger-pulse');
+      void mobileNavBtn.offsetWidth;
+      mobileNavBtn.classList.add('ledger-pulse');
+      setTimeout(() => mobileNavBtn.classList.remove('ledger-pulse'), 800);
+    }
   }
 
   function updateWatchlistBadge() {
@@ -1886,7 +1989,7 @@
       return `<div class="edge-cell-wrap">
         <div class="edge-cell edge-cell-none">
           <span class="edge-line-top text-muted">—</span>
-          <span class="exec-tag exec-tag-none">[NO QUOTE]</span>
+          <span class="exec-tag exec-tag-none">NO QUOTE</span>
         </div>
       </div>`;
     }
@@ -1894,7 +1997,7 @@
       return `<div class="edge-cell-wrap">
         <div class="edge-cell edge-cell-closed">
           <span class="edge-line-top text-closed">CLOSED</span>
-          <span class="exec-tag exec-tag-closed">[CLOSED]</span>
+          <span class="exec-tag exec-tag-closed">CLOSED</span>
         </div>
       </div>`;
     }
@@ -1902,7 +2005,7 @@
       return `<div class="edge-cell-wrap">
         <div class="edge-cell edge-cell-unverified" data-quote-state="ingested">
           <span class="edge-line-top text-unverified">${signedPct(evaluation.edge)}</span>
-          <span class="exec-tag exec-tag-unverified">[UNVERIFIED]</span>
+          <span class="exec-tag exec-tag-unverified">UNVERIFIED</span>
         </div>
         ${logBtn}
       </div>`;
@@ -1911,7 +2014,7 @@
       return `<div class="edge-cell-wrap">
         <div class="edge-cell edge-cell-caution" data-quote-state="verified">
           <span class="edge-line-top text-caution">${signedPct(evaluation.edge)}</span>
-          <span class="exec-tag exec-tag-verify" title="Verify before acting: edge > 12%">[VERIFY]</span>
+          <span class="exec-tag exec-tag-verify" title="Verify before acting: edge > 12%">VERIFY</span>
         </div>
         ${logBtn}
       </div>`;
@@ -1922,7 +2025,7 @@
     return `<div class="edge-cell-wrap">
       <div class="edge-cell ${isSubGate ? 'edge-cell-subgate' : 'edge-cell-verified'}" data-quote-state="verified">
         <span class="edge-line-top ${isSubGate ? 'text-subgate' : 'text-verified'}">${signedPct(evaluation.edge)}</span>
-        <span class="exec-tag ${isSubGate ? 'exec-tag-subgate' : 'exec-tag-active'}">${isSubGate ? '[SUB-GATE]' : '[ACTIVE]'}</span>
+        <span class="exec-tag ${isSubGate ? 'exec-tag-subgate' : 'exec-tag-active'}">${isSubGate ? 'SUB-GATE' : 'ACTIVE'}</span>
       </div>
       ${logBtn}
     </div>`;
@@ -2001,6 +2104,11 @@
   }
 
   function inspectFromEvent(event) {
+    if (wasCardSwiped) {
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
     if (event.target.closest('.info-trigger') || event.target.closest('.help-bubble')) return;
     const watchBtn = event.target.closest('[data-watch-player]');
     if (watchBtn) {
@@ -2031,7 +2139,7 @@
   }
 
   let toastTimer = null;
-  function toast(message) {
+  function toast(message, undoAction = null) {
     let el = $('#appToast');
     if (!el) {
       el = document.createElement('div');
@@ -2039,7 +2147,30 @@
       el.className = 'toast';
       document.body.appendChild(el);
     }
-    el.innerHTML = `<div class="toast-content"><span class="toast-indicator">●</span> <span class="toast-msg">${esc(message)}</span></div>`;
+    const undoBtnHtml = undoAction
+      ? `<button class="toast-undo-btn" id="toastUndoBtn" type="button" aria-label="Undo action">Undo</button>`
+      : '';
+
+    el.innerHTML = `
+      <div class="toast-content">
+        <span class="toast-indicator">●</span>
+        <span class="toast-msg">${esc(message)}</span>
+        ${undoBtnHtml}
+      </div>`;
+
+    if (undoAction) {
+      const btn = el.querySelector('#toastUndoBtn');
+      if (btn) {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          triggerHaptic('medium');
+          if (typeof undoAction === 'function') undoAction();
+          el.classList.remove('visible');
+          setTimeout(() => { if (el) el.style.display = 'none'; }, 220);
+        });
+      }
+    }
+
     el.style.display = 'block';
     void el.offsetWidth; // force reflow for CSS animation
     el.classList.add('visible');
@@ -2051,7 +2182,7 @@
           if (el && !el.classList.contains('visible')) el.style.display = 'none';
         }, 220);
       }
-    }, 1500);
+    }, undoAction ? 4000 : 2500);
   }
   const showToast = toast;
 
@@ -2061,8 +2192,22 @@
     const evaluation = evaluateRow(row);
     const existingIndex = (state.portfolio || []).findIndex((b) => b.player_id === playerId && b.market === state.filters.market);
     if (existingIndex >= 0) {
-      state.portfolio.splice(existingIndex, 1);
-      toast(`✓ Removed: ${row.player_display_name} from Ledger`);
+      const removedEntry = state.portfolio.splice(existingIndex, 1)[0];
+      savePortfolio(state.portfolio);
+      updatePortfolioBadge(true);
+      renderBoard();
+      if ($('#detailDialog').open && state.selectedPlayerId === playerId) {
+        renderDetailModal(row);
+      }
+      toast(`✓ Removed: ${row.player_display_name} from Ledger`, () => {
+        state.portfolio.splice(existingIndex, 0, removedEntry);
+        savePortfolio(state.portfolio);
+        updatePortfolioBadge(true);
+        renderBoard();
+        if ($('#detailDialog').open && state.selectedPlayerId === playerId) {
+          renderDetailModal(row);
+        }
+      });
     } else {
       const ticketId = Math.random().toString(36).slice(2, 6).toUpperCase();
       const entry = {
@@ -2084,13 +2229,24 @@
       };
       if (!Array.isArray(state.portfolio)) state.portfolio = [];
       state.portfolio.unshift(entry);
-      toast(`✓ Logged: ${entry.player_name} ${entry.side} ${entry.line.toFixed(1)} (${oddsText(entry.odds)}) to Ledger · Ticket #${ticketId}`);
-    }
-    savePortfolio(state.portfolio);
-    updatePortfolioBadge(true);
-    renderBoard();
-    if ($('#detailDialog').open && state.selectedPlayerId === playerId) {
-      renderDetailModal(row);
+      savePortfolio(state.portfolio);
+      updatePortfolioBadge(true);
+      renderBoard();
+      if ($('#detailDialog').open && state.selectedPlayerId === playerId) {
+        renderDetailModal(row);
+      }
+      toast(`✓ Logged: ${entry.player_name} ${entry.side} ${entry.line.toFixed(1)} (${oddsText(entry.odds)}) · #${ticketId}`, () => {
+        const idx = state.portfolio.findIndex((b) => b.id === entry.id);
+        if (idx >= 0) {
+          state.portfolio.splice(idx, 1);
+          savePortfolio(state.portfolio);
+          updatePortfolioBadge(true);
+          renderBoard();
+          if ($('#detailDialog').open && state.selectedPlayerId === playerId) {
+            renderDetailModal(row);
+          }
+        }
+      });
     }
   }
 
