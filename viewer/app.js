@@ -582,20 +582,22 @@
 
     // Slim Dismissible Availability Banner
     const slimInjuryBanner = $('#slimInjuryBanner');
-    const slimInjuryPill = $('#slimInjuryPill');
+    const slimInjuryContent = $('#slimInjuryContent') || $('#slimInjuryPill');
     const dismissInjuryBannerBtn = $('#dismissInjuryBannerBtn');
 
-    if (slimInjuryPill) {
-      slimInjuryPill.addEventListener('click', () => {
+    if (slimInjuryContent) {
+      slimInjuryContent.addEventListener('click', () => {
         triggerHaptic('light');
         toggleInjuries();
       });
     }
 
     if (dismissInjuryBannerBtn && slimInjuryBanner) {
-      dismissInjuryBannerBtn.addEventListener('click', () => {
+      dismissInjuryBannerBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
         triggerHaptic('light');
         slimInjuryBanner.hidden = true;
+        slimInjuryBanner.style.display = 'none';
         slimInjuryBanner.dataset.dismissed = 'true';
       });
     }
@@ -1450,9 +1452,10 @@
       $('#cardView').innerHTML = rows.map((row, idx) => propCard(row, idx)).join('');
     }
 
+    const isMobile = window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
     $('#emptyState').hidden = rows.length !== 0;
-    $('#tableView').hidden = state.view !== 'table' || rows.length === 0;
-    $('#cardView').hidden = state.view !== 'cards' || rows.length === 0;
+    $('#tableView').hidden = isMobile || state.view !== 'table' || rows.length === 0;
+    $('#cardView').hidden = (!isMobile && state.view !== 'cards') || rows.length === 0;
 
     updateStickyContext(rows);
     updateActiveFilterBadge();
