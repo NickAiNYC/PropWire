@@ -118,6 +118,29 @@ export async function POST(req: Request) {
       const subscription = event.data.object as Stripe.Subscription;
       const customerId = subscription.customer as string;
 
+      // Revoke Discord @Quant Syndicate Verified role immediately upon churn
+      const sub = await prisma.userSubscription.findFirst({
+        where: { stripeCustomerId: customerId },
+      });
+      if (
+        (sub as any)?.discordId &&
+        process.env.DISCORD_GUILD_ID &&
+        process.env.DISCORD_QUANT_ROLE_ID &&
+        process.env.DISCORD_BOT_TOKEN
+      ) {
+        try {
+          await fetch(
+            `https://discord.com/api/v10/guilds/${process.env.DISCORD_GUILD_ID}/members/${(sub as any).discordId}/roles/${process.env.DISCORD_QUANT_ROLE_ID}`,
+            {
+              method: "DELETE",
+              headers: { Authorization: `Bot ${process.env.DISCORD_BOT_TOKEN}` },
+            }
+          );
+        } catch (discordErr) {
+          console.error("[stripe-webhook] Failed to strip Discord Quant role on churn:", discordErr);
+        }
+      }
+
       await prisma.$transaction([
         prisma.userSubscription.updateMany({
           where: { stripeCustomerId: customerId },

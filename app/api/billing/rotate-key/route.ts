@@ -27,6 +27,19 @@ export async function POST() {
       );
     }
 
+    // Rate-limit: Maximum 1 rotation per 24 hours per account to prevent email flooding & namespace abuse
+    const lastRotated = (sub as any).lastRotatedAt ? new Date((sub as any).lastRotatedAt).getTime() : 0;
+    if (lastRotated > 0) {
+      const hoursSince = (Date.now() - lastRotated) / 36e5;
+      if (hoursSince < 24) {
+        const remainingHours = Math.ceil(24 - hoursSince);
+        return NextResponse.json(
+          { error: `Key rotation locked. Maximum 1 rotation per 24 hours. Try again in ${remainingHours}h.` },
+          { status: 429 }
+        );
+      }
+    }
+
     // Generate new key and replace hash
     const rawApiKey = `pw_live_${crypto.randomBytes(24).toString("hex")}`;
     const apiKeyHash = crypto.createHash("sha256").update(rawApiKey).digest("hex");
@@ -35,8 +48,9 @@ export async function POST() {
       where: { userId },
       data: {
         apiKeyHash,
+        lastRotatedAt: new Date(),
         updatedAt: new Date(),
-      },
+      } as any,
     });
 
     // Email new key to account owner

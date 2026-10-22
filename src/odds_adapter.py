@@ -276,6 +276,41 @@ class FeedFileProvider(BaseOddsProvider):
         return quotes
 
 
+# ---------------------------------------------------------------------------
+# Proxy Bandwidth Circuit Breaker (Fail-Closed on Cost Overrun)
+# ---------------------------------------------------------------------------
+PROXY_BYTES_BUDGET: int = int(os.environ.get("PROXY_BYTES_BUDGET", "500000000"))  # 500MB
+proxy_bytes_used: int = 0
+
+
+def get_proxy_bytes_used() -> int:
+    """Return accumulated proxy bandwidth consumption in bytes."""
+    return proxy_bytes_used
+
+
+def reset_proxy_bytes() -> None:
+    """Reset accumulated proxy bandwidth counter (e.g., called via midnight UTC cron)."""
+    global proxy_bytes_used
+    proxy_bytes_used = 0
+
+
+def scrape_with_budget(provider: Any, url: str) -> Any:
+    """
+    Budget-gated scraping helper. Halts and raises RuntimeError
+    if proxy bandwidth usage exceeds PROXY_BYTES_BUDGET.
+    """
+    global proxy_bytes_used
+    if proxy_bytes_used >= PROXY_BYTES_BUDGET:
+        raise RuntimeError(
+            f"PROXY_BUDGET_EXCEEDED: Proxy bandwidth usage ({proxy_bytes_used} bytes) "
+            f"exceeds limit ({PROXY_BYTES_BUDGET} bytes). Halting scraper to prevent cost overrun."
+        )
+    response = provider.fetch(url) if hasattr(provider, "fetch") else provider(url)
+    content_len = len(response.content) if hasattr(response, "content") else len(response)
+    proxy_bytes_used += content_len
+    return response
+
+
 class BovadaOddsProvider(BaseOddsProvider):
     """
     Live zero-token odds provider fetching real-time NFL player props
@@ -299,6 +334,16 @@ class BovadaOddsProvider(BaseOddsProvider):
         now_ts = datetime.now(timezone.utc).isoformat()
         proxy_url = os.environ.get("ROTATING_PROXY_URL") or os.environ.get("HTTPS_PROXY") or os.environ.get("HTTP_PROXY")
 
+        # Circuit breaker: fail closed if proxy budget has been reached
+        global proxy_bytes_used
+        if proxy_url and proxy_bytes_used >= PROXY_BYTES_BUDGET:
+            err_msg = (
+                f"PROXY_BUDGET_EXCEEDED: Proxy bandwidth usage ({proxy_bytes_used} bytes) "
+                f"exceeds limit ({PROXY_BYTES_BUDGET} bytes). Halting scraper to prevent cost overrun."
+            )
+            print(f"[odds_adapter] CRITICAL COST OVERRUN HALT: {err_msg}")
+            raise RuntimeError(err_msg)
+
         # Configure opener with proxy if provided (e.g. BrightData, SmartProxy)
         handlers = []
         if proxy_url:
@@ -320,7 +365,10 @@ class BovadaOddsProvider(BaseOddsProvider):
             )
             try:
                 with opener.open(req, timeout=12) as res:
-                    data = json.loads(res.read().decode("utf-8"))
+                    raw_bytes = res.read()
+                    if proxy_url:
+                        proxy_bytes_used += len(raw_bytes)
+                    data = json.loads(raw_bytes.decode("utf-8"))
                     break
             except Exception as e:
                 if attempt < max_attempts - 1:

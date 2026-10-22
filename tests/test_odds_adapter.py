@@ -157,5 +157,39 @@ class TestOddsAdapter(unittest.TestCase):
         self.assertEqual(len(hash_1), 64)
 
 
+    # 6. Proxy Bandwidth Circuit Breaker Tests
+    def test_proxy_bandwidth_budget_circuit_breaker(self):
+        from odds_adapter import (
+            PROXY_BYTES_BUDGET, proxy_bytes_used,
+            get_proxy_bytes_used, reset_proxy_bytes, scrape_with_budget
+        )
+        import odds_adapter
+
+        reset_proxy_bytes()
+        self.assertEqual(get_proxy_bytes_used(), 0)
+
+        # Mock provider returning byte content
+        class MockProvider:
+            def fetch(self, url):
+                class MockResponse:
+                    content = b"x" * 1000
+                return MockResponse()
+
+        provider = MockProvider()
+        scrape_with_budget(provider, "https://example.com/test")
+        self.assertEqual(get_proxy_bytes_used(), 1000)
+
+        # Exceed budget manually and verify RuntimeError halt
+        odds_adapter.proxy_bytes_used = PROXY_BYTES_BUDGET
+        with self.assertRaises(RuntimeError) as ctx:
+            scrape_with_budget(provider, "https://example.com/test2")
+        self.assertIn("PROXY_BUDGET_EXCEEDED", str(ctx.exception))
+
+        # Reset works cleanly
+        reset_proxy_bytes()
+        self.assertEqual(get_proxy_bytes_used(), 0)
+
+
 if __name__ == "__main__":
     unittest.main()
+

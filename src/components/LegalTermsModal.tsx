@@ -87,9 +87,43 @@ export const LegalTermsModal: React.FC<LegalTermsModalProps> = ({ onClose }) => 
           </section>
         </div>
 
-        <div className="border-t border-zinc-700 pt-3 flex justify-between text-[10px] text-zinc-500">
-          <span>RFC-8785 Canonical Integrity</span>
-          <span>Terms Updated: October 2026</span>
+        {/* Mandatory Legal Acceptance Checkbox */}
+        <div className="border-t border-zinc-700/80 pt-4 space-y-3">
+          <label className="flex items-start gap-2.5 text-xs text-zinc-300 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              id="acceptTermsCheckbox"
+              className="mt-0.5 rounded border-zinc-700 bg-zinc-900 text-emerald-500 focus:ring-0 focus:ring-offset-0"
+              onChange={(e) => {
+                const btn = document.getElementById("confirmTermsBtn") as HTMLButtonElement;
+                if (btn) btn.disabled = !e.target.checked;
+              }}
+            />
+            <span>
+              I have read, understood, and accept the Quantitative Research Terms of Service and Disclaimers.
+            </span>
+          </label>
+
+          <div className="flex items-center justify-between pt-1">
+            <span className="text-[10px] text-zinc-500">Version: v1.0.0-2026-10 · RFC-8785 Audit Log</span>
+            <button
+              id="confirmTermsBtn"
+              disabled
+              onClick={async () => {
+                try {
+                  await fetch("/api/legal/accept-terms", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ terms_version: "v1.0.0-2026-10" }),
+                  });
+                } catch (_) {}
+                onClose();
+              }}
+              className="rounded bg-emerald-500 px-4 py-1.5 text-xs font-bold text-slate-950 hover:bg-emerald-400 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+            >
+              Accept &amp; Continue
+            </button>
+          </div>
         </div>
       </div>
     </div>
