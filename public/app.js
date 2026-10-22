@@ -937,6 +937,26 @@
     const clvReportBtn = $('#clvReportBtn');
     if (clvReportBtn) clvReportBtn.addEventListener('click', openClvReport);
 
+    const clvStatusEl = $('#clvStatus');
+    if (clvStatusEl) {
+      clvStatusEl.style.cursor = 'pointer';
+      clvStatusEl.setAttribute('role', 'button');
+      clvStatusEl.setAttribute('tabindex', '0');
+      clvStatusEl.setAttribute('title', 'Click to inspect cryptographic CLV audit ledger & root hash');
+      clvStatusEl.addEventListener('click', () => {
+        triggerHaptic('light');
+        openClvReport();
+      });
+      clvStatusEl.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          triggerHaptic('light');
+          openClvReport();
+        }
+      });
+    }
+
+
     const mobileFilterToggle = $('#mobileFilterToggle');
     if (mobileFilterToggle) {
       mobileFilterToggle.addEventListener('click', () => {
@@ -2897,9 +2917,12 @@
       ? `Large edge (${(edge * 100).toFixed(1)}%). May reflect stale model baseline or unmodeled news — check status.`
       : '';
 
-    const qualified = Boolean(activePolicy) && edge >= activePolicy.gate && ev > 0;
+    const roundedEdgePct = +(num(edge) * 100).toFixed(1);
+    const roundedGatePct = activePolicy ? +(activePolicy.gate * 100).toFixed(1) : 0;
+    const qualified = Boolean(activePolicy) && roundedEdgePct >= roundedGatePct && ev > 0;
     const dataCheck = edge > 0.12 || volatilityHalt || highEdgeCaution;
     const actionable = qState === 'verified' && qualified && !closed && !volatilityHalt;
+
     let stake = 0;
     if (actionable) {
       const supplied = num(evaluation.actionable_stake, NaN);
@@ -3073,7 +3096,10 @@
       </div>`;
     }
     const activePolicy = policy();
-    const isSubGate = activePolicy && evaluation.edge < activePolicy.gate;
+    const roundedEdgePct = +(num(evaluation.edge) * 100).toFixed(1);
+    const roundedGatePct = activePolicy ? +(activePolicy.gate * 100).toFixed(1) : 0;
+    const isSubGate = activePolicy && roundedEdgePct < roundedGatePct;
+
     const edgeMag = Math.min(Math.max((evaluation.edge || 0) / 0.25, 0), 1);
     const heatOpacity = (0.02 + edgeMag * 0.12).toFixed(3);
     const heatmapStyle = evaluation.edge > 0.03
