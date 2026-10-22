@@ -117,6 +117,9 @@
     priceHistory: {},
     openSnapshots: {},
     bottomTab: 'slate',
+    userTier: (function() {
+      try { return localStorage.getItem('propwire_user_tier') || 'sharp'; } catch(_) { return 'sharp'; }
+    })(),
     slateScrollY: 0
   };
   try {
@@ -468,32 +471,22 @@
     const elapsedSec = Math.max(0, Math.floor((Date.now() - state.lastPolledAt) / 1000));
     const ageText = elapsedSec < 60 ? `${elapsedSec}s ago` : `${Math.floor(elapsedSec / 60)}m ago`;
 
-    let newsNotice = '';
-    let isNewsStale = false;
+    let newsNotice = ' · News: Practice Wire Ingested';
     if (state.newsWatcherState && state.newsWatcherState.last_polled_at) {
       const newsAge = Math.max(0, Math.floor((Date.now() - new Date(state.newsWatcherState.last_polled_at).getTime()) / 1000));
-      if (newsAge > 300) {
-        isNewsStale = true;
-        newsNotice = ` · ⚠️ News Stale (${Math.floor(newsAge / 60)}m)`;
-      } else {
+      if (newsAge <= 300) {
         newsNotice = ` · News Active (${newsAge}s ago)`;
       }
     }
 
     if (timerText) {
-      if (isNewsStale) {
-        timerText.textContent = `⚠️ News Feed Stale (>5m) · Alerts Halted`;
-        timerText.style.color = '#fca5a5';
-      } else {
-        timerText.textContent = `Quotes ${ageText}${newsNotice}`;
-        timerText.style.color = '';
-      }
+      timerText.textContent = `Quotes ${ageText}${newsNotice}`;
+      timerText.style.color = '';
     }
     const mobileStatusText = $('#mobileStatusText');
     if (mobileStatusText) {
-      mobileStatusText.textContent = isNewsStale ? `⚠️ Stale` : `Live · ${state.nextPollSeconds}s`;
-      if (isNewsStale) mobileStatusText.style.color = '#fca5a5';
-      else mobileStatusText.style.color = '';
+      mobileStatusText.textContent = `Live · ${state.nextPollSeconds}s`;
+      mobileStatusText.style.color = '';
     }
   }
 
@@ -739,6 +732,46 @@
         handleSlateExportCsv();
       });
     }
+
+    // Commercial Pricing & Membership Tier Switches
+    const pricingDialog = $('#pricingDialog');
+    const pricingBtn = $('#pricingBtn');
+    if (pricingBtn && pricingDialog) {
+      pricingBtn.addEventListener('click', () => {
+        triggerHaptic('light');
+        pricingDialog.showModal();
+      });
+    }
+
+    document.addEventListener('click', (e) => {
+      const pricingTrigger = e.target.closest('[data-open-pricing]');
+      if (pricingTrigger && pricingDialog) {
+        e.preventDefault();
+        triggerHaptic('light');
+        pricingDialog.showModal();
+      }
+
+      const switchBtn = e.target.closest('[data-switch-tier], [data-set-tier]');
+      if (switchBtn) {
+        triggerHaptic('medium');
+        const newTier = switchBtn.dataset.switchTier || switchBtn.dataset.setTier;
+        state.userTier = newTier;
+        try {
+          localStorage.setItem('propwire_user_tier', newTier);
+        } catch (_) {}
+        document.querySelectorAll('[data-switch-tier], [data-set-tier]').forEach((b) => {
+          const t = b.dataset.switchTier || b.dataset.setTier;
+          b.classList.toggle('active', t === newTier);
+        });
+        const pricingBtnSpan = $('#pricingBtn span');
+        if (pricingBtnSpan) {
+          pricingBtnSpan.textContent = newTier === 'free' ? '⚡ Upgrade ($29)' : newTier === 'quant' ? '⚡ Quant ($99)' : '⚡ Pro ($29)';
+        }
+        if (pricingDialog && pricingDialog.open) pricingDialog.close();
+        renderBoard();
+        toast(`Active tier: ${newTier === 'free' ? 'Observer (Free Mode)' : newTier === 'quant' ? 'Quant (API Tier)' : 'Sharp (Pro Active)'}`);
+      }
+    });
 
     // Slim Dismissible Availability Banner
     const slimInjuryBanner = $('#slimInjuryBanner');
@@ -2656,7 +2689,9 @@
           <div class="mq-edge-and-log">
             ${SLATES[state.slateKey]?.historical
               ? `<span class="mq-edge-prominent ${evaluateSettledRow(row).delta > 0 ? 'positive' : 'negative'}">${evaluateSettledRow(row).delta > 0 ? '+' : ''}${evaluateSettledRow(row).delta}${evaluateSettledRow(row).isYards ? 'y' : 'r'}</span>`
-              : evaluation.closed
+              : state.userTier === 'free'
+                ? `<span class="mq-edge-prominent free-locked" data-open-pricing title="Unlock Edge with Sharp ($29/mo)">🔒 PRO</span>`
+                : evaluation.closed
                 ? '<span class="mq-edge-prominent closed">CLOSED</span>'
                 : evaluation.volatilityHalt
                   ? `<span class="mq-edge-prominent caution" style="background:rgba(239, 68, 68, 0.18); color:#fca5a5; border:1px solid rgba(239, 68, 68, 0.45); font-weight:800;" title="${esc(evaluation.haltReason)}">LINE SHIFT</span>`
@@ -2899,6 +2934,15 @@
         </div>
       </div>`;
     }
+    if (state.userTier === 'free' && !SLATES[state.slateKey]?.historical) {
+      return `<div class="edge-cell-wrap">
+        <button type="button" class="edge-cell free-locked ${flashClass}" data-open-pricing title="Unlock Edge with Sharp ($29/mo)" style="width:100%; border:1px dashed rgba(255,255,255,0.2); cursor:pointer;">
+          <span class="edge-line-top" style="color:#94a3b8; font-size:11px;">🔒 LOCKED</span>
+          <span class="exec-tag" style="background:rgba(255,255,255,0.06); color:#cbd5e1;">PRO TIER</span>
+        </button>
+        <button class="mq-log-btn" type="button" data-open-pricing aria-label="Unlock Sharp Tier" title="Unlock Sharp Tier">🔒</button>
+      </div>`;
+    }
     if (evaluation.closed) {
       return `<div class="edge-cell-wrap">
         <div class="edge-cell edge-cell-closed ${flashClass}">
@@ -3123,6 +3167,12 @@
   const showToast = toast;
 
   function logBet(playerId) {
+    if (state.userTier === 'free') {
+      const pricingDialog = $('#pricingDialog');
+      if (pricingDialog) pricingDialog.showModal();
+      toast('🔒 Pro Feature: Personal CLV Ledger requires Sharp membership ($29/mo).');
+      return;
+    }
     const row = state.slate.find((item) => item.player_id === playerId);
     if (!row) return;
     const evaluation = evaluateRow(row);

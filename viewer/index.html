@@ -115,6 +115,11 @@
           <span class="sniper-active-badge" id="sniperActiveBadge" hidden>LIVE</span>
         </button>
 
+        <!-- Commercial Pricing / Membership Tiers (Desktop) -->
+        <button type="button" id="pricingBtn" class="pw-btn-nav pw-btn-upgrade pw-desktop-only" title="Commercial Membership Tiers & Access">
+          <span style="color:#B6F36B;">⚡ Pro ($29)</span>
+        </button>
+
         <!-- Desktop Action Buttons -->
         <button type="button" id="clvReportBtn" class="pw-btn-nav pw-desktop-only" title="Week 7 Public CLV Validation Report">CLV Report</button>
         <button type="button" id="portfolioBtn" class="pw-btn-nav pw-btn-ledger pw-desktop-only" title="Personal CLV Ledger &amp; Portfolio">
@@ -363,6 +368,26 @@
           </div>
         </div>
 
+        <!-- Commercial Membership Tier Switcher -->
+        <div class="settings-section">
+          <h3>Membership Tier (Gating Engine)</h3>
+          <p class="settings-desc">Switch membership tier to evaluate the hard edge value gate.</p>
+          <div class="tier-switcher-grid" style="display:grid; grid-template-columns: repeat(3, 1fr); gap:6px;">
+            <button type="button" class="tier-pill-btn" data-set-tier="free">
+              <span class="tier-pill-name" style="display:block; font-weight:700; font-size:12px;">Observer</span>
+              <span class="tier-pill-price" style="display:block; font-size:10px; color:#94a3b8;">Free</span>
+            </button>
+            <button type="button" class="tier-pill-btn active" data-set-tier="sharp">
+              <span class="tier-pill-name" style="display:block; font-weight:700; font-size:12px; color:#B6F36B;">Sharp</span>
+              <span class="tier-pill-price" style="display:block; font-size:10px; color:#94a3b8;">$29/mo</span>
+            </button>
+            <button type="button" class="tier-pill-btn" data-set-tier="quant">
+              <span class="tier-pill-name" style="display:block; font-weight:700; font-size:12px;">Quant</span>
+              <span class="tier-pill-price" style="display:block; font-size:10px; color:#94a3b8;">$99/mo</span>
+            </button>
+          </div>
+        </div>
+
         <!-- Slate Selection -->
         <div class="settings-section">
           <h3>Dataset Slate</h3>
@@ -479,6 +504,73 @@
         <button class="icon-button" value="cancel" aria-label="Close CLV report">×</button>
       </div>
       <div class="dialog-body" id="clvReportContent"></div>
+    </form>
+  </dialog>
+
+  <!-- Commercial Pricing & Subscription Tier Dialog -->
+  <dialog class="detail-dialog pricing-dialog" id="pricingDialog" aria-labelledby="pricingTitle">
+    <form method="dialog" class="dialog-shell">
+      <div class="dialog-sheet-handle" aria-hidden="true"></div>
+      <div class="dialog-header">
+        <div>
+          <div class="eyebrow">Institutional Access Tiers</div>
+          <h2 id="pricingTitle">PROP·WIRE Memberships</h2>
+        </div>
+        <button class="icon-button" value="cancel" aria-label="Close pricing">×</button>
+      </div>
+      <div class="dialog-body" id="pricingContent">
+        <!-- 3 Tier Cards -->
+        <div class="pricing-tier-grid">
+          <div class="pricing-tier-card" data-tier="free">
+            <div class="tier-badge">Observer</div>
+            <div class="tier-price">$0 <span>/ mo</span></div>
+            <p class="tier-tagline">Fair lines, conditional distributions, and injury vacancy tracker.</p>
+            <ul class="tier-feature-list">
+              <li>✓ Full slate model fair lines</li>
+              <li>✓ Target &amp; air-yard vacancy stats</li>
+              <li>✓ Live line movement sparklines</li>
+              <li class="locked">🔒 Actionable edge calculations (+X.X%)</li>
+              <li class="locked">🔒 Personal CLV Ledger &amp; Beat-Close tracking</li>
+              <li class="locked">🔒 Real-time Sniper alerts &amp; webhooks</li>
+            </ul>
+            <button type="button" class="tier-cta-btn secondary" data-switch-tier="free">Active: Observer Mode</button>
+          </div>
+
+          <div class="pricing-tier-card featured" data-tier="sharp">
+            <div class="tier-featured-pill">MOST POPULAR · SHARP BETTOR</div>
+            <div class="tier-badge highlight">Sharp (Pro)</div>
+            <div class="tier-price">$29 <span>/ mo</span></div>
+            <p class="tier-tagline">Full mathematical edge calculations, Kelly sizing, and personal CLV ledger.</p>
+            <ul class="tier-feature-list">
+              <li>✓ <strong>All Observer features included</strong></li>
+              <li>✓ <strong>Uncensored mathematical edge (+X.X%)</strong></li>
+              <li>✓ <strong>Fractional Kelly sizing recommendations</strong></li>
+              <li>✓ <strong>Personal CLV Ledger &amp; Beat-Close alpha</strong></li>
+              <li>✓ <strong>Same-team exposure &amp; hedge detection</strong></li>
+              <li>✓ <strong>Sniper Webhook &amp; Discord/Telegram alerts</strong></li>
+            </ul>
+            <button type="button" class="tier-cta-btn primary" data-switch-tier="sharp">Unlock Sharp Tier ($29/mo)</button>
+          </div>
+
+          <div class="pricing-tier-card" data-tier="quant">
+            <div class="tier-badge">Quant (API)</div>
+            <div class="tier-price">$99 <span>/ mo</span></div>
+            <p class="tier-tagline">Automated programmatic feeds for syndicates and quantitative funds.</p>
+            <ul class="tier-feature-list">
+              <li>✓ <strong>All Sharp features included</strong></li>
+              <li>✓ <strong>REST JSON API endpoints (/api/v1/slate)</strong></li>
+              <li>✓ <strong>Downloadable historical CSV snapshots</strong></li>
+              <li>✓ <strong>Sub-minute priority ingestion stream</strong></li>
+              <li>✓ <strong>Custom Kelly covariance matrix parameters</strong></li>
+            </ul>
+            <button type="button" class="tier-cta-btn secondary" data-switch-tier="quant">Subscribe Quant ($99/mo)</button>
+          </div>
+        </div>
+
+        <div class="pricing-guarantee-box">
+          <p><strong>Beat-Close Guarantee</strong>: If PROP·WIRE does not generate positive Closing Line Value across 50+ qualified recommendations in your first 30 days, receive an unconditional full refund.</p>
+        </div>
+      </div>
     </form>
   </dialog>
 
