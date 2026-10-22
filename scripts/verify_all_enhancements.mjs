@@ -201,6 +201,11 @@ server.listen(PORT, async () => {
     await evalJs(`
       const portDialog = document.getElementById('portfolioDialog');
       if (portDialog && portDialog.open) portDialog.close();
+      const briefing = document.getElementById('firstRunBriefing');
+      if (briefing) {
+        briefing.hidden = true;
+        briefing.style.display = 'none';
+      }
       window.scrollTo(0, 0);
     `);
     await new Promise((r) => setTimeout(r, 500));

@@ -773,13 +773,12 @@
       }
     });
 
-    // Slim Dismissible Availability Banner
+    // Slim Availability Header Pill
     const slimInjuryBanner = $('#slimInjuryBanner');
-    const slimInjuryContent = $('#slimInjuryContent') || $('#slimInjuryPill');
     const dismissInjuryBannerBtn = $('#dismissInjuryBannerBtn');
 
-    if (slimInjuryContent) {
-      slimInjuryContent.addEventListener('click', () => {
+    if (slimInjuryBanner) {
+      slimInjuryBanner.addEventListener('click', () => {
         triggerHaptic('light');
         toggleInjuries();
       });
@@ -883,20 +882,35 @@
 
     const firstRunBanner = $('#firstRunBriefing');
     const dismissBriefingBtn = $('#dismissBriefingBtn');
+    const enterTerminalBtn = $('#enterTerminalBtn');
+    const settingsBriefingBtn = $('#settingsBriefingBtn');
     if (firstRunBanner) {
       const isDismissed = localStorage.getItem('propwire_onboarding_dismissed') === 'true';
       firstRunBanner.hidden = isDismissed;
       if (isDismissed) firstRunBanner.style.display = 'none';
-      if (dismissBriefingBtn) {
-        dismissBriefingBtn.addEventListener('click', () => {
-          triggerHaptic('light');
-          firstRunBanner.hidden = true;
-          firstRunBanner.style.display = 'none';
-          try {
-            localStorage.setItem('propwire_onboarding_dismissed', 'true');
-          } catch (_) {}
-        });
-      }
+      const closeBriefing = () => {
+        triggerHaptic('light');
+        firstRunBanner.hidden = true;
+        firstRunBanner.style.display = 'none';
+        try {
+          localStorage.setItem('propwire_onboarding_dismissed', 'true');
+        } catch (_) {}
+      };
+      if (dismissBriefingBtn) dismissBriefingBtn.addEventListener('click', closeBriefing);
+      if (enterTerminalBtn) enterTerminalBtn.addEventListener('click', closeBriefing);
+      firstRunBanner.addEventListener('click', (e) => {
+        if (e.target === firstRunBanner) closeBriefing();
+      });
+    }
+    if (settingsBriefingBtn) {
+      settingsBriefingBtn.addEventListener('click', () => {
+        if (firstRunBanner) {
+          firstRunBanner.hidden = false;
+          firstRunBanner.style.display = 'flex';
+        }
+        const settingsDialog = $('#settingsDialog');
+        if (settingsDialog && settingsDialog.open) settingsDialog.close();
+      });
     }
 
     $$('.slate-mode-toggle button, .dataset-switcher button').forEach((button) => button.addEventListener('click', () => setPlayMode(button.dataset.mode)));
@@ -1566,7 +1580,7 @@
     }
 
     if (countEl) countEl.textContent = `${injuries.length} Injury Alerts`;
-    if (slimText) slimText.textContent = `${injuries.length} Active Availability Alerts`;
+    if (slimText) slimText.textContent = `${injuries.length} Alerts`;
     if (slimBanner && !slimBanner.dataset.dismissed) slimBanner.hidden = false;
 
     if (previewEl) {
@@ -1900,10 +1914,34 @@
 
     if (state.bottomTab === 'watchlist') {
       if ($('#resultCount')) $('#resultCount').textContent = `${rows.length} watched ${rows.length === 1 ? 'player' : 'players'} of ${state.slate.length} modeled`;
-      $('#emptyState').textContent = 'Your Watchlist is empty. Tap the star icon on any player to track their line movements and edge shifts.';
+      $('#emptyState').innerHTML = `
+        <div class="anti-tout-empty-wrap">
+          <div class="anti-tout-icon">★</div>
+          <div class="anti-tout-title">Watchlist Empty</div>
+          <div class="anti-tout-desc">Tap the star icon on any player card to track real-time line movement, steam alerts, and closing line value.</div>
+        </div>`;
+    } else if (state.filters.playMode === 'actionable' && rows.length === 0) {
+      if ($('#resultCount')) $('#resultCount').textContent = `0 of ${state.slate.length} actionable plays`;
+      $('#emptyState').innerHTML = `
+        <div class="anti-tout-empty-wrap">
+          <div class="anti-tout-shield">🛡️</div>
+          <div class="anti-tout-title">0 Qualified Plays Today</div>
+          <div class="anti-tout-subtitle">The market is efficient. Do not bet.</div>
+          <p class="anti-tout-desc">Our quantitative engine requires a verified statistical edge (>${(state.riskPolicy.edgeGate * 100).toFixed(0)}%) with positive expected Closing Line Value. When books price efficiently, discipline is the edge.</p>
+          <div class="anti-tout-actions">
+            <button type="button" class="anti-tout-btn" id="antiToutViewAllBtn">Explore Full Modeled Slate (${state.slate.length})</button>
+          </div>
+        </div>`;
+      const btn = $('#antiToutViewAllBtn');
+      if (btn) btn.addEventListener('click', () => setPlayMode('all'));
     } else {
       if ($('#resultCount')) $('#resultCount').textContent = `${rows.length} of ${state.slate.length} player records`;
-      $('#emptyState').textContent = 'No player records match these filters.';
+      $('#emptyState').innerHTML = `
+        <div class="anti-tout-empty-wrap">
+          <div class="anti-tout-icon">🔍</div>
+          <div class="anti-tout-title">No Matching Records</div>
+          <div class="anti-tout-desc">No players match your active search and market filters. Try clearing search or resetting filters.</div>
+        </div>`;
     }
     $('#slateHead').innerHTML = tableHead(hasPrices);
 
@@ -2621,94 +2659,141 @@
     const quoteKey = `${row.player_id}::${state.filters.market}`;
     const flash = state.tickFlashes ? state.tickFlashes[quoteKey] : null;
     const flashClass = flash === 'up' ? 'tick-flash-up' : flash === 'down' ? 'tick-flash-down' : '';
-    const glyph = flash === 'up' ? '<span class="tick-flash-glyph tick-glyph-up" aria-hidden="true">▲</span>' : flash === 'down' ? '<span class="tick-flash-glyph tick-glyph-down" aria-hidden="true">▼</span>' : '';
-
-    // Pick one single high-signal badge (prioritize same-team risk/hedge if detected)
-    let signalBadge = '';
-    if (corrRisk) {
-      signalBadge = `<span class="mq-signal-badge ${corrRisk.badgeClass}" title="${esc(corrRisk.message)}">${esc(corrRisk.badgeText)}</span>`;
-    } else if (beneficiary) {
-      signalBadge = '<span class="mq-signal-badge surge">SURGE</span>';
-    } else if (num(row.f_tgt_share || row.target_share) >= 0.28) {
-      signalBadge = `<span class="mq-signal-badge alpha">ALPHA ${pct(row.f_tgt_share || row.target_share, 0)}</span>`;
-    } else if (evaluation.edge >= 0.10) {
-      signalBadge = '<span class="mq-signal-badge edge">EDGE 10%+</span>';
-    } else if (injury) {
-      const stat = injury.report_status === 'LIMITED' ? 'LIM' : injury.report_status === 'QUESTIONABLE' ? 'Q' : injury.report_status;
-      signalBadge = `<span class="mq-signal-badge injury">${esc(stat)}</span>`;
-    } else if (num(row.c_targets) >= 7) {
-      signalBadge = '<span class="mq-signal-badge volume">HIGH FLOOR</span>';
-    } else {
-      signalBadge = `<span class="mq-signal-badge neutral">${esc(row.position)}</span>`;
-    }
 
     const crest = teamCrest(row.team, 'md');
     const fairVal = dist.fair;
     const sparklineHtml = renderPriceSparkline(row, quote, evaluation);
 
+    // Row 1 Hero Edge & Context Subtag
+    let heroEdgeHtml = '';
+    let heroSubHtml = '';
+
+    if (SLATES[state.slateKey]?.historical) {
+      const settled = evaluateSettledRow(row);
+      const isPos = settled.delta > 0;
+      heroEdgeHtml = `<span class="card-hero-edge ${isPos ? 'positive' : 'negative'}">${isPos ? '+' : ''}${settled.delta}${settled.isYards ? 'y' : 'r'}</span>`;
+      heroSubHtml = `<span class="card-edge-sub">${settled.outcome}</span>`;
+    } else if (state.userTier === 'free') {
+      heroEdgeHtml = `<span class="card-hero-edge free-locked" data-open-pricing title="Unlock Edge with Sharp ($29/mo)">🔒 PRO</span>`;
+      heroSubHtml = `<span class="card-edge-sub">EDGE LOCKED</span>`;
+    } else if (evaluation.closed) {
+      heroEdgeHtml = '<span class="card-hero-edge closed">CLOSED</span>';
+      heroSubHtml = '<span class="card-edge-sub">OFF BOARD</span>';
+    } else if (evaluation.volatilityHalt) {
+      heroEdgeHtml = `<span class="card-hero-edge text-shift" title="${esc(evaluation.haltReason)}">SHIFT</span>`;
+      heroSubHtml = '<span class="card-edge-sub text-shift">VOLATILITY</span>';
+    } else if (evaluation.highEdgeCaution) {
+      heroEdgeHtml = `<span class="card-hero-edge text-caution" title="${esc(evaluation.highEdgeWarning)}">${signedPct(evaluation.edge)}</span>`;
+      heroSubHtml = '<span class="card-edge-sub text-caution">CHECK SPREAD</span>';
+    } else if (evaluation.dataCheck) {
+      heroEdgeHtml = `<span class="card-hero-edge text-caution">${signedPct(evaluation.edge)}</span>`;
+      heroSubHtml = '<span class="card-edge-sub text-caution">DATA AUDIT</span>';
+    } else if (evaluation.edge > 0) {
+      heroEdgeHtml = `<span class="card-hero-edge positive">+${(evaluation.edge * 100).toFixed(1)}%</span>`;
+      if (corrRisk) {
+        heroSubHtml = `<span class="card-edge-sub ${corrRisk.badgeClass}">${esc(corrRisk.badgeText)}</span>`;
+      } else if (beneficiary) {
+        heroSubHtml = '<span class="card-edge-sub text-surge">SURGE</span>';
+      } else if (num(row.f_tgt_share || row.target_share) >= 0.28) {
+        heroSubHtml = `<span class="card-edge-sub">ALPHA ${pct(row.f_tgt_share || row.target_share, 0)}</span>`;
+      } else {
+        heroSubHtml = '<span class="card-edge-sub">EDGE VALUE</span>';
+      }
+    } else if (evaluation.edge < 0) {
+      heroEdgeHtml = `<span class="card-hero-edge negative">${(evaluation.edge * 100).toFixed(1)}%</span>`;
+      heroSubHtml = '<span class="card-edge-sub">NEGATIVE EV</span>';
+    } else {
+      heroEdgeHtml = '<span class="card-hero-edge none">—</span>';
+      heroSubHtml = '<span class="card-edge-sub">NEUTRAL</span>';
+    }
+
+    // Row 2 Data Grid Columns
+    let gridColsHtml = '';
+    if (SLATES[state.slateKey]?.historical) {
+      const settled = evaluateSettledRow(row);
+      gridColsHtml = `
+        <div class="card-grid-col col-book">
+          <span class="grid-col-lbl">BOOK</span>
+          <span class="grid-col-val">${settled.line.toFixed(1)}</span>
+          <span class="grid-col-sub">Line</span>
+        </div>
+        <div class="card-grid-col col-model">
+          <span class="grid-col-lbl">ACTUAL</span>
+          <span class="grid-col-val"><span class="settled-stat-box">${settled.actual} ${settled.isYards ? 'yds' : 'rec'}</span></span>
+          <span class="grid-col-sub"><span class="settled-badge ${settled.outcomeClass}">${settled.outcome}</span></span>
+        </div>
+        <div class="card-grid-col col-steam">
+          <span class="grid-col-lbl">DIFF</span>
+          <span class="grid-col-val ${settled.delta > 0 ? 'color-accent' : 'color-muted'}">${settled.delta > 0 ? '+' : ''}${settled.delta}</span>
+          <span class="grid-col-sub">Result</span>
+        </div>
+        <div class="card-grid-col col-action">
+          <button type="button" class="card-btn-view" data-inspect="${esc(row.player_id)}" aria-label="View Details">View &rsaquo;</button>
+        </div>
+      `;
+    } else if (evaluation.state === 'none') {
+      gridColsHtml = `
+        <div class="card-grid-col col-book" style="grid-column: span 2;">
+          <span class="grid-col-lbl">STATUS</span>
+          <span class="grid-col-val color-muted" style="font-size:12px;">No Active Quote</span>
+          <span class="grid-col-sub">Proj ${dist.proj.toFixed(1)}</span>
+        </div>
+        <div class="card-grid-col col-steam">
+          <span class="grid-col-lbl">FAIR</span>
+          <span class="grid-col-val">${fairVal.toFixed(1)}</span>
+          <span class="grid-col-sub">Model</span>
+        </div>
+        <div class="card-grid-col col-action">
+          <button type="button" class="card-btn-view" data-inspect="${esc(row.player_id)}" aria-label="View Details">View &rsaquo;</button>
+        </div>
+      `;
+    } else {
+      gridColsHtml = `
+        <div class="card-grid-col col-book">
+          <span class="grid-col-lbl">BOOK</span>
+          <span class="grid-col-val">${evaluation.side === 'OVER' ? '↑' : '↓'} ${evaluation.line.toFixed(1)}</span>
+          <span class="grid-col-sub">${oddsText(evaluation.odds)}</span>
+        </div>
+        <div class="card-grid-col col-model">
+          <span class="grid-col-lbl">FAIR</span>
+          <span class="grid-col-val">${fairVal.toFixed(1)}</span>
+          <span class="grid-col-sub">Model</span>
+        </div>
+        <div class="card-grid-col col-steam">
+          <span class="grid-col-lbl">STEAM</span>
+          <div class="grid-col-spark">${sparklineHtml}</div>
+        </div>
+        <div class="card-grid-col col-action">
+          <button type="button" class="card-btn-view" data-inspect="${esc(row.player_id)}" aria-label="View Details">View &rsaquo;</button>
+          <button type="button" class="card-btn-log ${isLogged ? 'logged' : ''}" data-log-bet="${esc(row.player_id)}" aria-label="${isLogged ? 'In Ledger' : 'Add to Ledger'}" title="Add to Ledger">${isLogged ? '✓' : '+'}</button>
+        </div>
+      `;
+    }
+
     return `
-      <article class="mobile-quant-row ${isTopEdge ? 'top-edge-play' : ''}" data-testid="slate-card" data-player-id="${esc(row.player_id)}" style="--row-index:${Math.min(index, 12)};" tabindex="0" role="button" aria-label="Inspect ${esc(row.player_display_name)}">
-        <!-- Line 1: Star, Crest, Name, Team/Pos | Right: Single Signal Badge -->
-        <div class="mq-line-1">
-          <div class="mq-id-group">
+      <article class="mobile-quant-row ${isTopEdge ? 'top-edge-play' : ''} ${flashClass}" data-testid="slate-card" data-player-id="${esc(row.player_id)}" style="--row-index:${Math.min(index, 12)};" tabindex="0" role="button" aria-label="Inspect ${esc(row.player_display_name)}">
+        <!-- Row 1: Player ID (Star, Crest, Name, Matchup) | Right: Hero Edge & Subtag -->
+        <div class="card-header-row">
+          <div class="card-id-block">
             <button class="star-btn ${isWatched ? 'starred' : ''}" type="button" data-watch-player="${esc(row.player_id)}" title="${isWatched ? 'Remove from Watchlist' : 'Add to Watchlist'}" aria-label="Watch">${isWatched ? '★' : '☆'}</button>
             ${crest}
-            <div class="mq-name-block">
-              <span class="mq-player-name">${esc(row.player_display_name)}</span>
-              <span class="mq-team-matchup">${esc(row.position)} · ${esc(row.team)} ${row.is_home ? 'vs' : '@'} ${esc(row.opponent_team)}</span>
+            <div class="card-name-group">
+              <span class="card-player-name">${esc(row.player_display_name)}</span>
+              <span class="card-team-matchup">${esc(row.position)} · ${esc(row.team)} ${row.is_home ? 'vs' : '@'} ${esc(row.opponent_team)}</span>
             </div>
           </div>
-          <div class="mq-signal-wrap">
-            ${signalBadge}
+          <div class="card-hero-edge-block">
+            ${heroEdgeHtml}
+            ${heroSubHtml}
           </div>
         </div>
 
-        <!-- Line 2: Prominent Line & Fair | Right: Prominent Edge + 44px Quick Log Button -->
-        <div class="mq-line-2 ${flashClass}">
-          <div class="mq-line-quote-block">
-            ${SLATES[state.slateKey]?.historical
-              ? `<div class="mq-quote-main">
-                  <span class="settled-badge ${evaluateSettledRow(row).outcomeClass}">${evaluateSettledRow(row).outcome}</span>
-                  <span class="settled-stat-box">${evaluateSettledRow(row).actual} ${evaluateSettledRow(row).isYards ? 'yds' : 'rec'}</span>
-                  <span class="mq-fair-val">line ${evaluateSettledRow(row).line.toFixed(1)}</span>
-                </div>`
-              : evaluation.state === 'none'
-                ? '<span class="mq-no-quote">No quote · Proj ' + dist.proj.toFixed(1) + '</span>'
-                : `<div class="mq-quote-main">
-                    <span class="dir-line-pill ${evaluation.side === 'OVER' ? 'dir-over' : 'dir-under'}">
-                      <span class="dir-arrow">${evaluation.side === 'OVER' ? '↑' : '↓'}</span>
-                      <span class="dir-num">${evaluation.line.toFixed(1)}</span>
-                    </span>
-                    <span class="mq-odds-val fixed-odds">${oddsText(evaluation.odds)}</span>
-                    ${glyph}
-                    <span class="mq-fair-val">fair ${fairVal.toFixed(1)}</span>
-                  </div>
-                  ${sparklineHtml}`}
-          </div>
+        <!-- Hairline Divider -->
+        <div class="card-hairline-sep"></div>
 
-          <div class="mq-edge-and-log">
-            ${SLATES[state.slateKey]?.historical
-              ? `<span class="mq-edge-prominent ${evaluateSettledRow(row).delta > 0 ? 'positive' : 'negative'}">${evaluateSettledRow(row).delta > 0 ? '+' : ''}${evaluateSettledRow(row).delta}${evaluateSettledRow(row).isYards ? 'y' : 'r'}</span>`
-              : state.userTier === 'free'
-                ? `<span class="mq-edge-prominent free-locked" data-open-pricing title="Unlock Edge with Sharp ($29/mo)">🔒 PRO</span>`
-                : evaluation.closed
-                ? '<span class="mq-edge-prominent closed">CLOSED</span>'
-                : evaluation.volatilityHalt
-                  ? `<span class="mq-edge-prominent caution" style="background:rgba(239, 68, 68, 0.18); color:#fca5a5; border:1px solid rgba(239, 68, 68, 0.45); font-weight:800;" title="${esc(evaluation.haltReason)}">LINE SHIFT</span>`
-                : evaluation.highEdgeCaution
-                  ? `<span class="mq-edge-prominent verify" title="${esc(evaluation.highEdgeWarning)}">${signedPct(evaluation.edge)} CHECK</span>`
-                : evaluation.dataCheck
-                  ? `<span class="mq-edge-prominent verify">${signedPct(evaluation.edge)}</span>`
-                  : evaluation.edge > 0
-                    ? `<span class="mq-edge-prominent positive heatmap-edge" style="background: linear-gradient(90deg, rgba(182, 243, 107, ${(0.04 + Math.min(evaluation.edge / 0.25, 1) * 0.14).toFixed(3)}) 0%, rgba(182, 243, 107, 0.02) 100%);">+${(evaluation.edge * 100).toFixed(1)}%</span>`
-                    : evaluation.edge < 0
-                      ? `<span class="mq-edge-prominent negative">${(evaluation.edge * 100).toFixed(1)}%</span>`
-                      : '<span class="mq-edge-prominent none">—</span>'}
-
-            <button class="mq-log-btn ${isLogged ? 'logged' : ''}" type="button" data-log-bet="${esc(row.player_id)}" aria-label="${isLogged ? 'In Ledger' : 'Add to Ledger'}" title="Log to Ledger">
-              ${isLogged ? '✓' : '+'}
-            </button>
-          </div>
+        <!-- Row 2: 4-Column Clean Tabular Data Grid -->
+        <div class="card-grid-row">
+          ${gridColsHtml}
         </div>
       </article>`;
   }

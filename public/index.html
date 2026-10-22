@@ -66,10 +66,17 @@
         </button>
       </div>
 
-      <!-- Mobile-Only Center Status Dot (Live · 14s) -->
-      <div class="pw-mobile-status" id="mobileStatusPill" title="Live Odds Ingestion Engine Active · Click for settings">
-        <span class="polling-dot pulse"></span>
-        <span id="mobileStatusText">Live · 14s</span>
+      <!-- Mobile-Only Center Status & Injury Pills -->
+      <div class="pw-mobile-header-pills">
+        <div class="pw-mobile-status" id="mobileStatusPill" title="Live Odds Ingestion Engine Active · Click for settings">
+          <span class="polling-dot pulse"></span>
+          <span id="mobileStatusText">Live · 14s</span>
+        </div>
+        <button type="button" class="pw-injury-header-pill" id="slimInjuryBanner" title="Click to view availability &amp; vacated volume">
+          <span class="slim-injury-dot"></span>
+          <span class="slim-injury-text" id="slimInjuryText">7 Alerts</span>
+        </button>
+        <button type="button" class="slim-injury-dismiss" id="dismissInjuryBannerBtn" aria-label="Dismiss alert banner" aria-hidden="true" hidden></button>
       </div>
 
       <!-- Right: Desktop Steppers & Poller / Mobile Menu Icon -->
@@ -137,15 +144,6 @@
           </svg>
         </button>
       </div>
-    </div>
-
-    <!-- Slim Dismissible Mobile Availability Alert Banner -->
-    <div class="pw-slim-injury-banner" id="slimInjuryBanner">
-      <div class="slim-injury-content" id="slimInjuryContent" role="button" tabindex="0" title="Click to view full availability breakdown">
-        <span class="slim-injury-dot"></span>
-        <span class="slim-injury-text" id="slimInjuryText"><strong>7 Availability Alerts:</strong> Doubs OUT · Evans OUT · A.J. Brown LIM</span>
-      </div>
-      <button type="button" class="slim-injury-dismiss" id="dismissInjuryBannerBtn" aria-label="Dismiss alert banner">✕</button>
     </div>
 
     <!-- TIER 2: Filter & Matchup Control Bar -->
@@ -226,29 +224,40 @@
     <span id="slateState" hidden>Upcoming slate</span>
     <span id="resultCount" hidden>33 actionable</span>
 
-    <!-- First-Run Quantitative Briefing (Dismissible) -->
-    <div class="first-run-briefing" id="firstRunBriefing" hidden>
-      <div class="first-run-header">
-        <div class="first-run-title">
-          <span>⚡ PROP·WIRE Quantitative Briefing</span>
+    <!-- First-Run Quantitative Briefing Onboarding Modal (Dismissible) -->
+    <div class="first-run-briefing-modal" id="firstRunBriefing" hidden>
+      <div class="first-run-briefing-card" role="dialog" aria-modal="true" aria-labelledby="briefingTitle">
+        <div class="first-run-header">
+          <div class="first-run-title" id="briefingTitle">
+            <span style="color:#B6F36B; font-size:16px;">⚡</span>
+            <span>PROP·WIRE Quantitative Briefing</span>
+          </div>
+          <button type="button" class="first-run-dismiss" id="dismissBriefingBtn" aria-label="Dismiss briefing">✕</button>
         </div>
-        <button type="button" class="first-run-dismiss" id="dismissBriefingBtn" aria-label="Dismiss briefing">✕</button>
-      </div>
-      <div class="first-run-grid">
-        <div class="first-run-step">
-          <div class="first-run-step-num">Step 1 · Identify Edge</div>
-          <div class="first-run-step-title">Calibrated Poisson/Gamma Fair Lines</div>
-          <div class="first-run-step-desc">Negative Binomial target distributions paired with calibrated Gamma shape per catch estimate fair lines and un-vigged probabilities.</div>
+        <p class="first-run-intro">Institutional-grade NFL prop terminal. Zero tout picks, zero marketing locks—only calibrated math, real-time odds tracking, and strict CLV accountability.</p>
+        <div class="first-run-grid">
+          <div class="first-run-step">
+            <div class="first-run-step-num">Step 1 · Identify Edge</div>
+            <div class="first-run-step-title">Calibrated Poisson/Gamma Fair Lines</div>
+            <div class="first-run-step-desc">Negative Binomial target distributions paired with calibrated Gamma shape per catch estimate fair lines and un-vigged probabilities.</div>
+          </div>
+          <div class="first-run-step">
+            <div class="first-run-step-num">Step 2 · Audit Risk</div>
+            <div class="first-run-step-title">Verified Spreads &amp; Correlations</div>
+            <div class="first-run-step-desc">Sportsbook quotes fail closed without SHA-256 verification. Target redistribution engine tracks same-team volume cannibalization.</div>
+          </div>
+          <div class="first-run-step">
+            <div class="first-run-step-num">Step 3 · Conscious Execution</div>
+            <div class="first-run-step-title">One-Tap Human Confirm &amp; CLV Audit</div>
+            <div class="first-run-step-desc">Tap + or swipe to stage tickets in your personal CLV ledger. Zero auto-betting corruption: your record reflects genuine human execution.</div>
+          </div>
         </div>
-        <div class="first-run-step">
-          <div class="first-run-step-num">Step 2 · Audit Risk</div>
-          <div class="first-run-step-title">Verified Spreads &amp; Correlations</div>
-          <div class="first-run-step-desc">Sportsbook quotes fail closed without SHA-256 content verification. Real-time target redistribution detects same-team exposure and hedges.</div>
-        </div>
-        <div class="first-run-step">
-          <div class="first-run-step-num">Step 3 · Conscious Execution</div>
-          <div class="first-run-step-title">One-Tap Human Confirm &amp; CLV Audit</div>
-          <div class="first-run-step-desc">Swipe or tap to stage tickets in your personal CLV ledger. Zero auto-betting corruption: your record reflects genuine human execution.</div>
+        <div class="first-run-modal-footer">
+          <label class="first-run-persist-label">
+            <input type="checkbox" id="dontShowBriefingAgain" checked>
+            <span>Don't show this briefing on launch</span>
+          </label>
+          <button type="button" class="first-run-enter-btn" id="enterTerminalBtn">Enter Terminal &rarr;</button>
         </div>
       </div>
     </div>
@@ -419,6 +428,7 @@
         </div>
 
         <div class="settings-actions">
+          <button type="button" id="settingsBriefingBtn" class="settings-action-btn secondary" style="margin-bottom:8px;">⚡ Quantitative Briefing (How It Works)</button>
           <button type="button" id="settingsOpenAuditBtn" class="settings-action-btn">View Public CLV Audit Report</button>
           <button type="button" id="settingsExportBtn" class="settings-action-btn secondary">Export Slate CSV</button>
         </div>
