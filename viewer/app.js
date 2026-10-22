@@ -765,7 +765,7 @@
         });
         const pricingBtnSpan = $('#pricingBtn span');
         if (pricingBtnSpan) {
-          pricingBtnSpan.textContent = newTier === 'free' ? '⚡ Upgrade ($29)' : newTier === 'quant' ? '⚡ Quant ($99)' : '⚡ Pro ($29)';
+          pricingBtnSpan.textContent = newTier === 'free' ? 'UPGRADE · $29' : newTier === 'quant' ? 'QUANT · $299' : 'PRO · $29';
         }
         if (pricingDialog && pricingDialog.open) pricingDialog.close();
         renderBoard();
@@ -1928,7 +1928,7 @@
 
     const chipActive = $('#mobileChipActive');
     const chipAll = $('#mobileChipAll');
-    if (chipActive) chipActive.textContent = `⚡ Active ${quotedCount}`;
+    if (chipActive) chipActive.textContent = `ACTIVE ${quotedCount}`;
     if (chipAll) chipAll.textContent = `All ${totalCount}`;
     syncFilterChipsUI();
 
@@ -2195,7 +2195,7 @@
         competingSide: compSide,
         team: row.team,
         market: state.filters.market,
-        badgeText: `⚠️ Same-Team (${competing.player_name.split(' ').pop()})`,
+        badgeText: `[SAME-TEAM] (${competing.player_name.split(' ').pop()})`,
         badgeClass: 'corr-risk',
         message: `Same-team exposure: results may be correlated (target distribution & game script with ${competing.player_name} on ${row.team})`,
         dismissKey: correlationKey
@@ -2208,7 +2208,7 @@
         competingSide: compSide,
         team: row.team,
         market: state.filters.market,
-        badgeText: `⚡ Hedge (${competing.player_name.split(' ').pop()})`,
+        badgeText: `[HEDGE] (${competing.player_name.split(' ').pop()})`,
         badgeClass: 'corr-hedge',
         message: `Offensive distribution hedge: Active ${compSide} on ${competing.player_name} (${row.team})`,
         dismissKey: correlationKey
@@ -2221,7 +2221,7 @@
         competingSide: compSide,
         team: row.team,
         market: state.filters.market,
-        badgeText: `⚡ Script (${competing.player_name.split(' ').pop()})`,
+        badgeText: `[SCRIPT] (${competing.player_name.split(' ').pop()})`,
         badgeClass: 'corr-hedge',
         message: `Defensive game-script correlation with ${competing.player_name} (${row.team})`,
         dismissKey: correlationKey
@@ -2366,7 +2366,7 @@
                   <span class="sniped-edge">+${(ev.edge * 100).toFixed(1)}% Edge</span>
                   <span class="sniped-time">${esc(ev.time)}</span>
                 </div>
-                <button type="button" class="sniper-confirm-link" data-sniper-confirm="${esc(ev.playerId || '')}" data-market="${esc(ev.market || '')}">Review &amp; Confirm ⚡</button>
+                <button type="button" class="sniper-confirm-link" data-sniper-confirm="${esc(ev.playerId || '')}" data-market="${esc(ev.market || '')}">Review &amp; Confirm</button>
               </div>
             `).join('') : '<div style="font-size:11.5px; color:var(--muted); padding:6px 0;">Monitoring active orderbook... Polling cycle continuously inspects incoming book lines.</div>'}
           </div>
@@ -2642,7 +2642,7 @@
             <div class="player-meta-line">
               <span class="cell-sub">${esc(row.team)} · ${esc(roleLabel(row))}</span>
               ${keyDriverTag(row, beneficiary)}
-              ${corrRisk ? `<span class="corr-risk-pill ${corrRisk.badgeClass}" title="${esc(corrRisk.message)}"><span class="corr-icon">${corrRisk.isHedge ? '⚡' : '⚠️'}</span> ${esc(corrRisk.badgeText)} <button type="button" class="corr-dismiss-btn" data-dismiss-corr="${esc(corrRisk.dismissKey)}" title="Dismiss warning" aria-label="Dismiss">×</button></span>` : ''}
+              ${corrRisk ? `<span class="corr-risk-pill ${corrRisk.badgeClass}" title="${esc(corrRisk.message)}">${esc(corrRisk.badgeText)} <button type="button" class="corr-dismiss-btn" data-dismiss-corr="${esc(corrRisk.dismissKey)}" title="Dismiss warning" aria-label="Dismiss">×</button></span>` : ''}
             </div>
           </div>
         </div>
@@ -3538,7 +3538,7 @@
         ${conflicts.map((c) => `
           <div style="margin-bottom:6px;">
             <div class="portfolio-risk-alert-title">
-              <span>${c.isHedge ? '⚡' : '⚠️'} ${esc(c.title)} (${esc(c.team)})</span>
+              <span>[${c.isHedge ? 'HEDGE' : 'EXPOSURE'}] ${esc(c.title)} (${esc(c.team)})</span>
               <button type="button" class="corr-dismiss-btn" data-dismiss-corr="${esc(c.key)}" title="Dismiss warning" style="font-size:14px; padding:0 4px;">×</button>
             </div>
             <div>${c.description}</div>
@@ -3573,13 +3573,13 @@
       let conflictBadge = '';
       if (conflictItem) {
         if (conflictItem.isHedge) {
-          conflictBadge = `<span class="badge corr-hedge-badge" title="${esc(conflictItem.title)}">⚡ Hedge</span> `;
+          conflictBadge = `<span class="badge corr-hedge-badge" title="${esc(conflictItem.title)}">HEDGE</span> `;
         } else {
-          conflictBadge = `<span class="badge corr-risk-badge" title="${esc(conflictItem.title)}">⚠️ Same-Team</span> `;
+          conflictBadge = `<span class="badge corr-risk-badge" title="${esc(conflictItem.title)}">EXPOSURE</span> `;
         }
       }
       const volatileBadge = bet.volatility_flag
-        ? `<span class="badge" style="background:rgba(239, 68, 68, 0.2); color:#fca5a5; border:1px solid rgba(239, 68, 68, 0.4); font-size:10px; margin-left:4px;" title="${esc(bet.volatility_reason || 'Line shifted sharply')}">⚠️ Volatile</span>`
+        ? `<span class="badge" style="background:rgba(239, 68, 68, 0.2); color:#fca5a5; border:1px solid rgba(239, 68, 68, 0.4); font-size:10px; margin-left:4px;" title="${esc(bet.volatility_reason || 'Line shifted sharply')}">VOLATILE</span>`
         : '';
 
       return `<tr>

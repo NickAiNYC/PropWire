@@ -124,7 +124,7 @@
 
         <!-- Commercial Pricing / Membership Tiers (Desktop) -->
         <button type="button" id="pricingBtn" class="pw-btn-nav pw-btn-upgrade pw-desktop-only" title="Commercial Membership Tiers & Access">
-          <span style="color:#B6F36B;">⚡ Pro ($29)</span>
+          <span style="color:#B6F36B; font-weight:700; letter-spacing:0.5px;">PRO · $29</span>
         </button>
 
         <!-- Desktop Action Buttons -->
@@ -159,15 +159,15 @@
         <!-- Active vs All Mode Switcher -->
         <div class="chip-segment-group" role="radiogroup" aria-label="Dataset Mode">
           <button type="button" class="chip-pill active" data-mode="actionable" id="modeActionableBtn" role="radio" aria-checked="true" title="Show plays clearing edge gate">
-            <span>⚡ Active</span>
+            <span>ACTIVE</span>
             <span class="chip-count-pill" id="actionableCount">33</span>
           </button>
           <button type="button" class="chip-pill" data-mode="top" id="modeTopBtn" role="radio" aria-checked="false" title="Show Top Model Volume Plays">
-            <span>🏆 Top Plays</span>
+            <span>TOP PLAYS</span>
             <span class="chip-count-pill" id="topCount">25</span>
           </button>
           <button type="button" class="chip-pill" data-mode="all" id="modeAllBtn" role="radio" aria-checked="false" title="Show all modeled player projections">
-            <span>All</span>
+            <span>ALL</span>
             <span class="chip-count-pill" id="allCount">390</span>
           </button>
         </div>
@@ -195,15 +195,13 @@
 
         <!-- Mobile Sniper Trigger Chip -->
         <button type="button" class="chip-pill chip-sniper-btn" id="mobileSniperBtn" aria-label="Configure Sniper Alerts" title="Configure Sniper Alerts">
-          <span class="chip-icon">🎯</span>
-          <span>Sniper</span>
+          <span>SNIPER</span>
           <span class="sniper-mobile-dot" id="mobileSniperDot" hidden></span>
         </button>
 
         <!-- More Filters Bottom Sheet Trigger (Signal & Matchups) -->
         <button type="button" class="chip-pill chip-more-btn" id="moreFiltersBtn" aria-label="More Filters">
-          <span class="chip-icon">⚡</span>
-          <span id="moreFiltersLabel">Signal</span>
+          <span id="moreFiltersLabel">SIGNAL</span>
           <span class="chip-chevron">▾</span>
         </button>
       </div>
@@ -229,7 +227,7 @@
       <div class="first-run-briefing-card" role="dialog" aria-modal="true" aria-labelledby="briefingTitle">
         <div class="first-run-header">
           <div class="first-run-title" id="briefingTitle">
-            <span style="color:#B6F36B; font-size:16px;">⚡</span>
+            <span style="color:#B6F36B; font-weight:800; font-size:11px; border:1px solid rgba(182,243,107,0.35); border-radius:3px; padding:1px 4px; letter-spacing:0.5px;">QUANT</span>
             <span>PROP·WIRE Quantitative Briefing</span>
           </div>
           <button type="button" class="first-run-dismiss" id="dismissBriefingBtn" aria-label="Dismiss briefing">✕</button>
@@ -428,7 +426,7 @@
         </div>
 
         <div class="settings-actions">
-          <button type="button" id="settingsBriefingBtn" class="settings-action-btn secondary" style="margin-bottom:8px;">⚡ Quantitative Briefing (How It Works)</button>
+          <button type="button" id="settingsBriefingBtn" class="settings-action-btn secondary" style="margin-bottom:8px;">Quantitative Briefing (How It Works)</button>
           <button type="button" id="settingsOpenAuditBtn" class="settings-action-btn">View Public CLV Audit Report</button>
           <button type="button" id="settingsExportBtn" class="settings-action-btn secondary">Export Slate CSV</button>
         </div>
@@ -452,10 +450,10 @@
           <h4>Player Signal Archetype</h4>
           <div class="signal-sheet-chips" id="signalSheetChips" role="radiogroup" aria-label="Signal Archetype">
             <button type="button" class="signal-chip-btn active" data-intent="all">All Signals</button>
-            <button type="button" class="signal-chip-btn" data-intent="edge">⚡ Highest Edge (&gt;10%)</button>
-            <button type="button" class="signal-chip-btn" data-intent="surge">🚀 Role Surges (Injury Vacancies)</button>
-            <button type="button" class="signal-chip-btn" data-intent="volume">📊 High Floor (7+ Targets)</button>
-            <button type="button" class="signal-chip-btn" data-intent="deep">🎯 Deep Threats (12+ aDOT)</button>
+            <button type="button" class="signal-chip-btn" data-intent="edge">Highest Edge (&gt;10%)</button>
+            <button type="button" class="signal-chip-btn" data-intent="surge">Role Surges (Injury Vacancies)</button>
+            <button type="button" class="signal-chip-btn" data-intent="volume">High Floor (7+ Targets)</button>
+            <button type="button" class="signal-chip-btn" data-intent="deep">Deep Threats (12+ aDOT)</button>
           </div>
         </div>
 
