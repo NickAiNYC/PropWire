@@ -16,6 +16,7 @@ import sys
 import time
 import urllib.request
 import urllib.error
+from datetime import datetime, timezone
 
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 VIEWER_DIR = os.path.join(BASE_DIR, "viewer")
@@ -90,6 +91,9 @@ def main():
     drift_yards_hurdle = 5.0
     drift_rec_hurdle = 1.0
     drift_pct_hurdle = 0.12
+    beneficiary_max_drift_yards = 8.5
+    beneficiary_max_drift_rec = 2.0
+    deadman_max_age = 300
     if os.path.exists(cb_config_file):
         try:
             with open(cb_config_file, "r", encoding="utf-8") as f:
@@ -98,8 +102,34 @@ def main():
                 drift_yards_hurdle = float(th.get("drift_yards_hurdle", 5.0))
                 drift_rec_hurdle = float(th.get("drift_rec_hurdle", 1.0))
                 drift_pct_hurdle = float(th.get("drift_pct_hurdle", 0.12))
+                beneficiary_max_drift_yards = float(th.get("beneficiary_max_drift_yards", 8.5))
+                beneficiary_max_drift_rec = float(th.get("beneficiary_max_drift_rec", 2.0))
+                deadman_max_age = int(th.get("deadman_switch_max_age_seconds", 300))
         except Exception as exc:
             print(f"[WARN] Failed to load circuit_breaker_config.json: {exc}")
+
+    # Load news watcher state (dead-man's switch & team locks)
+    news_file = os.path.join(VIEWER_DIR, "news_watcher_state.json")
+    news_stale = False
+    teams_locked = {}
+    if os.path.exists(news_file):
+        try:
+            with open(news_file, "r", encoding="utf-8") as f:
+                nw = json.load(f)
+                teams_locked = nw.get("teams_locked", {})
+                last_polled = nw.get("last_polled_at")
+                if last_polled:
+                    last_dt = datetime.fromisoformat(last_polled.replace("Z", "+00:00"))
+                    age = (datetime.now(timezone.utc) - last_dt).total_seconds()
+                    if age > deadman_max_age:
+                        news_stale = True
+                        print(f"[DEAD-MAN'S SWITCH TRIGGERED] News watcher feed is stale ({age:.0f}s > {deadman_max_age}s limit). Suppressing all automated alerts.")
+        except Exception as exc:
+            print(f"[WARN] Failed to load news_watcher_state.json: {exc}")
+
+    if news_stale:
+        print("[HALT] Automated Sniper alerts suppressed due to stale news watcher feed. Exiting.")
+        return 0
 
     # Load modeled injuries and beneficiaries for exemption check
     injuries_file = os.path.join(VIEWER_DIR, "injuries_2026_w7.json")
@@ -139,9 +169,15 @@ def main():
         qualified = not args.gate_met_only or (is_qualified and expected_return > 0)
         if edge >= args.min_edge and qualified:
             pid = quote.get("player_id")
+            team = quote.get("team")
             k = f"{pid}::{quote.get('market')}"
 
-            # Volatility Circuit Breaker check with beneficiary exemption
+            # Check team lock from News Watcher
+            if team in teams_locked:
+                print(f"[TEAM LOCK] Skipping {quote.get('player_name')} ({team}) — {teams_locked[team].get('reason', 'Offense locked')}")
+                continue
+
+            # Volatility Circuit Breaker check with bounded beneficiary exemption
             cur_line = float(quote.get("line", 0.0))
             is_yards = quote.get("market") == "receiving_yards"
             open_line = open_lines.get(k)
@@ -150,11 +186,15 @@ def main():
                 abs_drift = abs(drift)
                 drift_pct = abs_drift / open_line
                 hurdle = drift_yards_hurdle if is_yards else drift_rec_hurdle
+                max_beneficiary = beneficiary_max_drift_yards if is_yards else beneficiary_max_drift_rec
 
                 is_modeled_surge = (pid in modeled_beneficiaries) and (drift > 0)
                 is_modeled_absence = (modeled_injuries.get(pid) in ("OUT", "IR")) and (drift < 0)
 
-                if is_modeled_surge or is_modeled_absence:
+                if is_modeled_surge and drift > max_beneficiary:
+                    print(f"[CIRCUIT BREAKER HALT] Skipping {quote.get('player_name')} ({k}) — surge +{drift} exceeds model absorption limit (+{max_beneficiary}). Oversteamed/second-order news suspected.")
+                    continue
+                elif is_modeled_surge or is_modeled_absence:
                     print(f"[CIRCUIT BREAKER EXEMPTION] Allowing {quote.get('player_name')} ({k}) — move matches modeled adjustment ({drift:+}).")
                 elif abs_drift >= hurdle or drift_pct >= drift_pct_hurdle:
                     print(f"[CIRCUIT BREAKER HALT] Skipping {quote.get('player_name')} ({k}) — line moved sharply {drift:+} ({drift_pct:.1%}). Model baseline may be stale — check breaking news before trading.")

@@ -467,12 +467,33 @@
     const timerText = $('#pollingTimerText');
     const elapsedSec = Math.max(0, Math.floor((Date.now() - state.lastPolledAt) / 1000));
     const ageText = elapsedSec < 60 ? `${elapsedSec}s ago` : `${Math.floor(elapsedSec / 60)}m ago`;
+
+    let newsNotice = '';
+    let isNewsStale = false;
+    if (state.newsWatcherState && state.newsWatcherState.last_polled_at) {
+      const newsAge = Math.max(0, Math.floor((Date.now() - new Date(state.newsWatcherState.last_polled_at).getTime()) / 1000));
+      if (newsAge > 300) {
+        isNewsStale = true;
+        newsNotice = ` · ⚠️ News Stale (${Math.floor(newsAge / 60)}m)`;
+      } else {
+        newsNotice = ` · News Active (${newsAge}s ago)`;
+      }
+    }
+
     if (timerText) {
-      timerText.textContent = `Updated ${ageText} · Next ${state.nextPollSeconds}s`;
+      if (isNewsStale) {
+        timerText.textContent = `⚠️ News Feed Stale (>5m) · Alerts Halted`;
+        timerText.style.color = '#fca5a5';
+      } else {
+        timerText.textContent = `Quotes ${ageText}${newsNotice}`;
+        timerText.style.color = '';
+      }
     }
     const mobileStatusText = $('#mobileStatusText');
     if (mobileStatusText) {
-      mobileStatusText.textContent = `Live · ${state.nextPollSeconds}s`;
+      mobileStatusText.textContent = isNewsStale ? `⚠️ Stale` : `Live · ${state.nextPollSeconds}s`;
+      if (isNewsStale) mobileStatusText.style.color = '#fca5a5';
+      else mobileStatusText.style.color = '';
     }
   }
 
@@ -1367,14 +1388,15 @@
     if ($('#slateSelector')) $('#slateSelector').value = slateKey;
     renderSkeletons();
 
-    const [slate, games, picks, injuries, odds, clvReport, snapshots] = await Promise.all([
+    const [slate, games, picks, injuries, odds, clvReport, snapshots, newsState] = await Promise.all([
       fetchJson(config.slate, []),
       fetchJson(config.games, []),
       fetchJson(config.picks, {}),
       config.injuries ? fetchJson(config.injuries, { injuries: [], impacted_beneficiaries: {} }) : Promise.resolve({ injuries: [], impacted_beneficiaries: {} }),
       config.odds ? fetchJson(config.odds, { quotes: [] }) : Promise.resolve({ quotes: [] }),
       fetchClvAuditReport(),
-      config.snapshots ? fetchJson(config.snapshots, []) : Promise.resolve([])
+      config.snapshots ? fetchJson(config.snapshots, []) : Promise.resolve([]),
+      fetchJson('news_watcher_state.json', null)
     ]);
 
     state.slate = Array.isArray(slate) ? slate : [];
@@ -1382,6 +1404,7 @@
     state.picks = picks && typeof picks === 'object' ? picks : {};
     state.injuries = injuries && typeof injuries === 'object' ? injuries : { injuries: [], impacted_beneficiaries: {} };
     state.odds = normalizeFeed(odds);
+    state.newsWatcherState = newsState && typeof newsState === 'object' ? newsState : { teams_locked: {}, players_pending: {} };
 
     // Build open snapshots map & price trajectory history
     state.openSnapshots = {};
@@ -2726,12 +2749,26 @@
       const isModeledSurge = Boolean(beneficiary) && driftVal > 0;
       const isModeledAbsence = Boolean(playerInjury && (playerInjury.report_status === 'OUT' || playerInjury.report_status === 'IR')) && driftVal < 0;
 
-      if (isModeledSurge || isModeledAbsence) {
+      // Bound beneficiary surge to realistic model target absorption (max +8.5 yds / +2.0 rec)
+      const maxBeneficiaryDrift = isYards ? 8.5 : 2.0;
+      const isOversteamedBeneficiary = isModeledSurge && driftVal > maxBeneficiaryDrift;
+
+      if (isOversteamedBeneficiary) {
+        volatilityHalt = true;
+        haltReason = `Beneficiary line surged ${driftVal > 0 ? '+' : ''}${driftVal} ${isYards ? 'yds' : 'rec'}, exceeding model absorption limit (+${maxBeneficiaryDrift}). Possible second-order news or book over-reaction.`;
+      } else if (isModeledSurge || isModeledAbsence) {
         isExemptModeledMove = true;
       } else if (absDrift >= hurdle || driftPct >= 0.12) {
         volatilityHalt = true;
         haltReason = `Line moved sharply (${driftVal > 0 ? '+' : ''}${driftVal} ${isYards ? 'yds' : 'rec'}, ${(driftPct * 100).toFixed(0)}% vs open). Model baseline may be stale — check breaking news before trading.`;
       }
+    }
+
+    // Atomic Team Lock from News Watcher Safety Latch
+    const teamLock = state.newsWatcherState?.teams_locked?.[row.team];
+    if (teamLock) {
+      volatilityHalt = true;
+      haltReason = `Offense Locked: ${teamLock.reason || 'Breaking news pending on team'}. Trading halted pending human review.`;
     }
 
     // High Edge Safeguard (15%+ on liquid books)
@@ -3133,6 +3170,7 @@
         correlation_warning: risk ? risk.message : null,
         volatility_flag: Boolean(evaluation.volatilityHalt),
         volatility_reason: evaluation.volatilityHalt ? evaluation.haltReason : null,
+        config_version: "1.1.0",
         logged_at: new Date().toISOString()
       };
       if (!Array.isArray(state.portfolio)) state.portfolio = [];
@@ -3348,7 +3386,17 @@
       </div>
     ` : '';
 
-    const rowsHtml = portfolio.map((bet) => {
+    const cleanCount = portfolio.filter((b) => !b.volatility_flag).length;
+    const flaggedCount = portfolio.filter((b) => Boolean(b.volatility_flag)).length;
+    state.ledgerFilter = state.ledgerFilter || 'all';
+
+    const filteredBets = state.ledgerFilter === 'clean'
+      ? portfolio.filter((b) => !b.volatility_flag)
+      : state.ledgerFilter === 'flagged'
+        ? portfolio.filter((b) => Boolean(b.volatility_flag))
+        : portfolio;
+
+    const rowsHtml = filteredBets.map((bet) => {
       const currentQuote = state.odds.quotes.find((q) => q.market === bet.market && (q.player_id === bet.player_id || String(q.player_name).toLowerCase() === String(bet.player_name).toLowerCase()));
       let clvText = '0.0 (At entry)';
       let clvClass = '';
@@ -3369,9 +3417,12 @@
           conflictBadge = `<span class="badge corr-risk-badge" title="${esc(conflictItem.title)}">⚠️ Same-Team</span> `;
         }
       }
+      const volatileBadge = bet.volatility_flag
+        ? `<span class="badge" style="background:rgba(239, 68, 68, 0.2); color:#fca5a5; border:1px solid rgba(239, 68, 68, 0.4); font-size:10px; margin-left:4px;" title="${esc(bet.volatility_reason || 'Line shifted sharply')}">⚠️ Volatile</span>`
+        : '';
 
       return `<tr>
-        <td>${conflictBadge}<strong>${esc(bet.player_name)}</strong><br><small class="cell-sub">${esc(bet.team)} vs ${esc(bet.opponent)} · ${esc(bet.market === 'receptions' ? 'Rec' : 'Yards')}</small></td>
+        <td>${conflictBadge}<strong>${esc(bet.player_name)}</strong>${volatileBadge}<br><small class="cell-sub">${esc(bet.team)} vs ${esc(bet.opponent)} · ${esc(bet.market === 'receptions' ? 'Rec' : 'Yards')}</small></td>
         <td><span class="badge ${esc(bet.side.toLowerCase())}">${esc(bet.side)}</span></td>
         <td class="num"><strong>${bet.line.toFixed(1)}</strong><br><small class="cell-sub">${oddsText(bet.odds)}</small></td>
         <td class="num"><strong>${currentQuote ? currentQuote.line.toFixed(1) : bet.line.toFixed(1)}</strong><br><small class="cell-sub">${currentQuote ? currentQuote.book : 'At entry'}</small></td>
@@ -3388,6 +3439,14 @@
         <div class="portfolio-summary-stat"><span>Logged Bets</span><strong>${portfolio.length}</strong></div>
         <div class="portfolio-summary-stat"><span>Beat Close Rate</span><strong>${beatRate}</strong></div>
         <div class="portfolio-summary-stat"><span>Avg CLV Delta</span><strong>${Number(avgClv) > 0 ? '+' : ''}${avgClv}</strong></div>
+      </div>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin:8px 0 10px;">
+        <div style="display:flex; gap:6px;">
+          <button type="button" class="view-chip ${state.ledgerFilter === 'all' ? 'active' : ''}" data-ledger-filter="all" style="font-size:11px; padding:3px 8px;">All (${portfolio.length})</button>
+          <button type="button" class="view-chip ${state.ledgerFilter === 'clean' ? 'active' : ''}" data-ledger-filter="clean" style="font-size:11px; padding:3px 8px;">Clean (${cleanCount})</button>
+          <button type="button" class="view-chip ${state.ledgerFilter === 'flagged' ? 'active' : ''}" data-ledger-filter="flagged" style="font-size:11px; padding:3px 8px; ${flaggedCount > 0 ? 'color:#fca5a5;' : ''}">Flagged (${flaggedCount})</button>
+        </div>
+        <span style="font-size:10px; color:#64748b; font-family:var(--mono);">Config: v1.1.0</span>
       </div>
       ${portfolio.length === 0 ? `
         <div class="portfolio-empty">
@@ -3451,6 +3510,14 @@
         triggerHaptic('light');
         const key = e.target.closest('[data-dismiss-corr]').dataset.dismissCorr;
         dismissCorrelation(key);
+      });
+    });
+
+    $('#portfolioContent').querySelectorAll('[data-ledger-filter]').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        triggerHaptic('light');
+        state.ledgerFilter = e.target.dataset.ledgerFilter;
+        openPortfolioDialog();
       });
     });
 

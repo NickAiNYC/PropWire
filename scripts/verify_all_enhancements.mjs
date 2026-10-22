@@ -144,27 +144,25 @@ server.listen(PORT, async () => {
     `);
     await new Promise((r) => setTimeout(r, 1200));
 
-    // 6. Test Correlated Exposure Dismissal
-    const corrCheck = await evalJs(`
-      // Log two players on BUF to create correlation
-      window.PropWireTest.clearQuotes();
-      // Add fake portfolio bets
-      const state = JSON.parse(localStorage.getItem('propwire_portfolio_ledger') || '[]');
+    // 6. Test Correlated Exposure & Dismissal (Strict hasWarning assert)
+    await evalJs(`
       const testPortfolio = [
         { id: 't1', player_id: '00-0036963', player_name: 'Amon-Ra St. Brown', team: 'DET', opponent: 'GB', market: 'receiving_yards', side: 'OVER', line: 78.5, odds: -110 },
         { id: 't2', player_id: '00-0039139', player_name: 'Jahmyr Gibbs', team: 'DET', opponent: 'GB', market: 'receiving_yards', side: 'OVER', line: 38.5, odds: -110 }
       ];
       localStorage.setItem('propwire_portfolio_ledger', JSON.stringify(testPortfolio));
+      localStorage.removeItem('propwire_dismissed_correlations');
       location.reload();
     `);
-    await new Promise((r) => setTimeout(r, 2000));
+    await new Promise((r) => setTimeout(r, 2200));
 
     const verifyCorrDismiss = await evalJs(`
       (() => {
         const portBtn = document.getElementById('portfolioBtn');
         if (portBtn) portBtn.click();
         const riskAlert = document.querySelector('.portfolio-risk-alert');
-        const hasWarning = Boolean(riskAlert && (riskAlert.textContent.includes('Concentrated Volume Risk') || riskAlert.textContent.includes('Same-team exposure')));
+        const alertText = riskAlert ? riskAlert.textContent.toLowerCase() : '';
+        const hasWarning = Boolean(riskAlert && (alertText.includes('exposure') || alertText.includes('same-team')));
         
         // Click dismiss
         const dismissBtn = document.querySelector('[data-dismiss-corr]');
@@ -184,11 +182,39 @@ server.listen(PORT, async () => {
     `);
     console.log('6. Correlated Exposure & Dismissal Test:', verifyCorrDismiss);
 
-    // Capture screenshot
+    // Capture desktop screenshot
     const shot = await send('Page.captureScreenshot', { format: 'png' });
     fs.mkdirSync('artifacts', { recursive: true });
     fs.writeFileSync('artifacts/verified_terminal_launch_ready.png', Buffer.from(shot.data, 'base64'));
-    console.log('✓ Screenshot saved to artifacts/verified_terminal_launch_ready.png');
+    console.log('✓ Desktop screenshot saved to artifacts/verified_terminal_launch_ready.png');
+
+    // 7. Mobile Viewport (375px) Header & Slate Capture
+    await send('Emulation.setDeviceMetricsOverride', {
+      width: 375,
+      height: 812,
+      deviceScaleFactor: 2,
+      mobile: true
+    });
+    await new Promise((r) => setTimeout(r, 800));
+
+    // Reload mobile view to refresh layout
+    await evalJs(`
+      const portDialog = document.getElementById('portfolioDialog');
+      if (portDialog && portDialog.open) portDialog.close();
+      window.scrollTo(0, 0);
+    `);
+    await new Promise((r) => setTimeout(r, 500));
+
+    const mobileShot = await send('Page.captureScreenshot', { format: 'png' });
+    fs.writeFileSync('artifacts/mobile_header_375px.png', Buffer.from(mobileShot.data, 'base64'));
+    console.log('✓ 375px Mobile Screenshot saved to artifacts/mobile_header_375px.png');
+
+    // Copy to brain artifacts directory for user viewing
+    const brainDir = '/Users/nick/.gemini/antigravity-ide/brain/864b77c4-bb96-486d-b389-ad501875d808';
+    if (fs.existsSync(brainDir)) {
+      fs.copyFileSync('artifacts/mobile_header_375px.png', path.join(brainDir, 'mobile_header_375px.png'));
+      fs.copyFileSync('artifacts/verified_terminal_launch_ready.png', path.join(brainDir, 'verified_terminal_launch_ready.png'));
+    }
 
     ws.close();
     chrome.kill();

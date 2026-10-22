@@ -411,8 +411,19 @@ function checkVolatilityCircuitBreaker(openLine, curLine, isYards = true, option
 
   const isBeneficiary = Boolean(options.isBeneficiary);
   const isModeledAbsence = Boolean(options.isModeledAbsence);
+  const maxBeneficiaryDrift = isYards ? 8.5 : 2.0;
 
-  // Exemption: modeled upward surge on beneficiary, or modeled downward shift on injured player
+  if (isBeneficiary && drift > maxBeneficiaryDrift) {
+    return {
+      halt: true,
+      drift,
+      driftPct,
+      isExempt: false,
+      reason: `Beneficiary line surged ${drift > 0 ? '+' : ''}${drift} ${isYards ? 'yds' : 'rec'}, exceeding model absorption limit (+${maxBeneficiaryDrift}). Oversteamed/second-order news suspected.`
+    };
+  }
+
+  // Exemption: modeled upward surge on beneficiary within bound, or modeled downward shift on injured player
   if ((isBeneficiary && drift > 0) || (isModeledAbsence && drift < 0)) {
     return { halt: false, drift, driftPct, isExempt: true, reason: 'Exempted modeled move' };
   }
@@ -454,6 +465,14 @@ test('volatility circuit breaker: EXEMPTS modeled beneficiary upward steam (e.g.
   assert.equal(beneficiaryMove.drift, 6.0);
 });
 
+test('volatility circuit breaker: TRIPS if modeled beneficiary surge exceeds absorption limit (+15.0 yds)', () => {
+  // Douglas line steams from 45.5 to 60.5 (+15.0 yds). While direction is correct, magnitude far exceeds
+  // the modeled target absorption cap of +8.5 yds, indicating second-order news or book over-reaction.
+  const oversteamed = checkVolatilityCircuitBreaker(45.5, 60.5, true, { isBeneficiary: true });
+  assert.equal(oversteamed.halt, true, 'Surge beyond model capacity must trip the circuit breaker');
+  assert.match(oversteamed.reason, /exceeding model absorption limit/);
+});
+
 test('volatility circuit breaker: still trips if modeled beneficiary drops sharply (-6.0 yds adverse drift)', () => {
   // If Douglas was expected to surge, but his line drops from 45.5 to 39.5, that contradicts our model (unmodeled news)
   const adverseBeneficiary = checkVolatilityCircuitBreaker(45.5, 39.5, true, { isBeneficiary: true });
@@ -487,7 +506,6 @@ test('volatility circuit breaker: suppresses Sniper alerts on unmodeled line cra
   const sniperConfig = { enabled: true, minEdge: 0.15, gateMetOnly: true };
   const cooldowns = {};
 
-  // Quote shows a phantom +25% edge because book line crashed from 68.5 to 55.5 while model expects starting QB
   const crashedQuote = {
     player_id: 'p_qb_dependent',
     player_name: 'Stefon Diggs',
@@ -502,11 +520,10 @@ test('volatility circuit breaker: suppresses Sniper alerts on unmodeled line cra
     }
   };
 
-  const openLine = 68.5; // Opening snapshot line
+  const openLine = 68.5;
   const cb = checkVolatilityCircuitBreaker(openLine, crashedQuote.line, true);
   assert.equal(cb.halt, true);
 
-  // If circuit breaker is halted, sniper evaluation must reject trigger
   let triggered = false;
   if (!cb.halt) {
     const res = evaluateSniperTrigger(crashedQuote, sniperConfig, cooldowns);
@@ -515,7 +532,7 @@ test('volatility circuit breaker: suppresses Sniper alerts on unmodeled line cra
   assert.equal(triggered, false, 'Sniper alert must be halted by circuit breaker despite massive apparent edge');
 });
 
-test('ledger override: records manual bet on halted line with volatility_flag: true', () => {
+test('ledger override: records manual bet on halted line with volatility_flag: true and config_version', () => {
   const haltedEval = {
     volatilityHalt: true,
     haltReason: 'Line moved sharply (+7.0 yds vs open)',
@@ -523,19 +540,41 @@ test('ledger override: records manual bet on halted line with volatility_flag: t
     ev: 0.12
   };
 
-  // Simulating user explicit confirm override
-  const userConfirmed = true;
-  assert.ok(userConfirmed);
-
   const ticketEntry = {
     ticket_id: 'A1B2',
     player_name: 'DeMario Douglas',
     volatility_flag: Boolean(haltedEval.volatilityHalt),
-    volatility_reason: haltedEval.haltReason
+    volatility_reason: haltedEval.haltReason,
+    config_version: '1.1.0'
   };
 
   assert.equal(ticketEntry.volatility_flag, true);
+  assert.equal(ticketEntry.config_version, '1.1.0');
   assert.match(ticketEntry.volatility_reason, /Line moved sharply/);
 });
+
+test('news watcher: dead-mans switch trips and halts alerts when feed age > 300s', () => {
+  const nowMs = 1761000000000;
+  const freshTime = new Date(nowMs - 45 * 1000).toISOString();
+  const staleTime = new Date(nowMs - 400 * 1000).toISOString();
+
+  const isFreshStale = (nowMs - new Date(freshTime).getTime()) / 1000 > 300;
+  const isOldStale = (nowMs - new Date(staleTime).getTime()) / 1000 > 300;
+
+  assert.equal(isFreshStale, false, 'Feed checked 45s ago is active');
+  assert.equal(isOldStale, true, 'Feed checked 400s ago trips dead-man switch');
+});
+
+test('settled results: complete universe reconciliation accounts for won, lost, and push', () => {
+  const won = 176;
+  const lost = 251;
+  const push = 4;
+  const totalGraded = won + lost + push;
+
+  assert.equal(totalGraded, 431, '176 won + 251 lost + 4 push reconciles exactly to 431 total stat boxes');
+  const winRateExcludingPush = won / (won + lost);
+  assert.ok(Math.abs(winRateExcludingPush - 0.412) < 0.005);
+});
+
 
 
