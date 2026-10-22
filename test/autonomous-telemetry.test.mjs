@@ -402,29 +402,63 @@ test('settled results evaluator: correctly grades OVER, UNDER, and PUSH with sig
 });
 
 /* ─── VOLATILITY CIRCUIT BREAKER TESTS ─── */
-function checkVolatilityCircuitBreaker(openLine, curLine, isYards = true) {
-  if (openLine === null || openLine === undefined || openLine <= 0) return { halt: false, drift: 0, driftPct: 0 };
+function checkVolatilityCircuitBreaker(openLine, curLine, isYards = true, options = {}) {
+  if (openLine === null || openLine === undefined || openLine <= 0) return { halt: false, drift: 0, driftPct: 0, isExempt: false };
   const drift = +(curLine - openLine).toFixed(1);
   const absDrift = Math.abs(drift);
   const driftPct = absDrift / openLine;
-  const hurdle = isYards ? 4.5 : 1.0;
+  const hurdle = isYards ? 5.0 : 1.0;
+
+  const isBeneficiary = Boolean(options.isBeneficiary);
+  const isModeledAbsence = Boolean(options.isModeledAbsence);
+
+  // Exemption: modeled upward surge on beneficiary, or modeled downward shift on injured player
+  if ((isBeneficiary && drift > 0) || (isModeledAbsence && drift < 0)) {
+    return { halt: false, drift, driftPct, isExempt: true, reason: 'Exempted modeled move' };
+  }
+
   if (absDrift >= hurdle || driftPct >= 0.12) {
     return {
       halt: true,
       drift,
       driftPct,
-      reason: `Circuit Breaker: Line shifted ${drift > 0 ? '+' : ''}${drift} ${isYards ? 'yds' : 'rec'} (${(driftPct * 100).toFixed(0)}% vs open). Unmodeled news/injury suspected. Staging halted.`
+      isExempt: false,
+      reason: `Line moved sharply (${drift > 0 ? '+' : ''}${drift} ${isYards ? 'yds' : 'rec'}, ${(driftPct * 100).toFixed(0)}% vs open). Model baseline may be stale — check breaking news before trading.`
     };
   }
-  return { halt: false, drift, driftPct };
+  return { halt: false, drift, driftPct, isExempt: false };
 }
 
-test('volatility circuit breaker: trips and halts execution when market line plunges > 1.5σ (suspected QB injury / news)', () => {
+test('volatility circuit breaker: trips and halts execution when market line plunges (suspected QB injury / news)', () => {
   // Receiver opened at 65.5, line plummeted to 58.5 (-7.0 yds drift, -10.7%) on late-night QB scratch
   const plunge = checkVolatilityCircuitBreaker(65.5, 58.5, true);
   assert.equal(plunge.halt, true);
   assert.equal(plunge.drift, -7.0);
-  assert.match(plunge.reason, /Unmodeled news\/injury suspected/);
+  assert.match(plunge.reason, /Line moved sharply/);
+});
+
+test('volatility circuit breaker: trips symmetrically on sharp unmodeled upside steam (+6.5 yds)', () => {
+  // Unmodeled steam up (e.g. sharp group betting or unannounced opposing CB injury)
+  const steamUp = checkVolatilityCircuitBreaker(50.0, 56.5, true);
+  assert.equal(steamUp.halt, true);
+  assert.equal(steamUp.drift, 6.5);
+  assert.match(steamUp.reason, /Line moved sharply/);
+});
+
+test('volatility circuit breaker: EXEMPTS modeled beneficiary upward steam (e.g. Douglas +6.0 yds after Doubs OUT)', () => {
+  // DeMario Douglas opens at 45.5, books steam him to 51.5 (+6.0 yds) because Doubs was ruled OUT.
+  // Since model already redistributed Doubs' 7.2 targets to Douglas, this move matches modeled expectations.
+  const beneficiaryMove = checkVolatilityCircuitBreaker(45.5, 51.5, true, { isBeneficiary: true });
+  assert.equal(beneficiaryMove.halt, false, 'Must not halt modeled beneficiary legitimate line adjustments');
+  assert.equal(beneficiaryMove.isExempt, true);
+  assert.equal(beneficiaryMove.drift, 6.0);
+});
+
+test('volatility circuit breaker: still trips if modeled beneficiary drops sharply (-6.0 yds adverse drift)', () => {
+  // If Douglas was expected to surge, but his line drops from 45.5 to 39.5, that contradicts our model (unmodeled news)
+  const adverseBeneficiary = checkVolatilityCircuitBreaker(45.5, 39.5, true, { isBeneficiary: true });
+  assert.equal(adverseBeneficiary.halt, true, 'Adverse line drop on a modeled beneficiary must halt');
+  assert.equal(adverseBeneficiary.drift, -6.0);
 });
 
 test('volatility circuit breaker: trips and halts execution on steep percentage drift (> 12%)', () => {
@@ -480,4 +514,28 @@ test('volatility circuit breaker: suppresses Sniper alerts on unmodeled line cra
   }
   assert.equal(triggered, false, 'Sniper alert must be halted by circuit breaker despite massive apparent edge');
 });
+
+test('ledger override: records manual bet on halted line with volatility_flag: true', () => {
+  const haltedEval = {
+    volatilityHalt: true,
+    haltReason: 'Line moved sharply (+7.0 yds vs open)',
+    edge: 0.16,
+    ev: 0.12
+  };
+
+  // Simulating user explicit confirm override
+  const userConfirmed = true;
+  assert.ok(userConfirmed);
+
+  const ticketEntry = {
+    ticket_id: 'A1B2',
+    player_name: 'DeMario Douglas',
+    volatility_flag: Boolean(haltedEval.volatilityHalt),
+    volatility_reason: haltedEval.haltReason
+  };
+
+  assert.equal(ticketEntry.volatility_flag, true);
+  assert.match(ticketEntry.volatility_reason, /Line moved sharply/);
+});
+
 

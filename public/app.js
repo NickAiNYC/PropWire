@@ -2636,18 +2636,20 @@
               : evaluation.closed
                 ? '<span class="mq-edge-prominent closed">CLOSED</span>'
                 : evaluation.volatilityHalt
-                  ? `<span class="mq-edge-prominent closed" style="background:rgba(239, 68, 68, 0.18); color:#fca5a5; border:1px solid rgba(239, 68, 68, 0.45); font-weight:800;" title="${esc(evaluation.haltReason)}">HALT</span>`
-                  : evaluation.dataCheck
-                    ? `<span class="mq-edge-prominent verify">${signedPct(evaluation.edge)}</span>`
-                    : evaluation.edge > 0
-                      ? `<span class="mq-edge-prominent positive heatmap-edge" style="background: linear-gradient(90deg, rgba(182, 243, 107, ${(0.04 + Math.min(evaluation.edge / 0.25, 1) * 0.14).toFixed(3)}) 0%, rgba(182, 243, 107, 0.02) 100%);">+${(evaluation.edge * 100).toFixed(1)}%</span>`
-                      : evaluation.edge < 0
-                        ? `<span class="mq-edge-prominent negative">${(evaluation.edge * 100).toFixed(1)}%</span>`
-                        : '<span class="mq-edge-prominent none">—</span>'}
+                  ? `<span class="mq-edge-prominent caution" style="background:rgba(239, 68, 68, 0.18); color:#fca5a5; border:1px solid rgba(239, 68, 68, 0.45); font-weight:800;" title="${esc(evaluation.haltReason)}">LINE SHIFT</span>`
+                : evaluation.highEdgeCaution
+                  ? `<span class="mq-edge-prominent verify" title="${esc(evaluation.highEdgeWarning)}">${signedPct(evaluation.edge)} CHECK</span>`
+                : evaluation.dataCheck
+                  ? `<span class="mq-edge-prominent verify">${signedPct(evaluation.edge)}</span>`
+                  : evaluation.edge > 0
+                    ? `<span class="mq-edge-prominent positive heatmap-edge" style="background: linear-gradient(90deg, rgba(182, 243, 107, ${(0.04 + Math.min(evaluation.edge / 0.25, 1) * 0.14).toFixed(3)}) 0%, rgba(182, 243, 107, 0.02) 100%);">+${(evaluation.edge * 100).toFixed(1)}%</span>`
+                    : evaluation.edge < 0
+                      ? `<span class="mq-edge-prominent negative">${(evaluation.edge * 100).toFixed(1)}%</span>`
+                      : '<span class="mq-edge-prominent none">—</span>'}
 
-            ${evaluation.volatilityHalt ? '' : `<button class="mq-log-btn ${isLogged ? 'logged' : ''}" type="button" data-log-bet="${esc(row.player_id)}" aria-label="${isLogged ? 'In Ledger' : 'Add to Ledger'}" title="Log to Ledger">
+            <button class="mq-log-btn ${isLogged ? 'logged' : ''}" type="button" data-log-bet="${esc(row.player_id)}" aria-label="${isLogged ? 'In Ledger' : 'Add to Ledger'}" title="Log to Ledger">
               ${isLogged ? '✓' : '+'}
-            </button>`}
+            </button>
           </div>
         </div>
       </article>`;
@@ -2697,37 +2699,56 @@
     const closed = isClosed(row);
 
     // Volatility Circuit Breaker Engine:
-    // If market line shifted >= 4.5 yds (or >= 1.0 rec) or >= 12% vs opening quote,
-    // halt execution and flag for manual review (suspected un-modeled breaking injury/downgrade).
+    // Symmetric check on unmodeled line drift vs opening quote.
+    // EXEMPTION: If move matches an already modeled teammate injury (beneficiary target absorption),
+    // do not trip the breaker.
     const quoteKey = `${row.player_id}::${state.filters.market}`;
     const openSnap = state.openSnapshots ? state.openSnapshots[quoteKey] : null;
     const isYards = state.filters.market === 'receiving_yards';
     const openLine = openSnap && Number.isFinite(Number(openSnap.line)) ? Number(openSnap.line) : null;
     const curLine = num(quote.line);
 
+    const beneficiary = beneficiaryFor(row);
+    const playerInjury = injuryFor(row);
+
     let volatilityHalt = false;
+    let isExemptModeledMove = false;
     let haltReason = '';
     let driftVal = 0;
+
     if (openLine !== null && openLine > 0) {
       driftVal = +(curLine - openLine).toFixed(1);
       const absDrift = Math.abs(driftVal);
       const driftPct = absDrift / openLine;
-      const hurdle = isYards ? 4.5 : 1.0;
-      if (absDrift >= hurdle || driftPct >= 0.12) {
+      const hurdle = isYards ? 5.0 : 1.0;
+
+      // Check if move matches modeled injury redistribution
+      const isModeledSurge = Boolean(beneficiary) && driftVal > 0;
+      const isModeledAbsence = Boolean(playerInjury && (playerInjury.report_status === 'OUT' || playerInjury.report_status === 'IR')) && driftVal < 0;
+
+      if (isModeledSurge || isModeledAbsence) {
+        isExemptModeledMove = true;
+      } else if (absDrift >= hurdle || driftPct >= 0.12) {
         volatilityHalt = true;
-        haltReason = `Circuit Breaker: Line shifted ${driftVal > 0 ? '+' : ''}${driftVal} ${isYards ? 'yds' : 'rec'} (${(driftPct * 100).toFixed(0)}% vs open). Unmodeled news/injury suspected. Staging halted.`;
+        haltReason = `Line moved sharply (${driftVal > 0 ? '+' : ''}${driftVal} ${isYards ? 'yds' : 'rec'}, ${(driftPct * 100).toFixed(0)}% vs open). Model baseline may be stale — check breaking news before trading.`;
       }
     }
 
+    // High Edge Safeguard (15%+ on liquid books)
+    const highEdgeCaution = edge >= 0.15;
+    const highEdgeWarning = highEdgeCaution
+      ? `Large edge (${(edge * 100).toFixed(1)}%). May reflect stale model baseline or unmodeled news — check status.`
+      : '';
+
     const qualified = Boolean(activePolicy) && edge >= activePolicy.gate && ev > 0;
-    const dataCheck = edge > 0.12 || volatilityHalt;
-    const actionable = qState === 'verified' && qualified && !closed && !dataCheck && !volatilityHalt;
+    const dataCheck = edge > 0.12 || volatilityHalt || highEdgeCaution;
+    const actionable = qState === 'verified' && qualified && !closed && !volatilityHalt;
     let stake = 0;
     if (actionable) {
       const supplied = num(evaluation.actionable_stake, NaN);
       stake = Number.isFinite(supplied) && supplied > 0 ? Math.min(supplied, activePolicy.cap) : Math.min(kellyFromEvaluation(quote, evaluation, side), activePolicy.cap);
     }
-    const tone = closed ? 'closed' : volatilityHalt ? 'closed' : dataCheck && qState === 'verified' ? 'caution' : actionable ? 'actionable' : '';
+    const tone = closed ? 'closed' : volatilityHalt ? 'caution' : dataCheck && qState === 'verified' ? 'caution' : actionable ? 'actionable' : '';
     return {
       state: qState,
       quote,
@@ -2743,6 +2764,9 @@
       volatilityHalt,
       haltReason,
       driftVal,
+      isExemptModeledMove,
+      highEdgeCaution,
+      highEdgeWarning,
       closed,
       actionable,
       tone,
@@ -2858,9 +2882,19 @@
     if (evaluation.volatilityHalt) {
       return `<div class="edge-cell-wrap">
         <div class="edge-cell edge-cell-halt ${flashClass}" data-quote-state="halt" title="${esc(evaluation.haltReason)}">
-          <span class="edge-line-top text-halt">HALT${glyph}</span>
-          <span class="exec-tag exec-tag-halt" title="${esc(evaluation.haltReason)}">CIRCUIT BREAKER</span>
+          <span class="edge-line-top text-halt">${signedPct(evaluation.edge)}${glyph}</span>
+          <span class="exec-tag exec-tag-halt" title="${esc(evaluation.haltReason)}">LINE SHIFT</span>
         </div>
+        ${logBtn}
+      </div>`;
+    }
+    if (evaluation.highEdgeCaution) {
+      return `<div class="edge-cell-wrap">
+        <div class="edge-cell edge-cell-caution ${flashClass}" data-quote-state="verified" title="${esc(evaluation.highEdgeWarning)}">
+          <span class="edge-line-top text-caution">${signedPct(evaluation.edge)}${glyph}</span>
+          <span class="exec-tag exec-tag-verify" title="${esc(evaluation.highEdgeWarning)}">CHECK NEWS</span>
+        </div>
+        ${logBtn}
       </div>`;
     }
     if (evaluation.dataCheck) {
@@ -3074,9 +3108,10 @@
         }
       });
     } else {
+      const isYards = state.filters.market === 'receiving_yards';
       if (evaluation.volatilityHalt) {
-        toast(`⚠️ Circuit Breaker: Staging halted on ${row.player_display_name}. Line drifted > 1.5σ (suspected news/injury).`);
-        return;
+        const proceed = confirm(`⚠️ Volatility Warning: ${row.player_display_name}'s line moved sharply (${evaluation.driftVal > 0 ? '+' : ''}${evaluation.driftVal} ${isYards ? 'yds' : 'rec'} vs open).\n\nModel baseline may be stale due to unmodeled news/line steam.\n\nLog to your personal ledger anyway?`);
+        if (!proceed) return;
       }
       const ticketId = Math.random().toString(36).slice(2, 6).toUpperCase();
       const risk = checkCorrelatedRisk(row, evaluation);
@@ -3096,6 +3131,8 @@
         edge: evaluation.edge || 0,
         ev: evaluation.ev || 0,
         correlation_warning: risk ? risk.message : null,
+        volatility_flag: Boolean(evaluation.volatilityHalt),
+        volatility_reason: evaluation.volatilityHalt ? evaluation.haltReason : null,
         logged_at: new Date().toISOString()
       };
       if (!Array.isArray(state.portfolio)) state.portfolio = [];

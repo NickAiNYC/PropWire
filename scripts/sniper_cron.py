@@ -85,6 +85,39 @@ def main():
     alerts = []
     print(f"[INFO] Evaluating {len(quotes)} quotes with min_edge >= {args.min_edge:.1%}, gate_met_only={args.gate_met_only}")
 
+    # Load shared circuit breaker parameters (single source of truth)
+    cb_config_file = os.path.join(VIEWER_DIR, "circuit_breaker_config.json")
+    drift_yards_hurdle = 5.0
+    drift_rec_hurdle = 1.0
+    drift_pct_hurdle = 0.12
+    if os.path.exists(cb_config_file):
+        try:
+            with open(cb_config_file, "r", encoding="utf-8") as f:
+                cb_cfg = json.load(f)
+                th = cb_cfg.get("thresholds", {})
+                drift_yards_hurdle = float(th.get("drift_yards_hurdle", 5.0))
+                drift_rec_hurdle = float(th.get("drift_rec_hurdle", 1.0))
+                drift_pct_hurdle = float(th.get("drift_pct_hurdle", 0.12))
+        except Exception as exc:
+            print(f"[WARN] Failed to load circuit_breaker_config.json: {exc}")
+
+    # Load modeled injuries and beneficiaries for exemption check
+    injuries_file = os.path.join(VIEWER_DIR, "injuries_2026_w7.json")
+    modeled_beneficiaries = set()
+    modeled_injuries = {}
+    if os.path.exists(injuries_file):
+        try:
+            with open(injuries_file, "r", encoding="utf-8") as f:
+                inj_data = json.load(f)
+                for inj in inj_data.get("injuries", []):
+                    pid = inj.get("player_id")
+                    if pid:
+                        modeled_injuries[pid] = inj.get("report_status", "")
+                    for b_id in inj.get("redistribution_plan", {}).keys():
+                        modeled_beneficiaries.add(b_id)
+        except Exception as exc:
+            print(f"[WARN] Failed to load injuries_2026_w7.json: {exc}")
+
     snaps_file = os.path.join(VIEWER_DIR, "snapshots_2026_w7.json")
     open_lines = {}
     if os.path.exists(snaps_file):
@@ -105,9 +138,10 @@ def main():
 
         qualified = not args.gate_met_only or (is_qualified and expected_return > 0)
         if edge >= args.min_edge and qualified:
-            k = f"{quote.get('player_id')}::{quote.get('market')}"
+            pid = quote.get("player_id")
+            k = f"{pid}::{quote.get('market')}"
 
-            # Volatility Circuit Breaker check (> 1.5σ line drift)
+            # Volatility Circuit Breaker check with beneficiary exemption
             cur_line = float(quote.get("line", 0.0))
             is_yards = quote.get("market") == "receiving_yards"
             open_line = open_lines.get(k)
@@ -115,9 +149,15 @@ def main():
                 drift = round(cur_line - open_line, 1)
                 abs_drift = abs(drift)
                 drift_pct = abs_drift / open_line
-                hurdle = 4.5 if is_yards else 1.0
-                if abs_drift >= hurdle or drift_pct >= 0.12:
-                    print(f"[CIRCUIT BREAKER HALT] Skipping {quote.get('player_name')} ({k}) — line drifted {drift:+} ({drift_pct:.1%}). Suspected unmodeled news/injury downgrade.")
+                hurdle = drift_yards_hurdle if is_yards else drift_rec_hurdle
+
+                is_modeled_surge = (pid in modeled_beneficiaries) and (drift > 0)
+                is_modeled_absence = (modeled_injuries.get(pid) in ("OUT", "IR")) and (drift < 0)
+
+                if is_modeled_surge or is_modeled_absence:
+                    print(f"[CIRCUIT BREAKER EXEMPTION] Allowing {quote.get('player_name')} ({k}) — move matches modeled adjustment ({drift:+}).")
+                elif abs_drift >= hurdle or drift_pct >= drift_pct_hurdle:
+                    print(f"[CIRCUIT BREAKER HALT] Skipping {quote.get('player_name')} ({k}) — line moved sharply {drift:+} ({drift_pct:.1%}). Model baseline may be stale — check breaking news before trading.")
                     continue
 
             last_alert = cooldowns.get(k, 0)
