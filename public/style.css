@@ -1691,29 +1691,51 @@ select {
   border-radius: 4px !important;
 }
 
-/* 400ms Skeletal Ingestion Polling Shimmer */
+/* ─── DIRECTIONAL TICK FLASHES (MOMENTUM INGESTION) ─── */
+/* Peripheral vision telemetry: Green flash for positive EV gains, Amber flash for EV decay */
+@keyframes tickFlashUp {
+  0% {
+    background-color: rgba(182, 243, 107, 0.45) !important;
+    box-shadow: inset 0 0 16px rgba(182, 243, 107, 0.40), 0 0 10px rgba(182, 243, 107, 0.35) !important;
+  }
+  100% {
+    background-color: transparent !important;
+    box-shadow: none !important;
+  }
+}
+
+@keyframes tickFlashDown {
+  0% {
+    background-color: rgba(245, 158, 11, 0.45) !important;
+    box-shadow: inset 0 0 16px rgba(245, 158, 11, 0.40), 0 0 10px rgba(245, 158, 11, 0.35) !important;
+  }
+  100% {
+    background-color: transparent !important;
+    box-shadow: none !important;
+  }
+}
+
+.tick-flash-up {
+  animation: tickFlashUp 0.85s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+  position: relative !important;
+  border-radius: 6px !important;
+}
+
+.tick-flash-down {
+  animation: tickFlashDown 0.85s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+  position: relative !important;
+  border-radius: 6px !important;
+}
+
+/* 400ms Ingestion Heartbeat (subtle fallback) */
 .cell-shimmer {
   position: relative !important;
-  overflow: hidden !important;
-}
-.cell-shimmer::after {
-  content: '' !important;
-  position: absolute !important;
-  inset: 0 !important;
-  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.09) 50%, transparent 100%) !important;
-  animation: cellShimmerAnim 0.4s ease-out forwards !important;
-  pointer-events: none !important;
-  z-index: 5 !important;
-}
-@keyframes cellShimmerAnim {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .cell-shimmer::after {
+  .tick-flash-up,
+  .tick-flash-down {
     animation: none !important;
-    display: none !important;
   }
   .pulse,
   .polling-dot,
@@ -1722,6 +1744,101 @@ select {
     animation: none !important;
     transition: none !important;
   }
+}
+
+/* ─── INLINE PRICE HISTORY SPARKLINES (40x15 SVG) ─── */
+.book-sparkline-wrap {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 3px;
+  cursor: help;
+}
+.price-sparkline-svg {
+  display: block;
+  overflow: visible;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5));
+}
+.sparkline-delta {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+.sparkline-delta.steam-up {
+  color: #B6F36B;
+}
+.sparkline-delta.steam-down {
+  color: #f59e0b;
+}
+.sparkline-delta.steam-flat {
+  color: #64748b;
+}
+
+/* ─── CORRELATED EXPOSURE ENGINE (PORTFOLIO CONCENTRATION RISK) ─── */
+.corr-risk-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 6px;
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  border-radius: 4px;
+  color: #fbbf24;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  margin-top: 3px;
+  line-height: 1.1;
+  cursor: help;
+}
+.corr-risk-pill .corr-icon {
+  font-size: 10px;
+}
+.mq-signal-badge.corr-risk {
+  background: rgba(245, 158, 11, 0.15) !important;
+  border-color: rgba(245, 158, 11, 0.45) !important;
+  color: #fbbf24 !important;
+}
+.portfolio-risk-alert {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 14px;
+  margin-bottom: 14px;
+  background: rgba(245, 158, 11, 0.10);
+  border: 1px solid rgba(245, 158, 11, 0.32);
+  border-radius: 8px;
+  font-size: 11.5px;
+  color: #fcd34d;
+  line-height: 1.4;
+}
+.portfolio-risk-alert-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 800;
+  font-family: var(--mono);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #f59e0b;
+  font-size: 11px;
+}
+.portfolio-risk-alert strong {
+  color: #fff;
+}
+.badge.corr-risk-badge {
+  background: rgba(245, 158, 11, 0.2);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  font-size: 9px;
+  padding: 2px 5px;
+  border-radius: 3px;
+  font-family: var(--mono);
+  font-weight: 700;
 }
 
 /* ─── PRICE CHECK & HEATMAP EDGE CELL (FINTECH TWO-TIER TRADING SIGNAL) ─── */
@@ -3095,6 +3212,242 @@ article[data-focused="true"] {
   width: 14px;
   height: 14px;
   stroke: currentColor;
+}
+
+/* ─── PROGRAMMABLE MARKET ALERTS (SNIPER ENGINE) ─── */
+.pw-btn-sniper {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  position: relative;
+  background: rgba(182, 243, 107, 0.08);
+  border: 1px solid rgba(182, 243, 107, 0.25);
+  color: #B6F36B;
+  transition: all 0.15s ease;
+}
+.pw-btn-sniper:hover {
+  background: rgba(182, 243, 107, 0.15);
+  border-color: #B6F36B;
+  color: #fff;
+}
+.sniper-icon-symbol {
+  font-size: 13px;
+}
+.sniper-active-badge {
+  padding: 1px 4px;
+  background: #B6F36B;
+  color: #0c1015;
+  font-size: 8.5px;
+  font-weight: 900;
+  border-radius: 3px;
+  letter-spacing: 0.04em;
+  font-family: var(--mono);
+}
+.chip-sniper-btn {
+  border-color: rgba(182, 243, 107, 0.35) !important;
+  color: #B6F36B !important;
+}
+.sniper-mobile-dot {
+  width: 6px;
+  height: 6px;
+  background: #B6F36B;
+  border-radius: 50%;
+  box-shadow: 0 0 6px #B6F36B;
+  display: inline-block;
+  margin-left: 2px;
+}
+
+.sniper-dialog {
+  max-width: 620px;
+  width: 100%;
+}
+.sniper-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 4px 0 10px 0;
+}
+.sniper-card {
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 14px;
+}
+.sniper-toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.sniper-toggle-label {
+  display: flex;
+  flex-direction: column;
+}
+.sniper-toggle-title {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 800;
+  color: #fff;
+}
+.sniper-toggle-sub {
+  font-size: 11.5px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+.sniper-switch-wrap {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+}
+.sniper-switch-wrap input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.sniper-slider {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background-color: #334155;
+  transition: .3s;
+  border-radius: 24px;
+}
+.sniper-slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: #cbd5e1;
+  transition: .3s;
+  border-radius: 50%;
+}
+.sniper-switch-wrap input:checked + .sniper-slider {
+  background-color: #B6F36B;
+}
+.sniper-switch-wrap input:checked + .sniper-slider:before {
+  transform: translateX(20px);
+  background-color: #0c1015;
+}
+
+.sniper-section-title {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #94a3b8;
+  margin-bottom: 8px;
+}
+.sniper-stepper-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.sniper-edge-btn {
+  padding: 6px 12px;
+  background: var(--surface-3);
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.sniper-edge-btn:hover {
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.2);
+}
+.sniper-edge-btn.active {
+  background: rgba(182, 243, 107, 0.15);
+  border-color: #B6F36B;
+  color: #B6F36B;
+  box-shadow: 0 0 8px rgba(182, 243, 107, 0.2);
+}
+.sniper-checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+.sniper-checkbox-row input {
+  accent-color: #B6F36B;
+  width: 16px;
+  height: 16px;
+}
+.sniper-webhook-input {
+  width: 100%;
+  padding: 8px 10px;
+  background: var(--surface-3);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: #fff;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  box-sizing: border-box;
+}
+.sniper-webhook-input:focus {
+  outline: none;
+  border-color: #B6F36B;
+}
+.sniper-webhook-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+.sniper-test-btn {
+  padding: 7px 12px;
+  background: var(--surface-3);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.sniper-test-btn:hover {
+  border-color: #B6F36B;
+  color: #B6F36B;
+}
+.sniper-feed-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 150px;
+  overflow-y: auto;
+  margin-top: 6px;
+}
+.sniper-feed-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px;
+  background: var(--surface-3);
+  border-radius: 5px;
+  font-size: 11.5px;
+  font-family: var(--mono);
+}
+.sniper-feed-item .sniped-player {
+  font-weight: 700;
+  color: #fff;
+}
+.sniper-feed-item .sniped-edge {
+  color: #B6F36B;
+  font-weight: 800;
+}
+.sniper-feed-item .sniped-time {
+  color: var(--muted);
+  font-size: 10px;
 }
 
 .mobile-bottom-nav {
@@ -5157,6 +5510,7 @@ article[data-focused="true"] {
   .settings-dialog,
   .more-filters-dialog,
   .portfolio-dialog,
+  .sniper-dialog,
   #clvReportDialog {
     width: 100% !important;
     max-width: 100% !important;

@@ -108,6 +108,13 @@
           <span id="marketState">64/64 Verified</span>
         </div>
 
+        <!-- Programmable Market Alerts Sniper (Desktop) -->
+        <button type="button" id="sniperBtn" class="pw-btn-nav pw-btn-sniper pw-desktop-only" title="Programmable Sniper Alerts (Push &amp; Webhook)">
+          <span class="sniper-icon-symbol">🎯</span>
+          <span>Sniper</span>
+          <span class="sniper-active-badge" id="sniperActiveBadge" hidden>LIVE</span>
+        </button>
+
         <!-- Desktop Action Buttons -->
         <button type="button" id="clvReportBtn" class="pw-btn-nav pw-desktop-only" title="Week 7 Public CLV Validation Report">CLV Report</button>
         <button type="button" id="portfolioBtn" class="pw-btn-nav pw-btn-ledger pw-desktop-only" title="Personal CLV Ledger &amp; Portfolio">
@@ -178,6 +185,13 @@
         </div>
 
         <div class="chip-divider"></div>
+
+        <!-- Mobile Sniper Trigger Chip -->
+        <button type="button" class="chip-pill chip-sniper-btn" id="mobileSniperBtn" aria-label="Configure Sniper Alerts" title="Configure Sniper Alerts">
+          <span class="chip-icon">🎯</span>
+          <span>Sniper</span>
+          <span class="sniper-mobile-dot" id="mobileSniperDot" hidden></span>
+        </button>
 
         <!-- More Filters Bottom Sheet Trigger (Signal & Matchups) -->
         <button type="button" class="chip-pill chip-more-btn" id="moreFiltersBtn" aria-label="More Filters">
@@ -388,6 +402,21 @@
         <button class="icon-button" value="cancel" aria-label="Close portfolio dialog">×</button>
       </div>
       <div class="dialog-body" id="portfolioContent"></div>
+    </form>
+  </dialog>
+
+  <!-- Programmable Sniper Market Alerts Dialog -->
+  <dialog class="detail-dialog sniper-dialog" id="sniperDialog" aria-labelledby="sniperTitle">
+    <form method="dialog" class="dialog-shell">
+      <div class="dialog-sheet-handle" aria-hidden="true"></div>
+      <div class="dialog-header">
+        <div>
+          <div class="eyebrow">Autonomous Market Telemetry</div>
+          <h2 id="sniperTitle">🎯 Sniper Market Alerts</h2>
+        </div>
+        <button class="icon-button" value="cancel" aria-label="Close sniper dialog">×</button>
+      </div>
+      <div class="dialog-body" id="sniperContent"></div>
     </form>
   </dialog>
 
