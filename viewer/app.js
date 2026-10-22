@@ -341,12 +341,24 @@
   state.lastPolledAt = Date.now() - 14000;
   state.nextPollSeconds = 46;
 
+  let hapticSwitchEl = null;
   function triggerHaptic(style = 'light') {
     try {
       if (typeof navigator !== 'undefined' && navigator.vibrate) {
         if (style === 'heavy') navigator.vibrate(24);
         else if (style === 'medium') navigator.vibrate(14);
         else navigator.vibrate(8);
+      }
+      // iOS Safari 17.4+ hidden switch toggle workaround
+      if (!hapticSwitchEl && typeof document !== 'undefined') {
+        hapticSwitchEl = document.createElement('input');
+        hapticSwitchEl.type = 'checkbox';
+        hapticSwitchEl.setAttribute('switch', '');
+        hapticSwitchEl.style.cssText = 'position:fixed;opacity:0;pointer-events:none;top:-9999px;left:-9999px;';
+        document.body.appendChild(hapticSwitchEl);
+      }
+      if (hapticSwitchEl) {
+        hapticSwitchEl.checked = !hapticSwitchEl.checked;
       }
     } catch (_) {}
   }
@@ -429,6 +441,13 @@
     state.lastPolledAt = Date.now();
     state.nextPollSeconds = 60;
     updatePollingDisplay();
+
+    // 400ms skeletal shimmering state on book & edge cells during ingestion
+    const shimmerCells = document.querySelectorAll('.book-cell, .edge-cell-wrap, .mq-line-2');
+    shimmerCells.forEach(el => el.classList.add('cell-shimmer'));
+    setTimeout(() => {
+      shimmerCells.forEach(el => el.classList.remove('cell-shimmer'));
+    }, 400);
 
     try {
       const res = await fetch(`slate_2026_w7.json?t=${Date.now()}`);
@@ -851,9 +870,14 @@
         activeCard = null;
         return;
       }
-      activeCard = card;
       touchStartX = e.touches[0].clientX;
       touchStartY = e.touches[0].clientY;
+      // Guard against iOS Safari edge-swipe back navigation conflict
+      if (touchStartX <= 24) {
+        activeCard = null;
+        return;
+      }
+      activeCard = card;
       isSwiping = false;
     }, { passive: true });
 
@@ -867,9 +891,9 @@
       // Only engage if swiping right horizontally
       if (deltaX > 10 && Math.abs(deltaX) > Math.abs(deltaY) * 1.3) {
         isSwiping = true;
-        const translateX = deltaX <= 80 ? deltaX : 80 + (deltaX - 80) * 0.3;
+        const translateX = deltaX <= 95 ? deltaX : 95 + (deltaX - 95) * 0.25;
         activeCard.style.transform = `translateX(${translateX}px)`;
-        activeCard.classList.toggle('swipe-log-ready', deltaX >= 65);
+        activeCard.classList.toggle('swipe-log-ready', deltaX >= 85);
       }
     }, { passive: true });
 
@@ -880,7 +904,7 @@
 
       if (isSwiping) {
         const deltaX = (e.changedTouches ? e.changedTouches[0].clientX : 0) - touchStartX;
-        if (deltaX >= 65) {
+        if (deltaX >= 85) {
           wasCardSwiped = true;
           triggerHaptic('medium');
           const playerId = card.dataset.playerId;
@@ -897,6 +921,29 @@
 
     cardView.addEventListener('touchend', finishSwipe);
     cardView.addEventListener('touchcancel', finishSwipe);
+
+    // One-time discoverability peek on first load for mobile users
+    peekFirstCardHint();
+  }
+
+  function peekFirstCardHint() {
+    try {
+      if (typeof window === 'undefined' || window.innerWidth > 768) return;
+      if (localStorage.getItem('pw_swipe_hint_seen')) return;
+      localStorage.setItem('pw_swipe_hint_seen', 'true');
+      setTimeout(() => {
+        const firstCard = document.querySelector('#cardView article.mobile-quant-row');
+        if (!firstCard) return;
+        firstCard.style.transition = 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)';
+        firstCard.style.transform = 'translateX(42px)';
+        firstCard.classList.add('swipe-log-ready');
+        setTimeout(() => {
+          firstCard.style.transform = '';
+          firstCard.classList.remove('swipe-log-ready');
+          setTimeout(() => { firstCard.style.transition = ''; }, 350);
+        }, 550);
+      }, 1100);
+    } catch (_) {}
   }
 
   function setupBottomSheet(dialog) {
@@ -1851,10 +1898,12 @@
             ${evaluation.state === 'none'
               ? '<span class="mq-no-quote">No quote · Proj ' + dist.proj.toFixed(1) + '</span>'
               : `<div class="mq-quote-main">
-                  <span class="mq-side-pill ${evaluation.side === 'OVER' ? 'side-o' : 'side-u'}">${evaluation.side === 'OVER' ? 'OVER' : 'UNDER'}</span>
-                  <span class="mq-line-val">${evaluation.line.toFixed(1)}</span>
-                  <span class="mq-odds-val">${oddsText(evaluation.odds)}</span>
-                  <span class="mq-fair-val">vs fair ${fairVal.toFixed(1)}</span>
+                  <span class="dir-line-pill ${evaluation.side === 'OVER' ? 'dir-over' : 'dir-under'}">
+                    <span class="dir-arrow">${evaluation.side === 'OVER' ? '↑' : '↓'}</span>
+                    <span class="dir-num">${evaluation.line.toFixed(1)}</span>
+                  </span>
+                  <span class="mq-odds-val fixed-odds">${oddsText(evaluation.odds)}</span>
+                  <span class="mq-fair-val">fair ${fairVal.toFixed(1)}</span>
                 </div>`}
           </div>
 
@@ -1864,7 +1913,7 @@
               : evaluation.dataCheck
                 ? `<span class="mq-edge-prominent verify">${signedPct(evaluation.edge)}</span>`
                 : evaluation.edge > 0
-                  ? `<span class="mq-edge-prominent positive">+${(evaluation.edge * 100).toFixed(1)}%</span>`
+                  ? `<span class="mq-edge-prominent positive heatmap-edge" style="background: linear-gradient(90deg, rgba(182, 243, 107, ${(0.04 + Math.min(evaluation.edge / 0.25, 1) * 0.14).toFixed(3)}) 0%, rgba(182, 243, 107, 0.02) 100%);">+${(evaluation.edge * 100).toFixed(1)}%</span>`
                   : evaluation.edge < 0
                     ? `<span class="mq-edge-prominent negative">${(evaluation.edge * 100).toFixed(1)}%</span>`
                     : '<span class="mq-edge-prominent none">—</span>'}
@@ -1972,8 +2021,15 @@
             ? `<span class="meta-pill unverified" title="Ingested quote pending receipt verification">${SVG_ICONS.lock} Unverified</span>`
             : '<span class="meta-pill">Active</span>';
 
+    const isOver = evaluation.side === 'OVER';
     return `<div class="book-cell">
-      <span class="number-main"><span class="book-side">${evaluation.side}</span> ${evaluation.line.toFixed(1)} <small class="odds-val">${oddsText(evaluation.odds)}</small></span>
+      <span class="number-main">
+        <span class="dir-line-pill ${isOver ? 'dir-over' : 'dir-under'}">
+          <span class="dir-arrow">${isOver ? '↑' : '↓'}</span>
+          <span class="dir-num">${evaluation.line.toFixed(1)}</span>
+        </span>
+        <small class="odds-val fixed-odds">${oddsText(evaluation.odds)}</small>
+      </span>
       <div class="book-meta">
         <span class="book-tag">${esc(bookShort(evaluation.book))}</span>
         ${statusPill}
@@ -2021,9 +2077,14 @@
     }
     const activePolicy = policy();
     const isSubGate = activePolicy && evaluation.edge < activePolicy.gate;
+    const edgeMag = Math.min(Math.max((evaluation.edge || 0) / 0.25, 0), 1);
+    const heatOpacity = (0.02 + edgeMag * 0.12).toFixed(3);
+    const heatmapStyle = evaluation.edge > 0.03
+      ? `style="background: linear-gradient(90deg, rgba(182, 243, 107, ${heatOpacity}) 0%, transparent 100%);"`
+      : '';
 
     return `<div class="edge-cell-wrap">
-      <div class="edge-cell ${isSubGate ? 'edge-cell-subgate' : 'edge-cell-verified'}" data-quote-state="verified">
+      <div class="edge-cell ${isSubGate ? 'edge-cell-subgate' : 'edge-cell-verified'}" data-quote-state="verified" ${heatmapStyle}>
         <span class="edge-line-top ${isSubGate ? 'text-subgate' : 'text-verified'}">${signedPct(evaluation.edge)}</span>
         <span class="exec-tag ${isSubGate ? 'exec-tag-subgate' : 'exec-tag-active'}">${isSubGate ? 'SUB-GATE' : 'ACTIVE'}</span>
       </div>
@@ -2265,11 +2326,27 @@
     };
     const jsonStr = JSON.stringify(payload, null, 2);
     const blob = new Blob([jsonStr], { type: 'application/json' });
+    const dateStr = new Date().toISOString().slice(0, 10);
+    const fileName = `propwire_clv_ledger_${dateStr}.json`;
+
+    if (typeof navigator !== 'undefined' && navigator.share && navigator.canShare) {
+      try {
+        const file = new File([blob], fileName, { type: 'application/json' });
+        if (navigator.canShare({ files: [file] })) {
+          navigator.share({
+            files: [file],
+            title: 'PropWire CLV Ledger Export',
+            text: `PropWire CLV Ledger (${portfolio.length} bets)`
+          }).then(() => toast(`Exported ${portfolio.length} bets`)).catch(() => {});
+          return;
+        }
+      } catch (_) {}
+    }
+
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    const dateStr = new Date().toISOString().slice(0, 10);
     a.href = url;
-    a.download = `propwire_clv_ledger_${dateStr}.json`;
+    a.download = fileName;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -2304,10 +2381,26 @@
       ].join(','));
     });
     const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const fileName = `propwire_slate_${state.slateKey}_${Date.now()}.csv`;
+
+    if (typeof navigator !== 'undefined' && navigator.share && navigator.canShare) {
+      try {
+        const file = new File([blob], fileName, { type: 'text/csv' });
+        if (navigator.canShare({ files: [file] })) {
+          navigator.share({
+            files: [file],
+            title: 'PropWire Week 7 Slate Export',
+            text: `Export of ${rows.length} NFL receiving props from PropWire`
+          }).then(() => toast(`Exported ${rows.length} props`)).catch(() => {});
+          return;
+        }
+      } catch (_) {}
+    }
+
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `propwire_slate_${state.slateKey}_${Date.now()}.csv`;
+    a.download = fileName;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);

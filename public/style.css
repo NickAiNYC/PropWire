@@ -1645,6 +1645,85 @@ select {
 }
 .injury-warning-tag .prop-icon { width: 9px; height: 9px; vertical-align: 0; }
 
+/* Directional Over/Under Line Pill (↑ / ↓ Visual Block) */
+.dir-line-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 7px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 5px;
+  font-family: var(--mono);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+  vertical-align: middle;
+}
+.dir-line-pill.dir-over {
+  color: #B6F36B;
+}
+.dir-line-pill.dir-under {
+  color: #38bdf8;
+}
+.dir-arrow {
+  font-size: 13px;
+  font-weight: 900;
+  line-height: 1;
+}
+.dir-line-pill.dir-over .dir-arrow {
+  color: #B6F36B;
+}
+.dir-line-pill.dir-under .dir-arrow {
+  color: #38bdf8;
+}
+.fixed-odds {
+  display: inline-block !important;
+  min-width: 44px !important;
+  text-align: right !important;
+  font-family: var(--mono) !important;
+  font-variant-numeric: tabular-nums !important;
+  font-feature-settings: "tnum" 1 !important;
+}
+.heatmap-edge {
+  padding: 2px 6px !important;
+  border-radius: 4px !important;
+}
+
+/* 400ms Skeletal Ingestion Polling Shimmer */
+.cell-shimmer {
+  position: relative !important;
+  overflow: hidden !important;
+}
+.cell-shimmer::after {
+  content: '' !important;
+  position: absolute !important;
+  inset: 0 !important;
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.09) 50%, transparent 100%) !important;
+  animation: cellShimmerAnim 0.4s ease-out forwards !important;
+  pointer-events: none !important;
+  z-index: 5 !important;
+}
+@keyframes cellShimmerAnim {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cell-shimmer::after {
+    animation: none !important;
+    display: none !important;
+  }
+  .pulse,
+  .polling-dot,
+  .toast,
+  .mobile-quant-row {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
 /* ─── PRICE CHECK & HEATMAP EDGE CELL (FINTECH TWO-TIER TRADING SIGNAL) ─── */
 .edge-cell-wrap {
   display: flex;
@@ -4716,7 +4795,7 @@ article[data-focused="true"] {
     border: 1.5px solid rgba(125, 211, 252, 0.85) !important;
     border-radius: 12px !important;
     min-height: 72px !important;
-    touch-action: manipulation !important;
+    touch-action: pan-y !important;
     position: relative !important;
     z-index: 1 !important;
     transition: transform 0.1s ease, background 0.1s ease, box-shadow 0.15s ease, border-color 0.15s ease !important;
@@ -5333,7 +5412,7 @@ article[data-focused="true"] {
 
   /* Safe Area & Bottom Nav Tab Targets */
   body {
-    padding-bottom: calc(64px + env(safe-area-inset-bottom, 16px)) !important;
+    padding-bottom: calc(58px + env(safe-area-inset-bottom, 0px)) !important;
   }
   .mobile-bottom-nav {
     height: calc(58px + env(safe-area-inset-bottom, 0px)) !important;
@@ -5348,7 +5427,7 @@ article[data-focused="true"] {
   .toast {
     right: auto !important;
     left: 50% !important;
-    bottom: calc(64px + env(safe-area-inset-bottom, 16px) + 12px) !important;
+    bottom: calc(58px + env(safe-area-inset-bottom, 0px) + 12px) !important;
     transform: translate(-50%, 14px) scale(0.98) !important;
     max-width: calc(100% - 32px) !important;
     width: max-content !important;
