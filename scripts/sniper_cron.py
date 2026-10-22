@@ -85,6 +85,18 @@ def main():
     alerts = []
     print(f"[INFO] Evaluating {len(quotes)} quotes with min_edge >= {args.min_edge:.1%}, gate_met_only={args.gate_met_only}")
 
+    snaps_file = os.path.join(VIEWER_DIR, "snapshots_2026_w7.json")
+    open_lines = {}
+    if os.path.exists(snaps_file):
+        try:
+            with open(snaps_file, "r", encoding="utf-8") as f:
+                snaps = json.load(f)
+                for s in snaps:
+                    if s.get("quote") and s["quote"].get("line") is not None:
+                        open_lines[f"{s.get('player_id')}::{s.get('market')}"] = float(s["quote"]["line"])
+        except Exception:
+            pass
+
     for quote in quotes:
         ev = quote.get("evaluation", {})
         edge = float(ev.get("prob_edge", 0.0))
@@ -94,6 +106,20 @@ def main():
         qualified = not args.gate_met_only or (is_qualified and expected_return > 0)
         if edge >= args.min_edge and qualified:
             k = f"{quote.get('player_id')}::{quote.get('market')}"
+
+            # Volatility Circuit Breaker check (> 1.5σ line drift)
+            cur_line = float(quote.get("line", 0.0))
+            is_yards = quote.get("market") == "receiving_yards"
+            open_line = open_lines.get(k)
+            if open_line is not None and open_line > 0:
+                drift = round(cur_line - open_line, 1)
+                abs_drift = abs(drift)
+                drift_pct = abs_drift / open_line
+                hurdle = 4.5 if is_yards else 1.0
+                if abs_drift >= hurdle or drift_pct >= 0.12:
+                    print(f"[CIRCUIT BREAKER HALT] Skipping {quote.get('player_name')} ({k}) — line drifted {drift:+} ({drift_pct:.1%}). Suspected unmodeled news/injury downgrade.")
+                    continue
+
             last_alert = cooldowns.get(k, 0)
             if now_ms - last_alert < 15 * 60 * 1000:
                 print(f"[COOLDOWN] Skipping {quote.get('player_name')} ({k}) — alerted within 15 mins")

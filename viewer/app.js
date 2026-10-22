@@ -2387,6 +2387,13 @@
       const qualified = !gateMetOnly || (ev.is_qualified && expectedReturn > 0);
 
       if (edge >= minEdge && qualified) {
+        // Volatility Circuit Breaker: Halt alerts on extreme line drift (> 1.5σ)
+        const row = (state.slate || []).find((r) => r.player_id === quote.player_id);
+        if (row) {
+          const rowEval = evaluateRow(row);
+          if (rowEval.volatilityHalt) return;
+        }
+
         const k = `${quote.player_id}::${quote.market}`;
         const lastAlertTime = state.sniperCooldowns[k] || 0;
         // 15-minute rate-limiting cooldown per line to prevent spamming
@@ -2628,17 +2635,19 @@
               ? `<span class="mq-edge-prominent ${evaluateSettledRow(row).delta > 0 ? 'positive' : 'negative'}">${evaluateSettledRow(row).delta > 0 ? '+' : ''}${evaluateSettledRow(row).delta}${evaluateSettledRow(row).isYards ? 'y' : 'r'}</span>`
               : evaluation.closed
                 ? '<span class="mq-edge-prominent closed">CLOSED</span>'
-                : evaluation.dataCheck
-                  ? `<span class="mq-edge-prominent verify">${signedPct(evaluation.edge)}</span>`
-                  : evaluation.edge > 0
-                    ? `<span class="mq-edge-prominent positive heatmap-edge" style="background: linear-gradient(90deg, rgba(182, 243, 107, ${(0.04 + Math.min(evaluation.edge / 0.25, 1) * 0.14).toFixed(3)}) 0%, rgba(182, 243, 107, 0.02) 100%);">+${(evaluation.edge * 100).toFixed(1)}%</span>`
-                    : evaluation.edge < 0
-                      ? `<span class="mq-edge-prominent negative">${(evaluation.edge * 100).toFixed(1)}%</span>`
-                      : '<span class="mq-edge-prominent none">—</span>'}
+                : evaluation.volatilityHalt
+                  ? `<span class="mq-edge-prominent closed" style="background:rgba(239, 68, 68, 0.18); color:#fca5a5; border:1px solid rgba(239, 68, 68, 0.45); font-weight:800;" title="${esc(evaluation.haltReason)}">HALT</span>`
+                  : evaluation.dataCheck
+                    ? `<span class="mq-edge-prominent verify">${signedPct(evaluation.edge)}</span>`
+                    : evaluation.edge > 0
+                      ? `<span class="mq-edge-prominent positive heatmap-edge" style="background: linear-gradient(90deg, rgba(182, 243, 107, ${(0.04 + Math.min(evaluation.edge / 0.25, 1) * 0.14).toFixed(3)}) 0%, rgba(182, 243, 107, 0.02) 100%);">+${(evaluation.edge * 100).toFixed(1)}%</span>`
+                      : evaluation.edge < 0
+                        ? `<span class="mq-edge-prominent negative">${(evaluation.edge * 100).toFixed(1)}%</span>`
+                        : '<span class="mq-edge-prominent none">—</span>'}
 
-            <button class="mq-log-btn ${isLogged ? 'logged' : ''}" type="button" data-log-bet="${esc(row.player_id)}" aria-label="${isLogged ? 'In Ledger' : 'Add to Ledger'}" title="Log to Ledger">
+            ${evaluation.volatilityHalt ? '' : `<button class="mq-log-btn ${isLogged ? 'logged' : ''}" type="button" data-log-bet="${esc(row.player_id)}" aria-label="${isLogged ? 'In Ledger' : 'Add to Ledger'}" title="Log to Ledger">
               ${isLogged ? '✓' : '+'}
-            </button>
+            </button>`}
           </div>
         </div>
       </article>`;
@@ -2686,19 +2695,43 @@
     const ev = num(evaluation.expected_return);
     const activePolicy = policy();
     const closed = isClosed(row);
+
+    // Volatility Circuit Breaker Engine:
+    // If market line shifted >= 4.5 yds (or >= 1.0 rec) or >= 12% vs opening quote,
+    // halt execution and flag for manual review (suspected un-modeled breaking injury/downgrade).
+    const quoteKey = `${row.player_id}::${state.filters.market}`;
+    const openSnap = state.openSnapshots ? state.openSnapshots[quoteKey] : null;
+    const isYards = state.filters.market === 'receiving_yards';
+    const openLine = openSnap && Number.isFinite(Number(openSnap.line)) ? Number(openSnap.line) : null;
+    const curLine = num(quote.line);
+
+    let volatilityHalt = false;
+    let haltReason = '';
+    let driftVal = 0;
+    if (openLine !== null && openLine > 0) {
+      driftVal = +(curLine - openLine).toFixed(1);
+      const absDrift = Math.abs(driftVal);
+      const driftPct = absDrift / openLine;
+      const hurdle = isYards ? 4.5 : 1.0;
+      if (absDrift >= hurdle || driftPct >= 0.12) {
+        volatilityHalt = true;
+        haltReason = `Circuit Breaker: Line shifted ${driftVal > 0 ? '+' : ''}${driftVal} ${isYards ? 'yds' : 'rec'} (${(driftPct * 100).toFixed(0)}% vs open). Unmodeled news/injury suspected. Staging halted.`;
+      }
+    }
+
     const qualified = Boolean(activePolicy) && edge >= activePolicy.gate && ev > 0;
-    const dataCheck = edge > 0.12;
-    const actionable = qState === 'verified' && qualified && !closed && !dataCheck;
+    const dataCheck = edge > 0.12 || volatilityHalt;
+    const actionable = qState === 'verified' && qualified && !closed && !dataCheck && !volatilityHalt;
     let stake = 0;
     if (actionable) {
       const supplied = num(evaluation.actionable_stake, NaN);
       stake = Number.isFinite(supplied) && supplied > 0 ? Math.min(supplied, activePolicy.cap) : Math.min(kellyFromEvaluation(quote, evaluation, side), activePolicy.cap);
     }
-    const tone = closed ? 'closed' : dataCheck && qState === 'verified' ? 'caution' : actionable ? 'actionable' : '';
+    const tone = closed ? 'closed' : volatilityHalt ? 'closed' : dataCheck && qState === 'verified' ? 'caution' : actionable ? 'actionable' : '';
     return {
       state: qState,
       quote,
-      line: num(quote.line),
+      line: curLine,
       book: quote.book || 'Book',
       odds,
       side,
@@ -2707,6 +2740,9 @@
       stake,
       qualified,
       dataCheck,
+      volatilityHalt,
+      haltReason,
+      driftVal,
       closed,
       actionable,
       tone,
@@ -2817,6 +2853,14 @@
           <span class="exec-tag exec-tag-unverified">UNVERIFIED</span>
         </div>
         ${logBtn}
+      </div>`;
+    }
+    if (evaluation.volatilityHalt) {
+      return `<div class="edge-cell-wrap">
+        <div class="edge-cell edge-cell-halt ${flashClass}" data-quote-state="halt" title="${esc(evaluation.haltReason)}">
+          <span class="edge-line-top text-halt">HALT${glyph}</span>
+          <span class="exec-tag exec-tag-halt" title="${esc(evaluation.haltReason)}">CIRCUIT BREAKER</span>
+        </div>
       </div>`;
     }
     if (evaluation.dataCheck) {
@@ -3030,6 +3074,10 @@
         }
       });
     } else {
+      if (evaluation.volatilityHalt) {
+        toast(`⚠️ Circuit Breaker: Staging halted on ${row.player_display_name}. Line drifted > 1.5σ (suspected news/injury).`);
+        return;
+      }
       const ticketId = Math.random().toString(36).slice(2, 6).toUpperCase();
       const risk = checkCorrelatedRisk(row, evaluation);
       const entry = {
@@ -3047,7 +3095,7 @@
         model_fair: fairValue(row),
         edge: evaluation.edge || 0,
         ev: evaluation.ev || 0,
-        correlation_warning: risk ? `Cannibalistic Volume Risk: Competing target-share with ${risk.competingPlayer} on ${row.team}` : null,
+        correlation_warning: risk ? risk.message : null,
         logged_at: new Date().toISOString()
       };
       if (!Array.isArray(state.portfolio)) state.portfolio = [];

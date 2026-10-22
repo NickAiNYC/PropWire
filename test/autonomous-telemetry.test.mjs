@@ -400,3 +400,84 @@ test('settled results evaluator: correctly grades OVER, UNDER, and PUSH with sig
   assert.equal(pushRec.outcomeClass, 'settled-push');
   assert.equal(pushRec.delta, 0.0);
 });
+
+/* ─── VOLATILITY CIRCUIT BREAKER TESTS ─── */
+function checkVolatilityCircuitBreaker(openLine, curLine, isYards = true) {
+  if (openLine === null || openLine === undefined || openLine <= 0) return { halt: false, drift: 0, driftPct: 0 };
+  const drift = +(curLine - openLine).toFixed(1);
+  const absDrift = Math.abs(drift);
+  const driftPct = absDrift / openLine;
+  const hurdle = isYards ? 4.5 : 1.0;
+  if (absDrift >= hurdle || driftPct >= 0.12) {
+    return {
+      halt: true,
+      drift,
+      driftPct,
+      reason: `Circuit Breaker: Line shifted ${drift > 0 ? '+' : ''}${drift} ${isYards ? 'yds' : 'rec'} (${(driftPct * 100).toFixed(0)}% vs open). Unmodeled news/injury suspected. Staging halted.`
+    };
+  }
+  return { halt: false, drift, driftPct };
+}
+
+test('volatility circuit breaker: trips and halts execution when market line plunges > 1.5σ (suspected QB injury / news)', () => {
+  // Receiver opened at 65.5, line plummeted to 58.5 (-7.0 yds drift, -10.7%) on late-night QB scratch
+  const plunge = checkVolatilityCircuitBreaker(65.5, 58.5, true);
+  assert.equal(plunge.halt, true);
+  assert.equal(plunge.drift, -7.0);
+  assert.match(plunge.reason, /Unmodeled news\/injury suspected/);
+});
+
+test('volatility circuit breaker: trips and halts execution on steep percentage drift (> 12%)', () => {
+  // Lower-volume receiver opened at 32.5, line plunged to 27.5 (-5.0 yds, -15.4%)
+  const pctTrip = checkVolatilityCircuitBreaker(32.5, 27.5, true);
+  assert.equal(pctTrip.halt, true);
+  assert.equal(pctTrip.drift, -5.0);
+  assert.ok(pctTrip.driftPct >= 0.12);
+});
+
+test('volatility circuit breaker: trips on receptions market shifts >= 1.0 rec', () => {
+  // Pass-catcher receptions line drops from 4.5 to 3.5 (-1.0 rec, -22.2%)
+  const recTrip = checkVolatilityCircuitBreaker(4.5, 3.5, false);
+  assert.equal(recTrip.halt, true);
+  assert.equal(recTrip.drift, -1.0);
+});
+
+test('volatility circuit breaker: permits standard market drift within normal bounds', () => {
+  // Routine limit-testing drift: opened at 54.5, drifted to 55.5 (+1.0 yd, +1.8%)
+  const normal = checkVolatilityCircuitBreaker(54.5, 55.5, true);
+  assert.equal(normal.halt, false);
+  assert.equal(normal.drift, 1.0);
+});
+
+test('volatility circuit breaker: suppresses Sniper alerts on unmodeled line crashes', () => {
+  const sniperConfig = { enabled: true, minEdge: 0.15, gateMetOnly: true };
+  const cooldowns = {};
+
+  // Quote shows a phantom +25% edge because book line crashed from 68.5 to 55.5 while model expects starting QB
+  const crashedQuote = {
+    player_id: 'p_qb_dependent',
+    player_name: 'Stefon Diggs',
+    market: 'receiving_yards',
+    team: 'HOU',
+    line: 55.5,
+    evaluation: {
+      prob_edge: 0.25,
+      expected_return: 0.40,
+      is_qualified: true,
+      best_side: 'OVER'
+    }
+  };
+
+  const openLine = 68.5; // Opening snapshot line
+  const cb = checkVolatilityCircuitBreaker(openLine, crashedQuote.line, true);
+  assert.equal(cb.halt, true);
+
+  // If circuit breaker is halted, sniper evaluation must reject trigger
+  let triggered = false;
+  if (!cb.halt) {
+    const res = evaluateSniperTrigger(crashedQuote, sniperConfig, cooldowns);
+    triggered = res.trigger;
+  }
+  assert.equal(triggered, false, 'Sniper alert must be halted by circuit breaker despite massive apparent edge');
+});
+

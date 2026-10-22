@@ -2025,6 +2025,19 @@ select {
 .edge-cell-none {
   background: transparent;
 }
+.edge-cell-halt {
+  background: linear-gradient(90deg, rgba(239, 68, 68, 0.08) 0%, rgba(239, 68, 68, 0.2) 100%) !important;
+  border: 1px solid rgba(239, 68, 68, 0.5) !important;
+}
+.edge-line-top.text-halt {
+  color: #f87171 !important;
+  text-shadow: 0 0 10px rgba(248, 113, 113, 0.35) !important;
+}
+.exec-tag-halt {
+  background: rgba(239, 68, 68, 0.25) !important;
+  border: 1px solid rgba(239, 68, 68, 0.6) !important;
+  color: #fca5a5 !important;
+}
 .edge-line-top {
   font-family: var(--mono);
   font-size: 13.5px;
