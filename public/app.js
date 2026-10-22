@@ -611,9 +611,45 @@
     initPollingTimer();
     initPullToRefresh();
     await loadSlate(state.slateKey);
+    checkDeepLinks();
     if ('serviceWorker' in navigator && location.protocol !== 'file:') {
       navigator.serviceWorker.register('sw.js').catch(() => {});
     }
+  }
+
+  function checkDeepLinks() {
+    try {
+      const url = new URL(window.location.href);
+      const rootParam = url.searchParams.get('root') || url.searchParams.get('r');
+      const receiptParam = url.searchParams.get('receipt') || url.searchParams.get('ticket') || url.searchParams.get('id');
+      const path = (window.location.pathname || '').toLowerCase();
+      const hash = (window.location.hash || '').toLowerCase();
+      const isLedgerRoute = path.includes('/ledger') || path.includes('/audit') || hash === '#ledger' || hash === '#audit';
+
+      if (rootParam || receiptParam || isLedgerRoute) {
+        setTimeout(async () => {
+          await openClvReport();
+          if (rootParam) {
+            const rootEl = $('#clvReportEyebrow');
+            if (rootEl) {
+              rootEl.innerHTML = `<span class="clv-root-tag" style="background:rgba(52,211,153,0.15); border:1px solid #10b981; color:#34d399; font-weight:bold;">Verified Root #${esc(rootParam.slice(0, 16))}</span>`;
+            }
+          }
+          if (receiptParam) {
+            setTimeout(() => {
+              const rows = document.querySelectorAll('.clv-audit-table tbody tr');
+              rows.forEach((r) => {
+                if (r.textContent.toLowerCase().includes(receiptParam.toLowerCase())) {
+                  r.style.outline = '2px solid #34d399';
+                  r.style.backgroundColor = 'rgba(52,211,153,0.14)';
+                  r.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+              });
+            }, 120);
+          }
+        }, 200);
+      }
+    } catch (_) {}
   }
 
   function bindControls() {

@@ -2,6 +2,11 @@
   "version": 2,
   "outputDirectory": "viewer",
   "cleanUrls": true,
+  "rewrites": [
+    { "source": "/ledger", "destination": "/index.html" },
+    { "source": "/audit", "destination": "/index.html" },
+    { "source": "/verify", "destination": "/index.html" }
+  ],
   "headers": [
     {
       "source": "/(.*)",
