@@ -505,6 +505,131 @@ async def stripe_webhook(request_body: dict):
 
 
 # ---------------------------------------------------------------------------
+# B2B Infrastructure API: /api/v1/edges
+# High-speed query endpoint querying Postgres or local MarketEdge DB
+# ---------------------------------------------------------------------------
+
+@app.get("/api/v1/edges")
+def get_v1_edges(
+    slate: str = Query("2026_w7", description="Slate key (e.g. 2026_w7)"),
+    min_edge: float = Query(0.0, description="Minimum edge percentage hurdle"),
+    player: str | None = Query(None, description="Optional player name filter"),
+    market: str | None = Query(None, description="Optional market filter"),
+    limit: int = Query(50, ge=1, le=500, description="Maximum rows returned"),
+):
+    """
+    Direct low-latency B2B edge endpoint.
+    Queries the indexed MarketEdge table populated by the Python ingestion pipeline.
+    """
+    # Normalize query params when called directly as a Python function
+    slate_val = getattr(slate, "default", slate) if hasattr(slate, "default") else slate
+    min_edge_val = getattr(min_edge, "default", min_edge) if hasattr(min_edge, "default") else min_edge
+    limit_val = getattr(limit, "default", limit) if hasattr(limit, "default") else limit
+    player_val = getattr(player, "default", player) if hasattr(player, "default") else player
+    market_val = getattr(market, "default", market) if hasattr(market, "default") else market
+
+    try:
+        min_edge_val = float(min_edge_val)
+    except (ValueError, TypeError):
+        min_edge_val = 0.0
+
+    try:
+        limit_val = int(limit_val)
+    except (ValueError, TypeError):
+        limit_val = 50
+
+    db_url = os.getenv("DATABASE_URL")
+    records = []
+
+    # 1. Direct Postgres Query via psycopg2 if DATABASE_URL is present
+    if db_url:
+        try:
+            import psycopg2
+            from psycopg2.extras import RealDictCursor
+            query = """
+                SELECT "id", "slateId", "playerId", "playerName", "market",
+                       "bookLine", "odds", "fairLine", "edgePct", "updatedAt"
+                FROM "MarketEdge"
+                WHERE "slateId" = %s AND "edgePct" >= %s
+            """
+            params: list[Any] = [slate_val, min_edge_val]
+            if player_val:
+                query += ' AND "playerName" ILIKE %s'
+                params.append(f"%{player_val}%")
+            if market_val:
+                query += ' AND "market" ILIKE %s'
+                params.append(f"%{market_val}%")
+
+            query += ' ORDER BY "edgePct" DESC LIMIT %s;'
+            params.append(limit_val)
+
+            with psycopg2.connect(db_url) as conn:
+                with conn.cursor(cursor_factory=RealDictCursor) as cur:
+                    cur.execute(query, params)
+                    records = [dict(r) for r in cur.fetchall()]
+                    for r in records:
+                        if "updatedAt" in r and r["updatedAt"]:
+                            r["updatedAt"] = r["updatedAt"].isoformat()
+            return {
+                "status": "success",
+                "source": "postgresql",
+                "count": len(records),
+                "slate": slate_val,
+                "data": records
+            }
+        except Exception as err:
+            print(f"[api/v1/edges] Postgres query error: {err}. Trying local SQLite...")
+
+    # 2. Local SQLite fallback (data/market_edges.db)
+    sqlite_path = os.path.join(BASE_DIR, "data", "market_edges.db")
+    if os.path.exists(sqlite_path):
+        try:
+            import sqlite3
+            conn = sqlite3.connect(sqlite_path)
+            conn.row_factory = sqlite3.Row
+            cur = conn.cursor()
+            query = """
+                SELECT id, slateId, playerId, playerName, market,
+                       bookLine, odds, fairLine, edgePct, updatedAt
+                FROM MarketEdge
+                WHERE slateId = ? AND edgePct >= ?
+            """
+            params = [slate_val, min_edge_val]
+            if player_val:
+                query += " AND playerName LIKE ?"
+                params.append(f"%{player_val}%")
+            if market_val:
+                query += " AND market LIKE ?"
+                params.append(f"%{market_val}%")
+
+            query += " ORDER BY edgePct DESC LIMIT ?"
+            params.append(limit_val)
+
+            cur.execute(query, params)
+            records = [dict(row) for row in cur.fetchall()]
+            conn.close()
+            return {
+                "status": "success",
+                "source": "sqlite",
+                "count": len(records),
+                "slate": slate_val,
+                "data": records
+            }
+        except Exception as err:
+            print(f"[api/v1/edges] SQLite query error: {err}")
+
+    # 3. Memory fallback from live feed if DB not yet initialized
+    return {
+        "status": "success",
+        "source": "none",
+        "count": 0,
+        "slate": slate_val,
+        "data": [],
+        "note": "MarketEdge database empty or initializing"
+    }
+
+
+# ---------------------------------------------------------------------------
 # Serve static frontend web application directly from FastAPI on Railway
 # ---------------------------------------------------------------------------
 

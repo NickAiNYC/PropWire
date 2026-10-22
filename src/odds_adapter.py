@@ -44,6 +44,8 @@ from abc import ABC, abstractmethod
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from pathlib import Path
+import subprocess
+import threading
 from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
@@ -808,6 +810,9 @@ class OddsIngestionAdapter:
         feed_file = self.export_live_feed(evaluations)
         print(f"[odds_adapter] Exported live odds feed to {feed_file}")
 
+        # Trigger direct Postgres/DB edge ingestion asynchronously
+        self._trigger_db_ingestion()
+
         return {
             "ingested_quotes_count": len(quotes),
             "matched_evaluations_count": len(evaluations),
@@ -815,6 +820,26 @@ class OddsIngestionAdapter:
             "new_snapshots_count": len(new_snapshots),
             "feed_file": str(feed_file)
         }
+
+    def _trigger_db_ingestion(self) -> None:
+        """Fires ingest_edges.py in background thread to keep Postgres instantly updated."""
+        slate_key = f"{self.season}_w{self.week}"
+        ingest_script = BASE_DIR / "ingest_edges.py"
+
+        def _task():
+            try:
+                subprocess.run(
+                    [sys.executable, str(ingest_script), "--slate", slate_key],
+                    cwd=str(BASE_DIR),
+                    check=False,
+                    capture_output=True,
+                    text=True
+                )
+            except Exception as err:
+                print(f"[odds_adapter] Background DB ingestion error: {err}")
+
+        thread = threading.Thread(target=_task, name="MarketEdge-Ingestion", daemon=True)
+        thread.start()
 
     def emit_snapshots(self, evaluations: List[MatchedEvaluation]) -> List[Dict[str, Any]]:
         """Appends verified quote snapshots to snapshots log."""
