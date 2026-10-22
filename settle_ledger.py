@@ -9,9 +9,22 @@ Computes:
 import json
 import math
 import hashlib
+import sys
 from pathlib import Path
 from datetime import datetime, timezone
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
+
+BASE_DIR = Path(__file__).resolve().parent
+sys.path.insert(0, str(BASE_DIR))
+
+from src.crypto_utils import canonical_json_sha256
+from src.settlement_engine import (
+    EntryReceipt,
+    ClosingSnapshot,
+    OfficialBoxscoreStat,
+    grade_receiving_prop,
+    SettlementOutcome,
+)
 
 
 def american_to_implied_prob(odds: int) -> float:
@@ -186,7 +199,19 @@ def settle_slate(
         clv_yards_sum += clv["clv_yards"]
 
         record_payload = {**bet, **clv, **settlement}
-        receipt = hashlib.sha256(json.dumps(record_payload, sort_keys=True).encode()).hexdigest()[:16]
+        # Build canonical settlement receipt binding entry, close, and outcome
+        canon_obj = {
+            "player": bet.get("player"),
+            "market": bet.get("market", "rec_yds"),
+            "side": bet.get("side", "OVER"),
+            "line": float(bet.get("line", 0.0)),
+            "odds": int(bet.get("odds", -110)),
+            "close_line": float(clv.get("close_line", 0.0)),
+            "clv_prob_pct": float(clv.get("clv_prob_pct", 0.0)),
+            "actual_yards": settlement.get("actual_yards"),
+            "outcome": settlement.get("outcome"),
+        }
+        receipt = canonical_json_sha256(canon_obj)[:16]
         record_payload["settlement_receipt"] = receipt
         graded_records.append(record_payload)
 
@@ -205,9 +230,7 @@ def settle_slate(
         "realized_roi_pct": round((total_pnl / max(1.0, total_staked)) * 100.0, 2),
         "records": graded_records,
     }
-    summary["ledger_root_hash"] = hashlib.sha256(
-        json.dumps(summary["records"], sort_keys=True).encode()
-    ).hexdigest()[:16]
+    summary["ledger_root_hash"] = canonical_json_sha256({"records": summary["records"]})[:16]
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(json.dumps(summary, indent=2))
@@ -217,6 +240,45 @@ def settle_slate(
     viewer_path.write_text(json.dumps(summary, indent=2))
 
     return summary
+
+
+def settle_slate_batch(
+    pending_entries: List[EntryReceipt],
+    closing_map: Dict[str, ClosingSnapshot],
+    boxscore_map: Dict[str, OfficialBoxscoreStat],
+    house_rule_mode: str = "ONE_SNAP_REQUIRED",
+) -> Dict[str, Any]:
+    """
+    Two-Stage Deterministic Batch Settler.
+    Grades pending entries against verified closing snapshots and cross-validated boxscores.
+    """
+    settled_records = []
+    quarantined_records = []
+
+    for entry in pending_entries:
+        closing = closing_map.get(entry.receipt_hash) or closing_map.get(f"{entry.player_name}::{entry.market}")
+        boxscore = boxscore_map.get(entry.player_id) or boxscore_map.get(entry.player_name)
+
+        if not closing or not boxscore:
+            quarantined_records.append({
+                "entry_receipt_hash": entry.receipt_hash,
+                "player": entry.player_name,
+                "reason": "MISSING_CLOSING_SNAPSHOT_OR_BOXSCORE",
+            })
+            continue
+
+        result = grade_receiving_prop(entry, closing, boxscore, house_rule_mode=house_rule_mode)
+        if not result["finalized"]:
+            quarantined_records.append(result)
+        else:
+            settled_records.append(result)
+
+    return {
+        "settled_count": len(settled_records),
+        "quarantined_count": len(quarantined_records),
+        "settled_receipts": settled_records,
+        "quarantined_reviews": quarantined_records,
+    }
 
 
 if __name__ == "__main__":

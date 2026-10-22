@@ -18,6 +18,7 @@ import os
 import subprocess
 import sys
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import AsyncGenerator, Optional
 
 from fastapi import FastAPI, Header, HTTPException, Query, Request
@@ -627,6 +628,70 @@ def get_v1_edges(
         "data": [],
         "note": "MarketEdge database empty or initializing"
     }
+
+
+# ---------------------------------------------------------------------------
+# Settlement Clearinghouse Endpoint: POST /api/v1/settle
+# Runs Stage B boxscore consensus grading & finalizes immutable audit receipts
+# ---------------------------------------------------------------------------
+
+@app.post("/api/v1/settle")
+async def post_settle_slate(
+    request: Request,
+    slate: str = Query("2026_w7", description="Slate key to settle"),
+    admin_token: str | None = Header(None, alias="X-Admin-Token")
+):
+    """
+    Executes official gamebook boxscore resolution.
+    Cross-validates Sleeper & Gamebook data, grades active tickets,
+    and commits deterministic settlement receipt hashes.
+    """
+    expected_secret = os.getenv("ADMIN_SETTLEMENT_KEY", "propwire_admin_settle_2026")
+    if admin_token and admin_token != expected_secret:
+        raise HTTPException(403, "Invalid settlement admin token")
+
+    body = {}
+    try:
+        body = await request.json()
+    except Exception:
+        pass
+
+    # Resolve data paths
+    bets_path = Path(resolve_file("LOGGED_BETS", f"data/logged_bets_{slate.split('_')[-1]}.json"))
+    if not bets_path.exists():
+        bets_path = Path(resolve_file("LOGGED_BETS", "data/logged_bets_w7.json"))
+
+    closing_path = Path(resolve_file("SNAPSHOTS_PATH", f"data/snapshots_{slate}.jsonl"))
+    if not closing_path.exists():
+        closing_path = Path(resolve_file("SNAPSHOTS_PATH", "snapshots/snapshots_2026_w7.jsonl"))
+
+    boxscores_path = Path(resolve_file("BOXSCORES_PATH", f"data/boxscores_{slate}.json"))
+    if not boxscores_path.exists():
+        boxscores_path = Path(resolve_file("BOXSCORES_PATH", "data/boxscores_2026_w7.json"))
+
+    out_path = Path(resolve_file("AUDIT_REPORT", "public/clv_audit_report.json"))
+
+    from settle_ledger import settle_slate
+    try:
+        report = settle_slate(
+            bets_path=bets_path,
+            closing_snapshots_path=closing_path,
+            boxscores_path=boxscores_path,
+            output_path=out_path,
+        )
+        return {
+            "status": "success",
+            "slate": slate,
+            "settled_records": report.get("total_records", 0),
+            "record": report.get("record_str", "0-0-0"),
+            "win_rate_pct": report.get("win_rate_pct", 0.0),
+            "beat_close_rate_pct": report.get("beat_close_rate_pct", 0.0),
+            "realized_roi_pct": report.get("realized_roi_pct", 0.0),
+            "ledger_root_hash": report.get("ledger_root_hash"),
+            "generated_at": report.get("generated_at"),
+        }
+    except Exception as e:
+        raise HTTPException(500, f"Settlement engine error: {str(e)}")
 
 
 # ---------------------------------------------------------------------------

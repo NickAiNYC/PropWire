@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-22T03:29:08.708654+00:00",
+  "generated_at": "2026-10-22T03:45:16.111551+00:00",
   "total_records": 8,
   "graded_count": 8,
   "record_str": "7-1-0",
@@ -30,7 +30,7 @@
       "actual_yards": 102.0,
       "outcome": "WIN",
       "net_pnl": 104.35,
-      "settlement_receipt": "6e69f4b958fc0a85"
+      "settlement_receipt": "8e038b2029e5b60d"
     },
     {
       "player": "Hunter Henry",
@@ -51,7 +51,7 @@
       "actual_yards": 44.0,
       "outcome": "WIN",
       "net_pnl": 86.96,
-      "settlement_receipt": "7874852e296679f2"
+      "settlement_receipt": "2339598e09fc2e66"
     },
     {
       "player": "DeMario Douglas",
@@ -72,7 +72,7 @@
       "actual_yards": 58.0,
       "outcome": "WIN",
       "net_pnl": 90.91,
-      "settlement_receipt": "7494ff074ed96af2"
+      "settlement_receipt": "77d9bcbe2eb01039"
     },
     {
       "player": "Jaxon Smith-Njigba",
@@ -93,7 +93,7 @@
       "actual_yards": 88.0,
       "outcome": "LOSS",
       "net_pnl": -80.0,
-      "settlement_receipt": "b6088f1af6a2cb7f"
+      "settlement_receipt": "e589c1aef0995704"
     },
     {
       "player": "Chris Olave",
@@ -114,7 +114,7 @@
       "actual_yards": 81.0,
       "outcome": "WIN",
       "net_pnl": 86.96,
-      "settlement_receipt": "9a849287f0e17733"
+      "settlement_receipt": "1e206a16627536f0"
     },
     {
       "player": "A.J. Brown",
@@ -135,7 +135,7 @@
       "actual_yards": 65.0,
       "outcome": "WIN",
       "net_pnl": 95.24,
-      "settlement_receipt": "83474852c2a10372"
+      "settlement_receipt": "73a02de57412d51f"
     },
     {
       "player": "Colston Loveland",
@@ -156,7 +156,7 @@
       "actual_yards": 51.0,
       "outcome": "WIN",
       "net_pnl": 86.96,
-      "settlement_receipt": "c84c044cfa168bba"
+      "settlement_receipt": "3e6265abe8f5b07e"
     },
     {
       "player": "DK Metcalf",
@@ -177,8 +177,8 @@
       "actual_yards": 49.0,
       "outcome": "WIN",
       "net_pnl": 78.26,
-      "settlement_receipt": "4984209ec0f60dc6"
+      "settlement_receipt": "f2b5fb58026cac4f"
     }
   ],
-  "ledger_root_hash": "207ba3d4c4225c1d"
+  "ledger_root_hash": "178e29974bf8748c"
 }
