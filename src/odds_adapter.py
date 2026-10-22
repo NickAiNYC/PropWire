@@ -283,21 +283,51 @@ class BovadaOddsProvider(BaseOddsProvider):
     """
     API_URL = "https://www.bovada.lv/services/sports/event/v2/events/A/description/football/nfl"
 
+    USER_AGENTS = [
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_7_0) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15",
+        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36",
+    ]
+
     def fetch_quotes(self, season: int, week: int, game_id: Optional[str] = None) -> List[PropQuote]:
+        import random
+        import time
         import urllib.request
+
         quotes: List[PropQuote] = []
         now_ts = datetime.now(timezone.utc).isoformat()
+        proxy_url = os.environ.get("ROTATING_PROXY_URL") or os.environ.get("HTTPS_PROXY") or os.environ.get("HTTP_PROXY")
 
-        req = urllib.request.Request(
-            self.API_URL,
-            headers={"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36"}
-        )
-        try:
-            with urllib.request.urlopen(req, timeout=15) as res:
-                data = json.loads(res.read().decode("utf-8"))
-        except Exception as e:
-            print(f"[odds_adapter] Failed to fetch Bovada live odds: {e}")
-            return []
+        # Configure opener with proxy if provided (e.g. BrightData, SmartProxy)
+        handlers = []
+        if proxy_url:
+            handlers.append(urllib.request.ProxyHandler({"http": proxy_url, "https": proxy_url}))
+        opener = urllib.request.build_opener(*handlers)
+
+        data = None
+        max_attempts = 2
+        for attempt in range(max_attempts):
+            ua = random.choice(self.USER_AGENTS)
+            req = urllib.request.Request(
+                self.API_URL,
+                headers={
+                    "User-Agent": ua,
+                    "Accept": "application/json, text/plain, */*",
+                    "Accept-Language": "en-US,en;q=0.9",
+                    "Referer": "https://www.bovada.lv/",
+                }
+            )
+            try:
+                with opener.open(req, timeout=12) as res:
+                    data = json.loads(res.read().decode("utf-8"))
+                    break
+            except Exception as e:
+                if attempt < max_attempts - 1:
+                    time.sleep(1.0)
+                    continue
+                print(f"[odds_adapter] Failed to fetch Bovada live odds after {max_attempts} attempts: {e}")
+                return []
 
         if not data or not isinstance(data, list):
             return []
