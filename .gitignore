@@ -14,3 +14,5 @@ __pycache__/
 dist/
 node_modules/
 /*.png
+data/sniper_cooldowns.json
+artifacts/

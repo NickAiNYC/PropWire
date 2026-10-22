@@ -111,6 +111,8 @@
     portfolio: loadPortfolio(),
     watchlist: loadWatchlist(),
     sniper: loadSniperConfig(),
+    sniperCooldowns: {},
+    dismissedCorrelations: new Set(JSON.parse(localStorage.getItem('propwire_dismissed_correlations') || '[]')),
     tickFlashes: {},
     priceHistory: {},
     openSnapshots: {},
@@ -542,17 +544,21 @@
           if (prev) {
             const evDelta = curEv - prev.ev;
             const edgeDelta = curEdge - prev.edge;
-            if (evDelta > 0.001 || edgeDelta > 0.002) {
-              state.tickFlashes[k] = 'up';
-              upMoves++;
-            } else if (evDelta < -0.001 || edgeDelta < -0.002) {
-              state.tickFlashes[k] = 'down';
-              downMoves++;
+            const lineDelta = Math.abs(curLine - prev.line);
+            const oddsDelta = Math.abs((q.over_odds || 0) - (prev.odds || 0));
+
+            // Meaningful move filter: line move >= 0.5 yds, odds move >= 10 cents, or edge/EV delta >= 1.5%
+            const isSignificant = lineDelta >= 0.5 || oddsDelta >= 10 || Math.abs(evDelta) >= 0.015 || Math.abs(edgeDelta) >= 0.015;
+
+            if (isSignificant) {
+              if (evDelta > 0.005 || edgeDelta > 0.005) {
+                state.tickFlashes[k] = 'up';
+                upMoves++;
+              } else if (evDelta < -0.005 || edgeDelta < -0.005) {
+                state.tickFlashes[k] = 'down';
+                downMoves++;
+              }
             }
-          } else if (curEdge >= 0.12) {
-            // Highlight active alpha on manual refresh
-            state.tickFlashes[k] = 'up';
-            upMoves++;
           }
         });
 
@@ -815,9 +821,29 @@
     }
 
     const modeActionableBtn = $('#modeActionableBtn');
+    const modeTopBtn = $('#modeTopBtn');
     const modeAllBtn = $('#modeAllBtn');
     if (modeActionableBtn) modeActionableBtn.addEventListener('click', () => setPlayMode('actionable'));
+    if (modeTopBtn) modeTopBtn.addEventListener('click', () => setPlayMode('top'));
     if (modeAllBtn) modeAllBtn.addEventListener('click', () => setPlayMode('all'));
+
+    const firstRunBanner = $('#firstRunBriefing');
+    const dismissBriefingBtn = $('#dismissBriefingBtn');
+    if (firstRunBanner) {
+      const isDismissed = localStorage.getItem('propwire_onboarding_dismissed') === 'true';
+      firstRunBanner.hidden = isDismissed;
+      if (isDismissed) firstRunBanner.style.display = 'none';
+      if (dismissBriefingBtn) {
+        dismissBriefingBtn.addEventListener('click', () => {
+          triggerHaptic('light');
+          firstRunBanner.hidden = true;
+          firstRunBanner.style.display = 'none';
+          try {
+            localStorage.setItem('propwire_onboarding_dismissed', 'true');
+          } catch (_) {}
+        });
+      }
+    }
 
     $$('.slate-mode-toggle button, .dataset-switcher button').forEach((button) => button.addEventListener('click', () => setPlayMode(button.dataset.mode)));
     $$('.intent-chips .intent-chip').forEach((button) => button.addEventListener('click', () => setIntent(button.dataset.intent)));
@@ -1333,7 +1359,8 @@
     const config = SLATES[slateKey];
     if (!config) return;
     state.slateKey = slateKey;
-    state.filters = { search: '', market: state.filters.market, position: 'ALL', team: '', gameId: '', playMode: 'actionable', intent: 'all' };
+    const initialMode = config.historical ? 'all' : 'actionable';
+    state.filters = { search: '', market: state.filters.market, position: 'ALL', team: '', gameId: '', playMode: initialMode, intent: 'all' };
     if ($('#searchInput')) $('#searchInput').value = '';
     if ($('#positionFilter')) $('#positionFilter').value = 'ALL';
     if ($('#teamFilter')) $('#teamFilter').value = '';
@@ -1736,9 +1763,10 @@
 
   function setPlayMode(mode) {
     state.filters.playMode = mode;
-    $$('.slate-mode-toggle button, .dataset-switcher .seg-btn').forEach((btn) => {
+    $$('.chip-segment-group button, .slate-mode-toggle button, .dataset-switcher .seg-btn').forEach((btn) => {
       const active = btn.dataset.mode === mode;
       btn.classList.toggle('active', active);
+      btn.setAttribute('aria-checked', String(active));
       btn.setAttribute('aria-selected', String(active));
     });
     renderBoard();
@@ -1762,7 +1790,13 @@
     const { search, position, team, gameId, playMode, intent } = state.filters;
     let rows = state.slate.filter((row) => {
       if (state.bottomTab === 'watchlist' && !state.watchlist.includes(row.player_id)) return false;
-      if (playMode === 'actionable' && state.filters.market !== 'anytime_td' && !findQuote(row, state.filters.market)) return false;
+      const isHistorical = Boolean(SLATES[state.slateKey]?.historical);
+      if (!isHistorical && playMode === 'actionable' && state.filters.market !== 'anytime_td' && !findQuote(row, state.filters.market)) return false;
+      if (playMode === 'top') {
+        const topList = (state.picks && state.picks.top_projections) || [];
+        const isTop = topList.some((p) => String(p.player).toLowerCase() === String(row.player_display_name).toLowerCase());
+        if (!isTop) return false;
+      }
       if (position !== 'ALL' && row.position !== position) return false;
       if (team && row.team !== team) return false;
       if (gameId && row.game_id !== gameId) return false;
@@ -2011,33 +2045,74 @@
     }
 
     const titleText = `Line Movement: Open ${openVal.toFixed(1)} → Current ${curVal.toFixed(1)} (${delta > 0 ? '+' : ''}${delta.toFixed(1)} steam)`;
+    const ariaLabel = `Line trajectory: opened ${openVal.toFixed(1)}, current ${curVal.toFixed(1)} (${delta > 0 ? '+' : ''}${delta.toFixed(1)} steam)`;
 
-    return `<div class="book-sparkline-wrap" title="${esc(titleText)}">
-      <svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" class="price-sparkline-svg" aria-label="${esc(titleText)}">
+    return `<div class="book-sparkline-wrap" role="img" aria-label="${esc(ariaLabel)}" title="${esc(titleText)}">
+      <svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" class="price-sparkline-svg" aria-hidden="true">
         <polyline points="${points.join(' ')}" fill="none" stroke="${strokeColor}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
         <circle cx="${xLast}" cy="${yLast}" r="1.8" fill="${strokeColor}" />
       </svg>
-      <span class="sparkline-delta ${deltaClass}">${delta > 0 ? '+' : ''}${delta.toFixed(1)}</span>
+      <span class="sparkline-delta ${deltaClass}" aria-hidden="true">${delta > 0 ? '+' : ''}${delta.toFixed(1)}</span>
     </div>`;
   }
 
   /* ─── CORRELATED EXPOSURE RISK ENGINE ─── */
   function checkCorrelatedRisk(row, evaluation) {
     if (!row) return null;
+    const correlationKey = `${row.team}::${state.filters.market}`;
+    if (state.dismissedCorrelations && state.dismissedCorrelations.has(correlationKey)) {
+      return null;
+    }
+
     const portfolio = state.portfolio || [];
     const competing = portfolio.find(
       (b) => b.team === row.team && b.player_id !== row.player_id && b.market === state.filters.market
     );
-    if (competing) {
+    if (!competing) return null;
+
+    const rowSide = evaluation?.side || 'OVER';
+    const compSide = competing.side || 'OVER';
+
+    if (rowSide === 'OVER' && compSide === 'OVER') {
       return {
-        type: 'CANNIBALISTIC_VOLUME',
+        type: 'SAME_TEAM_EXPOSURE',
+        isHedge: false,
         competingPlayer: competing.player_name,
-        competingSide: competing.side,
+        competingSide: compSide,
         team: row.team,
-        market: state.filters.market
+        market: state.filters.market,
+        badgeText: `⚠️ Same-Team (${competing.player_name.split(' ').pop()})`,
+        badgeClass: 'corr-risk',
+        message: `Same-team exposure: results may be correlated (target distribution & game script with ${competing.player_name} on ${row.team})`,
+        dismissKey: correlationKey
+      };
+    } else if ((rowSide === 'OVER' && compSide === 'UNDER') || (rowSide === 'UNDER' && compSide === 'OVER')) {
+      return {
+        type: 'DISTRIBUTION_HEDGE',
+        isHedge: true,
+        competingPlayer: competing.player_name,
+        competingSide: compSide,
+        team: row.team,
+        market: state.filters.market,
+        badgeText: `⚡ Hedge (${competing.player_name.split(' ').pop()})`,
+        badgeClass: 'corr-hedge',
+        message: `Offensive distribution hedge: Active ${compSide} on ${competing.player_name} (${row.team})`,
+        dismissKey: correlationKey
+      };
+    } else {
+      return {
+        type: 'SCRIPT_CORRELATION',
+        isHedge: true,
+        competingPlayer: competing.player_name,
+        competingSide: compSide,
+        team: row.team,
+        market: state.filters.market,
+        badgeText: `⚡ Script (${competing.player_name.split(' ').pop()})`,
+        badgeClass: 'corr-hedge',
+        message: `Defensive game-script correlation with ${competing.player_name} (${row.team})`,
+        dismissKey: correlationKey
       };
     }
-    return null;
   }
 
   function getPortfolioCorrelations(portfolio = state.portfolio || []) {
@@ -2050,16 +2125,42 @@
     const conflicts = [];
     Object.entries(map).forEach(([key, bets]) => {
       if (bets.length > 1) {
+        if (state.dismissedCorrelations && state.dismissedCorrelations.has(key)) return;
         const [team, market] = key.split('::');
+        const overCount = bets.filter((b) => b.side === 'OVER').length;
+        const isAllOver = overCount === bets.length;
+        const isHedge = overCount > 0 && overCount < bets.length;
+
         conflicts.push({
+          key,
           team,
           market,
+          isHedge,
+          isAllOver,
+          title: isAllOver
+            ? 'Same-Team Exposure Detected'
+            : isHedge
+              ? 'Offensive Distribution Hedge'
+              : 'Game-Script Correlation',
+          description: isAllOver
+            ? `Concentrated exposure on <strong>${esc(team)}</strong>: Multiple OVERs on <em>${bets.map((b) => esc(b.player_name)).join(' &amp; ')}</em>. Results may be correlated by game script and target distribution.`
+            : `Balanced exposure on <strong>${esc(team)}</strong>: <em>${bets.map((b) => esc(b.player_name)).join(' &amp; ')}</em> held on opposing sides (target distribution hedge).`,
           players: bets.map((b) => b.player_name),
           bets
         });
       }
     });
     return conflicts;
+  }
+
+  function dismissCorrelation(key) {
+    if (!state.dismissedCorrelations) state.dismissedCorrelations = new Set();
+    state.dismissedCorrelations.add(key);
+    try {
+      localStorage.setItem('propwire_dismissed_correlations', JSON.stringify([...state.dismissedCorrelations]));
+    } catch (_) {}
+    renderBoard();
+    if ($('#portfolioDialog')?.open) openPortfolioDialog();
   }
 
   /* ─── PROGRAMMABLE MARKET ALERTS (SNIPER) ─── */
@@ -2122,9 +2223,16 @@
             </button>
           </div>
 
+          <div style="margin-top:10px;" class="sniper-notice-box">
+            <strong>ℹ️ iOS Safari Notice:</strong> Web Push on iPhone requires adding PROP·WIRE to your Home Screen (Share → Add to Home Screen) on iOS 16.4+.
+          </div>
+
           <div style="margin-top:14px;">
             <div class="sniper-section-title" style="margin-bottom:4px;">Private Webhook (Discord / Slack / API)</div>
-            <div style="font-size:11px; color:var(--muted); margin-bottom:6px;">Sends instant JSON payload upon qualifying line anomaly</div>
+            <div style="font-size:11px; color:var(--muted); margin-bottom:6px;">Sends instant JSON payload upon qualifying line anomaly (Rate limited: max 1 per 15 min per line)</div>
+            <div class="sniper-security-warning" style="margin-bottom:8px;">
+              <strong>⚠️ Security Notice:</strong> Never enter sensitive or public channel tokens. Webhooks post directly to the configured endpoint.
+            </div>
             <div class="sniper-webhook-row">
               <input type="url" id="sniperWebhookInput" class="sniper-webhook-input" placeholder="https://discord.com/api/webhooks/... or https://your-server.com/api/alert" value="${esc(sniper.webhookUrl || '')}">
               <button type="button" id="sniperTestWebhookBtn" class="sniper-test-btn">Test Payload</button>
@@ -2132,15 +2240,19 @@
           </div>
         </div>
 
-        <!-- Real-Time Event Telemetry Feed -->
+        <!-- Real-Time Event Telemetry Feed with One-Tap Confirm -->
         <div class="sniper-card">
-          <div class="sniper-section-title">Live Sniper Event Telemetry</div>
+          <div class="sniper-section-title">Live Sniper Event Telemetry (Human-Confirmed Ledger Flow)</div>
+          <div style="font-size:11px; color:var(--muted); margin-bottom:8px;">Alerts do not auto-write to your ledger. Tap below to review and confirm in one conscious action.</div>
           <div class="sniper-feed-list" id="sniperFeedList">
             ${(sniper.events && sniper.events.length > 0) ? sniper.events.map((ev) => `
-              <div class="sniper-feed-item">
-                <span class="sniped-player">${esc(ev.player)} (${esc(ev.side)} ${ev.line})</span>
-                <span class="sniped-edge">+${(ev.edge * 100).toFixed(1)}% Edge</span>
-                <span class="sniped-time">${esc(ev.time)}</span>
+              <div class="sniper-feed-item" style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+                <div>
+                  <span class="sniped-player">${esc(ev.player)} (${esc(ev.side)} ${ev.line})</span>
+                  <span class="sniped-edge">+${(ev.edge * 100).toFixed(1)}% Edge</span>
+                  <span class="sniped-time">${esc(ev.time)}</span>
+                </div>
+                <button type="button" class="sniper-confirm-link" data-sniper-confirm="${esc(ev.playerId || '')}" data-market="${esc(ev.market || '')}">Review &amp; Confirm ⚡</button>
               </div>
             `).join('') : '<div style="font-size:11.5px; color:var(--muted); padding:6px 0;">Monitoring active orderbook... Polling cycle continuously inspects incoming book lines.</div>'}
           </div>
@@ -2156,7 +2268,7 @@
         saveSniperConfig(state.sniper);
         updateSniperUIBadges();
         if (state.sniper.enabled) {
-          toast('🎯 Sniper Activated: Polling will autonomously dispatch on alpha triggers.');
+          toast('🎯 Sniper Activated: Polling will trigger instant 1-tap review alerts.');
           checkSniperAlerts();
         } else {
           toast('Sniper Deactivated.');
@@ -2241,6 +2353,17 @@
         setTimeout(() => { if (testBtn) testBtn.textContent = 'Test Payload'; }, 2500);
       };
     }
+
+    content.querySelectorAll('[data-sniper-confirm]').forEach((btn) => {
+      btn.onclick = () => {
+        triggerHaptic('light');
+        const playerId = btn.dataset.sniperConfirm;
+        const market = btn.dataset.market;
+        const dlg = $('#sniperDialog');
+        if (dlg && dlg.open) dlg.close();
+        openOneTapConfirm(playerId, market);
+      };
+    });
   }
 
   function updateSniperUIBadges() {
@@ -2255,6 +2378,7 @@
     const quotes = state.odds.quotes || [];
     const minEdge = Number(state.sniper.minEdge) || 0.15;
     const gateMetOnly = state.sniper.gateMetOnly !== false;
+    if (!state.sniperCooldowns) state.sniperCooldowns = {};
 
     quotes.forEach((quote) => {
       const ev = quote.evaluation || {};
@@ -2263,12 +2387,13 @@
       const qualified = !gateMetOnly || (ev.is_qualified && expectedReturn > 0);
 
       if (edge >= minEdge && qualified) {
-        const alertKey = `${quote.player_id}_${quote.market}_${quote.line}_${Math.floor(Date.now() / (10 * 60 * 1000))}`;
-        if (!state.sniper.alerted) state.sniper.alerted = {};
-        if (!state.sniper.alerted[alertKey]) {
-          state.sniper.alerted[alertKey] = Date.now();
-          dispatchSniperAlert(quote, edge, expectedReturn);
-        }
+        const k = `${quote.player_id}::${quote.market}`;
+        const lastAlertTime = state.sniperCooldowns[k] || 0;
+        // 15-minute rate-limiting cooldown per line to prevent spamming
+        if (Date.now() - lastAlertTime < 15 * 60 * 1000) return;
+        state.sniperCooldowns[k] = Date.now();
+
+        dispatchSniperAlert(quote, edge, expectedReturn);
       }
     });
   }
@@ -2281,7 +2406,9 @@
     if (!Array.isArray(state.sniper.events)) state.sniper.events = [];
     state.sniper.events.unshift({
       id: Math.random().toString(36).slice(2, 8),
+      playerId: quote.player_id,
       player: quote.player_name,
+      market: quote.market,
       team: quote.team,
       side,
       line: quote.line,
@@ -2294,10 +2421,14 @@
 
     if (state.sniper.browserNotify && typeof Notification !== 'undefined' && Notification.permission === 'granted') {
       try {
-        new Notification(`🎯 PROP·WIRE Sniper: ${quote.player_name}`, {
-          body: `${side} ${quote.line} (${oddsText(side === 'UNDER' ? quote.under_odds : quote.over_odds)}) · Edge +${(edge * 100).toFixed(1)}% · ${quote.book}`,
+        const notif = new Notification(`🎯 PROP·WIRE Sniper: ${quote.player_name}`, {
+          body: `${side} ${quote.line} (${oddsText(side === 'UNDER' ? quote.under_odds : quote.over_odds)}) · Edge +${(edge * 100).toFixed(1)}% · Tap to confirm`,
           icon: 'icon-192.png'
         });
+        notif.onclick = () => {
+          window.focus();
+          openOneTapConfirm(quote.player_id, quote.market);
+        };
       } catch (_) {}
     }
 
@@ -2310,6 +2441,7 @@
           event: 'PROP_WIRE_SNIPER_ALERT',
           source: 'PROP·WIRE Autonomous Market Telemetry',
           timestamp: new Date().toISOString(),
+          player_id: quote.player_id,
           player: quote.player_name,
           team: quote.team,
           opponent: quote.opponent,
@@ -2324,7 +2456,21 @@
       }).catch(() => {});
     }
 
-    toast(`🎯 SNIPER ALERT: ${quote.player_name} ${side} ${quote.line} (+${(edge * 100).toFixed(1)}% Edge · ${quote.book})`, null, 5000);
+    toast(`🎯 SNIPER ALERT: ${quote.player_name} ${side} ${quote.line} (+${(edge * 100).toFixed(1)}% Edge) · Tap to Confirm`, () => {
+      openOneTapConfirm(quote.player_id, quote.market);
+    }, 6000);
+  }
+
+  function openOneTapConfirm(playerId, market) {
+    if (!playerId) return;
+    const row = (state.slate || []).find((r) => r.player_id === playerId);
+    if (!row) return;
+    if (market && market !== state.filters.market) {
+      state.filters.market = market;
+      renderHeader();
+      renderBoard();
+    }
+    inspectPlayer(playerId);
   }
 
   function tableHead(hasPrices) {
@@ -2335,6 +2481,21 @@
       <th class="th-num" style="width:24%">Model (Fair | Proj | 80% CI) <span class="help-bubble" title="True-scale bullet graph: Amber tick is Book line, White tick is Model Fair, Green dot is Proj Mean, Shaded bar is 80% CI.">?</span></th>
       <th class="th-num" style="width:18%">Price Check / Edge <span class="help-bubble" title="Mathematical edge vs de-vigged market line.">?</span></th>
     </tr>`;
+  }
+
+  function evaluateSettledRow(row) {
+    const isYards = state.filters.market === 'receiving_yards';
+    const actual = isYards ? num(row.receiving_yards) : num(row.receptions);
+    const line = isYards ? num(row.fair_line_yards) : num(row.fair_line_rec);
+    const evaluation = evaluateRow(row);
+    const side = evaluation?.side || 'OVER';
+    const delta = side === 'UNDER' ? +(line - actual).toFixed(1) : +(actual - line).toFixed(1);
+    const won = side === 'UNDER' ? (actual < line) : (actual > line);
+    const lost = side === 'UNDER' ? (actual > line) : (actual < line);
+    const push = actual === line;
+    const outcome = won ? 'WON' : lost ? 'LOST' : 'PUSH';
+    const outcomeClass = won ? 'settled-won' : lost ? 'settled-lost' : 'settled-push';
+    return { actual, line, delta, outcome, outcomeClass, isYards, side };
   }
 
   function tableRow(row, hasPrices, index = 0) {
@@ -2360,7 +2521,7 @@
             <div class="player-meta-line">
               <span class="cell-sub">${esc(row.team)} · ${esc(roleLabel(row))}</span>
               ${keyDriverTag(row, beneficiary)}
-              ${corrRisk ? `<span class="corr-risk-pill" title="Cannibalistic Volume Risk: You already hold ${esc(corrRisk.competingPlayer)} OVER in your ledger. Competing target share on ${esc(corrRisk.team)}."><span class="corr-icon">⚠️</span> Vol Risk (${esc(corrRisk.competingPlayer)})</span>` : ''}
+              ${corrRisk ? `<span class="corr-risk-pill ${corrRisk.badgeClass}" title="${esc(corrRisk.message)}"><span class="corr-icon">${corrRisk.isHedge ? '⚡' : '⚠️'}</span> ${esc(corrRisk.badgeText)} <button type="button" class="corr-dismiss-btn" data-dismiss-corr="${esc(corrRisk.dismissKey)}" title="Dismiss warning" aria-label="Dismiss">×</button></span>` : ''}
             </div>
           </div>
         </div>
@@ -2397,11 +2558,12 @@
     const quoteKey = `${row.player_id}::${state.filters.market}`;
     const flash = state.tickFlashes ? state.tickFlashes[quoteKey] : null;
     const flashClass = flash === 'up' ? 'tick-flash-up' : flash === 'down' ? 'tick-flash-down' : '';
+    const glyph = flash === 'up' ? '<span class="tick-flash-glyph tick-glyph-up" aria-hidden="true">▲</span>' : flash === 'down' ? '<span class="tick-flash-glyph tick-glyph-down" aria-hidden="true">▼</span>' : '';
 
-    // Pick one single high-signal badge (prioritize cannibalistic risk if detected)
+    // Pick one single high-signal badge (prioritize same-team risk/hedge if detected)
     let signalBadge = '';
     if (corrRisk) {
-      signalBadge = `<span class="mq-signal-badge corr-risk" title="Cannibalistic Volume Risk with ${esc(corrRisk.competingPlayer)} on ${esc(row.team)}">⚠️ VOL CONFLICT</span>`;
+      signalBadge = `<span class="mq-signal-badge ${corrRisk.badgeClass}" title="${esc(corrRisk.message)}">${esc(corrRisk.badgeText)}</span>`;
     } else if (beneficiary) {
       signalBadge = '<span class="mq-signal-badge surge">SURGE</span>';
     } else if (num(row.f_tgt_share || row.target_share) >= 0.28) {
@@ -2441,29 +2603,38 @@
         <!-- Line 2: Prominent Line & Fair | Right: Prominent Edge + 44px Quick Log Button -->
         <div class="mq-line-2 ${flashClass}">
           <div class="mq-line-quote-block">
-            ${evaluation.state === 'none'
-              ? '<span class="mq-no-quote">No quote · Proj ' + dist.proj.toFixed(1) + '</span>'
-              : `<div class="mq-quote-main">
-                  <span class="dir-line-pill ${evaluation.side === 'OVER' ? 'dir-over' : 'dir-under'}">
-                    <span class="dir-arrow">${evaluation.side === 'OVER' ? '↑' : '↓'}</span>
-                    <span class="dir-num">${evaluation.line.toFixed(1)}</span>
-                  </span>
-                  <span class="mq-odds-val fixed-odds">${oddsText(evaluation.odds)}</span>
-                  <span class="mq-fair-val">fair ${fairVal.toFixed(1)}</span>
-                </div>
-                ${sparklineHtml}`}
+            ${SLATES[state.slateKey]?.historical
+              ? `<div class="mq-quote-main">
+                  <span class="settled-badge ${evaluateSettledRow(row).outcomeClass}">${evaluateSettledRow(row).outcome}</span>
+                  <span class="settled-stat-box">${evaluateSettledRow(row).actual} ${evaluateSettledRow(row).isYards ? 'yds' : 'rec'}</span>
+                  <span class="mq-fair-val">line ${evaluateSettledRow(row).line.toFixed(1)}</span>
+                </div>`
+              : evaluation.state === 'none'
+                ? '<span class="mq-no-quote">No quote · Proj ' + dist.proj.toFixed(1) + '</span>'
+                : `<div class="mq-quote-main">
+                    <span class="dir-line-pill ${evaluation.side === 'OVER' ? 'dir-over' : 'dir-under'}">
+                      <span class="dir-arrow">${evaluation.side === 'OVER' ? '↑' : '↓'}</span>
+                      <span class="dir-num">${evaluation.line.toFixed(1)}</span>
+                    </span>
+                    <span class="mq-odds-val fixed-odds">${oddsText(evaluation.odds)}</span>
+                    ${glyph}
+                    <span class="mq-fair-val">fair ${fairVal.toFixed(1)}</span>
+                  </div>
+                  ${sparklineHtml}`}
           </div>
 
           <div class="mq-edge-and-log">
-            ${evaluation.closed
-              ? '<span class="mq-edge-prominent closed">CLOSED</span>'
-              : evaluation.dataCheck
-                ? `<span class="mq-edge-prominent verify">${signedPct(evaluation.edge)}</span>`
-                : evaluation.edge > 0
-                  ? `<span class="mq-edge-prominent positive heatmap-edge" style="background: linear-gradient(90deg, rgba(182, 243, 107, ${(0.04 + Math.min(evaluation.edge / 0.25, 1) * 0.14).toFixed(3)}) 0%, rgba(182, 243, 107, 0.02) 100%);">+${(evaluation.edge * 100).toFixed(1)}%</span>`
-                  : evaluation.edge < 0
-                    ? `<span class="mq-edge-prominent negative">${(evaluation.edge * 100).toFixed(1)}%</span>`
-                    : '<span class="mq-edge-prominent none">—</span>'}
+            ${SLATES[state.slateKey]?.historical
+              ? `<span class="mq-edge-prominent ${evaluateSettledRow(row).delta > 0 ? 'positive' : 'negative'}">${evaluateSettledRow(row).delta > 0 ? '+' : ''}${evaluateSettledRow(row).delta}${evaluateSettledRow(row).isYards ? 'y' : 'r'}</span>`
+              : evaluation.closed
+                ? '<span class="mq-edge-prominent closed">CLOSED</span>'
+                : evaluation.dataCheck
+                  ? `<span class="mq-edge-prominent verify">${signedPct(evaluation.edge)}</span>`
+                  : evaluation.edge > 0
+                    ? `<span class="mq-edge-prominent positive heatmap-edge" style="background: linear-gradient(90deg, rgba(182, 243, 107, ${(0.04 + Math.min(evaluation.edge / 0.25, 1) * 0.14).toFixed(3)}) 0%, rgba(182, 243, 107, 0.02) 100%);">+${(evaluation.edge * 100).toFixed(1)}%</span>`
+                    : evaluation.edge < 0
+                      ? `<span class="mq-edge-prominent negative">${(evaluation.edge * 100).toFixed(1)}%</span>`
+                      : '<span class="mq-edge-prominent none">—</span>'}
 
             <button class="mq-log-btn ${isLogged ? 'logged' : ''}" type="button" data-log-bet="${esc(row.player_id)}" aria-label="${isLogged ? 'In Ledger' : 'Add to Ledger'}" title="Log to Ledger">
               ${isLogged ? '✓' : '+'}
@@ -2555,12 +2726,23 @@
   }
 
   function bookCell(evaluation, injury, row = null) {
+    if (SLATES[state.slateKey]?.historical && row) {
+      const settled = evaluateSettledRow(row);
+      return `<div class="book-cell">
+        <span class="number-main"><span class="settled-stat-box">${settled.actual} ${settled.isYards ? 'yds' : 'rec'}</span></span>
+        <div class="book-meta">
+          <span class="book-tag">Settled</span>
+          <span class="meta-pill ${settled.delta > 0 ? 'actionable' : 'closed'}">${settled.delta > 0 ? '+' : ''}${settled.delta} vs Line</span>
+        </div>
+      </div>`;
+    }
     if (evaluation.state === 'none') {
       return `<div class="book-cell"><span class="number-main">No quote</span><div class="book-meta"><span class="meta-pill model-only">Model only</span>${injury ? `<span class="injury-warning-tag" title="Snap risk unpriced">${SVG_ICONS.warn} ${esc(injury.report_status)}</span>` : ''}</div></div>`;
     }
     const quoteKey = row ? `${row.player_id}::${state.filters.market}` : '';
     const flash = quoteKey && state.tickFlashes ? state.tickFlashes[quoteKey] : null;
     const flashClass = flash === 'up' ? 'tick-flash-up' : flash === 'down' ? 'tick-flash-down' : '';
+    const glyph = flash === 'up' ? '<span class="tick-flash-glyph tick-glyph-up" aria-hidden="true">▲</span>' : flash === 'down' ? '<span class="tick-flash-glyph tick-glyph-down" aria-hidden="true">▼</span>' : '';
 
     const statusPill = evaluation.closed
       ? '<span class="meta-pill closed">Closed</span>'
@@ -2583,6 +2765,7 @@
           <span class="dir-num">${evaluation.line.toFixed(1)}</span>
         </span>
         <small class="odds-val fixed-odds">${oddsText(evaluation.odds)}</small>
+        ${glyph}
       </span>
       ${sparklineHtml}
       <div class="book-meta">
@@ -2594,11 +2777,22 @@
   }
 
   function priceCheckCell(evaluation, row = null, isLogged = false) {
+    if (SLATES[state.slateKey]?.historical && row) {
+      const settled = evaluateSettledRow(row);
+      return `<div class="edge-cell-wrap">
+        <div class="edge-cell">
+          <span class="settled-badge ${settled.outcomeClass}">${settled.outcome}</span>
+          <span class="cell-sub" style="margin-top:2px; font-variant-numeric:tabular-nums;">Actual ${settled.actual} (Line ${settled.line.toFixed(1)})</span>
+        </div>
+      </div>`;
+    }
+
     const logBtn = row ? `<button class="row-log-btn ${isLogged ? 'logged' : ''}" type="button" data-log-bet="${esc(row.player_id)}" title="${isLogged ? 'In Ledger (Click to remove)' : 'Quick-Log to Ledger'}" aria-label="Log to Ledger">${isLogged ? '✓' : '+'}</button>` : '';
 
     const quoteKey = row ? `${row.player_id}::${state.filters.market}` : '';
     const flash = quoteKey && state.tickFlashes ? state.tickFlashes[quoteKey] : null;
     const flashClass = flash === 'up' ? 'tick-flash-up' : flash === 'down' ? 'tick-flash-down' : '';
+    const glyph = flash === 'up' ? '<span class="tick-flash-glyph tick-glyph-up" aria-hidden="true">▲</span>' : flash === 'down' ? '<span class="tick-flash-glyph tick-glyph-down" aria-hidden="true">▼</span>' : '';
 
     if (evaluation.state === 'none') {
       return `<div class="edge-cell-wrap">
@@ -2619,7 +2813,7 @@
     if (evaluation.state === 'ingested') {
       return `<div class="edge-cell-wrap">
         <div class="edge-cell edge-cell-unverified ${flashClass}" data-quote-state="ingested">
-          <span class="edge-line-top text-unverified">${signedPct(evaluation.edge)}</span>
+          <span class="edge-line-top text-unverified">${signedPct(evaluation.edge)}${glyph}</span>
           <span class="exec-tag exec-tag-unverified">UNVERIFIED</span>
         </div>
         ${logBtn}
@@ -2628,7 +2822,7 @@
     if (evaluation.dataCheck) {
       return `<div class="edge-cell-wrap">
         <div class="edge-cell edge-cell-caution ${flashClass}" data-quote-state="verified">
-          <span class="edge-line-top text-caution">${signedPct(evaluation.edge)}</span>
+          <span class="edge-line-top text-caution">${signedPct(evaluation.edge)}${glyph}</span>
           <span class="exec-tag exec-tag-verify" title="Verify before acting: edge > 12%">VERIFY</span>
         </div>
         ${logBtn}
@@ -2644,7 +2838,7 @@
 
     return `<div class="edge-cell-wrap">
       <div class="edge-cell ${isSubGate ? 'edge-cell-subgate' : 'edge-cell-verified'} ${flashClass}" data-quote-state="verified" ${heatmapStyle}>
-        <span class="edge-line-top ${isSubGate ? 'text-subgate' : 'text-verified'}">${signedPct(evaluation.edge)}</span>
+        <span class="edge-line-top ${isSubGate ? 'text-subgate' : 'text-verified'}">${signedPct(evaluation.edge)}${glyph}</span>
         <span class="exec-tag ${isSubGate ? 'exec-tag-subgate' : 'exec-tag-active'}">${isSubGate ? 'SUB-GATE' : 'ACTIVE'}</span>
       </div>
       ${logBtn}
@@ -2730,6 +2924,13 @@
       return;
     }
     if (event.target.closest('.info-trigger') || event.target.closest('.help-bubble')) return;
+    const dismissBtn = event.target.closest('[data-dismiss-corr]');
+    if (dismissBtn) {
+      event.preventDefault();
+      event.stopPropagation();
+      dismissCorrelation(dismissBtn.dataset.dismissCorr);
+      return;
+    }
     const watchBtn = event.target.closest('[data-watch-player]');
     if (watchBtn) {
       event.stopPropagation();
@@ -3050,12 +3251,15 @@
     const conflicts = getPortfolioCorrelations(portfolio);
     const conflictHtml = conflicts.length > 0 ? `
       <div class="portfolio-risk-alert">
-        <div class="portfolio-risk-alert-title">
-          <span>⚠️ Correlated Volume Risk Detected</span>
-        </div>
-        <div>
-          ${conflicts.map((c) => `Concentrated target-share on <strong>${esc(c.team)}</strong>: Competing positions on <em>${c.players.map(esc).join(' &amp; ')}</em>. Cannibalistic target volume inflates portfolio variance.`).join('<br>')}
-        </div>
+        ${conflicts.map((c) => `
+          <div style="margin-bottom:6px;">
+            <div class="portfolio-risk-alert-title">
+              <span>${c.isHedge ? '⚡' : '⚠️'} ${esc(c.title)} (${esc(c.team)})</span>
+              <button type="button" class="corr-dismiss-btn" data-dismiss-corr="${esc(c.key)}" title="Dismiss warning" style="font-size:14px; padding:0 4px;">×</button>
+            </div>
+            <div>${c.description}</div>
+          </div>
+        `).join('')}
       </div>
     ` : '';
 
@@ -3071,8 +3275,15 @@
         clvText = `${delta > 0 ? '+' : ''}${delta.toFixed(1)} ${bet.market === 'receptions' ? 'rec' : 'yds'} (${signedPct(delta / (bet.line || 1))})`;
         clvClass = delta > 0 ? 'actionable' : delta < 0 ? 'closed' : '';
       }
-      const isConflicted = conflicts.some((c) => c.team === bet.team && c.market === bet.market);
-      const conflictBadge = isConflicted ? `<span class="badge corr-risk-badge" title="Competing target-share with another receiver on ${esc(bet.team)}">⚠️ Vol Conflict</span> ` : '';
+      const conflictItem = conflicts.find((c) => c.team === bet.team && c.market === bet.market);
+      let conflictBadge = '';
+      if (conflictItem) {
+        if (conflictItem.isHedge) {
+          conflictBadge = `<span class="badge corr-hedge-badge" title="${esc(conflictItem.title)}">⚡ Hedge</span> `;
+        } else {
+          conflictBadge = `<span class="badge corr-risk-badge" title="${esc(conflictItem.title)}">⚠️ Same-Team</span> `;
+        }
+      }
 
       return `<tr>
         <td>${conflictBadge}<strong>${esc(bet.player_name)}</strong><br><small class="cell-sub">${esc(bet.team)} vs ${esc(bet.opponent)} · ${esc(bet.market === 'receptions' ? 'Rec' : 'Yards')}</small></td>
@@ -3147,6 +3358,14 @@
         updatePortfolioBadge();
         renderBoard();
         openPortfolioDialog();
+      });
+    });
+
+    $('#portfolioContent').querySelectorAll('[data-dismiss-corr]').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        triggerHaptic('light');
+        const key = e.target.closest('[data-dismiss-corr]').dataset.dismissCorr;
+        dismissCorrelation(key);
       });
     });
 

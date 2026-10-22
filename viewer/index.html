@@ -159,6 +159,10 @@
             <span>⚡ Active</span>
             <span class="chip-count-pill" id="actionableCount">33</span>
           </button>
+          <button type="button" class="chip-pill" data-mode="top" id="modeTopBtn" role="radio" aria-checked="false" title="Show Top Model Volume Plays">
+            <span>🏆 Top Plays</span>
+            <span class="chip-count-pill" id="topCount">25</span>
+          </button>
           <button type="button" class="chip-pill" data-mode="all" id="modeAllBtn" role="radio" aria-checked="false" title="Show all modeled player projections">
             <span>All</span>
             <span class="chip-count-pill" id="allCount">390</span>
@@ -217,6 +221,33 @@
     <span id="slateState" hidden>Upcoming slate</span>
     <span id="resultCount" hidden>33 actionable</span>
 
+    <!-- First-Run Quantitative Briefing (Dismissible) -->
+    <div class="first-run-briefing" id="firstRunBriefing" hidden>
+      <div class="first-run-header">
+        <div class="first-run-title">
+          <span>⚡ PROP·WIRE Quantitative Briefing</span>
+        </div>
+        <button type="button" class="first-run-dismiss" id="dismissBriefingBtn" aria-label="Dismiss briefing">✕</button>
+      </div>
+      <div class="first-run-grid">
+        <div class="first-run-step">
+          <div class="first-run-step-num">Step 1 · Identify Edge</div>
+          <div class="first-run-step-title">Calibrated Poisson/Gamma Fair Lines</div>
+          <div class="first-run-step-desc">Negative Binomial target distributions paired with calibrated Gamma shape per catch estimate fair lines and un-vigged probabilities.</div>
+        </div>
+        <div class="first-run-step">
+          <div class="first-run-step-num">Step 2 · Audit Risk</div>
+          <div class="first-run-step-title">Verified Spreads &amp; Correlations</div>
+          <div class="first-run-step-desc">Sportsbook quotes fail closed without SHA-256 content verification. Real-time target redistribution detects same-team exposure and hedges.</div>
+        </div>
+        <div class="first-run-step">
+          <div class="first-run-step-num">Step 3 · Conscious Execution</div>
+          <div class="first-run-step-title">One-Tap Human Confirm &amp; CLV Audit</div>
+          <div class="first-run-step-desc">Swipe or tap to stage tickets in your personal CLV ledger. Zero auto-betting corruption: your record reflects genuine human execution.</div>
+        </div>
+      </div>
+    </div>
+
     <section class="data-board" aria-label="Player slate">
       <noscript>
         <div style="padding: 14px 18px; margin-bottom: 16px; background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 8px; color: #f59e0b; font-family: var(--sans); font-size: 13px;">
@@ -246,6 +277,22 @@
       <div><strong>Verification Receipt</strong> SHA-256 hashes detect price changes; unverified quotes fail closed.</div>
       <div id="clvStatus"><strong>CLV Audit</strong> 8 verified records · Root #207ba3d4c4225c1d.</div>
     </section>
+
+    <!-- Terminal Compliance & Responsible Gaming Footer -->
+    <footer class="terminal-compliance-footer" role="contentinfo" aria-label="Compliance and Responsible Gaming">
+      <div class="compliance-pills">
+        <span class="compliance-badge-21" title="Must be 21 years of age or older">21+</span>
+        <a class="compliance-pill" href="tel:18004262537" title="National Problem Gambling Helpline">
+          <span>Call 1-800-GAMBLER</span>
+        </a>
+        <a class="compliance-pill" href="https://www.ncpgambling.org/" target="_blank" rel="noopener noreferrer">
+          <span>NCPG Helpline &amp; Resources ↗</span>
+        </a>
+      </div>
+      <p class="compliance-disclaimer">
+        PROP·WIRE is an independent quantitative research terminal and computational decision-support tool. PROP·WIRE does not accept wagers, place bets, operate as a sportsbook, or provide financial or investment advice. All model expectations, de-vigged fair values, and Closing Line Value (CLV) metrics are statistical estimates derived from historical distribution models and verified sportsbook data feeds. Odds and availability subject to change. If you or someone you know has a gambling problem, crisis counseling and referral services can be accessed by calling 1-800-GAMBLER (1-800-426-2537).
+      </p>
+    </footer>
   </main>
 
   <!-- Player Inspector Modal (Full-Height Bottom Sheet on Mobile) -->
