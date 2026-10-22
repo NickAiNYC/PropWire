@@ -950,9 +950,8 @@
     const enterTerminalBtn = $('#enterTerminalBtn');
     const settingsBriefingBtn = $('#settingsBriefingBtn');
     if (firstRunBanner) {
-      const isDismissed = localStorage.getItem('propwire_onboarding_dismissed') === 'true';
-      firstRunBanner.hidden = isDismissed;
-      if (isDismissed) firstRunBanner.style.display = 'none';
+      firstRunBanner.hidden = true;
+      firstRunBanner.style.display = 'none';
       const closeBriefing = () => {
         triggerHaptic('light');
         firstRunBanner.hidden = true;

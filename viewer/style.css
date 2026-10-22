@@ -43,10 +43,10 @@
   --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   --sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 
-  --pw-bg-deep: var(--bg-canvas);
-  --pw-bg-bar: var(--bg-surface);
-  --pw-bg-control: var(--bg-elevated);
-  --pw-border: var(--border-hairline);
+  --pw-bg-deep: #252a34;
+  --pw-bg-bar: #1c2029;
+  --pw-bg-control: #252a34;
+  --pw-border: rgba(255, 255, 255, 0.12);
   --pw-volt: var(--brand-green);
   --pw-volt-bright: var(--brand-green-bright);
   --pw-volt-dim: var(--brand-green-dim);
@@ -95,8 +95,8 @@ button { color: inherit; }
   position: sticky;
   top: 0;
   z-index: 40;
-  background: var(--pw-bg-deep);
-  border-bottom: 1px solid var(--pw-border);
+  background: #252a34 !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12) !important;
   font-family: var(--mono);
   font-size: 12px;
   user-select: none;
@@ -3834,10 +3834,10 @@ article[data-focused="true"] {
     z-index: 90;
     height: calc(56px + env(safe-area-inset-bottom, 0px));
     padding-bottom: env(safe-area-inset-bottom, 0px);
-    background: rgba(15, 23, 42, 0.94);
+    background: rgba(37, 42, 52, 0.96) !important;
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border-top: 1px solid var(--line);
+    border-top: 1px solid rgba(255, 255, 255, 0.12) !important;
     justify-content: space-around;
     align-items: center;
     box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.45);
@@ -5113,6 +5113,20 @@ article[data-focused="true"] {
     align-items: center !important;
     justify-content: flex-end !important;
     flex-shrink: 0 !important;
+  }
+  #pricingBtn {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    height: 28px !important;
+    padding: 0 8px !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    border-radius: 4px !important;
+    border: 1px solid rgba(182, 243, 107, 0.4) !important;
+    background: rgba(182, 243, 107, 0.08) !important;
+    color: #B6F36B !important;
+    margin-right: 6px !important;
   }
   .site-header {
     padding: 4px 10px !important;
