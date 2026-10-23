@@ -1158,7 +1158,7 @@
     updateSniperUIBadges();
 
     // Wire native bottom-sheet behaviors: tap backdrop to close + swipe down to dismiss
-    [$('#detailDialog'), $('#settingsDialog'), $('#moreFiltersDialog'), $('#portfolioDialog'), $('#clvDialog'), $('#sniperDialog')].forEach(setupBottomSheet);
+    [$('#detailDialog'), $('#settingsDialog'), $('#moreFiltersDialog'), $('#portfolioDialog'), $('#clvDialog'), $('#sniperDialog'), $('#pricingDialog')].forEach(setupBottomSheet);
 
     initMobileSwipeGestures();
   }

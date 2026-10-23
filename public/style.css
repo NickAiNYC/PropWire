@@ -5383,18 +5383,24 @@ article[data-focused="true"] {
   .card-grid {
     display: flex !important;
     flex-direction: column !important;
+    align-items: stretch !important;
     gap: 8px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
     border: none !important;
     background: transparent !important;
     box-shadow: none !important;
     overflow: visible !important;
-    padding: 2px 2px 20px 2px !important;
+    padding: 2px 0 20px 0 !important;
   }
   /* ─── REDESIGNED CARD (BLOOMBERG TERMINAL PRECISION) ─── */
   .mobile-quant-row {
     display: flex !important;
     flex-direction: column !important;
     gap: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
     padding: 12px 14px !important;
     background: #0d111c !important;
     border: 1px solid rgba(255, 255, 255, 0.08) !important;
@@ -5531,7 +5537,7 @@ article[data-focused="true"] {
   /* Card Row 2: 4-Column Clean Tabular Grid */
   .card-grid-row {
     display: grid !important;
-    grid-template-columns: 1fr 1fr 1fr auto !important;
+    grid-template-columns: 1fr 1fr 1.15fr 32px !important;
     align-items: center !important;
     gap: 8px !important;
     width: 100% !important;
@@ -5545,7 +5551,6 @@ article[data-focused="true"] {
   .card-grid-col.col-action {
     flex-direction: row !important;
     align-items: center !important;
-    gap: 6px !important;
     justify-content: flex-end !important;
   }
   .grid-col-lbl {
@@ -5576,33 +5581,19 @@ article[data-focused="true"] {
     height: 24px !important;
   }
   .card-btn-view {
-    background: rgba(255, 255, 255, 0.05) !important;
-    border: 1px solid rgba(255, 255, 255, 0.12) !important;
-    border-radius: 6px !important;
-    color: #e2e8f0 !important;
-    font-size: 11px !important;
-    font-weight: 600 !important;
-    padding: 5px 9px !important;
-    cursor: pointer !important;
-    transition: all 0.12s ease !important;
-    white-space: nowrap !important;
-    height: 28px !important;
-    display: inline-flex !important;
-    align-items: center !important;
-  }
-  .card-btn-view:hover {
-    background: rgba(255, 255, 255, 0.1) !important;
-    border-color: rgba(255, 255, 255, 0.25) !important;
+    display: none !important;
   }
   .card-btn-log {
     background: rgba(182, 243, 107, 0.08) !important;
     border: 1px solid rgba(182, 243, 107, 0.3) !important;
     border-radius: 6px !important;
     color: #B6F36B !important;
-    font-size: 14px !important;
+    font-size: 16px !important;
     font-weight: 800 !important;
-    width: 28px !important;
-    height: 28px !important;
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+    min-height: 32px !important;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
@@ -5613,6 +5604,7 @@ article[data-focused="true"] {
   .card-btn-log:hover {
     background: #B6F36B !important;
     color: #0b0f19 !important;
+    border-color: #B6F36B !important;
   }
   .card-btn-log.logged {
     background: #B6F36B !important;
@@ -5759,12 +5751,16 @@ article[data-focused="true"] {
     box-shadow: none !important;
   }
 
-  /* Settings Sheet Styling (44px Steppers) */
+  /* Settings & Modal Sheet Styling (44px Steppers) */
   .settings-dialog,
   .more-filters-dialog,
   .portfolio-dialog,
   .sniper-dialog,
-  #clvReportDialog {
+  .clv-dialog,
+  #clvDialog,
+  #clvReportDialog,
+  .pricing-dialog,
+  #pricingDialog {
     width: 100% !important;
     max-width: 100% !important;
     max-height: 90vh !important;
@@ -6049,6 +6045,38 @@ article[data-focused="true"] {
     border-left: 3px solid #B6F36B !important;
     background: linear-gradient(90deg, rgba(182, 243, 107, 0.2) 0%, rgba(13, 19, 32, 0.95) 100%) !important;
     box-shadow: 0 0 0 1px rgba(125, 211, 252, 0.4), 0 0 20px rgba(182, 243, 107, 0.3) !important;
+  }
+
+  /* Mobile Availability & Injury Drawer Reflow */
+  .pw-injury-drawer {
+    border-radius: 8px !important;
+    margin-bottom: 10px !important;
+  }
+  .pw-injury-header {
+    padding: 7px 10px !important;
+    gap: 6px !important;
+  }
+  .pw-injury-title {
+    font-size: 11px !important;
+    max-width: 130px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+  .pw-injury-summary-preview,
+  .pw-injury-receipt-pill {
+    display: none !important;
+  }
+  .pw-injury-close-btn {
+    padding: 3px 7px !important;
+    font-size: 10px !important;
+    white-space: nowrap !important;
+  }
+  .pw-injury-grid {
+    grid-template-columns: 1fr !important;
+    padding: 8px !important;
+    gap: 8px !important;
+    max-height: 250px !important;
   }
 }
 
