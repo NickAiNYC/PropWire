@@ -5081,7 +5081,8 @@ article[data-focused="true"] {
 .pw-mobile-status,
 .pw-mobile-menu-btn,
 .pw-slim-injury-banner,
-.pw-filterbar {
+.pw-filterbar,
+.pw-mobile-only {
   display: none;
 }
 
@@ -5090,139 +5091,102 @@ article[data-focused="true"] {
   .pw-desktop-only {
     display: none !important;
   }
+  .pw-mobile-only {
+    display: inline-flex !important;
+  }
   .pw-topbar {
     display: flex !important;
     flex-direction: row !important;
     flex-wrap: nowrap !important;
     align-items: center !important;
     justify-content: space-between !important;
-    height: 42px !important;
-    padding: 0 10px !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    padding: 0 8px !important;
     width: 100% !important;
+    max-width: 100vw !important;
     box-sizing: border-box !important;
+    background: #252a34 !important;
     border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
-    gap: 6px !important;
+    gap: 4px !important;
   }
   .pw-topbar-left {
     display: flex !important;
     align-items: center !important;
+    gap: 5px !important;
     flex-shrink: 0 !important;
+  }
+  .pw-brand {
+    display: flex !important;
+    align-items: center !important;
+    text-decoration: none !important;
+  }
+  .pw-brand-img {
+    height: 20px !important;
+    width: auto !important;
+  }
+  .pw-live-status-dot {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 14px !important;
+    height: 14px !important;
+    padding: 0 !important;
+    border-radius: 50% !important;
+    background: transparent !important;
+    border: none !important;
+    cursor: pointer !important;
+  }
+  .pw-live-status-dot .polling-dot {
+    width: 7px !important;
+    height: 7px !important;
+    background: #10b981 !important;
+    border-radius: 50% !important;
+    box-shadow: 0 0 6px rgba(16, 185, 129, 0.9) !important;
+    margin: 0 !important;
+  }
+  .pw-live-status-dot .pw-live-label {
+    display: none !important;
   }
   .pw-topbar-right {
     display: flex !important;
     align-items: center !important;
     justify-content: flex-end !important;
+    gap: 4px !important;
     flex-shrink: 0 !important;
   }
-  #pricingBtn {
+  .pw-select-slate {
     display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    height: 28px !important;
-    padding: 0 8px !important;
-    font-size: 11px !important;
-    font-weight: 700 !important;
+    height: 26px !important;
+    padding: 0 5px !important;
+    font: 700 10.5px/1 var(--mono) !important;
     border-radius: 4px !important;
-    border: 1px solid rgba(182, 243, 107, 0.4) !important;
-    background: rgba(182, 243, 107, 0.08) !important;
-    color: #B6F36B !important;
-    margin-right: 6px !important;
-  }
-  .site-header {
-    padding: 4px 10px !important;
-  }
-  .header-main {
-    min-height: 40px !important;
-    gap: 6px !important;
-  }
-  .brand {
-    gap: 6px !important;
-  }
-  .brand-word {
-    font-size: 14px !important;
-  }
-  .brand-mark {
-    width: 24px !important;
-    height: 24px !important;
-  }
-  .topbar-nav {
-    display: flex !important;
-    align-items: center !important;
-    gap: 6px !important;
-  }
-  .pw-mobile-status {
-    display: inline-flex !important;
-    align-items: center !important;
-    gap: 5px !important;
-    padding: 3px 9px !important;
-    background: rgba(255, 255, 255, 0.05) !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-    border-radius: 999px !important;
-    color: #e2e8f0 !important;
-    font: 600 11px/1 var(--mono) !important;
+    border: 1px solid rgba(255, 255, 255, 0.16) !important;
+    background: #1c2029 !important;
+    color: #f1f5f9 !important;
     cursor: pointer !important;
-    min-height: 28px !important;
-    touch-action: manipulation !important;
-    -webkit-tap-highlight-color: transparent !important;
-  }
-  .pw-mobile-status:active {
-    background: rgba(255, 255, 255, 0.1) !important;
-  }
-  .pw-mobile-status .pulse-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 999px;
-    background: #10b981;
-    box-shadow: 0 0 6px #10b981;
-  }
-  .pw-mobile-menu-btn {
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    width: 36px !important;
-    height: 36px !important;
-    min-width: 36px !important;
-    min-height: 36px !important;
-    border-radius: 6px !important;
-    background: rgba(255, 255, 255, 0.05) !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-    color: #e2e8f0 !important;
-    cursor: pointer !important;
-    touch-action: manipulation !important;
-    -webkit-tap-highlight-color: transparent !important;
-  }
-  .pw-mobile-menu-btn:active {
-    background: rgba(255, 255, 255, 0.12) !important;
-  }
-  .pw-mobile-menu-btn .prop-icon {
-    width: 18px;
-    height: 18px;
-  }
-
-  /* Header Mobile Status & Subtle Injury Alert Pill */
-  .pw-mobile-header-pills {
-    display: flex !important;
-    align-items: center !important;
-    gap: 5px !important;
+    min-height: 26px !important;
   }
   .pw-injury-header-pill {
     display: inline-flex !important;
     align-items: center !important;
-    gap: 4px !important;
+    gap: 3.5px !important;
     height: 26px !important;
-    padding: 0 8px !important;
-    background: rgba(245, 158, 11, 0.1) !important;
-    border: 1px solid rgba(245, 158, 11, 0.28) !important;
-    border-radius: 999px !important;
-    color: #f59e0b !important;
-    font-size: 10.5px !important;
-    font-weight: 600 !important;
+    min-height: 26px !important;
+    max-height: 26px !important;
+    padding: 0 6px !important;
+    background: rgba(245, 158, 11, 0.12) !important;
+    border: 1px solid rgba(245, 158, 11, 0.35) !important;
+    border-radius: 4px !important;
+    color: #fbbf24 !important;
+    font: 700 10px/1 var(--mono) !important;
     cursor: pointer !important;
     touch-action: manipulation !important;
     transition: all 0.12s ease !important;
+    white-space: nowrap !important;
   }
   .pw-injury-header-pill:active {
-    background: rgba(245, 158, 11, 0.22) !important;
+    background: rgba(245, 158, 11, 0.25) !important;
   }
   .pw-injury-header-pill .slim-injury-dot {
     width: 5px !important;
@@ -5233,9 +5197,48 @@ article[data-focused="true"] {
     flex-shrink: 0 !important;
   }
   .pw-injury-header-pill .slim-injury-text {
-    font-size: 10.5px !important;
+    font-size: 10px !important;
     color: #fbbf24 !important;
     white-space: nowrap !important;
+  }
+  #pricingBtn {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    height: 26px !important;
+    padding: 0 6px !important;
+    font: 700 10.5px/1 var(--mono) !important;
+    border-radius: 4px !important;
+    border: 1px solid rgba(182, 243, 107, 0.45) !important;
+    background: rgba(182, 243, 107, 0.12) !important;
+    color: #B6F36B !important;
+    cursor: pointer !important;
+    min-height: 26px !important;
+    white-space: nowrap !important;
+  }
+  #pricingBtn:active {
+    background: rgba(182, 243, 107, 0.22) !important;
+  }
+  .pw-mobile-menu-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 28px !important;
+    height: 26px !important;
+    min-width: 28px !important;
+    min-height: 26px !important;
+    border-radius: 4px !important;
+    background: rgba(255, 255, 255, 0.06) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    color: #e2e8f0 !important;
+    cursor: pointer !important;
+    touch-action: manipulation !important;
+  }
+  .pw-mobile-menu-btn:active {
+    background: rgba(255, 255, 255, 0.14) !important;
+  }
+  .pw-mobile-header-pills {
+    display: none !important;
   }
   .pw-slim-injury-banner {
     display: none !important;
@@ -5250,40 +5253,55 @@ article[data-focused="true"] {
     width: 100% !important;
     max-width: 100vw !important;
     box-sizing: border-box !important;
-    padding: 3px 10px 4px 10px !important;
+    padding: 4px 10px 5px 10px !important;
+    background: #1c2029 !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
     overflow-x: hidden !important;
   }
   .pw-filterbar .pw-search-wrap,
   .pw-search-wrap.command-search-wrap {
+    position: relative !important;
     width: 100% !important;
     max-width: 100% !important;
     flex: 1 1 100% !important;
     margin: 0 !important;
     box-sizing: border-box !important;
   }
+  .pw-search-icon {
+    position: absolute !important;
+    left: 9px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    width: 13px !important;
+    height: 13px !important;
+    color: #64748b !important;
+    pointer-events: none !important;
+  }
   .pw-filterbar .pw-search-input {
     width: 100% !important;
-    height: 34px !important;
-    font-size: 12.5px !important;
-    border-radius: 6px !important;
-    padding: 0 28px 0 10px !important;
+    height: 30px !important;
+    min-height: 30px !important;
+    font-size: 11.5px !important;
+    border-radius: 5px !important;
+    padding: 0 10px 0 28px !important;
+    background: rgba(255, 255, 255, 0.04) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    color: #f1f5f9 !important;
     box-sizing: border-box !important;
   }
-  .pw-filterbar .pw-kbd {
-    top: 7px !important;
-    right: 8px !important;
+  .pw-filterbar .pw-search-input:focus {
+    border-color: rgba(182, 243, 107, 0.5) !important;
+    background: rgba(255, 255, 255, 0.08) !important;
   }
   .pw-chip-scroll-row {
     display: flex !important;
     align-items: center !important;
-    gap: 4px !important;
+    gap: 6px !important;
     overflow-x: auto !important;
     white-space: nowrap !important;
     -webkit-overflow-scrolling: touch !important;
     scrollbar-width: none !important;
-    padding: 2px 0 3px 0 !important;
-    -webkit-mask-image: linear-gradient(90deg, #000 0%, #000 calc(100% - 20px), transparent 100%) !important;
-    mask-image: linear-gradient(90deg, #000 0%, #000 calc(100% - 20px), transparent 100%) !important;
+    padding: 2px 2px 2px 2px !important;
   }
   .pw-chip-scroll-row::-webkit-scrollbar {
     display: none !important;
@@ -5292,22 +5310,22 @@ article[data-focused="true"] {
     display: inline-flex !important;
     align-items: center !important;
     background: rgba(255, 255, 255, 0.04) !important;
-    border: 1px solid rgba(255, 255, 255, 0.08) !important;
-    border-radius: 999px !important;
-    padding: 1.5px !important;
-    gap: 1.5px !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 6px !important;
+    padding: 2px !important;
+    gap: 2px !important;
     flex-shrink: 0 !important;
   }
   .chip-pill {
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
-    gap: 3px !important;
-    height: 27px !important;
+    gap: 3.5px !important;
+    height: 28px !important;
     min-width: 32px !important;
-    padding: 0 7px !important;
-    font: 600 11px/1 var(--mono) !important;
-    border-radius: 999px !important;
+    padding: 0 8px !important;
+    font: 700 11px/1 var(--mono) !important;
+    border-radius: 4px !important;
     border: none !important;
     background: transparent !important;
     color: #94a3b8 !important;
@@ -5319,29 +5337,29 @@ article[data-focused="true"] {
   }
   .chip-pill.active {
     background: rgba(182, 243, 107, 0.18) !important;
-    border: 1px solid rgba(182, 243, 107, 0.5) !important;
+    border: 1px solid rgba(182, 243, 107, 0.45) !important;
     color: #B6F36B !important;
-    font-weight: 750 !important;
-    box-shadow: 0 0 12px rgba(182, 243, 107, 0.28), 0 1px 3px rgba(0, 0, 0, 0.25) !important;
+    font-weight: 800 !important;
+    box-shadow: 0 0 10px rgba(182, 243, 107, 0.22) !important;
   }
   .chip-count-pill {
-    font-size: 9px !important;
-    padding: 1px 3.5px !important;
-    border-radius: 999px !important;
+    font-size: 9.5px !important;
+    font-weight: 700 !important;
+    padding: 1px 4px !important;
+    border-radius: 4px !important;
     background: rgba(255, 255, 255, 0.08) !important;
     color: inherit !important;
   }
   .chip-pill.active .chip-count-pill {
-    background: rgba(182, 243, 107, 0.25) !important;
+    background: rgba(182, 243, 107, 0.28) !important;
     color: #B6F36B !important;
-    font-weight: 700 !important;
   }
   .chip-divider {
     display: inline-block !important;
     width: 1px !important;
     height: 16px !important;
     background: rgba(255, 255, 255, 0.1) !important;
-    margin: 0 1px !important;
+    margin: 0 2px !important;
     flex-shrink: 0 !important;
   }
   .chip-pill-more {

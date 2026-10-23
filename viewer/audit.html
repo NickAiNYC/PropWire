@@ -38,8 +38,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/style.css?v=2026_v122">
-  <script src="/app.js?v=2026_v122" defer></script>
+  <link rel="stylesheet" href="/style.css?v=2026_v123">
+  <script src="/app.js?v=2026_v123" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#slateBoard">Skip to slate</a>
@@ -47,16 +47,16 @@
   <header class="pw-terminal-chrome">
     <!-- TIER 1: Global Terminal Header (46px) -->
     <div class="pw-topbar">
-      <!-- Left: Brand (Mobile: Logo only; Desktop: Logo + Slate Selector + Injury Pill) -->
+      <!-- Left: Brand + Live Status Dot -->
       <div class="pw-topbar-left">
         <a href="#slateBoard" class="pw-brand" aria-label="PROP WIRE home">
-          <img src="/propwire-logo-full.png?v=v3_mark" alt="PROP·WIRE" class="pw-brand-img" height="24">
+          <img src="/propwire-logo-full.png?v=v3_mark" alt="PROP·WIRE" class="pw-brand-img" height="22">
         </a>
+        <div class="pw-live-status-dot" id="mobileStatusPill" title="Live Odds Feed Active · Tap for Telemetry">
+          <span class="polling-dot pulse"></span>
+          <span class="pw-live-label pw-desktop-only" id="mobileStatusText">LIVE</span>
+        </div>
         <div class="pw-divider pw-desktop-only"></div>
-        <select id="slateSelector" class="pw-select pw-select-slate pw-desktop-only" aria-label="Select Slate">
-          <option value="2026_w7">NFL · Week 7 upcoming</option>
-          <option value="2026_w1">NFL · Week 1 audit</option>
-        </select>
         <!-- Compact Availability Trigger (Desktop Only) -->
         <button type="button" id="availabilityToggle" class="pw-alert-pill pw-desktop-only" title="Click to view availability &amp; vacated volume" aria-expanded="false" aria-controls="injuryDetails">
           <span class="pw-alert-dot"></span>
@@ -66,21 +66,21 @@
         </button>
       </div>
 
-      <!-- Mobile-Only Center Status & Injury Pills -->
-      <div class="pw-mobile-header-pills">
-        <div class="pw-mobile-status" id="mobileStatusPill" title="Live Odds Ingestion Engine Active · Click for settings">
-          <span class="polling-dot pulse"></span>
-          <span id="mobileStatusText">Live · 14s</span>
-        </div>
+      <!-- Right: Mobile Options & Desktop Actions -->
+      <div class="pw-topbar-right">
+        <!-- Slate Selector (Mobile & Desktop) -->
+        <select id="slateSelector" class="pw-select pw-select-slate" aria-label="Select Slate">
+          <option value="2026_w7">W7 Live</option>
+          <option value="2026_w1">W1 Audit</option>
+        </select>
+
+        <!-- Compact Injury Alert Pill (Mobile & Desktop) -->
         <button type="button" class="pw-injury-header-pill" id="slimInjuryBanner" title="Click to view availability &amp; vacated volume">
           <span class="slim-injury-dot"></span>
           <span class="slim-injury-text" id="slimInjuryText">7 Alerts</span>
         </button>
         <button type="button" class="slim-injury-dismiss" id="dismissInjuryBannerBtn" aria-label="Dismiss alert banner" aria-hidden="true" hidden></button>
-      </div>
 
-      <!-- Right: Desktop Steppers & Poller / Mobile Menu Icon -->
-      <div class="pw-topbar-right">
         <!-- Interactive Risk Policy Controls (Desktop only) -->
         <div class="pw-risk-group pw-desktop-only" id="headerRiskSteppers">
           <div class="pw-stepper" title="Gate: Minimum statistical edge required before recommendation">
@@ -122,9 +122,10 @@
           <span class="sniper-active-badge" id="sniperActiveBadge" hidden>LIVE</span>
         </button>
 
-        <!-- Commercial Pricing / Membership Tiers (Desktop) -->
-        <button type="button" id="pricingBtn" class="pw-btn-nav pw-btn-upgrade pw-desktop-only" title="Commercial Membership Tiers & Access">
-          <span style="color:#B6F36B; font-weight:700; letter-spacing:0.5px;">PRO · $29</span>
+        <!-- Commercial Pricing / Membership Tiers (Mobile & Desktop) -->
+        <button type="button" id="pricingBtn" class="pw-btn-nav pw-btn-upgrade" title="Commercial Membership Tiers & Access">
+          <span class="pro-text-desktop pw-desktop-only" style="color:#B6F36B; font-weight:700; letter-spacing:0.5px;">PRO · $29</span>
+          <span class="pro-text-mobile pw-mobile-only" style="color:#B6F36B; font-weight:700; letter-spacing:0.5px;">PRO</span>
         </button>
 
         <!-- Desktop Action Buttons -->
@@ -135,9 +136,9 @@
         </button>
         <button type="button" id="exportBtn" class="pw-btn-icon pw-desktop-only" aria-label="Export CSV" title="Export CSV">↓</button>
 
-        <!-- Mobile Menu / Hamburger Button (44px Touch Target) -->
-        <button type="button" id="mobileMenuBtn" class="pw-mobile-menu-btn" aria-label="Open Settings &amp; Risk Policy" title="Settings &amp; Risk Policy">
-          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="menu-icon" width="20" height="20">
+        <!-- Mobile Menu / Hamburger Button -->
+        <button type="button" id="mobileMenuBtn" class="pw-mobile-menu-btn pw-mobile-only" aria-label="Open Settings &amp; Risk Policy" title="Settings &amp; Risk Policy">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="menu-icon" width="16" height="16">
             <line x1="3" y1="5" x2="17" y2="5"/>
             <line x1="3" y1="10" x2="17" y2="10"/>
             <line x1="3" y1="15" x2="17" y2="15"/>
@@ -150,11 +151,15 @@
     <div class="pw-filterbar">
       <!-- Search Input (100% width on mobile) -->
       <div class="pw-search-wrap command-search-wrap">
-        <input type="search" id="searchInput" class="pw-search-input" placeholder="Search player or team... (/)" autocomplete="off">
-        <kbd class="pw-kbd">/</kbd>
+        <svg class="pw-search-icon" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="7" cy="7" r="4.5"/>
+          <path d="M10.5 10.5L14 14"/>
+        </svg>
+        <input type="search" id="searchInput" class="pw-search-input" placeholder="Search player or team..." autocomplete="off">
+        <kbd class="pw-kbd pw-desktop-only">/</kbd>
       </div>
 
-      <!-- Single Horizontal Scrolling Chip Row (Yards, Rec, TD, WR/TE/RB, More) -->
+      <!-- Single Horizontal Scrolling Chip Row (Mode, Market, Pos, More) -->
       <div class="pw-chip-scroll-row" id="mobileFilterStrip" role="toolbar" aria-label="Filter chips">
         <!-- Active vs All Mode Switcher -->
         <div class="chip-segment-group" role="radiogroup" aria-label="Dataset Mode">
@@ -163,7 +168,7 @@
             <span class="chip-count-pill" id="actionableCount">33</span>
           </button>
           <button type="button" class="chip-pill" data-mode="top" id="modeTopBtn" role="radio" aria-checked="false" title="Show Top Model Volume Plays">
-            <span>TOP PLAYS</span>
+            <span>TOP</span>
             <span class="chip-count-pill" id="topCount">25</span>
           </button>
           <button type="button" class="chip-pill" data-mode="all" id="modeAllBtn" role="radio" aria-checked="false" title="Show all modeled player projections">
@@ -185,7 +190,7 @@
 
         <!-- Position Chips -->
         <div class="chip-segment-group" role="radiogroup" aria-label="Position">
-          <button type="button" class="chip-pill active" data-pos="ALL" role="radio" aria-checked="true">All Pos</button>
+          <button type="button" class="chip-pill active" data-pos="ALL" role="radio" aria-checked="true">All</button>
           <button type="button" class="chip-pill" data-pos="WR" role="radio" aria-checked="false">WR</button>
           <button type="button" class="chip-pill" data-pos="TE" role="radio" aria-checked="false">TE</button>
           <button type="button" class="chip-pill" data-pos="RB" role="radio" aria-checked="false">RB</button>
@@ -201,7 +206,7 @@
 
         <!-- More Filters Bottom Sheet Trigger (Signal & Matchups) -->
         <button type="button" class="chip-pill chip-more-btn" id="moreFiltersBtn" aria-label="More Filters">
-          <span id="moreFiltersLabel">SIGNAL</span>
+          <span id="moreFiltersLabel">FILTERS</span>
           <span class="chip-chevron">▾</span>
         </button>
       </div>
