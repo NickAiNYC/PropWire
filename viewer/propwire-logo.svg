@@ -1,16 +1,14 @@
 <svg width="560" height="140" viewBox="0 0 560 140" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- PROP·WIRE Official Brand Lockup -->
+  <!-- PropWire Official Brand Lockup -->
   <!-- Left: Trend-Arrow P Icon -->
   <g transform="translate(16, 12) scale(0.58)">
     <path d="M 146.1 12.0 L 179.3 12.0 L 182.8 14.0 L 184.4 17.0 L 184.4 52.2 L 183.6 54.0 L 181.1 56.3 L 178.1 57.0 L 175.1 56.3 L 172.8 54.2 L 171.5 50.2 L 171.5 35.6 L 171.0 35.4 L 115.7 92.0 L 108.9 97.2 L 101.9 100.8 L 93.3 103.0 L 89.3 103.5 L 58.1 103.8 L 58.1 181.7 L 56.9 185.2 L 54.6 187.2 L 52.4 188.0 L 21.4 188.0 L 17.7 186.2 L 16.4 184.7 L 15.6 182.5 L 15.6 24.6 L 16.7 22.3 L 18.4 20.5 L 20.7 19.5 L 96.6 19.5 L 100.6 20.0 L 107.7 21.6 L 112.2 23.1 L 120.5 26.8 L 125.0 29.6 L 131.3 34.4 L 134.3 37.4 L 135.6 39.9 L 135.6 42.7 L 134.1 45.7 L 131.6 47.5 L 128.0 47.7 L 124.8 46.2 L 121.0 42.7 L 113.5 37.6 L 107.9 35.1 L 99.4 32.9 L 95.9 32.4 L 28.5 32.6 L 28.5 174.7 L 44.8 174.9 L 45.3 174.2 L 45.3 95.5 L 46.1 93.7 L 47.3 92.2 L 50.1 90.7 L 87.8 90.7 L 91.8 90.2 L 98.4 88.2 L 105.4 83.9 L 162.5 25.8 L 162.5 24.8 L 146.6 24.8 L 143.4 23.3 L 142.1 21.8 L 141.4 19.8 L 141.4 16.8 L 142.6 14.3 L 144.4 12.8 L 145.9 12.3 Z" fill="#B6F36B"/>
     <path d="M 146.1 66.6 L 149.2 66.6 L 151.4 67.6 L 152.9 69.1 L 153.9 71.3 L 154.2 87.7 L 153.4 93.7 L 150.7 103.8 L 147.9 110.1 L 143.9 116.8 L 138.1 124.1 L 131.8 129.9 L 123.0 135.7 L 115.2 139.2 L 104.4 142.0 L 100.1 142.5 L 71.2 142.5 L 69.5 141.7 L 67.2 139.5 L 66.4 137.7 L 66.4 134.4 L 68.4 131.2 L 71.7 129.7 L 97.9 129.7 L 106.4 128.4 L 111.2 126.9 L 117.7 123.9 L 125.5 118.4 L 132.8 110.3 L 138.3 100.0 L 139.9 95.5 L 141.4 86.7 L 141.4 71.6 L 142.4 69.3 L 144.1 67.6 L 145.9 66.8 Z" fill="#B6F36B"/>
   </g>
 
-  <!-- Wordmark -->
+  <!-- Wordmark: two-tone PropWire lockup -->
   <g transform="translate(142, 78)">
-    <text font-family="'Montserrat', -apple-system, sans-serif" font-size="44" font-weight="700" letter-spacing="2" fill="#F3F4F6">PROP</text>
-    <circle cx="147" cy="-14" r="5.5" fill="#B6F36B"/>
-    <text x="165" font-family="'Montserrat', -apple-system, sans-serif" font-size="44" font-weight="700" letter-spacing="2" fill="#B6F36B">WIRE</text>
+    <text font-family="'Montserrat', -apple-system, sans-serif" font-size="44" font-weight="700" letter-spacing="2" fill="#F3F4F6">Prop<tspan fill="#B6F36B">Wire</tspan></text>
   </g>
 
   <!-- Subtitle -->

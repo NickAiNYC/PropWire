@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-PROP·WIRE Real-Time News Watcher & Safety Latch
+PropWire Real-Time News Watcher & Safety Latch
 High-frequency aggregator ingestion (Sleeper API / Beat monitoring) with
 deterministic entity resolution, atomic team locks, dead-man's switch heartbeat,
 flapping detection, and review-triggered redistribution staging.
@@ -153,7 +153,7 @@ def dispatch_webhook_alert(webhook_url: str, title: str, message: str) -> bool:
     if not webhook_url:
         return False
     payload = {
-        "username": "PROP·WIRE News Watcher",
+        "username": "PropWire News Watcher",
         "embeds": [{
             "title": title,
             "description": message,
@@ -292,7 +292,7 @@ def poll_sleeper_feed(state: Dict[str, Any], webhook_url: str = "") -> Dict[str,
 
 
 def main():
-    parser = argparse.ArgumentParser(description="PROP·WIRE High-Frequency News Watcher & Safety Latch")
+    parser = argparse.ArgumentParser(description="PropWire High-Frequency News Watcher & Safety Latch")
     parser.add_argument("--poll-interval", type=int, default=30, help="Polling interval in seconds (default 30)")
     parser.add_argument("--once", action="store_true", help="Run single poll and exit")
     parser.add_argument("--simulate-event", nargs=3, metavar=("PLAYER_ID", "STATUS", "TEAM"), help="Simulate a news downgrade event")
@@ -314,7 +314,7 @@ def main():
 
     if args.status:
         is_stale, age = check_deadman_switch(state)
-        print("=== PROP·WIRE News Watcher State ===")
+        print("=== PropWire News Watcher State ===")
         print(f"Status: {'⚠️ STALE (>300s)' if is_stale else '● ACTIVE'}")
         print(f"Last Check: {state.get('last_polled_at')} ({age:.1f}s ago)")
         print(f"Poll Count: {state.get('poll_count')}")
@@ -327,7 +327,7 @@ def main():
         poll_sleeper_feed(state, webhook_url=args.webhook)
         return 0
 
-    print(f"[START] PROP·WIRE News Watcher running. Interval: {args.poll_interval}s.")
+    print(f"[START] PropWire News Watcher running. Interval: {args.poll_interval}s.")
     try:
         while True:
             poll_sleeper_feed(state, webhook_url=args.webhook)

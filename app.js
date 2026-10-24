@@ -3687,7 +3687,7 @@ function getTweetTextForPlayer(row) {
     `📐 Model Fair: ${Number(row.fairLine).toFixed(1)} ${unit}\n` +
     `📉 ${bookName} Quote: ${row.bookLine} (${oddsStr})\n` +
     `💰 Edge: ${evStr} EV (${row.status === 'QUALIFIED' ? 'Qualified Play' : 'Lean'})\n\n` +
-    `Track live redistribution matrices on PROP·WIRE:`;
+    `Track live redistribution matrices on PropWire:`;
 }
 
 function openXCardModal(playerId) {
@@ -3804,7 +3804,7 @@ function generateXCard(row) {
   ctx.fillStyle = '#ffffff';
   ctx.font = 'bold 24px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
   ctx.textAlign = 'left';
-  ctx.fillText('PROP·WIRE', 100, 71);
+  ctx.fillText('PropWire', 100, 71);
 
   // Subtitle
   ctx.fillStyle = '#B6F36B';
@@ -4153,9 +4153,9 @@ function initPwaServiceWorker() {
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('sw.js').then((reg) => {
-        console.log('PROP·WIRE Service Worker registered:', reg.scope);
+        console.log('PropWire Service Worker registered:', reg.scope);
       }).catch((err) => {
-        console.warn('PROP·WIRE Service Worker notice:', err);
+        console.warn('PropWire Service Worker notice:', err);
       });
     });
   }
@@ -4176,7 +4176,7 @@ function initPwaInstallPrompt() {
   window.addEventListener('appinstalled', () => {
     deferredPwaPrompt = null;
     dismissPwaBanner();
-    showToast('✓ PROP·WIRE Terminal successfully installed!');
+    showToast('✓ PropWire Terminal successfully installed!');
   });
 }
 
@@ -4185,7 +4185,7 @@ function triggerPwaInstall() {
     deferredPwaPrompt.prompt();
     deferredPwaPrompt.userChoice.then((choiceResult) => {
       if (choiceResult && choiceResult.outcome === 'accepted') {
-        showToast('✓ PROP·WIRE added to Home Screen!');
+        showToast('✓ PropWire added to Home Screen!');
       }
       deferredPwaPrompt = null;
       dismissPwaBanner();

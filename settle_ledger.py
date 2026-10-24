@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-settle_ledger.py — Institutional CLV & Box-Score Settlement Engine for PROP·WIRE
+settle_ledger.py — Institutional CLV & Box-Score Settlement Engine for PropWire
 Computes:
 1. Closing Line Value (Yardage Delta & De-Vigged Implied Probability Delta)
 2. Realized Binary Outcome (WIN / LOSS / PUSH) & Net Unit / Dollar ROI

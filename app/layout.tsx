@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 import { TerminalHeader } from "@/src/components/TerminalHeader";
 
 export const metadata: Metadata = {
-  title: "PROP·WIRE Terminal | Institutional Sports Prop Analytics",
+  title: "PropWire Terminal | Institutional Sports Prop Analytics",
   description:
     "Cryptographically verified, fail-closed quantitative NFL player props research terminal and CLV ledger.",
 };

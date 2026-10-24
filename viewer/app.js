@@ -12,8 +12,12 @@
   const adapter = window.PropWireSports.require(SPORT_ID);
 
   const SLATES = adapter.slates;
-  const MODEL_ALPHA = adapter.model.alpha;
-  const MODEL_K = adapter.model.k;
+  // NFL carries calibrated NegBin/Gamma constants; adapters without a
+  // distribution model (NBA v1 normal approx) leave these null — the only
+  // consumers (targetLine/pRecOver/pYardsOver) guard on NFL-only row fields
+  // and never execute for other sports.
+  const MODEL_ALPHA = adapter.model ? adapter.model.alpha : null;
+  const MODEL_K = adapter.model ? adapter.model.k : null;
 
   // ── Sport-namespaced storage + one-time legacy migration ──────────────────
   // Policy: read legacy keys → write sport-namespaced copies → keep legacy
@@ -188,6 +192,11 @@
   } catch (_) {}
 
   const $ = (selector) => document.querySelector(selector);
+  // Parity-proof DOM access for switcher/chrome elements (audit B2, fixed):
+  // the snapshot sandbox now implements getElementById against the shipped
+  // HTML's ids and records every call — chrome writes are CAPTURED in the
+  // goldens and pinned by the dom_access_log snapshot + allowlist assertion.
+  const elById = (id) => (typeof document.getElementById === 'function' ? document.getElementById(id) : null);
   const $$ = (selector) => [...document.querySelectorAll(selector)];
   const finite = (value) => Number.isFinite(Number(value));
   const num = (value, fallback = 0) => finite(value) ? Number(value) : fallback;
@@ -609,12 +618,13 @@
   async function init() {
     document.documentElement.dataset.theme = 'dark';
     document.documentElement.classList.add('dark');
+    renderSportChrome();
     bindControls();
     initInstall();
     initPollingTimer();
     initPullToRefresh();
     showMigrationNoticeOnce();
-    await loadSlate(state.slateKey);
+    await loadSlate(defaultBootSlate());
     checkDeepLinks();
     if ('serviceWorker' in navigator && location.protocol !== 'file:') {
       navigator.serviceWorker.register('sw.js').catch(() => {});
@@ -1443,6 +1453,86 @@
   function initTheme() {}
   function toggleTheme() {}
 
+  // ─── Sport switcher + per-sport filter chrome (Phase 2) ─────────────
+  // DOM population goes through document.getElementById (NOT the $ helper).
+  // Since the audit B2 remediation the parity sandbox RESOLVES these ids and
+  // the chrome content is captured in the NFL goldens as an earned,
+  // documented whitelist delta (see test/nfl-parity.snapshot.mjs).
+  const SPORT_SWITCHER_KEY = 'propwire_active_sport';
+
+  function sportSwitcherItems() {
+    return window.PropWireSports.ids().map((id) => {
+      let label = String(id).toUpperCase();
+      try { label = window.PropWireSports.require(id).label || label; } catch (_) {}
+      return { id, label, active: id === SPORT_ID };
+    });
+  }
+
+  function switchToSport(id) {
+    if (!id || id === SPORT_ID) return;
+    try { window.PropWireSports.require(id); } catch (_) { return; }
+    try {
+      localStorage.setItem(SPORT_SWITCHER_KEY, id);
+    } catch (_) {
+      return; // storage unavailable: keep the current sport (no reload loop)
+    }
+    window.location.reload();
+  }
+
+  function renderSportChrome() {
+    const switcher = elById('sportSwitcher');
+    if (switcher) {
+      switcher.innerHTML = sportSwitcherItems().map((item) => `
+        <button type="button" class="sport-switch-btn${item.active ? ' active' : ''}" role="radio"
+          aria-checked="${item.active}" data-sport="${esc(item.id)}" title="Switch to ${esc(item.label)}">${esc(item.label)}</button>`).join('');
+      switcher.addEventListener('click', (e) => {
+        const btn = e.target && e.target.closest ? e.target.closest('[data-sport]') : null;
+        if (btn) switchToSport(btn.dataset.sport);
+      });
+    }
+    const marketGroup = elById('marketChipGroup');
+    if (marketGroup) {
+      marketGroup.innerHTML = adapter.marketOrder.map((id) => {
+        const m = adapter.markets[id];
+        const active = id === adapter.defaultMarket;
+        return `<button type="button" class="chip-pill${active ? ' active' : ''}" data-market="${esc(id)}" role="radio" aria-checked="${active}">${esc(m.chipLabel)}</button>`;
+      }).join('');
+    }
+    const posGroup = elById('positionChipGroup');
+    if (posGroup) {
+      posGroup.innerHTML = '<button type="button" class="chip-pill active" data-pos="ALL" role="radio" aria-checked="true">All</button>' +
+        adapter.positions.map((p) => `<button type="button" class="chip-pill" data-pos="${esc(p)}" role="radio" aria-checked="false">${esc(p)}</button>`).join('');
+    }
+    const signalGroup = elById('signalSheetChips');
+    if (signalGroup && adapter.intents) {
+      const intents = [
+        { id: 'all', label: 'All Signals' },
+        { id: 'edge', label: 'Highest Edge (>10%)' },
+        ...adapter.intents.map((i) => ({ id: i.id, label: `${i.label} Plays` })),
+      ];
+      signalGroup.innerHTML = intents.map((i, idx) => `<button type="button" class="signal-chip-btn${idx === 0 ? ' active' : ''}" data-intent="${esc(i.id)}">${esc(i.label)}</button>`).join('');
+    }
+    const slateOptions = (config) => Object.entries(config).map(([key, slate]) =>
+      `<option value="${esc(key)}">${esc(slate.state || key)}</option>`).join('');
+    const slateSelector = elById('slateSelector');
+    if (slateSelector) slateSelector.innerHTML = slateOptions(adapter.slates);
+    const mobileSlateSelector = elById('mobileSlateSelector');
+    if (mobileSlateSelector) mobileSlateSelector.innerHTML = slateOptions(adapter.slates);
+    const topBtn = elById('modeTopBtn');
+    if (topBtn) {
+      topBtn.title = adapter.topPlays && adapter.topPlays.source === 'ev_ranked'
+        ? 'Rank plays by expected value per unit staked'
+        : 'Show Top Model Volume Plays';
+    }
+    if (adapter.pageTitle) document.title = adapter.pageTitle;
+  }
+
+  /** Boot slate: keep the stored key when the adapter knows it, else the adapter default. */
+  function defaultBootSlate() {
+    if (adapter.slates[state.slateKey]) return state.slateKey;
+    return typeof adapter.defaultSlateKey === 'function' ? adapter.defaultSlateKey() : state.slateKey;
+  }
+
   function initInstall() {
     const installBtn = $('#installButton');
     if (!installBtn) return;
@@ -1467,6 +1557,17 @@
       return await response.json();
     } catch (_) {
       return fallback;
+    }
+  }
+
+  /** fetchJson + transport status — powers the Phase 2 failure-mode UI. */
+  async function fetchJsonStatus(path, fallback) {
+    try {
+      const response = await fetch(`${path}?v=${Date.now()}`, { cache: 'no-store' });
+      if (!response.ok) return { data: fallback, ok: false, status: response.status };
+      return { data: await response.json(), ok: true, status: response.status };
+    } catch (_) {
+      return { data: fallback, ok: false, status: 0 };
     }
   }
 
@@ -1523,17 +1624,21 @@
     if ($('#slateSelector')) $('#slateSelector').value = slateKey;
     renderSkeletons();
 
-    const [slate, games, picks, injuries, odds, clvReport, snapshots, newsState, breakerCfg] = await Promise.all([
-      fetchJson(config.slate, []),
-      fetchJson(config.games, []),
+    const [slateRes, gamesRes, picks, injuries, oddsRes, clvReport, snapshots, newsRes, breakerCfg] = await Promise.all([
+      fetchJsonStatus(config.slate, []),
+      fetchJsonStatus(config.games, []),
       fetchJson(config.picks, {}),
       config.injuries ? fetchJson(config.injuries, { injuries: [], impacted_beneficiaries: {} }) : Promise.resolve({ injuries: [], impacted_beneficiaries: {} }),
-      config.odds ? fetchJson(config.odds, { quotes: [] }) : Promise.resolve({ quotes: [] }),
+      config.odds ? fetchJsonStatus(config.odds, { quotes: [] }) : Promise.resolve({ data: { quotes: [] }, ok: true, status: 0 }),
       fetchClvAuditReport(),
       config.snapshots ? fetchJson(config.snapshots, []) : Promise.resolve([]),
-      fetchJson('news_watcher_state.json', null),
+      fetchJsonStatus('news_watcher_state.json', null),
       fetchJson('circuit_breaker_config.json', null)
     ]);
+    const slate = slateRes.data;
+    const games = gamesRes.data;
+    const odds = oddsRes.data;
+    const newsState = newsRes.data;
 
     state.slate = Array.isArray(slate) ? slate : [];
     state.games = Array.isArray(games) ? games : [];
@@ -1542,6 +1647,19 @@
     state.odds = normalizeFeed(odds);
     state.newsWatcherState = newsState && typeof newsState === 'object' ? newsState : { teams_locked: {}, players_pending: {} };
     state.breakerConfig = breakerCfg && typeof breakerCfg === 'object' && breakerCfg.sports ? breakerCfg : null;
+
+    // Feed health (Phase 2 failure-mode UI): transport status per critical
+    // feed + data kind. Consumed by updateFeedHealthUI(); staleness is
+    // derived at render time against the per-sport config thresholds.
+    state.feedHealth = {
+      slate: slateRes.ok ? 'ok' : 'error',
+      games: gamesRes.ok ? 'ok' : 'error',
+      odds: oddsRes.ok ? 'ok' : 'error',
+      news: newsRes.ok ? 'ok' : 'error',
+      dataKind: (state.odds.feed_status === 'fixture') || adapter.fixturesOnly === true ? 'fixture' : 'live',
+      oddsUpdatedAt: state.odds.updated_at || null,
+      newsLastPolledAt: state.newsWatcherState.last_polled_at || null
+    };
 
     // Build open snapshots map & price trajectory history
     state.openSnapshots = {};
@@ -1571,6 +1689,7 @@
     });
 
     renderAll(clvReport);
+    updateFeedHealthUI();
     updateSniperUIBadges();
     checkSniperAlerts();
     window.__PROP_WIRE_READY__ = true;
@@ -1578,6 +1697,113 @@
     window.__PROP_WIRE_TRIGGER_POLL__ = triggerOddsPoll;
     window.__PROP_WIRE_EXPORT__ = handleLedgerExport;
     window.__PROP_WIRE_IMPORT__ = handleLedgerImportFile;
+  }
+
+  // ─── Feed health: failure-mode UI (Phase 2) ─────────────────────────────
+  // A feed outage must NEVER masquerade as "the market is efficient": every
+  // transport failure, staleness breach, and fixture dataset is surfaced in
+  // a dedicated banner. Banner content is captured in the NFL parity goldens
+  // (and its DOM access is pinned by the dom_access_log snapshot) since the
+  // audit B2 remediation enabled getElementById in the sandbox.
+  function feedThresholds() {
+    const cfg = state.breakerConfig;
+    const sportCfg = cfg && cfg.sports ? cfg.sports[SPORT_ID] : null;
+    const th = (sportCfg && sportCfg.thresholds) || {};
+    const numOr = (value, fallback) => (Number.isFinite(Number(value)) ? Number(value) : fallback);
+    return {
+      oddsStaleSeconds: numOr(th.odds_stale_max_age_seconds, 21600),
+      newsStaleSeconds: numOr(th.deadman_switch_max_age_seconds, 300)
+    };
+  }
+
+  function feedHealthStates() {
+    const health = state.feedHealth || {};
+    const thresholds = feedThresholds();
+    const now = Date.now();
+    const ageSeconds = (iso) => {
+      const t = iso ? Date.parse(iso) : NaN;
+      return Number.isFinite(t) ? Math.max(0, (now - t) / 1000) : null;
+    };
+    const oddsAge = health.odds === 'ok' ? ageSeconds(health.oddsUpdatedAt) : null;
+    const oddsFreshness = health.odds === 'error' ? 'error'
+      : oddsAge === null ? 'unknown'
+        : oddsAge > thresholds.oddsStaleSeconds ? 'stale' : 'ok';
+    const newsAge = ageSeconds(health.newsLastPolledAt);
+    const newsFreshness = health.news === 'error' ? 'error'
+      : newsAge === null ? 'unknown'
+        : newsAge > thresholds.newsStaleSeconds ? 'stale' : 'ok';
+    // Staleness semantics apply to LIVE feeds only: fixture datasets are
+    // static by design (fixed updated_at), so their age is not a health
+    // signal. Transport failures still surface for every data kind.
+    const fixtureStatic = health.dataKind === 'fixture';
+    return {
+      ...health,
+      oddsFreshness: fixtureStatic && oddsFreshness !== 'error' ? 'ok' : oddsFreshness,
+      newsFreshness: fixtureStatic && newsFreshness !== 'error' ? 'ok' : newsFreshness,
+      oddsAgeSeconds: oddsAge,
+      thresholds
+    };
+  }
+
+  function updateFeedHealthUI() {
+    const banner = elById('dataQualityBanner');
+    if (!banner) return;
+    const health = feedHealthStates();
+    const items = [];
+    let tone = 'ok';
+    if (health.dataKind === 'fixture') {
+      items.push('<strong>RESEARCH FIXTURES</strong><span>Sample data for demonstration — not actionable, not a research record. Synthetic values; not sportsbook quotes.</span>');
+      tone = 'fixture';
+    }
+    if (health.slate === 'error') {
+      items.push('<strong>SLATE FEED OFFLINE</strong><span>The slate file failed to load — the board is empty because data is missing, not because the market is efficient.</span>');
+      tone = 'error';
+    }
+    if (health.games === 'error') {
+      items.push('<strong>GAMES FEED OFFLINE</strong><span>Matchup context may be incomplete.</span>');
+      if (tone === 'ok') tone = 'warn';
+    }
+    if (health.odds === 'error') {
+      items.push('<strong>ODDS FEED OFFLINE</strong><span>Projections render without market quotes; no actionable classification is possible.</span>');
+      tone = 'error';
+    } else if (health.oddsFreshness === 'stale') {
+      items.push(`<strong>ODDS STALE</strong><span>Last update ${Math.max(1, Math.round(health.oddsAgeSeconds / 60))}m ago (limit ${Math.round(health.thresholds.oddsStaleSeconds / 60)}m) — treat prices as historical.</span>`);
+      if (tone === 'ok') tone = 'warn';
+    }
+    if (health.newsFreshness === 'stale') {
+      items.push('<strong>NEWS FEED STALE</strong><span>News watcher exceeded the dead-man threshold — automated sniper dispatch is suppressed.</span>');
+      if (tone === 'ok') tone = 'warn';
+    }
+    if (!items.length) {
+      banner.hidden = true;
+      banner.innerHTML = '';
+      banner.className = 'data-quality-banner';
+      return;
+    }
+    banner.hidden = false;
+    banner.className = `data-quality-banner ${tone}`;
+    banner.innerHTML = items.map((item) => `<div class="dq-item">${item}</div>`).join('')
+      + '<button type="button" id="dqRetryBtn" class="dq-retry-btn">Retry</button>';
+    const retry = document.getElementById('dqRetryBtn');
+    if (retry) retry.addEventListener('click', () => window.location.reload());
+  }
+
+  /**
+   * Per-sport calibration badge (audit H9): the spec requires a VISIBLE
+   * uncalibrated badge on rows of an uncalibrated sport, not just a config
+   * flag. Sourced from the breaker config's sports block with the adapter
+   * fallback, so badge truth = breaker truth. Calibrated sports (NFL)
+   * render nothing — the badge must be a real signal, not chrome.
+   */
+  function sportCalibrationBadge() {
+    const cfgSport = state.breakerConfig && state.breakerConfig.sports
+      ? state.breakerConfig.sports[SPORT_ID]
+      : null;
+    const calibrated = cfgSport && typeof cfgSport.calibrated === 'boolean'
+      ? cfgSport.calibrated
+      : !(adapter.breakerFallback && adapter.breakerFallback.calibrated === false);
+    return calibrated ? ''
+      : '<span class="uncal-tag" title="Model parameters are not calibrated for this sport — outputs are directional research only, never actionable.">UNCALIBRATED</span>';
   }
 
   function normalizeFeed(feed) {
@@ -1953,9 +2179,17 @@
       const isHistorical = Boolean(SLATES[state.slateKey]?.historical);
       if (!isHistorical && playMode === 'actionable' && state.filters.market !== 'anytime_td' && !findQuote(row, state.filters.market)) return false;
       if (playMode === 'top') {
-        const topList = (state.picks && state.picks.top_projections) || [];
-        const isTop = topList.some((p) => String(p.player).toLowerCase() === String(row.player_display_name).toLowerCase());
-        if (!isTop) return false;
+        if (adapter.topPlays && adapter.topPlays.source === 'ev_ranked') {
+          // EV-ranked Top Plays (adapter-driven, e.g. NBA): hide rows without
+          // a bookable quote or with incomplete projection inputs — partial
+          // math must never render as a ranked play (user-approved default).
+          if (!findQuote(row, state.filters.market)) return false;
+          if (typeof adapter.hasCompleteInputs === 'function' && !adapter.hasCompleteInputs(row, state.filters.market)) return false;
+        } else {
+          const topList = (state.picks && state.picks.top_projections) || [];
+          const isTop = topList.some((p) => String(p.player).toLowerCase() === String(row.player_display_name).toLowerCase());
+          if (!isTop) return false;
+        }
       }
       if (position !== 'ALL' && row.position !== position) return false;
       if (team && row.team !== team) return false;
@@ -1982,6 +2216,37 @@
         const qB = evaluateRow(b);
         return num(qB.edge) - num(qA.edge);
       });
+    } else if (state.filters.playMode === 'top' && adapter.topPlays && adapter.topPlays.source === 'ev_ranked') {
+      // Top Plays order (audit H5 revision): EV per unit desc, then
+      // probability edge desc, then MODEL CONFIDENCE — narrower adapter
+      // distribution interval first, because receipt coverage is a
+      // data-availability signal, not a quality signal, and must never
+      // rank one play above an equally good one — then sample size
+      // (games_prior desc; neutral when the feed omits it), then name.
+      const confWidth = (row) => {
+        const dist = marketDef(state.filters.market).dist(row);
+        return Math.max(0, num(dist.high) - num(dist.low));
+      };
+      rows.sort((a, b) => {
+        const qA = evaluateRow(a);
+        const qB = evaluateRow(b);
+        const evA = num(qA.ev);
+        const evB = num(qB.ev);
+        if (evB !== evA) return evB - evA;
+        const edgeA = num(qA.edge);
+        const edgeB = num(qB.edge);
+        if (edgeB !== edgeA) return edgeB - edgeA;
+        const widthA = confWidth(a);
+        const widthB = confWidth(b);
+        if (widthA !== widthB) return widthA - widthB;
+        const sampleA = num(a.games_prior);
+        const sampleB = num(b.games_prior);
+        if (sampleB !== sampleA) return sampleB - sampleA;
+        return String(a.player_display_name).localeCompare(String(b.player_display_name));
+      });
+    } else if (typeof adapter.sortDefault === 'function') {
+      // Adapter-owned default order (NBA: active-market projection, desc).
+      rows.sort((a, b) => adapter.sortDefault(b, state.filters.market) - adapter.sortDefault(a, state.filters.market));
     } else {
       rows.sort((a, b) => num(b.proj_yards) - num(a.proj_yards));
     }
@@ -1995,6 +2260,9 @@
     const quotedCount = state.slate.filter((row) => Boolean(findQuote(row, state.filters.market))).length;
     if ($('#allCount')) $('#allCount').textContent = totalCount;
     if ($('#actionableCount')) $('#actionableCount').textContent = quotedCount;
+    // Top chip counter reflects the actual ranked list (top mode only).
+    const topCountEl = elById('topCount');
+    if (topCountEl && state.filters.playMode === 'top') topCountEl.textContent = String(rows.length);
 
     const chipActive = $('#mobileChipActive');
     const chipAll = $('#mobileChipAll');
@@ -2017,7 +2285,7 @@
           <div class="anti-tout-shield">🛡️</div>
           <div class="anti-tout-title">0 Qualified Plays Today</div>
           <div class="anti-tout-subtitle">The market is efficient. Do not bet.</div>
-          <p class="anti-tout-desc">Our quantitative engine requires a verified statistical edge (>${(state.riskPolicy.edgeGate * 100).toFixed(0)}%) with positive expected Closing Line Value. When books price efficiently, discipline is the edge.</p>
+          <p class="anti-tout-desc">Our quantitative engine requires a verified statistical edge (>${((policy() ? policy().gate : 0.10) * 100).toFixed(0)}%) with positive expected Closing Line Value. When books price efficiently, discipline is the edge.</p>
           <div class="anti-tout-actions">
             <button type="button" class="anti-tout-btn" id="antiToutViewAllBtn">Explore Full Modeled Slate (${state.slate.length})</button>
           </div>
@@ -2410,7 +2678,7 @@
           </div>
 
           <div style="margin-top:10px;" class="sniper-notice-box">
-            <strong>ℹ️ iOS Safari Notice:</strong> Web Push on iPhone requires adding PROP·WIRE to your Home Screen (Share → Add to Home Screen) on iOS 16.4+.
+            <strong>ℹ️ iOS Safari Notice:</strong> Web Push on iPhone requires adding PropWire to your Home Screen (Share → Add to Home Screen) on iOS 16.4+.
           </div>
 
           <div style="margin-top:14px;">
@@ -2526,7 +2794,7 @@
             body: JSON.stringify({
               event: 'PROP_WIRE_TEST_PING',
               timestamp: new Date().toISOString(),
-              message: 'PROP·WIRE Autonomous Market Sniper Connected!',
+              message: 'PropWire Autonomous Market Sniper Connected!',
               terminal: 'https://propwire.vercel.app'
             })
           });
@@ -2614,7 +2882,7 @@
 
     if (state.sniper.browserNotify && typeof Notification !== 'undefined' && Notification.permission === 'granted') {
       try {
-        const notif = new Notification(`🎯 PROP·WIRE Sniper: ${quote.player_name}`, {
+        const notif = new Notification(`🎯 PropWire Sniper: ${quote.player_name}`, {
           body: `${side} ${quote.line} (${oddsText(side === 'UNDER' ? quote.under_odds : quote.over_odds)}) · Edge +${(edge * 100).toFixed(1)}% · Tap to confirm`,
           icon: 'icon-192.png'
         });
@@ -2632,7 +2900,7 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           event: 'PROP_WIRE_SNIPER_ALERT',
-          source: 'PROP·WIRE Autonomous Market Telemetry',
+          source: 'PropWire Autonomous Market Telemetry',
           timestamp: new Date().toISOString(),
           player_id: quote.player_id,
           player: quote.player_name,
@@ -2714,7 +2982,7 @@
             <div class="player-name">${starBtn} ${esc(row.player_display_name)}${injury ? `<span class="injury-tag">${esc(injury.report_status)}</span>` : ''}</div>
             <div class="player-meta-line">
               <span class="cell-sub">${esc(row.team)} · ${esc(roleLabel(row))}</span>
-              ${keyDriverTag(row, beneficiary)}
+              ${keyDriverTag(row, beneficiary)}${sportCalibrationBadge()}
               ${corrRisk ? `<span class="corr-risk-pill ${corrRisk.badgeClass}" title="${esc(corrRisk.message)}">${esc(corrRisk.badgeText)} <button type="button" class="corr-dismiss-btn" data-dismiss-corr="${esc(corrRisk.dismissKey)}" title="Dismiss warning" aria-label="Dismiss">×</button></span>` : ''}
             </div>
           </div>
@@ -2872,7 +3140,7 @@
             ${crest}
             <div class="card-name-group">
               <span class="card-player-name">${esc(row.player_display_name)}</span>
-              <span class="card-team-matchup">${esc(row.position)} · ${esc(row.team)} ${row.is_home ? 'vs' : '@'} ${esc(row.opponent_team)}</span>
+              <span class="card-team-matchup">${esc(row.position)} · ${esc(row.team)} ${row.is_home ? 'vs' : '@'} ${esc(row.opponent_team)}</span>${sportCalibrationBadge()}
             </div>
           </div>
           <div class="card-hero-edge-block">
@@ -3358,6 +3626,21 @@
   }
   const showToast = toast;
 
+  /**
+   * Fixture provenance (Phase 2): entries logged against synthetic fixture
+   * data are stamped `data_provenance: "fixture"` so per-sport CLV stats can
+   * never blend research fixtures with live-book fills. Live-book entries
+   * carry NO field — the NFL ledger schema stays byte-identical (parity
+   * goldens assert this).
+   */
+  function stampProvenance(entry, row) {
+    const quote = findQuote(row, state.filters.market);
+    if ((quote && quote._fixture === true) || adapter.fixturesOnly === true) {
+      entry.data_provenance = 'fixture';
+    }
+    return entry;
+  }
+
   function logBet(playerId) {
     if (state.userTier === 'free') {
       const pricingDialog = $('#pricingDialog');
@@ -3417,6 +3700,7 @@
         config_version: (state.breakerConfig && state.breakerConfig.config_version) || "1.1.0",
         logged_at: new Date().toISOString()
       };
+      stampProvenance(entry, row);
       if (!Array.isArray(state.portfolio)) state.portfolio = [];
       state.portfolio.unshift(entry);
       savePortfolio(state.portfolio);
@@ -4251,6 +4535,10 @@
     const beneficiary = beneficiaryFor(row);
     const fair = fairValue(row);
     const projection = projectionValue(row);
+    /** Market label: adapter hook; generic id fallback for adapters that ship no detail block. */
+    const detailMarketLabel = (market) => (adapter.detail && adapter.detail.marketLabel)
+      ? adapter.detail.marketLabel(market)
+      : market;
 
     const sideBadge = evaluation.state !== 'none'
       ? `<span class="detail-side-badge ${evaluation.side === 'UNDER' ? 'badge-under' : 'badge-over'}">${evaluation.side}</span>`
@@ -4263,7 +4551,7 @@
         ${sideBadge}
         ${beneficiary ? ` <span class="surge-tag">${SVG_ICONS.surge} ROLE SURGE</span>` : ''}
       </div>`;
-    $('#detailMeta').textContent = `${row.position} · ${row.team} ${row.is_home ? 'vs' : '@'} ${row.opponent_team} · ${state.filters.market === 'receptions' ? 'Receptions' : 'Receiving yards'}`;
+    $('#detailMeta').textContent = `${row.position} · ${row.team} ${row.is_home ? 'vs' : '@'} ${row.opponent_team} · ${detailMarketLabel(state.filters.market)}`;
     $('#detailContent').innerHTML = detailMarkup(row, evaluation, injury, beneficiary, fair, projection);
 
     // 1. What-If Scenario Slider
@@ -4385,6 +4673,7 @@
           ev: evaluation.ev || 0,
           logged_at: new Date().toISOString()
         };
+        stampProvenance(entry, row);
 
         if (!Array.isArray(state.portfolio)) state.portfolio = [];
         if (existingIdx >= 0) {
@@ -4561,7 +4850,7 @@
       </div>
     ` : '';
 
-    const scenarioSection = `
+    const scenarioSection = adapter.detail && adapter.detail.scenarioCapable === false ? '' : `
       <div class="scenario-box">
         <div class="scenario-header">
           <h4><svg class="prop-icon icon-surge" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" style="width:14px;height:14px;"><path d="M1.5 8h3l2-5 3.5 10 2.5-6 1.5 2.5 2-.5"/></svg> "What-If" Target Share Simulator</h4>
@@ -4584,20 +4873,27 @@
     `;
 
     const game = state.games.find((item) => item.game_id === row.game_id);
-    const isDome = row.is_dome || game?.roof === 'dome';
-    const wind = game?.wind ?? row.wind_speed ?? row.wind;
-    const envTag = isDome ? 'ENV: DOME' : (Number.isFinite(wind) && wind > 0) ? `ENV: ${wind} MPH WIND` : 'ENV: MILD / OUTDOOR';
-    const weatherDesc = isDome ? 'Indoor Dome (Controlled Conditions)' : (Number.isFinite(wind) && wind > 0) ? `${wind} mph wind (${game?.home_team ? `${game.home_team} stadium` : 'Open'})` : 'Controlled / mild conditions';
+    // Venue environment: every adapter owns its environment copy via
+    // detail.environment(row, game). (Phase 2 remediation, audit item B4:
+    // the NFL dome/wind strings moved verbatim into nfl.js — no sport
+    // branches remain in app.js.)
+    const env = (adapter.detail && adapter.detail.environment)
+      ? adapter.detail.environment(row, game)
+      : { tag: 'ENV: NOT MODELED', desc: 'Environment context is not modeled for this sport.' };
+    const envTag = env.tag;
+    const weatherDesc = env.desc;
 
     const isReceptions = state.filters.market === 'receptions';
-    const isAnytimeTd = state.filters.market === 'anytime_td';
-    const modelSpecTag = isReceptions ? 'MODEL SPEC: INTEGER POISSON' : isAnytimeTd ? 'MODEL SPEC: ZERO-INFLATED POISSON' : 'MODEL SPEC: CONTINUOUS MEDIAN';
-    const distributionDesc = isReceptions ? 'Discrete Poisson (Half-step)' : isAnytimeTd ? 'Poisson Red Zone Model' : 'Calibrated Continuous Log-Normal';
+    // Detail-model copy: every adapter owns its wording via detail hooks
+    // (NFL hooks live in nfl.js, NBA hooks in nba.js). The fallbacks below
+    // are sport-neutral placeholders for hypothetical adapters that ship
+    // without a detail block — they must never re-introduce sport branches.
+    const hasDetailHooks = Boolean(adapter.detail);
+    const modelSpecTag = hasDetailHooks ? adapter.detail.modelSpec(state.filters.market) : 'MODEL SPEC: NOT SPECIFIED';
+    const distributionDesc = hasDetailHooks ? adapter.detail.distributionDesc(state.filters.market) : 'Distribution: not specified';
     const fairPVal = isReceptions ? pct(row.p_rec_at_fair_line) : '50.0%';
-    const sampleDesc = `${num(row.games_prior, 16)} games prior · ${row.season || '2026'}`;
-    const scopeNote = isReceptions
-      ? `Receptions use integer outcomes and half-step lines. Fair line calibrated at P(over) = ${pct(row.p_rec_at_fair_line)}.`
-      : 'Receiving-yards fair line is the calibrated continuous median, where P(over) is exactly 50.0%.';
+    const sampleDesc = hasDetailHooks ? adapter.detail.sampleNote(row, state.filters.market) : 'Sample basis: not specified';
+    const scopeNote = hasDetailHooks ? adapter.detail.scopeNote(row, state.filters.market) : 'Scope notes are not specified for this sport.';
 
     return `
       <!-- Prominent Verdict Strip at Top: Line, Edge, Kelly Stake -->
@@ -4670,7 +4966,7 @@
         <div class="spec-col spec-col-invalidation">
           <div class="spec-header">
             <span class="spec-title">Invalidation &amp; Risk Envelope</span>
-            <span class="spec-tag ${isDome ? 'tag-dome' : 'tag-wind'}">${envTag}</span>
+            <span class="spec-tag ${env.dome ? 'tag-dome' : 'tag-wind'}">${envTag}</span>
           </div>
           <div class="spec-body">
             <div class="spec-meta-list">

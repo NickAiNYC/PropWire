@@ -103,7 +103,7 @@ button { color: inherit; }
   width: 100%;
 }
 
-/* 1. Stop PROP·WIRE brand and Slate dropdown from overlapping */
+/* 1. Stop PropWire brand and Slate dropdown from overlapping */
 .topbar, .header-bar, .pw-topbar {
   display: flex;
   align-items: center;
@@ -6468,3 +6468,170 @@ article[data-focused="true"] {
   padding: 12px 14px !important;
 }
 
+
+/* ─── Sport Switcher (Phase 2) ─────────────────────────────────────────── */
+.sport-switcher-bar {
+  display: flex;
+  justify-content: center;
+  padding: 6px 12px;
+  background: var(--bg-canvas);
+  border-bottom: 1px solid var(--border-hairline);
+  position: sticky;
+  top: 0;
+  z-index: 40;
+}
+
+.sport-switcher {
+  display: inline-flex;
+  gap: 4px;
+  padding: 3px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-hairline);
+  border-radius: 8px;
+}
+
+.sport-switch-btn {
+  appearance: none;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-muted);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  padding: 6px 16px;
+  min-height: 32px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.sport-switch-btn:hover {
+  color: var(--text-primary);
+  background: var(--surface-3);
+}
+
+.sport-switch-btn:focus-visible {
+  outline: 2px solid var(--baby-blue-ring);
+  outline-offset: 2px;
+}
+
+.sport-switch-btn.active {
+  color: var(--accent-ink);
+  background: var(--brand-green);
+  border-color: var(--brand-green-border);
+}
+
+@media (max-width: 768px) {
+  .sport-switcher-bar {
+    padding: 6px 10px;
+  }
+  .sport-switch-btn {
+    flex: 1 1 0;
+    padding: 8px 12px;
+    min-height: 40px; /* WCAG 2.2 AA comfortable touch target */
+  }
+}
+
+/* ─── Data Quality Banner (Phase 2 failure-mode UI) ────────────────────── */
+.data-quality-banner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: stretch;
+  margin: 8px 12px 0;
+  padding: 8px 10px;
+  border: 1px solid var(--line-strong);
+  border-left: 3px solid var(--baby-blue);
+  border-radius: 8px;
+  background: var(--bg-elevated);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.data-quality-banner[hidden] { display: none; }
+
+.data-quality-banner .dq-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 2px 10px 2px 0;
+  min-width: 180px;
+}
+
+.data-quality-banner .dq-item strong {
+  color: var(--text-primary);
+  letter-spacing: 0.6px;
+}
+
+.data-quality-banner.fixture { border-left-color: var(--warn-amber); }
+.data-quality-banner.fixture .dq-item strong { color: var(--warn-amber); }
+
+.data-quality-banner.warn { border-left-color: var(--warn-amber); }
+.data-quality-banner.warn .dq-item strong { color: var(--warn-amber); }
+
+.data-quality-banner.error { border-left-color: var(--danger); }
+.data-quality-banner.error .dq-item strong { color: var(--danger); }
+
+.dq-retry-btn {
+  appearance: none;
+  margin-left: auto;
+  align-self: center;
+  border: 1px solid var(--line-strong);
+  background: var(--surface-3);
+  color: var(--text-primary);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 6px 14px;
+  min-height: 32px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.dq-retry-btn:focus-visible {
+  outline: 2px solid var(--baby-blue-ring);
+  outline-offset: 2px;
+}
+
+/* Per-sport calibration badge (audit H9): visible on every row of an
+   uncalibrated sport; calibrated sports render no element at all. */
+.uncal-tag {
+  display: inline-flex;
+  align-items: center;
+  font: 600 9px/1 var(--mono, monospace);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #f5b445;
+  border: 1px solid rgba(245, 180, 69, 0.45);
+  background: rgba(245, 180, 69, 0.10);
+  padding: 2px 5px;
+  border-radius: 3px;
+  white-space: nowrap;
+  margin-left: 6px;
+}
+
+/* 375px fit fix (audit B3): .pw-topbar-right was flex-shrink:0 with
+   all-nowrap children, so the slate select + injury pill + upgrade + menu
+   cluster overflowed the viewport (documentElement.scrollWidth 463 vs 375 —
+   real overflow; body{overflow-x:hidden} merely clipped it). Let the
+   cluster shrink and degrade gracefully: the injury pill truncates with an
+   ellipsis (the status dot stays visible); buttons keep their size. */
+@media (max-width: 768px) {
+  .pw-topbar-right {
+    flex-shrink: 1 !important;
+    min-width: 0 !important;
+  }
+  .pw-injury-header-pill {
+    flex-shrink: 1 !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+  }
+  .pw-injury-header-pill .slim-injury-text {
+    flex-shrink: 1 !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+}

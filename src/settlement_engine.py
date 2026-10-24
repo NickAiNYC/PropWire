@@ -1,5 +1,5 @@
 """
-settlement_engine.py — Two-Stage Deterministic Settlement Engine for PROP·WIRE
+settlement_engine.py — Two-Stage Deterministic Settlement Engine for PropWire
 
 Implements fail-closed settlement:
   Stage A: Kickoff Closing Line Lock (ClosingSnapshot)

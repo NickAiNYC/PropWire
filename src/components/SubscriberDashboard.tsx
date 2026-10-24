@@ -57,7 +57,7 @@ export const SubscriberDashboard: React.FC<SubscriberDashboardProps> = ({
           <div className="flex items-center gap-3">
             <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
             <h1 className="text-lg font-bold text-white tracking-wider">
-              PROP·WIRE SUBSCRIBER PORTAL
+              PropWire SUBSCRIBER PORTAL
             </h1>
           </div>
           {onLogout && (
@@ -171,7 +171,7 @@ export const SubscriberDashboard: React.FC<SubscriberDashboardProps> = ({
       "command": "npx",
       "args": ["-y", "@propwire/mcp-server"],
       "env": {
-        "PROPWIRE_API_KEY": "${keyPrefix.includes("•") ? "pw_live_your_key_here" : keyPrefix}"
+        "PropWire_API_KEY": "${keyPrefix.includes("•") ? "pw_live_your_key_here" : keyPrefix}"
       }
     }
   }

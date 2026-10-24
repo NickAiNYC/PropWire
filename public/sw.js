@@ -1,4 +1,4 @@
-// PROP·WIRE Service Worker (PWA Offline Support & Cache)
+// PropWire Service Worker (PWA Offline Support & Cache)
 const CACHE_NAME = 'propwire-v124-prod';
 const STATIC_ASSETS = [
   '/',

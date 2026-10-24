@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-PROP·WIRE Autonomous Market Sniper — Server-Side Cron Evaluator
+PropWire Autonomous Market Sniper — Server-Side Cron Evaluator
 Executes off-browser evaluation of incoming book quotes against execution hurdles.
 Handles 3am overnight runs, enforces 15-minute de-duplication per line,
 and dispatches webhook alerts without exposing tokens to client-side browsers.
@@ -217,7 +217,7 @@ def main():
             odds_val = quote.get("under_odds" if side == "UNDER" else "over_odds")
             alert_payload = {
                 "event": "PROP_WIRE_SNIPER_ALERT",
-                "source": "PROP·WIRE Server Cron",
+                "source": "PropWire Server Cron",
                 "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
                 "player_id": quote.get("player_id"),
                 "player": quote.get("player_name"),

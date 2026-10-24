@@ -3,6 +3,12 @@
 Weekly NFL receptions and receiving-yards prop model with a distributional
 core, walk-forward validation, and CLV logging.
 
+**Multi-sport (Phase 2):** the terminal now runs NFL and NBA behind a sport
+adapter layer. NBA v1 ships research fixtures only (`_fixture`-flagged,
+never actionable, ledger-stamped) with a fail-closed ingest gate
+(`scripts/fetch_nba.py`); see **`docs/MULTISPORT.md`** for the architecture,
+data contract, and the upgrade path to live data.
+
 **Read `docs/FINDINGS.md` before you deploy or sell anything.** The headline:
 the model is well calibrated (ECE < 1.2%) and beats a form-only baseline, but
 that is not the same as beating a sportsbook, and the repo does not yet contain

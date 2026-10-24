@@ -1,6 +1,6 @@
 {
-  "name": "PROP·WIRE",
-  "short_name": "PROP·WIRE",
+  "name": "PropWire",
+  "short_name": "PropWire",
   "description": "Quantitative NFL Receiving Props & Market Terminal",
   "start_url": "/?v=v3_mark",
   "display": "standalone",

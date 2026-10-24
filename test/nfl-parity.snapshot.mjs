@@ -75,6 +75,54 @@ async function dumpRender(P, registry, view, market) {
   return dumpRegistry(registry);
 }
 
+/**
+ * Detail-modal golden: capture the exact modal markup for one quoted NFL
+ * row. Captured from the PRE-adapterization code path (commit 83714bd tree)
+ * so the Phase 2 remediation that routes the modal through adapter.detail
+ * hooks must reproduce this markup byte-for-byte.
+ */
+function dumpDetailModal(P, registry) {
+  const quoted = P.state.odds.quotes.find((q) => q.market === 'receiving_yards' && q.player_id);
+  assert.ok(quoted, 'live_odds_feed must contain a receiving_yards quote for the modal golden');
+  const row = P.state.slate.find((r) => r.player_id === quoted.player_id);
+  assert.ok(row, 'slate row for the modal golden must exist');
+  P.state.filters.market = 'receiving_yards';
+  P.state.scenarioTargetShare = null; // openDetail() pre-state
+  P.renderDetailModal(row);
+  const pick = {};
+  for (const sel of ['#detailTitle', '#detailMeta', '#detailContent']) {
+    const el = registry.get(sel);
+    pick[sel] = el ? { innerHTML: el.innerHTML, textContent: el.textContent } : null;
+  }
+  return canonical(pick);
+}
+
+/**
+ * DOM-access spy summary (audit B2, remediation option b): every
+ * getElementById call the booted NFL app makes, with resolved counts. The
+ * stub DOM resolves only ids a real page could resolve (static index.html
+ * ids + ids injected via innerHTML). Pinned as a golden: any NEW element the
+ * NFL path starts populating must appear here and be consciously allowed.
+ */
+function dumpDomAccess(domCalls) {
+  const summary = {};
+  for (const call of domCalls) {
+    if (!summary[call.id]) summary[call.id] = { calls: 0, resolved: 0 };
+    summary[call.id].calls += 1;
+    if (call.resolved) summary[call.id].resolved += 1;
+  }
+  return canonical(summary);
+}
+
+/** Ids the NFL boot/render path is ALLOWED to resolve via getElementById. */
+const NFL_DOM_ALLOWLIST = new Set([
+  // Phase 2 sport chrome (the earned, documented whitelist delta)
+  'sportSwitcher', 'marketChipGroup', 'positionChipGroup', 'signalSheetChips',
+  'slateSelector', 'mobileSlateSelector', 'modeTopBtn', 'topCount',
+  // Feed-health failure-mode UI
+  'dataQualityBanner', 'dqRetryBtn',
+]);
+
 async function dumpLedger(P, lsStore) {
   const quoted = P.state.odds.quotes.find((q) => q.market === 'receiving_yards' && q.player_id);
   assert.ok(quoted, 'live_odds_feed must contain at least one receiving_yards quote');
@@ -118,9 +166,14 @@ function dumpBreakerNflValues() {
 }
 
 async function captureAll() {
-  const { sandbox, registry, lsStore } = buildSandbox();
+  const { sandbox, registry, lsStore, domCalls } = buildSandbox();
   const P = loadApp(sandbox);
 
+  // Mirror init() (viewer/app.js): chrome render precedes the slate load on
+  // a real page. Before the B2 remediation the sandbox could not run this
+  // path at all (no getElementById), which is exactly the blind spot the
+  // audit flagged — Phase 2 chrome was invisible to the golden captures.
+  P.renderSportChrome();
   await P.loadSlate('2026_w7');
   P.state.filters.market = 'receiving_yards';
 
@@ -131,8 +184,18 @@ async function captureAll() {
   snaps['renders_cards_receiving_yards.json'] = await dumpRender(P, registry, 'cards', 'receiving_yards');
   snaps['evaluations.json'] = dumpEvaluations(P);
   snaps['projections_slate_2026_w7.json'] = dumpProjections(P);
+  snaps['detail_modal.json'] = dumpDetailModal(P, registry);
   snaps['ledger_entry.json'] = canonical(await dumpLedger(P, lsStore));
   snaps['breaker_config.json'] = dumpBreakerNflValues();
+  snaps['dom_access_log.json'] = dumpDomAccess(domCalls);
+
+  // Spy assertion (audit B2 option b): the NFL path may only populate the
+  // allowlisted chrome elements — proving "no unexpected element was
+  // populated" rather than achieving silence by omission.
+  const unexpected = [...new Set(domCalls.filter((c) => c.resolved).map((c) => c.id))]
+    .filter((id) => !NFL_DOM_ALLOWLIST.has(id));
+  assert.deepStrictEqual(unexpected, [],
+    `NFL path populated non-allowlisted element(s) via getElementById: ${unexpected.join(', ')}`);
   return snaps;
 }
 
@@ -168,5 +231,5 @@ test('NFL parity: rendered output, evaluations, projections, ledger, breaker val
     `NFL PARITY REGRESSION — golden snapshots do not match.\n${results.failed.join('\n')}\n` +
     'If (and only if) this diff is an announced, intentional change, re-capture with PW_UPDATE_SNAPSHOTS=1 and document it in the phase report.',
   );
-  assert.ok(results.passed.length >= 8, `expected 8 snapshots, passed: ${results.passed.length}`);
+  assert.ok(results.passed.length >= 10, `expected 10 snapshots (8 goldens + modal + dom access log), passed: ${results.passed.length}`);
 });
