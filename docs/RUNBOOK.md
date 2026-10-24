@@ -81,6 +81,12 @@ git push origin --delete phase/1-adapter phase/2-nba propwire-ui-redesign 2>/dev
 
 ### Post-operation state and limits (read before claiming anything)
 
+- **Post-rewrite deploy:** after the D1 force-push and green CI on the rewritten
+  SHA, create and verify a new Vercel production deployment from repository
+  root. D1 does not redeploy the site; until this step finishes, GitHub `main`
+  and the live product intentionally point at different trees. Record both the
+  rewritten Git SHA and resulting Vercel deployment URL in the operation log.
+
 - `refs/pull/*` on GitHub are **not rewritten** by a force-push; GitHub keeps
   pre-rewrite objects reachable via PR refs until its own GC. Consequences:
   - New clones of `main` are small (clone fetches `refs/heads/*`, not

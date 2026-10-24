@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import json
 import os
+import secrets
 import subprocess
 import sys
 from datetime import datetime, timezone
@@ -887,8 +888,10 @@ async def post_settle_slate(
     Cross-validates Sleeper & Gamebook data, grades active tickets,
     and commits deterministic settlement receipt hashes.
     """
-    expected_secret = os.getenv("ADMIN_SETTLEMENT_KEY", "propwire_admin_settle_2026")
-    if admin_token and admin_token != expected_secret:
+    expected_secret = os.getenv("ADMIN_SETTLEMENT_KEY")
+    if not expected_secret:
+        raise HTTPException(503, "Settlement is disabled: ADMIN_SETTLEMENT_KEY is not configured")
+    if not admin_token or not secrets.compare_digest(admin_token, expected_secret):
         raise HTTPException(403, "Invalid settlement admin token")
 
     body = {}
