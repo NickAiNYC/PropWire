@@ -195,3 +195,61 @@ Every evaluation run records: input snapshot hashes, seed (20261024),
 replicate count, cluster assignment table, the exact interval bounds, and
 the decision. Re-running the recorded snapshot must reproduce the recorded
 decision bit-for-bit.
+
+## 12. Time-to-evidence arithmetic under the registered hurdle
+(Addendum 2026-10-25, committed BEFORE any prospective observation was
+collected — permitted by the header rule. No registered parameter in §§1–11
+is modified by this section.)
+
+**What the hurdle is.** The qualification hurdle `EDGE_HURDLE = 0.10`
+(`src/freeze_slate.py:40`) is **10 percentage points of de-vig implied
+probability**: a signal qualifies only when the model's probability for a
+side exceeds the market's de-vig probability for the same side by ≥ 0.10
+(and EV > 0, and the quote carries a receipt). It is deliberately
+conservative: a calibrated model against a liquid book rarely shows gaps
+above 3–5pp; 10pp gaps are dominated by data errors and thin books. That is
+the intended behavior for a fail-closed qualification gate — and it has a
+calendar consequence that must be stated, not discovered later.
+
+**Expected qualification rate.** Under the 10pp hurdle, the expected share
+of screened props that qualify is low single digits at best. The table below
+converts an assumed qualification rate X into weeks-to-N, holding two
+assumptions explicit: 200 NFL props screened per week (single sport), and
+100% evaluability of qualifying signals (§3 exclusions — pushes, stale
+closes, source disagreement — only make these numbers worse, proportionally
+to 1/evaluable-rate).
+
+| Qualification rate X | Qualified / week | Weeks to N=300 (descriptive look) | Weeks to N=600 (confirmatory) |
+|---|---|---|---|
+| 0.5% | 1 | 300 | 600 |
+| 1% | 2 | 150 | 300 |
+| 2% | 4 | 75 | 150 |
+| 5% | 10 | 30 | 60 |
+
+**Read this table before making calendar claims.** At X = 1%, the
+confirmatory N=600 gate is ~300 weeks (~5.8 seasons) for NFL alone; any
+roadmap assumption of a Q1 2027 verdict is not supported by this arithmetic
+unless the observed qualification rate is materially above the low single
+digits. Gates are per-sport and cross-sport pooling is forbidden (§1), so
+other sports do not shorten NFL's calendar.
+
+**Preregistered review point.** At the descriptive N=300 checkpoint (or
+after 10,000 screened signals, whichever comes first), the observed
+qualification rate is reported per §8. If it is below 1%, a hurdle
+recalibration MAY be proposed as a protocol amendment under the header rule:
+committed with rationale before further data collection, never applied
+retroactively, and never applied to already-collected signals. The first
+confirmatory attempt consumes an attempt regardless (§6).
+
+**Related constant, no coupling (verified 2026-10-25).**
+`src/grade_clv.py` defines its own `edge_hurdle: float = 0.10` (line 95) and
+`--hurdle` default 0.10 (line 248). `grep -n '0\.10' src/grade_clv.py
+src/freeze_slate.py` shows they are two independent literals — grade_clv
+imports nothing from freeze_slate, so there is no shared constant to drift.
+They are, however, the same quantity in the same units (the snapshot
+evaluator's de-vig probability gap; `grade_clv.py:139` re-qualifies on
+`edge >= edge_hurdle`), i.e. a duplicated threshold that must be tuned
+together by hand. Tuning one without the other is a protocol amendment and
+must be committed as such. (The external auditor's reading of `--hurdle` as
+"CLV in points" was incorrect: CLV is aggregated separately and is not
+gated by this parameter.)
