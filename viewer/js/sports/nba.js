@@ -326,7 +326,9 @@
       })[market] || market,
       modelSpec: () => 'MODEL SPEC: NORMAL APPROX (UNCALIBRATED)',
       distributionDesc: () => 'Continuous Normal Approximation',
-      scopeNote: () => 'NBA fixture fair lines are normal-approximation medians with P(over) = 50.0%. Uncalibrated research parameters — treat all outputs as directional only.'
+      sampleNote: (row) => `Fixture baseline (uncalibrated) · ${row.season || '2026-27'}`,
+      scopeNote: () => 'NBA fixture fair lines are normal-approximation medians with P(over) = 50.0%. Uncalibrated research parameters — treat all outputs as directional only.',
+      environment: () => ({ tag: 'INDOOR ARENA', desc: 'Fixed indoor venue (fixture slate — weather not modeled)' })
     },
 
     // ── UI labels ───────────────────────────────────────────────────────────

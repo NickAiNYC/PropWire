@@ -74,7 +74,7 @@ export function buildSandbox({ seedLocalStorage = {} } = {}) {
     removeEventListener() {},
     scrollTo() {},
     open() { return null; },
-    location: { href: 'https://propwire.test/', protocol: 'https:', pathname: '/', search: '', hash: '' },
+    location: { href: 'https://propwire.test/', protocol: 'https:', pathname: '/', search: '', hash: '', reload() {} },
     navigator: {},
     localStorage,
   };
@@ -121,6 +121,7 @@ export function loadApp(sandbox) {
     state, SLATES, SPORT_ID, adapter, loadSlate, evaluateRow, filteredRows,
     renderAll, renderBoard, fairValue, projectionValue, logBet, setView,
     setPlayMode, breakerFor,
+    sportSwitcherItems, switchToSport, defaultBootSlate,
     storage: { loadPortfolio, savePortfolio, loadWatchlist, saveWatchlist, migrateLegacyStorage, MIGRATION_FLAG, STORE, migrationResult }
   };
 })();`;

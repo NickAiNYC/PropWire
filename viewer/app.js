@@ -12,8 +12,12 @@
   const adapter = window.PropWireSports.require(SPORT_ID);
 
   const SLATES = adapter.slates;
-  const MODEL_ALPHA = adapter.model.alpha;
-  const MODEL_K = adapter.model.k;
+  // NFL carries calibrated NegBin/Gamma constants; adapters without a
+  // distribution model (NBA v1 normal approx) leave these null — the only
+  // consumers (targetLine/pRecOver/pYardsOver) guard on NFL-only row fields
+  // and never execute for other sports.
+  const MODEL_ALPHA = adapter.model ? adapter.model.alpha : null;
+  const MODEL_K = adapter.model ? adapter.model.k : null;
 
   // ── Sport-namespaced storage + one-time legacy migration ──────────────────
   // Policy: read legacy keys → write sport-namespaced copies → keep legacy
@@ -609,12 +613,13 @@
   async function init() {
     document.documentElement.dataset.theme = 'dark';
     document.documentElement.classList.add('dark');
+    renderSportChrome();
     bindControls();
     initInstall();
     initPollingTimer();
     initPullToRefresh();
     showMigrationNoticeOnce();
-    await loadSlate(state.slateKey);
+    await loadSlate(defaultBootSlate());
     checkDeepLinks();
     if ('serviceWorker' in navigator && location.protocol !== 'file:') {
       navigator.serviceWorker.register('sw.js').catch(() => {});
@@ -1442,6 +1447,85 @@
   // Terminal is permanently locked into dark institutional mode
   function initTheme() {}
   function toggleTheme() {}
+
+  // ─── Sport switcher + per-sport filter chrome (Phase 2) ─────────────
+  // DOM population goes through document.getElementById (NOT the $ helper)
+  // with null guards: the parity sandbox does not implement getElementById,
+  // so these writes are provably outside the NFL golden snapshots.
+  const SPORT_SWITCHER_KEY = 'propwire_active_sport';
+
+  function sportSwitcherItems() {
+    return window.PropWireSports.ids().map((id) => {
+      let label = String(id).toUpperCase();
+      try { label = window.PropWireSports.require(id).label || label; } catch (_) {}
+      return { id, label, active: id === SPORT_ID };
+    });
+  }
+
+  function switchToSport(id) {
+    if (!id || id === SPORT_ID) return;
+    try { window.PropWireSports.require(id); } catch (_) { return; }
+    try {
+      localStorage.setItem(SPORT_SWITCHER_KEY, id);
+    } catch (_) {
+      return; // storage unavailable: keep the current sport (no reload loop)
+    }
+    window.location.reload();
+  }
+
+  function renderSportChrome() {
+    const switcher = document.getElementById('sportSwitcher');
+    if (switcher) {
+      switcher.innerHTML = sportSwitcherItems().map((item) => `
+        <button type="button" class="sport-switch-btn${item.active ? ' active' : ''}" role="radio"
+          aria-checked="${item.active}" data-sport="${esc(item.id)}" title="Switch to ${esc(item.label)}">${esc(item.label)}</button>`).join('');
+      switcher.addEventListener('click', (e) => {
+        const btn = e.target && e.target.closest ? e.target.closest('[data-sport]') : null;
+        if (btn) switchToSport(btn.dataset.sport);
+      });
+    }
+    const marketGroup = document.getElementById('marketChipGroup');
+    if (marketGroup) {
+      marketGroup.innerHTML = adapter.marketOrder.map((id) => {
+        const m = adapter.markets[id];
+        const active = id === adapter.defaultMarket;
+        return `<button type="button" class="chip-pill${active ? ' active' : ''}" data-market="${esc(id)}" role="radio" aria-checked="${active}">${esc(m.chipLabel)}</button>`;
+      }).join('');
+    }
+    const posGroup = document.getElementById('positionChipGroup');
+    if (posGroup) {
+      posGroup.innerHTML = '<button type="button" class="chip-pill active" data-pos="ALL" role="radio" aria-checked="true">All</button>' +
+        adapter.positions.map((p) => `<button type="button" class="chip-pill" data-pos="${esc(p)}" role="radio" aria-checked="false">${esc(p)}</button>`).join('');
+    }
+    const signalGroup = document.getElementById('signalSheetChips');
+    if (signalGroup && adapter.intents) {
+      const intents = [
+        { id: 'all', label: 'All Signals' },
+        { id: 'edge', label: 'Highest Edge (>10%)' },
+        ...adapter.intents.map((i) => ({ id: i.id, label: `${i.label} Plays` })),
+      ];
+      signalGroup.innerHTML = intents.map((i, idx) => `<button type="button" class="signal-chip-btn${idx === 0 ? ' active' : ''}" data-intent="${esc(i.id)}">${esc(i.label)}</button>`).join('');
+    }
+    const slateOptions = (config) => Object.entries(config).map(([key, slate]) =>
+      `<option value="${esc(key)}">${esc(slate.state || key)}</option>`).join('');
+    const slateSelector = document.getElementById('slateSelector');
+    if (slateSelector) slateSelector.innerHTML = slateOptions(adapter.slates);
+    const mobileSlateSelector = document.getElementById('mobileSlateSelector');
+    if (mobileSlateSelector) mobileSlateSelector.innerHTML = slateOptions(adapter.slates);
+    const topBtn = document.getElementById('modeTopBtn');
+    if (topBtn) {
+      topBtn.title = adapter.topPlays && adapter.topPlays.source === 'ev_ranked'
+        ? 'Rank plays by expected value per unit staked'
+        : 'Show Top Model Volume Plays';
+    }
+    if (adapter.pageTitle) document.title = adapter.pageTitle;
+  }
+
+  /** Boot slate: keep the stored key when the adapter knows it, else the adapter default. */
+  function defaultBootSlate() {
+    if (adapter.slates[state.slateKey]) return state.slateKey;
+    return typeof adapter.defaultSlateKey === 'function' ? adapter.defaultSlateKey() : state.slateKey;
+  }
 
   function initInstall() {
     const installBtn = $('#installButton');
@@ -4251,6 +4335,10 @@
     const beneficiary = beneficiaryFor(row);
     const fair = fairValue(row);
     const projection = projectionValue(row);
+    /** Market label: adapter hook first, NFL verbatim fallback. */
+    const detailMarketLabel = (market) => (adapter.detail && adapter.detail.marketLabel)
+      ? adapter.detail.marketLabel(market)
+      : (market === 'receptions' ? 'Receptions' : 'Receiving yards');
 
     const sideBadge = evaluation.state !== 'none'
       ? `<span class="detail-side-badge ${evaluation.side === 'UNDER' ? 'badge-under' : 'badge-over'}">${evaluation.side}</span>`
@@ -4263,7 +4351,7 @@
         ${sideBadge}
         ${beneficiary ? ` <span class="surge-tag">${SVG_ICONS.surge} ROLE SURGE</span>` : ''}
       </div>`;
-    $('#detailMeta').textContent = `${row.position} · ${row.team} ${row.is_home ? 'vs' : '@'} ${row.opponent_team} · ${state.filters.market === 'receptions' ? 'Receptions' : 'Receiving yards'}`;
+    $('#detailMeta').textContent = `${row.position} · ${row.team} ${row.is_home ? 'vs' : '@'} ${row.opponent_team} · ${detailMarketLabel(state.filters.market)}`;
     $('#detailContent').innerHTML = detailMarkup(row, evaluation, injury, beneficiary, fair, projection);
 
     // 1. What-If Scenario Slider
@@ -4561,7 +4649,7 @@
       </div>
     ` : '';
 
-    const scenarioSection = `
+    const scenarioSection = adapter.detail && adapter.detail.scenarioCapable === false ? '' : `
       <div class="scenario-box">
         <div class="scenario-header">
           <h4><svg class="prop-icon icon-surge" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" style="width:14px;height:14px;"><path d="M1.5 8h3l2-5 3.5 10 2.5-6 1.5 2.5 2-.5"/></svg> "What-If" Target Share Simulator</h4>
@@ -4586,16 +4674,26 @@
     const game = state.games.find((item) => item.game_id === row.game_id);
     const isDome = row.is_dome || game?.roof === 'dome';
     const wind = game?.wind ?? row.wind_speed ?? row.wind;
-    const envTag = isDome ? 'ENV: DOME' : (Number.isFinite(wind) && wind > 0) ? `ENV: ${wind} MPH WIND` : 'ENV: MILD / OUTDOOR';
-    const weatherDesc = isDome ? 'Indoor Dome (Controlled Conditions)' : (Number.isFinite(wind) && wind > 0) ? `${wind} mph wind (${game?.home_team ? `${game.home_team} stadium` : 'Open'})` : 'Controlled / mild conditions';
+    // Venue environment: adapters may own it (NBA arenas are fixed indoor
+    // venues); NFL keeps the exact pre-adapter dome/wind copy.
+    const envFallbackTag = isDome ? 'ENV: DOME' : (Number.isFinite(wind) && wind > 0) ? `ENV: ${wind} MPH WIND` : 'ENV: MILD / OUTDOOR';
+    const envFallbackDesc = isDome ? 'Indoor Dome (Controlled Conditions)' : (Number.isFinite(wind) && wind > 0) ? `${wind} mph wind (${game?.home_team ? `${game.home_team} stadium` : 'Open'})` : 'Controlled / mild conditions';
+    const env = (adapter.detail && adapter.detail.environment)
+      ? adapter.detail.environment(row, game)
+      : { tag: envFallbackTag, desc: envFallbackDesc };
+    const envTag = env.tag;
+    const weatherDesc = env.desc;
 
     const isReceptions = state.filters.market === 'receptions';
     const isAnytimeTd = state.filters.market === 'anytime_td';
-    const modelSpecTag = isReceptions ? 'MODEL SPEC: INTEGER POISSON' : isAnytimeTd ? 'MODEL SPEC: ZERO-INFLATED POISSON' : 'MODEL SPEC: CONTINUOUS MEDIAN';
-    const distributionDesc = isReceptions ? 'Discrete Poisson (Half-step)' : isAnytimeTd ? 'Poisson Red Zone Model' : 'Calibrated Continuous Log-Normal';
+    // Detail-model copy: adapters with a `detail` hook own their wording;
+    // NFL (no hook) keeps the exact pre-adapter strings.
+    const hasDetailHooks = Boolean(adapter.detail);
+    const modelSpecTag = hasDetailHooks ? adapter.detail.modelSpec(state.filters.market) : isReceptions ? 'MODEL SPEC: INTEGER POISSON' : isAnytimeTd ? 'MODEL SPEC: ZERO-INFLATED POISSON' : 'MODEL SPEC: CONTINUOUS MEDIAN';
+    const distributionDesc = hasDetailHooks ? adapter.detail.distributionDesc(state.filters.market) : isReceptions ? 'Discrete Poisson (Half-step)' : isAnytimeTd ? 'Poisson Red Zone Model' : 'Calibrated Continuous Log-Normal';
     const fairPVal = isReceptions ? pct(row.p_rec_at_fair_line) : '50.0%';
-    const sampleDesc = `${num(row.games_prior, 16)} games prior · ${row.season || '2026'}`;
-    const scopeNote = isReceptions
+    const sampleDesc = hasDetailHooks ? adapter.detail.sampleNote(row, state.filters.market) : `${num(row.games_prior, 16)} games prior · ${row.season || '2026'}`;
+    const scopeNote = hasDetailHooks ? adapter.detail.scopeNote(state.filters.market) : isReceptions
       ? `Receptions use integer outcomes and half-step lines. Fair line calibrated at P(over) = ${pct(row.p_rec_at_fair_line)}.`
       : 'Receiving-yards fair line is the calibrated continuous median, where P(over) is exactly 50.0%.';
 

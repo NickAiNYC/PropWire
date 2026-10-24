@@ -57,8 +57,17 @@
       return [...adapters.keys()];
     },
 
-    /** Boot sport used before the user picks one (remembered per device). */
+    /**
+     * Boot sport: the per-device preference written by the sport switcher
+     * (propwire_active_sport), validated against registered adapters.
+     * Anything invalid/unknown/tampered falls back to NFL. Called by app.js
+     * after all adapters have registered, so the validation is meaningful.
+     */
     defaultId() {
+      try {
+        const stored = localStorage.getItem('propwire_active_sport');
+        if (stored && adapters.has(stored)) return stored;
+      } catch (_) { /* storage unavailable */ }
       return 'nfl';
     },
   };
