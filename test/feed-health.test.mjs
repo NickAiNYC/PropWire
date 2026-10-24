@@ -116,6 +116,15 @@ test('stale odds breach the per-sport threshold and downgrade the banner to warn
   assert.ok(banner.className.includes('warn'));
 });
 
+test('unverified NFL feed never renders a LIVE or VERIFIED status label', async () => {
+  const { sandbox } = buildSandbox();
+  attachLocalDom(sandbox);
+  const P = loadApp(sandbox);
+  await P.loadSlate('2026_w7');
+  assert.equal(P.state.odds.feed_status, 'UNVERIFIED_MANUAL_ONLY');
+  assert.equal(P.feedVerificationLabel(), 'UNVERIFIED');
+});
+
 test('stale news watcher mirrors the dead-man switch semantics (NFL live)', async () => {
   const { sandbox } = buildSandbox();
   const els = attachLocalDom(sandbox);

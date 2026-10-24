@@ -497,9 +497,33 @@
     }
     const mobileStatusText = $('#mobileStatusText');
     if (mobileStatusText) {
-      mobileStatusText.textContent = `Live · ${state.nextPollSeconds}s`;
+      mobileStatusText.textContent = `${feedVerificationLabel()} · ${state.nextPollSeconds}s`;
       mobileStatusText.style.color = '';
     }
+  }
+
+  function feedVerificationLabel(feed = state.odds) {
+    const status = String((feed && feed.feed_status) || '').toUpperCase();
+    const verifiedQuotes = Number(feed && feed.verified_quotes_count) || 0;
+    if (status === 'FIXTURE' || adapter.fixturesOnly === true) return 'FIXTURE';
+    if (verifiedQuotes > 0 && !status.includes('UNVERIFIED')) return 'VERIFIED';
+    return 'UNVERIFIED';
+  }
+
+  function updateFeedVerificationUI() {
+    const label = feedVerificationLabel();
+    const selector = $('#slateSelector');
+    const activeOption = selector && selector.querySelector
+      ? selector.querySelector(`option[value="${state.slateKey}"]`)
+      : null;
+    if (activeOption && !SLATES[state.slateKey]?.historical) {
+      const slateLabel = `W${SLATES[state.slateKey].week}`;
+      activeOption.textContent = `${slateLabel} ${label[0]}${label.slice(1).toLowerCase()}`;
+    }
+    const statusPill = $('#mobileStatusPill');
+    if (statusPill) statusPill.title = `${label} odds feed · Tap for telemetry`;
+    const mobileStatusText = $('#mobileStatusText');
+    if (mobileStatusText) mobileStatusText.textContent = label;
   }
 
   async function triggerOddsPoll(isAuto = false) {
@@ -1660,6 +1684,7 @@
       oddsUpdatedAt: state.odds.updated_at || null,
       newsLastPolledAt: state.newsWatcherState.last_polled_at || null
     };
+    updateFeedVerificationUI();
 
     // Build open snapshots map & price trajectory history
     state.openSnapshots = {};
