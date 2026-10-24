@@ -1,38 +1,98 @@
 (() => {
   'use strict';
 
-  const MODEL_ALPHA = 0.1097;
-  const MODEL_K = 1.555;
-  const SLATES = {
-    '2026_w7': {
-      season: 2026,
-      week: 7,
-      state: 'Upcoming slate · Oct 22–26',
-      slate: 'slate_2026_w7.json',
-      games: 'games_2026_w7.json',
-      picks: 'current_picks_w7.json',
-      injuries: 'injuries_2026_w7.json',
-      odds: 'live_odds_feed.json',
-      snapshots: 'snapshots_2026_w7.json',
-      historical: false
-    },
-    '2026_w1': {
-      season: 2026,
-      week: 1,
-      state: 'Historical audit · Sept 10–14',
-      slate: 'slate_2026_w1.json',
-      games: 'games_2026_w1.json',
-      picks: 'current_picks_w1.json',
-      injuries: null,
-      odds: null,
-      snapshots: 'snapshots_2026_w1.json',
-      historical: true
+  // ── Sport adapter layer ────────────────────────────────────────────────────
+  // Boot sport is fixed to NFL in this phase; the user-facing switcher ships
+  // with the NBA adapter (phase 2). Every sport-specific branch below has
+  // been extracted into viewer/js/sports/nfl.js — app.js owns no sport logic.
+  if (!window.PropWireSports) {
+    throw new Error('PropWire: /js/sports/registry.js and a sport adapter must load before app.js');
+  }
+  const SPORT_ID = window.PropWireSports.defaultId();
+  const adapter = window.PropWireSports.require(SPORT_ID);
+
+  const SLATES = adapter.slates;
+  const MODEL_ALPHA = adapter.model.alpha;
+  const MODEL_K = adapter.model.k;
+
+  // ── Sport-namespaced storage + one-time legacy migration ──────────────────
+  // Policy: read legacy keys → write sport-namespaced copies → keep legacy
+  // keys untouched (30-day readability window) → log counts → show a one-time
+  // notice. Never delete legacy keys in the release that introduces these.
+  const MIGRATION_FLAG = 'propwire_migration_v2';
+  const STORE = adapter.storageKeys;
+
+  function migrateLegacyStorage() {
+    const counts = {};
+    try {
+      const done = JSON.parse(localStorage.getItem(MIGRATION_FLAG) || 'null');
+      if (done && done.version === 2) return { counts, notice: done };
+      const L = adapter.legacyKeys;
+      if (localStorage.getItem(L.portfolioLedger) !== null && localStorage.getItem(STORE.ledger) === null) {
+        try {
+          const entries = JSON.parse(localStorage.getItem(L.portfolioLedger));
+          if (Array.isArray(entries)) {
+            const tagged = entries.map((e) => ({ sport: SPORT_ID, ...e }));
+            localStorage.setItem(STORE.ledger, JSON.stringify(tagged));
+            counts[STORE.ledger] = tagged.length;
+          }
+        } catch (_) {}
+      }
+      const copies = [[L.watchlist, STORE.watchlist], [L.sniperConfig, STORE.sniperConfig], [L.dismissedCorrelations, STORE.dismissedCorrelations]];
+      for (const [from, to] of copies) {
+        const raw = localStorage.getItem(from);
+        if (raw !== null && localStorage.getItem(to) === null) {
+          localStorage.setItem(to, raw);
+          counts[to] = 1;
+        }
+      }
+      const notice = { version: 2, at: new Date().toISOString(), migrated: Object.keys(counts).length > 0, counts, notice_shown: false };
+      localStorage.setItem(MIGRATION_FLAG, JSON.stringify(notice));
+      console.log('[PropWire] storage migration v2 complete:', counts);
+      return { counts, notice };
+    } catch (_) {
+      return { counts, notice: null };
     }
-  };
+  }
+  const migrationResult = migrateLegacyStorage();
+
+  /** One-time bottom-sheet notice after storage migration (spec item 6d). */
+  function showMigrationNoticeOnce() {
+    try {
+      const notice = JSON.parse(localStorage.getItem(MIGRATION_FLAG) || 'null');
+      if (!notice || !notice.migrated || notice.notice_shown) return;
+      const dialog = document.createElement('dialog');
+      dialog.className = 'migration-notice-sheet';
+      dialog.setAttribute('aria-label', 'Storage migration notice');
+      dialog.style.cssText = 'border:none; border-radius:16px 16px 0 0; padding:20px; max-width:420px; width:calc(100% - 24px); margin:auto auto 0; font-family:inherit;';
+      dialog.innerHTML = `
+        <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+          <span style="font-size:18px;">✓</span>
+          <strong style="font-size:14px;">We reorganized your saved props</strong>
+        </div>
+        <p style="margin:0 0 14px; font-size:13px; line-height:1.5; color:#94a3b8;">Your NFL watchlist and ledger are intact. Saved data now lives under per-sport storage so NBA and UFC get their own spaces.</p>
+        <div style="display:flex; gap:8px; justify-content:flex-end;">
+          <button type="button" data-migration-view style="padding:8px 14px; border-radius:8px; border:1px solid #334155; background:transparent; color:#e2e8f0; font-size:13px;">View ledger</button>
+          <button type="button" data-migration-ok style="padding:8px 14px; border-radius:8px; border:none; background:#a3e635; color:#0f172a; font-size:13px; font-weight:600;">Got it</button>
+        </div>`;
+      dialog.addEventListener('click', (event) => {
+        if (event.target.closest('[data-migration-ok]') || event.target === dialog) {
+          dialog.close();
+        } else if (event.target.closest('[data-migration-view]')) {
+          dialog.close();
+          openPortfolioDialog();
+        }
+      });
+      document.body.appendChild(dialog);
+      dialog.showModal();
+      notice.notice_shown = true;
+      localStorage.setItem(MIGRATION_FLAG, JSON.stringify(notice));
+    } catch (_) {}
+  }
 
   function loadPortfolio() {
     try {
-      const raw = localStorage.getItem('propwire_portfolio_ledger');
+      const raw = localStorage.getItem(STORE.ledger);
       return raw ? JSON.parse(raw) : [];
     } catch (_) {
       return [];
@@ -41,13 +101,13 @@
 
   function savePortfolio(portfolio) {
     try {
-      localStorage.setItem('propwire_portfolio_ledger', JSON.stringify(portfolio));
+      localStorage.setItem(STORE.ledger, JSON.stringify(portfolio));
     } catch (_) {}
   }
 
   function loadWatchlist() {
     try {
-      const raw = localStorage.getItem('propwire_watchlist');
+      const raw = localStorage.getItem(STORE.watchlist);
       return raw ? JSON.parse(raw) : [];
     } catch (_) {
       return [];
@@ -56,13 +116,13 @@
 
   function saveWatchlist(watchlist) {
     try {
-      localStorage.setItem('propwire_watchlist', JSON.stringify(watchlist));
+      localStorage.setItem(STORE.watchlist, JSON.stringify(watchlist));
     } catch (_) {}
   }
 
   function loadSniperConfig() {
     try {
-      const raw = localStorage.getItem('propwire_sniper_config');
+      const raw = localStorage.getItem(STORE.sniperConfig);
       return raw ? JSON.parse(raw) : {
         enabled: false,
         minEdge: 0.15,
@@ -89,7 +149,7 @@
 
   function saveSniperConfig(cfg) {
     try {
-      localStorage.setItem('propwire_sniper_config', JSON.stringify(cfg));
+      localStorage.setItem(STORE.sniperConfig, JSON.stringify(cfg));
     } catch (_) {}
   }
 
@@ -100,7 +160,7 @@
     picks: {},
     injuries: { injuries: [], impacted_beneficiaries: {} },
     odds: { quotes: [] },
-    filters: { search: '', market: 'receiving_yards', position: 'ALL', team: '', gameId: '', playMode: 'actionable', intent: 'all' },
+    filters: { search: '', market: adapter.defaultMarket, position: 'ALL', team: '', gameId: '', playMode: 'actionable', intent: 'all' },
     view: matchMedia('(max-width: 768px)').matches ? 'cards' : 'table',
     deferredInstall: null,
     selectedPlayerId: null,
@@ -112,7 +172,7 @@
     watchlist: loadWatchlist(),
     sniper: loadSniperConfig(),
     sniperCooldowns: {},
-    dismissedCorrelations: new Set(JSON.parse(localStorage.getItem('propwire_dismissed_correlations') || '[]')),
+    dismissedCorrelations: new Set(JSON.parse(localStorage.getItem(STORE.dismissedCorrelations) || '[]')),
     tickFlashes: {},
     priceHistory: {},
     openSnapshots: {},
@@ -138,48 +198,15 @@
   const bookShort = (book) => ({ DraftKings: 'DK', FanDuel: 'FD', BetMGM: 'MGM', Caesars: 'CZR', Pinnacle: 'PIN' })[book] || book || 'Book';
 
   // Map PropWire team codes to official ESPN CDN slugs + subtle brand ring tints
-  const NFL_LOGO_MAP = {
-    ARI: { slug: 'ari', bg: 'rgba(151,35,63,0.18)', border: 'rgba(151,35,63,0.45)' },
-    ATL: { slug: 'atl', bg: 'rgba(167,25,48,0.18)', border: 'rgba(167,25,48,0.45)' },
-    BAL: { slug: 'bal', bg: 'rgba(36,23,115,0.25)', border: 'rgba(158,124,12,0.45)' },
-    BUF: { slug: 'buf', bg: 'rgba(0,51,141,0.25)', border: 'rgba(198,12,48,0.45)' },
-    CAR: { slug: 'car', bg: 'rgba(0,133,202,0.18)', border: 'rgba(0,133,202,0.45)' },
-    CHI: { slug: 'chi', bg: 'rgba(11,22,42,0.45)', border: 'rgba(200,56,3,0.50)' },
-    CIN: { slug: 'cin', bg: 'rgba(251,79,20,0.18)', border: 'rgba(251,79,20,0.45)' },
-    CLE: { slug: 'cle', bg: 'rgba(255,60,0,0.18)', border: 'rgba(255,60,0,0.45)' },
-    DAL: { slug: 'dal', bg: 'rgba(134,147,151,0.20)', border: 'rgba(134,147,151,0.50)' },
-    DEN: { slug: 'den', bg: 'rgba(251,79,20,0.18)', border: 'rgba(0,34,68,0.55)' },
-    DET: { slug: 'det', bg: 'rgba(0,118,182,0.22)', border: 'rgba(176,183,188,0.45)' },
-    GB:  { slug: 'gb',  bg: 'rgba(24,48,40,0.40)', border: 'rgba(255,184,28,0.45)' },
-    HOU: { slug: 'hou', bg: 'rgba(3,32,47,0.40)', border: 'rgba(167,25,48,0.45)' },
-    IND: { slug: 'ind', bg: 'rgba(0,44,95,0.30)', border: 'rgba(162,170,173,0.45)' },
-    KC:  { slug: 'kc',  bg: 'rgba(227,24,55,0.18)', border: 'rgba(255,184,28,0.45)' },
-    LA:  { slug: 'lar', bg: 'rgba(0,53,148,0.25)', border: 'rgba(255,163,0,0.45)' },
-    LAR: { slug: 'lar', bg: 'rgba(0,53,148,0.25)', border: 'rgba(255,163,0,0.45)' },
-    LAC: { slug: 'lac', bg: 'rgba(0,128,198,0.25)', border: 'rgba(255,194,14,0.45)' },
-    LV:  { slug: 'lv',  bg: 'rgba(165,172,175,0.18)', border: 'rgba(165,172,175,0.45)' },
-    MIA: { slug: 'mia', bg: 'rgba(0,142,151,0.22)', border: 'rgba(252,76,2,0.45)' },
-    MIN: { slug: 'min', bg: 'rgba(79,38,131,0.26)', border: 'rgba(255,198,47,0.45)' },
-    NE:  { slug: 'ne',  bg: 'rgba(0,34,68,0.35)', border: 'rgba(198,12,48,0.45)' },
-    NO:  { slug: 'no',  bg: 'rgba(211,188,141,0.18)', border: 'rgba(211,188,141,0.50)' },
-    NYG: { slug: 'nyg', bg: 'rgba(1,35,82,0.30)', border: 'rgba(163,13,45,0.45)' },
-    NYJ: { slug: 'nyj', bg: 'rgba(18,87,64,0.30)', border: 'rgba(18,87,64,0.55)' },
-    PHI: { slug: 'phi', bg: 'rgba(0,76,84,0.30)', border: 'rgba(165,172,175,0.45)' },
-    PIT: { slug: 'pit', bg: 'rgba(255,182,18,0.18)', border: 'rgba(255,182,18,0.50)' },
-    SEA: { slug: 'sea', bg: 'rgba(0,34,68,0.35)', border: 'rgba(105,190,40,0.50)' },
-    SF:  { slug: 'sf',  bg: 'rgba(170,0,0,0.22)', border: 'rgba(179,153,93,0.50)' },
-    TB:  { slug: 'tb',  bg: 'rgba(213,10,10,0.22)', border: 'rgba(177,186,191,0.45)' },
-    TEN: { slug: 'ten', bg: 'rgba(75,146,219,0.22)', border: 'rgba(75,146,219,0.50)' },
-    WAS: { slug: 'wsh', bg: 'rgba(90,20,20,0.30)', border: 'rgba(255,182,18,0.45)' },
-    WSH: { slug: 'wsh', bg: 'rgba(90,20,20,0.30)', border: 'rgba(255,182,18,0.45)' }
-  };
+  // (NFL crest metadata lives on the adapter; other sports bring their own).
+  const NFL_LOGO_MAP = adapter.logo.map;
 
   function teamLogoUrl(team) {
     if (!team) return '';
     const code = String(team).toUpperCase();
     const meta = NFL_LOGO_MAP[code];
     const slug = meta ? meta.slug : team.toLowerCase();
-    return `https://a.espncdn.com/i/teamlogos/nfl/500/${slug}.png`;
+    return `${adapter.logo.espnCdnBase}${slug}.png`;
   }
 
   function teamCrest(team, size = 'md') {
@@ -191,7 +218,7 @@
       border: 'rgba(255,255,255,0.18)'
     };
     const sizeCls = size === 'sm' ? 'crest-sm' : size === 'lg' ? 'crest-lg' : 'crest-md';
-    return `<div class="team-crest ${sizeCls}" style="background-color:${meta.bg}; border-color:${meta.border};" title="${esc(code)}"><img src="https://a.espncdn.com/i/teamlogos/nfl/500/${meta.slug}.png" alt="${esc(code)}" loading="lazy" class="crest-img" onerror="this.style.display='none'"></div>`;
+    return `<div class="team-crest ${sizeCls}" style="background-color:${meta.bg}; border-color:${meta.border};" title="${esc(code)}"><img src="${adapter.logo.espnCdnBase}${meta.slug}.png" alt="${esc(code)}" loading="lazy" class="crest-img" onerror="this.style.display='none'"></div>`;
   }
 
   const SVG_ICONS = {
@@ -211,62 +238,55 @@
     target: '<svg class="prop-icon icon-target" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="8" r="6"/><circle cx="8" cy="8" r="2"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2"/></svg>'
   };
 
-  function keyDriverTag(row, beneficiary) {
-    if (state.filters.market === 'anytime_td') {
-      const rzShare = Math.min(0.48, Math.max(0.12, (num(row.f_tgt_share || row.target_share) * 1.5)));
-      const ezTargets = (num(row.c_targets, 4.0) * 0.18).toFixed(1);
-      if (rzShare >= 0.28) {
-        return `<span class="driver-badge surge" title="Red Zone Target Share">${SVG_ICONS.target} RZ Share (${pct(rzShare, 0)})</span>`;
-      }
-      return `<span class="driver-badge alpha" title="End Zone Targets">${SVG_ICONS.target} EZ Targets (${ezTargets}/gm)</span>`;
-    }
-    if (beneficiary) {
-      return `<span class="driver-badge surge" title="Role surge catalyst: ${esc(beneficiary.catalyst_injury || 'Vacancy')}">${SVG_ICONS.surge} Surge (+${num(beneficiary.added_targets).toFixed(1)} tgt)</span>`;
-    }
-    const share = num(row.f_tgt_share || row.target_share);
-    const ayShare = num(row.f_ay_share || row.air_yards_share);
-    const adot = num(row.f_adot || row.adot);
-    const tgts = num(row.c_targets);
+  // Lend viewer helpers to adapter hooks (adapters are separate files with
+  // no closure access to app.js utilities).
+  adapter.bindContext({ num, pct, esc, SVG_ICONS });
 
-    if (share >= 0.25) {
-      return `<span class="driver-badge alpha" title="Target share alpha: ${pct(share)}">${SVG_ICONS.alpha} Alpha (${pct(share, 0)})</span>`;
+  /** Current market definition from the active sport adapter. */
+  const marketDef = (id = state.filters.market) => adapter.markets[id] || adapter.markets[adapter.defaultMarket];
+
+  /**
+   * Circuit breaker parameters for one market: config-first
+   * (viewer/circuit_breaker_config.json, fetched at slate load), adapter
+   * fallback on fetch failure. NEVER copy NFL values to another sport —
+   * uncalibrated sports carry "calibrated": false in their own block.
+   */
+  function breakerFor(marketId) {
+    const mdef = marketDef(marketId);
+    const cfg = state.breakerConfig;
+    const sportCfg = cfg && cfg.sports ? cfg.sports[SPORT_ID] : null;
+    if (sportCfg) {
+      const mk = (sportCfg.markets && sportCfg.markets[marketId]) || {};
+      const th = sportCfg.thresholds || {};
+      return {
+        driftHurdle: Number.isFinite(Number(mk.drift_hurdle)) ? Number(mk.drift_hurdle) : mdef.breaker.driftHurdle,
+        pctHurdle: Number.isFinite(Number(th.drift_pct_hurdle)) ? Number(th.drift_pct_hurdle) : adapter.breakerFallback.drift_pct_hurdle,
+        beneficiaryMax: Number.isFinite(Number(mk.beneficiary_max_drift)) ? Number(mk.beneficiary_max_drift) : mdef.breaker.beneficiaryMax,
+        highEdge: Number.isFinite(Number(th.high_edge_caution_hurdle)) ? Number(th.high_edge_caution_hurdle) : adapter.breakerFallback.high_edge_caution_hurdle,
+        cooldownMinutes: Number.isFinite(Number(th.cooldown_minutes)) ? Number(th.cooldown_minutes) : adapter.breakerFallback.cooldown_minutes,
+        calibrated: sportCfg.calibrated !== false,
+        configVersion: cfg.config_version || '1.1.0',
+        source: 'config'
+      };
     }
-    if (ayShare >= 0.35) {
-      return `<span class="driver-badge air" title="Air yards share: ${pct(ayShare)}">${SVG_ICONS.air} Air Lead (${pct(ayShare, 0)})</span>`;
-    }
-    if (adot >= 12.5) {
-      return `<span class="driver-badge adot" title="Average depth of target: ${adot.toFixed(1)} yds">${SVG_ICONS.adot} Deep (${adot.toFixed(1)} aDOT)</span>`;
-    }
-    if (tgts >= 6.5) {
-      return `<span class="driver-badge volume" title="Target volume: ${tgts.toFixed(1)} tgt/gm">${SVG_ICONS.volume} Volume (${tgts.toFixed(1)} tgt)</span>`;
-    }
-    if (share >= 0.16) {
-      return `<span class="driver-badge starter" title="Starting share: ${pct(share)}">${SVG_ICONS.starter} Starter (${pct(share, 0)})</span>`;
-    }
-    return `<span class="driver-badge depth" title="Rotational depth target">${SVG_ICONS.depth} Depth</span>`;
+    return {
+      driftHurdle: mdef.breaker.driftHurdle,
+      pctHurdle: adapter.breakerFallback.drift_pct_hurdle,
+      beneficiaryMax: mdef.breaker.beneficiaryMax,
+      highEdge: adapter.breakerFallback.high_edge_caution_hurdle,
+      cooldownMinutes: adapter.breakerFallback.cooldown_minutes,
+      calibrated: adapter.breakerFallback.calibrated,
+      configVersion: '1.1.0',
+      source: 'adapter-fallback'
+    };
+  }
+
+  function keyDriverTag(row, beneficiary) {
+    return adapter.driverTag(row, beneficiary, state.filters.market);
   }
 
   function distributionRange(row) {
-    if (state.filters.market === 'anytime_td') {
-      const share = num(row.f_tgt_share || row.target_share, 0.15);
-      const prob = Math.min(0.65, Math.max(0.12, share * 1.8));
-      return { low: 0, high: 1, fair: prob, proj: prob, isTd: true, prob };
-    }
-    const isRec = state.filters.market === 'receptions';
-    if (isRec) {
-      const mu = num(row.mu_rec || row.proj_rec || 3.0);
-      const low = Math.max(0, Math.floor(mu * 0.55));
-      const high = Math.max(low + 1, Math.ceil(mu * 1.55 + 0.5));
-      const fair = fairValue(row);
-      const proj = projectionValue(row);
-      return { low, high, fair, proj, isRec: true };
-    } else {
-      const fair = num(row.fair_line_yards || row.proj_yards || 40.0);
-      const proj = num(row.proj_yards || 40.0);
-      const low = Math.max(0, Math.round(fair * 0.58));
-      const high = Math.round(proj * 1.48);
-      return { low, high, fair, proj, isRec: false };
-    }
+    return marketDef().dist(row);
   }
 
   function propBulletGraphSvg(dist, evaluation, side = 'OVER') {
@@ -337,32 +357,15 @@
   }
 
   function predictionInterval(row) {
-    if (state.filters.market === 'anytime_td') {
-      const share = num(row.f_tgt_share || row.target_share, 0.15);
-      const prob = Math.min(0.65, Math.max(0.12, share * 1.8));
-      return `Implied P(TD): ${pct(prob, 0)}`;
-    }
-    const isRec = state.filters.market === 'receptions';
-    if (isRec) {
-      const mu = num(row.mu_rec || row.proj_rec || 3.0);
-      const low = Math.max(0, Math.floor(mu * 0.55));
-      const high = Math.max(low + 1, Math.ceil(mu * 1.55 + 0.5));
-      return `80% Range: ${low} – ${high} rec`;
-    } else {
-      const fair = num(row.fair_line_yards || row.proj_yards || 40.0);
-      const proj = num(row.proj_yards || 40.0);
-      const low = Math.max(0, Math.round(fair * 0.58));
-      const high = Math.round(proj * 1.48);
-      return `80% Range: ${low} – ${high} yds`;
-    }
+    return marketDef().prediction(row);
   }
 
   function naturalInsight(row, evaluation) {
     const fair = fairValue(row);
     const proj = projectionValue(row);
-    const unit = state.filters.market === 'receptions' ? 'rec' : 'yds';
+    const unit = marketDef().naturalInsightUnit;
     if (evaluation.state === 'none') {
-      if (proj >= (state.filters.market === 'receptions' ? 5.5 : 75.0)) {
+      if (proj >= marketDef().strongCeiling) {
         return `Model projects strong ceiling at ${proj.toFixed(1)} ${unit} (Waiting for sportsbook quotes).`;
       }
       return `Model baseline sits at ${fair.toFixed(1)} ${unit} (Waiting for sportsbook quotes).`;
@@ -610,6 +613,7 @@
     initInstall();
     initPollingTimer();
     initPullToRefresh();
+    showMigrationNoticeOnce();
     await loadSlate(state.slateKey);
     checkDeepLinks();
     if ('serviceWorker' in navigator && location.protocol !== 'file:') {
@@ -1519,7 +1523,7 @@
     if ($('#slateSelector')) $('#slateSelector').value = slateKey;
     renderSkeletons();
 
-    const [slate, games, picks, injuries, odds, clvReport, snapshots, newsState] = await Promise.all([
+    const [slate, games, picks, injuries, odds, clvReport, snapshots, newsState, breakerCfg] = await Promise.all([
       fetchJson(config.slate, []),
       fetchJson(config.games, []),
       fetchJson(config.picks, {}),
@@ -1527,7 +1531,8 @@
       config.odds ? fetchJson(config.odds, { quotes: [] }) : Promise.resolve({ quotes: [] }),
       fetchClvAuditReport(),
       config.snapshots ? fetchJson(config.snapshots, []) : Promise.resolve([]),
-      fetchJson('news_watcher_state.json', null)
+      fetchJson('news_watcher_state.json', null),
+      fetchJson('circuit_breaker_config.json', null)
     ]);
 
     state.slate = Array.isArray(slate) ? slate : [];
@@ -1536,6 +1541,7 @@
     state.injuries = injuries && typeof injuries === 'object' ? injuries : { injuries: [], impacted_beneficiaries: {} };
     state.odds = normalizeFeed(odds);
     state.newsWatcherState = newsState && typeof newsState === 'object' ? newsState : { teams_locked: {}, players_pending: {} };
+    state.breakerConfig = breakerCfg && typeof breakerCfg === 'object' && breakerCfg.sports ? breakerCfg : null;
 
     // Build open snapshots map & price trajectory history
     state.openSnapshots = {};
@@ -1624,10 +1630,10 @@
     if ($('#slateState')) $('#slateState').textContent = config.state;
     if ($('#tickerLine')) {
       $('#tickerLine').innerHTML = [
-        `${state.games.length} Games`,
-        `${teams.size} Teams`,
-        `${state.slate.length} Modeled player records`,
-        `${ingested} ingested (${verified} verified)`
+        adapter.labels.ticker.games(state.games.length),
+        adapter.labels.ticker.teams(teams.size),
+        adapter.labels.ticker.records(state.slate.length),
+        adapter.labels.ticker.ingestedTail(ingested, verified)
       ].map((item, index) => `${index ? '<span class="ticker-sep">|</span>' : ''}<span class="${item.includes('verified') && verified ? 'ticker-verified' : item.includes('verified') && ingested ? 'ticker-caution' : ''}">${esc(item)}</span>`).join('');
     }
 
@@ -1697,13 +1703,13 @@
 
       let quantImpact = '';
       if (item.vacated_targets) {
-        quantImpact = `Vacates ${item.vacated_targets} tgt/g (${item.vacated_air_yards ? `${item.vacated_air_yards} air yds/g` : 'high volume'})`;
+        quantImpact = adapter.labels.injuredQuantImpact.vacated(item);
       } else if (item.notes && item.notes.includes('0.50x Kelly Stake Cap')) {
         quantImpact = '0.50x Kelly Stake Cap · Elevated Variance';
       } else if (statusUpper.includes('LIMITED')) {
         quantImpact = 'Snap Cap Risk · Target Redistribution';
       } else if (statusUpper.includes('BYE')) {
-        quantImpact = 'Week 7 Bye (0 Slate Impact)';
+        quantImpact = adapter.labels.byeImpact(item);
       } else {
         quantImpact = 'Priced In · Baseline Adjusted';
       }
@@ -1959,13 +1965,13 @@
         if (!haystack.includes(search)) return false;
       }
       if (intent === 'surge') {
-        return Boolean(beneficiaryFor(row));
+        return adapter.intentFilters.surge(row, beneficiaryFor(row));
       }
       if (intent === 'volume') {
-        return num(row.c_targets) >= 6.5 || num(row.f_tgt_share || row.target_share) >= 0.22;
+        return adapter.intentFilters.volume(row);
       }
       if (intent === 'deep') {
-        return num(row.f_adot || row.adot) >= 12.0 || num(row.f_ay_share || row.air_yards_share) >= 0.30;
+        return adapter.intentFilters.deep(row);
       }
       return true;
     });
@@ -2094,7 +2100,7 @@
   }
 
   function updatePortfolioBadge(shouldPulse = false) {
-    const count = (state.portfolio || []).length;
+    const count = (state.portfolio || []).filter((b) => b.sport === SPORT_ID).length;
     const badge = $('#portfolioCountBadge');
     if (badge) {
       badge.textContent = count;
@@ -2237,12 +2243,12 @@
   /* ─── CORRELATED EXPOSURE RISK ENGINE ─── */
   function checkCorrelatedRisk(row, evaluation) {
     if (!row) return null;
-    const correlationKey = `${row.team}::${state.filters.market}`;
+    const correlationKey = adapter.correlationKey(row, state.filters.market);
     if (state.dismissedCorrelations && state.dismissedCorrelations.has(correlationKey)) {
       return null;
     }
 
-    const portfolio = state.portfolio || [];
+    const portfolio = (state.portfolio || []).filter((b) => b.sport === SPORT_ID);
     const competing = portfolio.find(
       (b) => b.team === row.team && b.player_id !== row.player_id && b.market === state.filters.market
     );
@@ -2295,7 +2301,9 @@
 
   function getPortfolioCorrelations(portfolio = state.portfolio || []) {
     const map = {};
-    (portfolio || []).forEach((bet) => {
+    (portfolio || []).filter((bet) => bet.sport === SPORT_ID).forEach((bet) => {
+      // Key format must stay `${team}::${market}` — dismissal lookups in the
+      // portfolio dialog and checkCorrelatedRisk use the same shape.
       const key = `${bet.team}::${bet.market}`;
       if (!map[key]) map[key] = [];
       map[key].push(bet);
@@ -2335,7 +2343,7 @@
     if (!state.dismissedCorrelations) state.dismissedCorrelations = new Set();
     state.dismissedCorrelations.add(key);
     try {
-      localStorage.setItem('propwire_dismissed_correlations', JSON.stringify([...state.dismissedCorrelations]));
+      localStorage.setItem(STORE.dismissedCorrelations, JSON.stringify([...state.dismissedCorrelations]));
     } catch (_) {}
     renderBoard();
     if ($('#portfolioDialog')?.open) openPortfolioDialog();
@@ -2669,9 +2677,10 @@
   }
 
   function evaluateSettledRow(row) {
-    const isYards = state.filters.market === 'receiving_yards';
-    const actual = isYards ? num(row.receiving_yards) : num(row.receptions);
-    const line = isYards ? num(row.fair_line_yards) : num(row.fair_line_rec);
+    const mdef = marketDef(state.filters.market);
+    const isYards = mdef.isYards;
+    const actual = mdef.settledActual(row);
+    const line = mdef.settledLine(row);
     const evaluation = evaluateRow(row);
     const side = evaluation?.side || 'OVER';
     const delta = side === 'UNDER' ? +(line - actual).toFixed(1) : +(actual - line).toFixed(1);
@@ -2690,7 +2699,7 @@
     const dist = distributionRange(row);
     const isTopEdge = evaluation.edge >= 0.15;
     const isWatched = (state.watchlist || []).includes(row.player_id);
-    const isLogged = (state.portfolio || []).some((b) => b.player_id === row.player_id && b.market === state.filters.market);
+    const isLogged = (state.portfolio || []).some((b) => b.sport === SPORT_ID && b.player_id === row.player_id && b.market === state.filters.market);
     const starBtn = `<button class="star-btn ${isWatched ? 'starred' : ''}" type="button" data-watch-player="${esc(row.player_id)}" title="${isWatched ? 'Remove from Watchlist' : 'Add to Watchlist'}" aria-label="Watch">${isWatched ? '★' : '☆'}</button>`;
     const logoImg = teamCrest(row.team, 'md');
     const bulletSvg = propBulletGraphSvg(dist, evaluation, evaluation.side || 'OVER');
@@ -2734,7 +2743,7 @@
     const evaluation = evaluateRow(row);
     const injury = injuryFor(row);
     const dist = distributionRange(row);
-    const isLogged = (state.portfolio || []).some((b) => b.player_id === row.player_id && b.market === state.filters.market);
+    const isLogged = (state.portfolio || []).some((b) => b.sport === SPORT_ID && b.player_id === row.player_id && b.market === state.filters.market);
     const isWatched = (state.watchlist || []).includes(row.player_id);
     const isTopEdge = evaluation.edge >= 0.15;
     const beneficiary = beneficiaryFor(row);
@@ -2883,24 +2892,15 @@
   }
 
   function fairValue(row) {
-    if (state.filters.market === 'anytime_td') {
-      const share = num(row.f_tgt_share || row.target_share, 0.15);
-      return Math.round(share * 2.2 * 10) / 10;
-    }
-    return num(state.filters.market === 'receptions' ? row.fair_line_rec : row.fair_line_yards);
+    return marketDef().fair(row);
   }
 
   function projectionValue(row) {
-    if (state.filters.market === 'anytime_td') {
-      const share = num(row.f_tgt_share || row.target_share, 0.15);
-      return Math.round(share * 2.4 * 10) / 10;
-    }
-    return num(state.filters.market === 'receptions' ? row.proj_rec : row.proj_yards);
+    return marketDef().projection(row);
   }
 
   function fairProbabilityText(row) {
-    if (state.filters.market === 'anytime_td') return 'Poisson Red Zone Model (Holdout)';
-    return state.filters.market === 'receptions' ? `P(over fair) ${pct(row.p_rec_at_fair_line)}` : 'P(over fair) 50.0%';
+    return marketDef().fairProbText(row);
   }
 
   function findQuote(row, market) {
@@ -2931,12 +2931,14 @@
     // do not trip the breaker.
     const quoteKey = `${row.player_id}::${state.filters.market}`;
     const openSnap = state.openSnapshots ? state.openSnapshots[quoteKey] : null;
-    const isYards = state.filters.market === 'receiving_yards';
+    const mdef = marketDef(state.filters.market);
+    const isYards = mdef.isYards;
     const openLine = openSnap && Number.isFinite(Number(openSnap.line)) ? Number(openSnap.line) : null;
     const curLine = num(quote.line);
 
     const beneficiary = beneficiaryFor(row);
     const playerInjury = injuryFor(row);
+    const breaker = breakerFor(state.filters.market);
 
     let volatilityHalt = false;
     let isExemptModeledMove = false;
@@ -2947,24 +2949,24 @@
       driftVal = +(curLine - openLine).toFixed(1);
       const absDrift = Math.abs(driftVal);
       const driftPct = absDrift / openLine;
-      const hurdle = isYards ? 5.0 : 1.0;
+      const hurdle = breaker.driftHurdle;
 
       // Check if move matches modeled injury redistribution
       const isModeledSurge = Boolean(beneficiary) && driftVal > 0;
       const isModeledAbsence = Boolean(playerInjury && (playerInjury.report_status === 'OUT' || playerInjury.report_status === 'IR')) && driftVal < 0;
 
       // Bound beneficiary surge to realistic model target absorption (max +8.5 yds / +2.0 rec)
-      const maxBeneficiaryDrift = isYards ? 8.5 : 2.0;
+      const maxBeneficiaryDrift = breaker.beneficiaryMax;
       const isOversteamedBeneficiary = isModeledSurge && driftVal > maxBeneficiaryDrift;
 
       if (isOversteamedBeneficiary) {
         volatilityHalt = true;
-        haltReason = `Beneficiary line surged ${driftVal > 0 ? '+' : ''}${driftVal} ${isYards ? 'yds' : 'rec'}, exceeding model absorption limit (+${maxBeneficiaryDrift}). Possible second-order news or book over-reaction.`;
+        haltReason = `Beneficiary line surged ${driftVal > 0 ? '+' : ''}${driftVal} ${mdef.breakerUnit}, exceeding model absorption limit (+${maxBeneficiaryDrift}). Possible second-order news or book over-reaction.`;
       } else if (isModeledSurge || isModeledAbsence) {
         isExemptModeledMove = true;
-      } else if (absDrift >= hurdle || driftPct >= 0.12) {
+      } else if (absDrift >= hurdle || driftPct >= breaker.pctHurdle) {
         volatilityHalt = true;
-        haltReason = `Line moved sharply (${driftVal > 0 ? '+' : ''}${driftVal} ${isYards ? 'yds' : 'rec'}, ${(driftPct * 100).toFixed(0)}% vs open). Model baseline may be stale — check breaking news before trading.`;
+        haltReason = `Line moved sharply (${driftVal > 0 ? '+' : ''}${driftVal} ${mdef.breakerUnit}, ${(driftPct * 100).toFixed(0)}% vs open). Model baseline may be stale — check breaking news before trading.`;
       }
     }
 
@@ -2975,16 +2977,34 @@
       haltReason = `Offense Locked: ${teamLock.reason || 'Breaking news pending on team'}. Trading halted pending human review.`;
     }
 
-    // High Edge Safeguard (15%+ on liquid books)
-    const highEdgeCaution = edge >= 0.15;
+    // High Edge Safeguard (hurdle from per-sport config; 15% on calibrated NFL)
+    const highEdgeCaution = edge >= breaker.highEdge;
     const highEdgeWarning = highEdgeCaution
       ? `Large edge (${(edge * 100).toFixed(1)}%). May reflect stale model baseline or unmodeled news — check status.`
       : '';
 
+    // Exemption audit trail (spec small-edit: every exemption must log the
+    // comparison between the model-implied move and the observed market move
+    // so the rule is auditable after the fact).
+    let exemptionAudit = null;
+    if (isExemptModeledMove) {
+      const modeledMove = beneficiary && Number.isFinite(Number(beneficiary.added_targets))
+        ? Number(beneficiary.added_targets)
+        : (playerInjury && Number.isFinite(Number(playerInjury.vacated_targets)) ? -Number(playerInjury.vacated_targets) : null);
+      exemptionAudit = {
+        observed_drift: driftVal,
+        modeled_move: modeledMove === null ? null : +modeledMove.toFixed(1),
+        delta_vs_model: modeledMove === null ? null : +(driftVal - modeledMove).toFixed(1),
+        rule: beneficiary ? 'exempt_modeled_beneficiaries' : 'exempt_modeled_injuries',
+        config_version: breaker.configVersion
+      };
+      console.debug('[PropWire] breaker exemption audit:', exemptionAudit);
+    }
+
     const roundedEdgePct = +(num(edge) * 100).toFixed(1);
     const roundedGatePct = activePolicy ? +(activePolicy.gate * 100).toFixed(1) : 0;
     const qualified = Boolean(activePolicy) && roundedEdgePct >= roundedGatePct && ev > 0;
-    const dataCheck = edge > 0.12 || volatilityHalt || highEdgeCaution;
+    const dataCheck = edge > breaker.pctHurdle || volatilityHalt || highEdgeCaution;
     const actionable = qState === 'verified' && qualified && !closed && !volatilityHalt;
 
     let stake = 0;
@@ -3009,6 +3029,7 @@
       haltReason,
       driftVal,
       isExemptModeledMove,
+      exemption_audit: exemptionAudit,
       highEdgeCaution,
       highEdgeWarning,
       closed,
@@ -3221,11 +3242,7 @@
   }
 
   function roleLabel(row) {
-    const share = num(row.f_tgt_share || row.target_share);
-    const targets = num(row.c_targets);
-    if (share >= 0.22 || targets >= 6.5) return `Featured ${row.position}`;
-    if (share >= 0.14 || targets >= 4.5) return `Starting ${row.position}`;
-    return `Rotational ${row.position}`;
+    return adapter.roleLabel(row);
   }
 
   function injuryFor(row) {
@@ -3351,7 +3368,7 @@
     const row = state.slate.find((item) => item.player_id === playerId);
     if (!row) return;
     const evaluation = evaluateRow(row);
-    const existingIndex = (state.portfolio || []).findIndex((b) => b.player_id === playerId && b.market === state.filters.market);
+    const existingIndex = (state.portfolio || []).findIndex((b) => b.sport === SPORT_ID && b.player_id === playerId && b.market === state.filters.market);
     if (existingIndex >= 0) {
       const removedEntry = state.portfolio.splice(existingIndex, 1)[0];
       savePortfolio(state.portfolio);
@@ -3370,15 +3387,16 @@
         }
       });
     } else {
-      const isYards = state.filters.market === 'receiving_yards';
+      const mdef = marketDef(state.filters.market);
       if (evaluation.volatilityHalt) {
-        const proceed = confirm(`⚠️ Volatility Warning: ${row.player_display_name}'s line moved sharply (${evaluation.driftVal > 0 ? '+' : ''}${evaluation.driftVal} ${isYards ? 'yds' : 'rec'} vs open).\n\nModel baseline may be stale due to unmodeled news/line steam.\n\nLog to your personal ledger anyway?`);
+        const proceed = confirm(`⚠️ Volatility Warning: ${row.player_display_name}'s line moved sharply (${evaluation.driftVal > 0 ? '+' : ''}${evaluation.driftVal} ${mdef.breakerUnit} vs open).\n\nModel baseline may be stale due to unmodeled news/line steam.\n\nLog to your personal ledger anyway?`);
         if (!proceed) return;
       }
       const ticketId = Math.random().toString(36).slice(2, 6).toUpperCase();
       const risk = checkCorrelatedRisk(row, evaluation);
       const entry = {
         id: `bet_${Date.now()}_${ticketId.toLowerCase()}`,
+        sport: SPORT_ID,
         ticket_id: ticketId,
         player_id: row.player_id,
         player_name: row.player_display_name,
@@ -3395,7 +3413,8 @@
         correlation_warning: risk ? risk.message : null,
         volatility_flag: Boolean(evaluation.volatilityHalt),
         volatility_reason: evaluation.volatilityHalt ? evaluation.haltReason : null,
-        config_version: "1.1.0",
+        exemption_audit: evaluation.exemption_audit || null,
+        config_version: (state.breakerConfig && state.breakerConfig.config_version) || "1.1.0",
         logged_at: new Date().toISOString()
       };
       if (!Array.isArray(state.portfolio)) state.portfolio = [];
@@ -3545,6 +3564,7 @@
 
           const entry = {
             id: item.id || `bet_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+            sport: item.sport || SPORT_ID,
             player_id: item.player_id || '',
             player_name: String(item.player_name),
             team: item.team || '',
@@ -3560,7 +3580,7 @@
             logged_at: item.logged_at || new Date().toISOString()
           };
 
-          const existingIdx = current.findIndex((b) => (b.id && b.id === entry.id) || (b.player_id && b.player_id === entry.player_id && b.market === entry.market && b.side === entry.side));
+          const existingIdx = current.findIndex((b) => (b.id && b.id === entry.id) || (b.player_id && b.player_id === entry.player_id && b.sport === entry.sport && b.market === entry.market && b.side === entry.side));
           if (existingIdx >= 0) {
             current[existingIdx] = { ...current[existingIdx], ...entry };
             updated++;
@@ -4174,7 +4194,7 @@
   }
 
   function executionTicketMarkup(row, evaluation, wagerDollars) {
-    const isLogged = (state.portfolio || []).some((b) => b.player_id === row.player_id && b.market === state.filters.market);
+    const isLogged = (state.portfolio || []).some((b) => b.sport === SPORT_ID && b.player_id === row.player_id && b.market === state.filters.market);
     const existingBet = (state.portfolio || []).find((b) => b.player_id === row.player_id && b.market === state.filters.market);
     const side = existingBet ? existingBet.side : (evaluation.side || 'OVER');
     const lineVal = existingBet ? existingBet.line : (evaluation.line || fairValue(row));
@@ -4450,7 +4470,7 @@
 
   function detailMarkup(row, evaluation, injury, beneficiary, fair, projection) {
     const isWatched = (state.watchlist || []).includes(row.player_id);
-    const isLogged = (state.portfolio || []).some((b) => b.player_id === row.player_id && b.market === state.filters.market);
+    const isLogged = (state.portfolio || []).some((b) => b.sport === SPORT_ID && b.player_id === row.player_id && b.market === state.filters.market);
     const watchButton = `<button class="star-modal-btn ${isWatched ? 'starred' : ''}" type="button" id="modalWatchlistBtn" data-watch-player="${esc(row.player_id)}">${isWatched ? '★ On Watchlist' : '☆ Add to Watchlist'}</button>`;
 
     const baseShare = num(row.f_tgt_share || row.target_share, 0.20);
