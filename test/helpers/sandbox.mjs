@@ -113,6 +113,7 @@ export function loadApp(sandbox) {
   const sources = [
     ['viewer/js/sports/registry.js', path.join(VIEWER, 'js', 'sports', 'registry.js')],
     ['viewer/js/sports/nfl.js', path.join(VIEWER, 'js', 'sports', 'nfl.js')],
+    ['viewer/js/sports/nba.js', path.join(VIEWER, 'js', 'sports', 'nba.js')],
   ];
   const source = fs.readFileSync(path.join(VIEWER, 'app.js'), 'utf8');
   const hook = `
