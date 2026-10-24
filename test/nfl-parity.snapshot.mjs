@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { canonical, normalizeTokens, buildSandbox, loadApp, VIEWER } from './helpers/sandbox.mjs';
+import { canonical, normalizeTokens, buildSandbox, loadApp, attachSyntheticQuote, VIEWER } from './helpers/sandbox.mjs';
 
 /**
  * NFL PARITY SNAPSHOT HARNESS — test/nfl-parity.snapshot.mjs
@@ -24,6 +24,10 @@ import { canonical, normalizeTokens, buildSandbox, loadApp, VIEWER } from './hel
  *   4. circuit_breaker_config.json is restructured per-sport; the snapshot
  *      compares SEMANTIC NFL VALUES only (structure asserted in
  *      test/circuit-breaker-config.test.mjs)
+ *   5. provenance hotfix: shipped demo feeds de-identified and no longer
+ *      attach to the slate; the harness attaches ONE synthetic quote
+ *      (attachSyntheticQuote) so render/modal/ledger goldens keep covering
+ *      those paths. Goldens re-captured via PW_UPDATE_SNAPSHOTS=1.
  */
 
 process.env.TZ = 'America/New_York';
@@ -175,6 +179,10 @@ async function captureAll() {
   // audit flagged — Phase 2 chrome was invisible to the golden captures.
   P.renderSportChrome();
   await P.loadSlate('2026_w7');
+  // Provenance hotfix: shipped demo quotes must never attach to the real
+  // slate, so the harness injects its own efficient-market quote (see
+  // sandbox.mjs attachSyntheticQuote) before modal/ledger/renders capture.
+  attachSyntheticQuote(P);
   P.state.filters.market = 'receiving_yards';
 
   const snaps = {};

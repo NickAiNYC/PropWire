@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { buildSandbox, loadApp } from './helpers/sandbox.mjs';
+import { buildSandbox, loadApp, attachSyntheticQuote } from './helpers/sandbox.mjs';
 
 /**
  * localStorage migration tests (spec item 6) — simulate pre-migration state
@@ -94,6 +94,9 @@ test('migration: entries created post-migration are sport-tagged on write', asyn
   const { sandbox, lsStore } = buildSandbox();
   const P = loadApp(sandbox);
   await P.loadSlate('2026_w7');
+  // Shipped demo quotes intentionally fail slate matching (provenance hotfix);
+  // the harness attaches its own synthetic quote so logBet has real input.
+  attachSyntheticQuote(P);
   P.state.filters.market = 'receiving_yards';
   P.state.portfolio = [];
   P.logBet(P.state.odds.quotes.find((q) => q.market === 'receiving_yards' && q.player_id).player_id);

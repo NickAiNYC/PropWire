@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { buildSandbox, loadApp } from './helpers/sandbox.mjs';
+import { buildSandbox, loadApp, attachSyntheticQuote } from './helpers/sandbox.mjs';
 
 /**
  * UNCALIBRATED BADGE (audit H9) — spec item 5 requires a VISIBLE uncalibrated
@@ -17,6 +17,10 @@ async function renderedRows(seed = {}) {
   const { sandbox, registry } = buildSandbox({ seedLocalStorage: seed });
   const P = loadApp(sandbox);
   await P.loadSlate(P.defaultBootSlate());
+  // Shipped demo quotes intentionally fail slate matching (provenance hotfix);
+  // NFL render paths need the harness-only attached quote. NBA fixture feeds
+  // still attach natively, so they are left untouched.
+  if ((P.SPORT_ID || 'nfl') === 'nfl') attachSyntheticQuote(P);
   P.setView('table');
   P.renderAll();
   const tableHtml = registry.get('#slateRows')?.innerHTML || '';
