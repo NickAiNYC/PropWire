@@ -192,6 +192,10 @@
   } catch (_) {}
 
   const $ = (selector) => document.querySelector(selector);
+  // Parity-proof DOM access for switcher/chrome elements: the snapshot sandbox
+  // does not implement getElementById, so this helper degrades to null there —
+  // provably keeping Phase 2 chrome outside the NFL golden snapshots.
+  const elById = (id) => (typeof document.getElementById === 'function' ? document.getElementById(id) : null);
   const $$ = (selector) => [...document.querySelectorAll(selector)];
   const finite = (value) => Number.isFinite(Number(value));
   const num = (value, fallback = 0) => finite(value) ? Number(value) : fallback;
@@ -1474,7 +1478,7 @@
   }
 
   function renderSportChrome() {
-    const switcher = document.getElementById('sportSwitcher');
+    const switcher = elById('sportSwitcher');
     if (switcher) {
       switcher.innerHTML = sportSwitcherItems().map((item) => `
         <button type="button" class="sport-switch-btn${item.active ? ' active' : ''}" role="radio"
@@ -1484,7 +1488,7 @@
         if (btn) switchToSport(btn.dataset.sport);
       });
     }
-    const marketGroup = document.getElementById('marketChipGroup');
+    const marketGroup = elById('marketChipGroup');
     if (marketGroup) {
       marketGroup.innerHTML = adapter.marketOrder.map((id) => {
         const m = adapter.markets[id];
@@ -1492,12 +1496,12 @@
         return `<button type="button" class="chip-pill${active ? ' active' : ''}" data-market="${esc(id)}" role="radio" aria-checked="${active}">${esc(m.chipLabel)}</button>`;
       }).join('');
     }
-    const posGroup = document.getElementById('positionChipGroup');
+    const posGroup = elById('positionChipGroup');
     if (posGroup) {
       posGroup.innerHTML = '<button type="button" class="chip-pill active" data-pos="ALL" role="radio" aria-checked="true">All</button>' +
         adapter.positions.map((p) => `<button type="button" class="chip-pill" data-pos="${esc(p)}" role="radio" aria-checked="false">${esc(p)}</button>`).join('');
     }
-    const signalGroup = document.getElementById('signalSheetChips');
+    const signalGroup = elById('signalSheetChips');
     if (signalGroup && adapter.intents) {
       const intents = [
         { id: 'all', label: 'All Signals' },
@@ -1508,11 +1512,11 @@
     }
     const slateOptions = (config) => Object.entries(config).map(([key, slate]) =>
       `<option value="${esc(key)}">${esc(slate.state || key)}</option>`).join('');
-    const slateSelector = document.getElementById('slateSelector');
+    const slateSelector = elById('slateSelector');
     if (slateSelector) slateSelector.innerHTML = slateOptions(adapter.slates);
-    const mobileSlateSelector = document.getElementById('mobileSlateSelector');
+    const mobileSlateSelector = elById('mobileSlateSelector');
     if (mobileSlateSelector) mobileSlateSelector.innerHTML = slateOptions(adapter.slates);
-    const topBtn = document.getElementById('modeTopBtn');
+    const topBtn = elById('modeTopBtn');
     if (topBtn) {
       topBtn.title = adapter.topPlays && adapter.topPlays.source === 'ev_ranked'
         ? 'Rank plays by expected value per unit staked'
@@ -2037,9 +2041,17 @@
       const isHistorical = Boolean(SLATES[state.slateKey]?.historical);
       if (!isHistorical && playMode === 'actionable' && state.filters.market !== 'anytime_td' && !findQuote(row, state.filters.market)) return false;
       if (playMode === 'top') {
-        const topList = (state.picks && state.picks.top_projections) || [];
-        const isTop = topList.some((p) => String(p.player).toLowerCase() === String(row.player_display_name).toLowerCase());
-        if (!isTop) return false;
+        if (adapter.topPlays && adapter.topPlays.source === 'ev_ranked') {
+          // EV-ranked Top Plays (adapter-driven, e.g. NBA): hide rows without
+          // a bookable quote or with incomplete projection inputs — partial
+          // math must never render as a ranked play (user-approved default).
+          if (!findQuote(row, state.filters.market)) return false;
+          if (typeof adapter.hasCompleteInputs === 'function' && !adapter.hasCompleteInputs(row, state.filters.market)) return false;
+        } else {
+          const topList = (state.picks && state.picks.top_projections) || [];
+          const isTop = topList.some((p) => String(p.player).toLowerCase() === String(row.player_display_name).toLowerCase());
+          if (!isTop) return false;
+        }
       }
       if (position !== 'ALL' && row.position !== position) return false;
       if (team && row.team !== team) return false;
@@ -2066,6 +2078,26 @@
         const qB = evaluateRow(b);
         return num(qB.edge) - num(qA.edge);
       });
+    } else if (state.filters.playMode === 'top' && adapter.topPlays && adapter.topPlays.source === 'ev_ranked') {
+      // Top Plays order (user-approved default): EV per unit desc, then
+      // probability edge desc, then receipt-verified first, then name.
+      rows.sort((a, b) => {
+        const qA = evaluateRow(a);
+        const qB = evaluateRow(b);
+        const evA = num(qA.ev);
+        const evB = num(qB.ev);
+        if (evB !== evA) return evB - evA;
+        const edgeA = num(qA.edge);
+        const edgeB = num(qB.edge);
+        if (edgeB !== edgeA) return edgeB - edgeA;
+        const verA = qA.state === 'verified' ? 1 : 0;
+        const verB = qB.state === 'verified' ? 1 : 0;
+        if (verB !== verA) return verB - verA;
+        return String(a.player_display_name).localeCompare(String(b.player_display_name));
+      });
+    } else if (typeof adapter.sortDefault === 'function') {
+      // Adapter-owned default order (NBA: active-market projection, desc).
+      rows.sort((a, b) => adapter.sortDefault(b, state.filters.market) - adapter.sortDefault(a, state.filters.market));
     } else {
       rows.sort((a, b) => num(b.proj_yards) - num(a.proj_yards));
     }
@@ -2079,6 +2111,9 @@
     const quotedCount = state.slate.filter((row) => Boolean(findQuote(row, state.filters.market))).length;
     if ($('#allCount')) $('#allCount').textContent = totalCount;
     if ($('#actionableCount')) $('#actionableCount').textContent = quotedCount;
+    // Top chip counter reflects the actual ranked list (top mode only).
+    const topCountEl = elById('topCount');
+    if (topCountEl && state.filters.playMode === 'top') topCountEl.textContent = String(rows.length);
 
     const chipActive = $('#mobileChipActive');
     const chipAll = $('#mobileChipAll');
