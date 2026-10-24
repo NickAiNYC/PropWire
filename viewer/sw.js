@@ -1,15 +1,15 @@
 // PropWire Service Worker (PWA Offline Support & Cache)
-const CACHE_NAME = 'propwire-v126-prod';
+const CACHE_NAME = 'propwire-v127-prod';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
   '/style.css',
   '/app.js',
-  '/style.css?v=2026_v126',
-  '/app.js?v=2026_v126',
-  '/js/sports/registry.js?v=2026_v126',
-  '/js/sports/nfl.js?v=2026_v126',
-  '/js/sports/nba.js?v=2026_v126',
+  '/style.css?v=2026_v127',
+  '/app.js?v=2026_v127',
+  '/js/sports/registry.js?v=2026_v127',
+  '/js/sports/nfl.js?v=2026_v127',
+  '/js/sports/nba.js?v=2026_v127',
   '/manifest.json',
   '/favicon.svg',
   '/icon-192.png',

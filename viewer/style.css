@@ -5078,10 +5078,14 @@ article[data-focused="true"] {
 }
 
 /* ─── MOBILE REDESIGN (Header Collapse, Settings Sheet, Chip Strip, Card Prominence) ─── */
+/* v127 fix: .pw-filterbar was removed from this base hide list. It hid the
+   ENTIRE desktop filter bar (search, MODE/MARKET/POS chips, Table/Grid
+   switcher — including its own pw-desktop-only children) on every viewport;
+   mobile re-enables the bar with display:flex !important at ≤768px, so mobile
+   behavior is unchanged. Regression introduced in 1327711. */
 .pw-mobile-status,
 .pw-mobile-menu-btn,
 .pw-slim-injury-banner,
-.pw-filterbar,
 .pw-mobile-only {
   display: none;
 }
@@ -6633,5 +6637,368 @@ article[data-focused="true"] {
     min-width: 0 !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   HEADER + SUB-CATEGORY UPGRADE — chrome v2 overlay (2026-10-25)
+   Appended last so it wins the cascade. Pure CSS: no DOM ids, no text
+   contract, no innerHTML changes (parity goldens capture innerHTML/
+   textContent of whitelisted ids only — pseudo-elements render but are
+   never captured). Rendered-only effects:
+     1. Chrome shell: glass blur + volt gradient hairline
+     2. Topbar: brand glow, live-dot ping ring, volt PRO CTA, focus rings
+     3. Filter sub-categories: eyebrow labels (data-eyebrow attributes are
+        container attributes — invisible to innerHTML captures)
+     4. Sport switcher: per-sport accent identity (NFL volt / NBA orange),
+        sticky-offset fix (bar previously stuck at top:0 and slid UNDER the
+        sticky chrome when scrolling)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── 1. Chrome shell: glass + volt hairline ──────────────────────────── */
+.pw-terminal-chrome {
+  background: linear-gradient(180deg,
+    rgba(41, 47, 59, 0.94) 0%,
+    rgba(31, 36, 46, 0.96) 55%,
+    rgba(25, 29, 38, 0.98) 100%) !important;
+  -webkit-backdrop-filter: blur(14px) saturate(1.35);
+  backdrop-filter: blur(14px) saturate(1.35);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.10) !important;
+}
+.pw-terminal-chrome::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 1px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(182, 243, 107, 0.50) 50%,
+    transparent 100%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+@media (max-width: 768px) {
+  .pw-topbar {
+    background: linear-gradient(180deg,
+      rgba(41, 47, 59, 0.90),
+      rgba(31, 36, 46, 0.93)) !important;
+  }
+  .pw-filterbar {
+    background: rgba(24, 28, 37, 0.88) !important;
+  }
+}
+
+/* ── 2. Topbar polish ────────────────────────────────────────────────── */
+.pw-brand-img {
+  transition: filter 0.2s ease;
+}
+.pw-brand:hover .pw-brand-img {
+  filter: drop-shadow(0 0 9px rgba(182, 243, 107, 0.50));
+}
+.pw-brand:focus-visible {
+  outline: 2px solid var(--baby-blue-ring);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* Live-dot soft ping ring (rendered-only, additive) */
+.pw-live-status-dot .polling-dot,
+.live-polling-widget .polling-dot {
+  position: relative;
+}
+.pw-live-status-dot .polling-dot::after,
+.live-polling-widget .polling-dot::after {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  border: 1px solid rgba(182, 243, 107, 0.70);
+  animation: pw-ping 2.4s cubic-bezier(0, 0, 0.2, 1) infinite;
+  pointer-events: none;
+}
+@keyframes pw-ping {
+  0%        { transform: scale(0.6); opacity: 0.9; }
+  75%, 100% { transform: scale(1.9); opacity: 0; }
+}
+
+/* Unified keyboard focus rings across all chrome controls */
+.pw-topbar :is(button, select):focus-visible,
+.pw-filterbar :is(button, input, select):focus-visible,
+.sport-switcher-bar button:focus-visible {
+  outline: 2px solid var(--baby-blue-ring);
+  outline-offset: 2px;
+}
+
+.pw-btn-nav {
+  border-radius: 6px;
+}
+.pw-btn-nav:hover {
+  border-color: rgba(182, 243, 107, 0.35);
+}
+.pw-btn-ledger:hover {
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.18);
+}
+
+/* PRO CTA: volt gradient + shine sweep (replaces inline-styled flat text) */
+#pricingBtn.pw-btn-upgrade {
+  position: relative;
+  overflow: hidden;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #CFF98D 0%, #A8EE58 55%, #8FDE3F 100%);
+  border: 1px solid rgba(182, 243, 107, 0.65);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.25), 0 2px 10px rgba(182, 243, 107, 0.16);
+  transition: box-shadow 0.18s ease, filter 0.18s ease, transform 0.1s ease;
+}
+#pricingBtn.pw-btn-upgrade .pro-text-desktop,
+#pricingBtn.pw-btn-upgrade .pro-text-mobile {
+  color: #0A1206;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  position: relative;
+  z-index: 1;
+}
+#pricingBtn.pw-btn-upgrade::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -80%;
+  width: 55%;
+  background: linear-gradient(105deg, transparent, rgba(255, 255, 255, 0.55), transparent);
+  transform: skewX(-18deg);
+  transition: left 0.45s ease;
+  pointer-events: none;
+}
+#pricingBtn.pw-btn-upgrade:hover::after {
+  left: 130%;
+}
+#pricingBtn.pw-btn-upgrade:hover {
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.25), 0 0 18px rgba(182, 243, 107, 0.38);
+  filter: saturate(1.08);
+}
+#pricingBtn.pw-btn-upgrade:active {
+  transform: translateY(1px);
+}
+
+.polling-timer,
+.pw-stepper-val,
+.chip-count-pill,
+.pw-receipt-badge {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Graceful topbar compression: JS-written status strings (poll timer,
+   receipt state) have no intrinsic cap, so the right cluster overflows the
+   viewport (documentElement.scrollWidth 2318 @1440 — measured) and the row
+   clips mid-control. Compressible pills shrink with ellipsis; action
+   buttons and the slate select never crush. */
+.pw-topbar-left {
+  flex-shrink: 1;
+}
+.pw-live-status-dot {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+.pw-topbar-left .pw-alert-pill {
+  flex-shrink: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+.pw-alert-preview {
+  min-width: 0;
+  max-width: 240px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pw-topbar-right .pw-btn-nav,
+.pw-topbar-right .pw-btn-icon,
+.pw-topbar-right .pw-stepper,
+.pw-topbar-right .pw-select {
+  flex-shrink: 0;
+}
+.pw-select-slate {
+  max-width: 218px;
+}
+.pw-injury-header-pill {
+  min-width: 0;
+  overflow: hidden;
+}
+.pw-injury-header-pill .slim-injury-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.live-polling-widget {
+  flex-shrink: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+.live-polling-widget .polling-timer {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.live-polling-widget .polling-refresh-btn {
+  flex-shrink: 0;
+}
+.pw-receipt-badge {
+  flex-shrink: 1;
+  min-width: 0;
+  max-width: 230px;
+  overflow: hidden;
+}
+.pw-receipt-badge #marketState {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Search focus glow (desktop; mobile keeps its existing !important rule) */
+.pw-search-input {
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+.pw-search-input:focus {
+  border-color: rgba(182, 243, 107, 0.55);
+  box-shadow: 0 0 0 3px rgba(182, 243, 107, 0.10), 0 0 16px rgba(182, 243, 107, 0.12);
+}
+
+/* ── 3. Filter sub-categories: eyebrow labels + chip polish ──────────── */
+.pw-filterbar {
+  background: rgba(28, 32, 41, 0.92);
+}
+.chip-segment-group[data-eyebrow]::before {
+  content: attr(data-eyebrow);
+  font: 700 9px/1 var(--mono);
+  letter-spacing: 1.1px;
+  color: #6b7789;
+  padding: 0 4px 0 7px;
+  align-self: center;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.chip-pill {
+  transition: color 0.12s ease, background 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease;
+}
+.chip-pill:not(.active):hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #e2e8f0;
+}
+.chip-pill.active {
+  box-shadow: 0 0 12px rgba(182, 243, 107, 0.22), 0 1px 3px rgba(0, 0, 0, 0.30) !important;
+}
+.pw-seg-btn.active {
+  box-shadow: 0 0 10px rgba(182, 243, 107, 0.18);
+}
+
+/* ── 4. Sport switcher: sub-category band upgrade ────────────────────── */
+.sport-switcher-bar {
+  position: sticky;
+  top: 89px;   /* flush under the desktop chrome (46 topbar + 1 border + 42 filterbar) */
+  z-index: 39; /* below the chrome, above page content */
+  padding: 8px 12px;
+  background: linear-gradient(180deg,
+    rgba(24, 28, 37, 0.92) 0%,
+    rgba(17, 21, 29, 0.96) 100%);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border-hairline);
+}
+.sport-switcher-bar::before {
+  content: 'SPORT';
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  font: 700 9.5px/1 var(--mono);
+  letter-spacing: 1.6px;
+  color: var(--faint);
+  pointer-events: none;
+}
+.sport-switcher {
+  padding: 4px;
+  gap: 3px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 10px 26px rgba(0, 0, 0, 0.38);
+}
+.sport-switch-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11.5px;
+  letter-spacing: 1px;
+  padding: 7px 18px;
+  min-height: 34px;
+  border-radius: 7px;
+}
+/* Sport identity diamond (rendered-only; per-sport accent when active) */
+.sport-switch-btn::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 2px;
+  transform: rotate(45deg);
+  background: transparent;
+  border: 1.5px solid #5b6472;
+  transition: background 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+  flex-shrink: 0;
+}
+.sport-switch-btn:hover::before {
+  border-color: #9aa5b5;
+}
+.sport-switch-btn.active {
+  background: linear-gradient(160deg, rgba(182, 243, 107, 0.24), rgba(143, 222, 63, 0.14));
+  border-color: rgba(182, 243, 107, 0.55);
+  color: #d9fca1;
+  text-shadow: 0 0 12px rgba(182, 243, 107, 0.35);
+}
+.sport-switch-btn.active::before {
+  background: var(--brand-green);
+  border-color: rgba(182, 243, 107, 0.80);
+  box-shadow: 0 0 8px rgba(182, 243, 107, 0.55);
+}
+.sport-switch-btn[data-sport="nba"].active {
+  background: linear-gradient(160deg, rgba(249, 115, 22, 0.26), rgba(194, 65, 12, 0.16));
+  border-color: rgba(251, 146, 60, 0.55);
+  color: #ffd1a6;
+  text-shadow: 0 0 12px rgba(249, 115, 22, 0.35);
+}
+.sport-switch-btn[data-sport="nba"].active::before {
+  background: #fb923c;
+  border-color: rgba(251, 146, 60, 0.80);
+  box-shadow: 0 0 8px rgba(249, 115, 22, 0.55);
+}
+
+@media (min-width: 769px) {
+  /* Desktop eyebrow label is hidden on narrow screens to save space */
+  .sport-switcher-bar::before {
+    display: block;
+  }
+}
+@media (max-width: 900px) {
+  .sport-switcher-bar::before {
+    display: none;
+  }
+}
+@media (max-width: 768px) {
+  /* Mobile chrome is a tall multi-row sticky block with a variable height —
+     a sticky switcher at any fixed offset slides underneath it. Scroll the
+     band away naturally instead (was: sticky top:0 overlapping the chrome). */
+  .sport-switcher-bar {
+    position: static;
+    padding: 7px 10px;
+  }
+  /* Re-assert the WCAG touch targets my base rule would otherwise override
+     (this block is later in source order than the Phase 2 media block). */
+  .sport-switch-btn {
+    flex: 1 1 0;
+    padding: 8px 12px;
+    min-height: 40px;
   }
 }
