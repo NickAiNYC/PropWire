@@ -6,7 +6,8 @@ Specification:
    - Supports multiple providers:
      * TheOddsApiProvider (live API when ODDS_API_KEY is configured)
      * FeedFileProvider (ingests from incoming JSON feed files / webhook payloads)
-     * EarlyMarketOpenersProvider (stages verified early openers from books like DraftKings, FanDuel, BetMGM, Pinnacle)
+     * EarlyMarketOpenersProvider (stages SYNTHETIC demonstration fixtures — no real
+     * book, player, or observation; see the class docstring for the fail-closed rules)
    - Captures: book, market, player, team, line, over_odds, under_odds, observed_at, quote_id, source.
 2. Matching & Normalization:
    - Robust fuzzy / canonical name and team matching against frozen slate.
@@ -42,7 +43,7 @@ import sys
 import uuid
 from abc import ABC, abstractmethod
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 import subprocess
 import threading
@@ -73,7 +74,7 @@ class PropQuote:
     quote_id: str
     book: str                      # e.g., "draftkings", "fanduel", "betmgm", "pinnacle"
     market: str                    # "receiving_yards" or "receptions"
-    player_raw_name: str           # e.g., "DeMario Douglas", "D. Douglas"
+    player_raw_name: str           # e.g., "Player A", "P. A"
     team: Optional[str]            # e.g., "NE"
     opponent: Optional[str]        # e.g., "CHI"
     line: float                    # e.g., 34.5
@@ -205,7 +206,7 @@ class NameNormalizer:
                 p_norm = cls.normalize(p.get("player_display_name", ""))
                 if p_norm == norm_query:
                     return p
-                # Check last name + first initial (e.g. "D. Douglas" -> "DeMario Douglas")
+                # Check last name + first initial (e.g. "P. A" -> "Player A")
                 q_parts = norm_query.split()
                 p_parts = p_norm.split()
                 if len(q_parts) >= 2 and len(p_parts) >= 2:
@@ -394,7 +395,7 @@ class BovadaOddsProvider(BaseOddsProvider):
                         else:
                             continue
 
-                        # Extract player raw name and optional team: "Total Receiving Yards - Amon-Ra St. Brown (DET)"
+                        # Extract player raw name and optional team: "Total Receiving Yards - Player G (DET)"
                         match = re.search(r"-\s*([^(\n\r]+)(?:\s*\(([A-Z]{2,3})\))?", desc)
                         if not match:
                             continue
@@ -525,158 +526,169 @@ class CompositeLiveOddsProvider(BaseOddsProvider):
 
 class EarlyMarketOpenersProvider(BaseOddsProvider):
     """
-    Stages MANUALLY ENTERED opening lines for TNF (NE @ CHI) and Week 7.
-    These values are hardcoded in this file, NOT fetched from a sportsbook, and their
-    observed_at is the time this script ran (not when a book posted the line).
-    They are therefore flagged verified=False: shown as scenarios, never as verified quotes.
+    Stages SYNTHETIC demonstration fixtures for the bundled demo feed.
+
+    These values are hardcoded in this file, NOT fetched from any sportsbook,
+    and no real book, player, or observation is involved: books are
+    "Synthetic Book A..D", players are "Player A..G". observed_at is a
+    deterministic per-quote stamp (NOT a book post time and NOT the script
+    run time), and the stamps are distinct by construction.
+    Quotes are flagged verified=False: shown as scenarios, never as verified
+    quotes. Demo quotes intentionally fail slate matching ("Player A" is not
+    a slate player_id), so no downstream evaluation path can treat them as
+    actionable (fail-closed).
     """
+    _TS_BASE = datetime(2026, 10, 20, 6, 23, 18, tzinfo=timezone.utc)
+
+    def _ts(self, i: int) -> str:
+        return (self._TS_BASE + timedelta(seconds=61 * i + 17,
+                                          microseconds=137 * i)).isoformat()
+
     def fetch_quotes(self, season: int, week: int, game_id: Optional[str] = None) -> List[PropQuote]:
-        now_ts = datetime.now(timezone.utc).isoformat()
-        
-        # Real opening quotes for TNF (NE @ CHI) and early Week 7 lines
+        # Synthetic demonstration quotes (NE @ CHI + Week 7 shapes)
         openers = [
-            # 1. DeMario Douglas (NE WR) - DraftKings posted early receiving yards line
-            # Douglas projected for 49.6 yds conditional on Doubs OUT. DraftKings opened at 34.5!
+            # 1. Player A (NE WR) - Synthetic Book A posted early receiving yards line
+            # conditional on teammate OUT. Synthetic book opened at 34.5.
             PropQuote(
-                quote_id="dk_ne_chi_douglas_yds_open",
-                book="DraftKings",
+                quote_id="syn_a_ne_chi_player_a_yds_open",
+                book="Synthetic Book A",
                 market="receiving_yards",
-                player_raw_name="DeMario Douglas",
+                player_raw_name="Player A",
                 team="NE",
                 opponent="CHI",
                 line=34.5,
                 over_odds=-110,
                 under_odds=-110,
-                observed_at=now_ts,
-                source="DraftKings Manual Entry (UNVERIFIED - not fetched from book)"
+                observed_at=self._ts(0),
+                source="Synthetic Book A Manual Entry (UNVERIFIED - demonstration fixture)"
             ),
-            # 2. DeMario Douglas - FanDuel posted early receptions line
+            # 2. Player A - Synthetic Book B posted early receptions line
             PropQuote(
-                quote_id="fd_ne_chi_douglas_rec_open",
-                book="FanDuel",
+                quote_id="syn_b_ne_chi_player_a_rec_open",
+                book="Synthetic Book B",
                 market="receptions",
-                player_raw_name="DeMario Douglas",
+                player_raw_name="Player A",
                 team="NE",
                 opponent="CHI",
                 line=3.5,
-                over_odds=+105,
+                over_odds=105,
                 under_odds=-135,
-                observed_at=now_ts,
-                source="FanDuel Manual Entry (UNVERIFIED - not fetched from book)"
+                observed_at=self._ts(1),
+                source="Synthetic Book B Manual Entry (UNVERIFIED - demonstration fixture)"
             ),
-            # 3. Hunter Henry (NE TE) - BetMGM posted early receiving yards line
-            # Henry projected for 44.9 yds conditional on Doubs OUT. BetMGM opened at 31.5!
+            # 3. Player B (NE TE) - Synthetic Book C posted early receiving yards line
+            # conditional on teammate OUT. Synthetic book opened at 31.5.
             PropQuote(
-                quote_id="mgm_ne_chi_henry_yds_open",
-                book="BetMGM",
+                quote_id="syn_c_ne_chi_player_b_yds_open",
+                book="Synthetic Book C",
                 market="receiving_yards",
-                player_raw_name="Hunter Henry",
+                player_raw_name="Player B",
                 team="NE",
                 opponent="CHI",
                 line=31.5,
                 over_odds=-115,
                 under_odds=-115,
-                observed_at=now_ts,
-                source="BetMGM Manual Entry (UNVERIFIED - not fetched from book)"
+                observed_at=self._ts(2),
+                source="Synthetic Book C Manual Entry (UNVERIFIED - demonstration fixture)"
             ),
-            # 4. Hunter Henry - DraftKings receptions
+            # 4. Player B - Synthetic Book A receptions
             PropQuote(
-                quote_id="dk_ne_chi_henry_rec_open",
-                book="DraftKings",
+                quote_id="syn_a_ne_chi_player_b_rec_open",
+                book="Synthetic Book A",
                 market="receptions",
-                player_raw_name="Hunter Henry",
+                player_raw_name="Player B",
                 team="NE",
                 opponent="CHI",
                 line=3.5,
-                over_odds=+110,
+                over_odds=110,
                 under_odds=-140,
-                observed_at=now_ts,
-                source="DraftKings Manual Entry (UNVERIFIED - not fetched from book)"
+                observed_at=self._ts(3),
+                source="Synthetic Book A Manual Entry (UNVERIFIED - demonstration fixture)"
             ),
-            # 5. Mack Hollins (NE WR) - Pinnacle yards
+            # 5. Player C (NE WR) - Synthetic Book D yards (efficient-market demo case)
             PropQuote(
-                quote_id="pin_ne_chi_hollins_yds_open",
-                book="Pinnacle",
+                quote_id="syn_d_ne_chi_player_c_yds_open",
+                book="Synthetic Book D",
                 market="receiving_yards",
-                player_raw_name="Mack Hollins",
+                player_raw_name="Player C",
                 team="NE",
                 opponent="CHI",
-                line=29.5,
-                over_odds=-108,
-                under_odds=-108,
-                observed_at=now_ts,
-                source="Pinnacle Sharp Manual Entry (UNVERIFIED - not fetched from book)"
+                line=45.5,
+                over_odds=-110,
+                under_odds=-110,
+                observed_at=self._ts(4),
+                source="Synthetic Book D Manual Entry (UNVERIFIED - demonstration fixture)"
             ),
-            # 6. George Kittle (SF TE) - DraftKings yards (SF vs ATL)
-            # Kittle fair line is 61.0 conditional on Evans Achilles OUT. DraftKings opened at 48.5!
+            # 6. Player D (SF TE) - Synthetic Book A yards (SF vs ATL)
+            # conditional on teammate OUT. Synthetic book opened at 48.5.
             PropQuote(
-                quote_id="dk_sf_atl_kittle_yds_open",
-                book="DraftKings",
+                quote_id="syn_a_sf_atl_player_d_yds_open",
+                book="Synthetic Book A",
                 market="receiving_yards",
-                player_raw_name="George Kittle",
+                player_raw_name="Player D",
                 team="SF",
                 opponent="ATL",
                 line=48.5,
                 over_odds=-112,
                 under_odds=-112,
-                observed_at=now_ts,
-                source="DraftKings Manual Entry (UNVERIFIED - not fetched from book)"
+                observed_at=self._ts(5),
+                source="Synthetic Book A Manual Entry (UNVERIFIED - demonstration fixture)"
             ),
-            # 7. George Kittle - FanDuel receptions
+            # 7. Player D - Synthetic Book B receptions
             PropQuote(
-                quote_id="fd_sf_atl_kittle_rec_open",
-                book="FanDuel",
+                quote_id="syn_b_sf_atl_player_d_rec_open",
+                book="Synthetic Book B",
                 market="receptions",
-                player_raw_name="George Kittle",
+                player_raw_name="Player D",
                 team="SF",
                 opponent="ATL",
                 line=4.5,
                 over_odds=-105,
                 under_odds=-125,
-                observed_at=now_ts,
-                source="FanDuel Manual Entry (UNVERIFIED - not fetched from book)"
+                observed_at=self._ts(6),
+                source="Synthetic Book B Manual Entry (UNVERIFIED - demonstration fixture)"
             ),
-            # 8. Christian McCaffrey (SF RB) - BetMGM yards
+            # 8. Player E (SF RB) - Synthetic Book C yards
             PropQuote(
-                quote_id="mgm_sf_atl_cmc_yds_open",
-                book="BetMGM",
+                quote_id="syn_c_sf_atl_player_e_yds_open",
+                book="Synthetic Book C",
                 market="receiving_yards",
-                player_raw_name="Christian McCaffrey",
+                player_raw_name="Player E",
                 team="SF",
                 opponent="ATL",
                 line=32.5,
                 over_odds=-115,
                 under_odds=-115,
-                observed_at=now_ts,
-                source="BetMGM Manual Entry (UNVERIFIED - not fetched from book)"
+                observed_at=self._ts(7),
+                source="Synthetic Book C Manual Entry (UNVERIFIED - demonstration fixture)"
             ),
-            # 9. A.J. Brown (NE WR) - DraftKings yards (Limited ankle)
+            # 9. Player F (NE WR) - Synthetic Book A yards (Limited ankle)
             PropQuote(
-                quote_id="dk_ne_chi_ajb_yds_open",
-                book="DraftKings",
+                quote_id="syn_a_ne_chi_player_f_yds_open",
+                book="Synthetic Book A",
                 market="receiving_yards",
-                player_raw_name="A.J. Brown",
+                player_raw_name="Player F",
                 team="NE",
                 opponent="CHI",
                 line=64.5,
                 over_odds=-115,
                 under_odds=-115,
-                observed_at=now_ts,
-                source="DraftKings Manual Entry (UNVERIFIED - not fetched from book)"
+                observed_at=self._ts(8),
+                source="Synthetic Book A Manual Entry (UNVERIFIED - demonstration fixture)"
             ),
-            # 10. Amon-Ra St. Brown (DET WR) - Pinnacle yards (DET vs GB)
+            # 10. Player G (DET WR) - Synthetic Book D yards (DET vs GB)
             PropQuote(
-                quote_id="pin_det_gb_amonra_yds_open",
-                book="Pinnacle",
+                quote_id="syn_d_det_gb_player_g_yds_open",
+                book="Synthetic Book D",
                 market="receiving_yards",
-                player_raw_name="Amon-Ra St. Brown",
+                player_raw_name="Player G",
                 team="DET",
                 opponent="GB",
                 line=112.5,
                 over_odds=-110,
                 under_odds=-110,
-                observed_at=now_ts,
-                source="Pinnacle Sharp Manual Entry (UNVERIFIED - not fetched from book)"
+                observed_at=self._ts(9),
+                source="Synthetic Book D Manual Entry (UNVERIFIED - demonstration fixture)"
             )
         ]
 

@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { buildSandbox, loadApp, VIEWER } from './helpers/sandbox.mjs';
+import { buildSandbox, loadApp, attachSyntheticQuote, VIEWER } from './helpers/sandbox.mjs';
 
 /**
  * FEED HEALTH / FAILURE-MODE UI — Phase 2, commit 5.
@@ -165,7 +165,10 @@ test('ledger provenance: fixture entries stamped, NFL live entries carry no fiel
   const nfl = buildSandbox();
   const FP = loadApp(nfl.sandbox);
   await FP.loadSlate('2026_w7');
-  const liveQuote = FP.state.odds.quotes.find((q) => q.market === 'receiving_yards');
+  // Shipped demo quotes intentionally fail slate matching (provenance hotfix);
+  // harness-only synthetic quote provides the attachable input.
+  attachSyntheticQuote(FP);
+  const liveQuote = FP.state.odds.quotes.find((q) => q.quote_id === 'harness_synthetic_open');
   FP.state.filters.market = 'receiving_yards';
   FP.state.portfolio = [];
   FP.logBet(liveQuote.player_id);

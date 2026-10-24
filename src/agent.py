@@ -185,14 +185,19 @@ def record_closing(path: str, closing: dict) -> None:
 
 
 def clv_report(path: str = "picks_log.jsonl") -> dict:
-    rows = [json.loads(l) for l in open(path) if "clv" in json.loads(l)]
+    all_rows = [json.loads(l) for l in open(path) if "clv" in json.loads(l)]
+    rows = [r for r in all_rows if not (r.get("is_demo") is True or r.get("status") == "demo")]
+    excluded_demo = len(all_rows) - len(rows)
     if not rows:
-        return {"status": "no closing lines recorded yet"}
+        return {"status": "no closing lines recorded yet", "n": 0,
+                "excluded_demo": excluded_demo,
+                "note": "demo/scenario rows are excluded from CLV grading; no real CLV data exists yet"}
     clv = np.array([r["clv"] for r in rows])
     se = float(clv.std(ddof=1) / np.sqrt(len(clv))) if len(clv) > 1 else 0.0
     mean_val = float(clv.mean())
     return {
         "n": len(clv),
+        "excluded_demo": excluded_demo,
         "mean_clv": mean_val,
         "ci95": [float(mean_val - 1.96 * se), float(mean_val + 1.96 * se)],
         "pct_beating_close": float((clv > 0).mean()),

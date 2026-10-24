@@ -144,6 +144,62 @@ export function buildSandbox({ seedLocalStorage = {} } = {}) {
   return { sandbox, registry, lsStore, domCalls, knownIds };
 }
 
+/**
+ * Harness-only: attach ONE synthetic quote to the FIRST WR row of the active
+ * slate so render/modal/ledger paths stay golden-covered.
+ *
+ * Why this exists: the provenance hotfix de-identified the shipped demo feeds
+ * (players -> "Player A..G", books -> "Synthetic Book A..D") AND made demo
+ * quotes intentionally fail slate matching, so no shipped quote can attach to
+ * a real slate row. That is the correct fail-closed end state for SHIPPED
+ * data — but the render/eval/modal/ledger code paths need at least one
+ * attached quote to be exercised at all. This injects that input at the
+ * harness boundary only: the quote is never written to any shipped file, and
+ * it carries the efficient-market shape (line == fair, -110/-110, PASS,
+ * stake 0, verified: false) so nothing actionable is simulated.
+ */
+export function attachSyntheticQuote(P, { market = 'receiving_yards' } = {}) {
+  const rows = P.state.slate || [];
+  const row = rows.find((r) => r.position === 'WR')
+    || rows.find((r) => ['WR', 'TE', 'RB'].includes(r.position));
+  if (!row) throw new Error('attachSyntheticQuote: no skill-position row in the active slate');
+  const quote = {
+    quote_id: 'harness_synthetic_open',
+    provider_quote_id: 'harness_synthetic_open',
+    book: 'Synthetic Book A',
+    player_id: row.player_id,
+    player_name: row.player_display_name,
+    team: row.team,
+    opponent: row.opponent_team,
+    game_id: row.game_id,
+    position: row.position,
+    market,
+    line: Number(row.fair_line_rec ?? 3.5), // efficient-market case: line == fair
+    fair_line: Number(row.fair_line_rec ?? 3.5),
+    over_odds: -110,
+    under_odds: -110,
+    observed_at: '2026-10-20T06:23:35.000137+00:00',
+    source: 'Synthetic Book A Manual Entry (UNVERIFIED - harness fixture)',
+    source_url: '',
+    receipt_id: '',
+    content_hash: 'harness-synthetic',
+    verified: false,
+    evaluation: {
+      is_qualified: false,
+      status: 'PASS',
+      best_side: 'OVER',
+      prob_edge: 0.0,
+      break_even_adv: -0.0238,
+      expected_return: -0.0455,
+      actionable_stake: 0.0,
+      catalyst: 'pricing',
+      injury_context: null,
+    },
+  };
+  P.state.odds.quotes = [quote, ...((P.state.odds && P.state.odds.quotes) || [])];
+  return quote;
+}
+
 /** Load registry.js + every adapter + app.js (same order as the HTML pages). */
 export function loadApp(sandbox) {
   const sources = [
