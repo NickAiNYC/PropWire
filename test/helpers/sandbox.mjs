@@ -123,6 +123,7 @@ export function loadApp(sandbox) {
     setPlayMode, breakerFor,
     sportSwitcherItems, switchToSport, defaultBootSlate,
     feedHealthStates, updateFeedHealthUI, stampProvenance,
+    renderDetailModal,
     storage: { loadPortfolio, savePortfolio, loadWatchlist, saveWatchlist, migrateLegacyStorage, MIGRATION_FLAG, STORE, migrationResult }
   };
 })();`;

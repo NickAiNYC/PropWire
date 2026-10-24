@@ -75,6 +75,28 @@ async function dumpRender(P, registry, view, market) {
   return dumpRegistry(registry);
 }
 
+/**
+ * Detail-modal golden: capture the exact modal markup for one quoted NFL
+ * row. Captured from the PRE-adapterization code path (commit 83714bd tree)
+ * so the Phase 2 remediation that routes the modal through adapter.detail
+ * hooks must reproduce this markup byte-for-byte.
+ */
+function dumpDetailModal(P, registry) {
+  const quoted = P.state.odds.quotes.find((q) => q.market === 'receiving_yards' && q.player_id);
+  assert.ok(quoted, 'live_odds_feed must contain a receiving_yards quote for the modal golden');
+  const row = P.state.slate.find((r) => r.player_id === quoted.player_id);
+  assert.ok(row, 'slate row for the modal golden must exist');
+  P.state.filters.market = 'receiving_yards';
+  P.state.scenarioTargetShare = null; // openDetail() pre-state
+  P.renderDetailModal(row);
+  const pick = {};
+  for (const sel of ['#detailTitle', '#detailMeta', '#detailContent']) {
+    const el = registry.get(sel);
+    pick[sel] = el ? { innerHTML: el.innerHTML, textContent: el.textContent } : null;
+  }
+  return canonical(pick);
+}
+
 async function dumpLedger(P, lsStore) {
   const quoted = P.state.odds.quotes.find((q) => q.market === 'receiving_yards' && q.player_id);
   assert.ok(quoted, 'live_odds_feed must contain at least one receiving_yards quote');
@@ -131,6 +153,7 @@ async function captureAll() {
   snaps['renders_cards_receiving_yards.json'] = await dumpRender(P, registry, 'cards', 'receiving_yards');
   snaps['evaluations.json'] = dumpEvaluations(P);
   snaps['projections_slate_2026_w7.json'] = dumpProjections(P);
+  snaps['detail_modal.json'] = dumpDetailModal(P, registry);
   snaps['ledger_entry.json'] = canonical(await dumpLedger(P, lsStore));
   snaps['breaker_config.json'] = dumpBreakerNflValues();
   return snaps;
@@ -168,5 +191,5 @@ test('NFL parity: rendered output, evaluations, projections, ledger, breaker val
     `NFL PARITY REGRESSION — golden snapshots do not match.\n${results.failed.join('\n')}\n` +
     'If (and only if) this diff is an announced, intentional change, re-capture with PW_UPDATE_SNAPSHOTS=1 and document it in the phase report.',
   );
-  assert.ok(results.passed.length >= 8, `expected 8 snapshots, passed: ${results.passed.length}`);
+  assert.ok(results.passed.length >= 9, `expected 9 snapshots (8 goldens + detail modal), passed: ${results.passed.length}`);
 });
