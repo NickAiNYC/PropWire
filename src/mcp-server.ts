@@ -8,8 +8,8 @@ import {
 import { z } from "zod";
 import crypto from "crypto";
 
-const API_BASE_URL = process.env.PROPWIRE_API_URL || "https://propwire.vercel.app/api/v1";
-const API_KEY = process.env.PROPWIRE_API_KEY;
+const API_BASE_URL = process.env.PropWire_API_URL || "https://propwire.vercel.app/api/v1";
+const API_KEY = process.env.PropWire_API_KEY;
 
 // Deterministic RFC-8785 serializer for local client-side hash verification
 export function canonicalJsonStringify(val: unknown): string {
@@ -47,7 +47,7 @@ export function sha256Hex(payload: Record<string, unknown>): string {
 // Strict Zod Validators
 const GetEdgesArgsSchema = z.object({
   slate: z.string().regex(/^[a-zA-Z0-9_-]{3,32}$/, "Invalid slate identifier"),
-  min_edge: z.number().min(5.0).max(12.0).default(10.0), // Defaults to PROP·WIRE 10% Gate
+  min_edge: z.number().min(5.0).max(12.0).default(10.0), // Defaults to PropWire 10% Gate
 });
 
 const VerifySlipArgsSchema = z.object({
@@ -72,7 +72,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
     {
       name: "get_current_edges",
       description:
-        "Fetches ONLY executable, receipt-verified ACTIVE edges from PROP·WIRE (e.g., Tucker Kraft +11.7%, A.J. Brown +11.6%, Efton Chism III +11.5%, Colston Loveland +10.9%). Enforces a hard 12.0% anomaly ceiling; quarantined VERIFY quotes (>12% edge) are never returned here.",
+        "Fetches ONLY executable, receipt-verified ACTIVE edges from PropWire (e.g., Tucker Kraft +11.7%, A.J. Brown +11.6%, Efton Chism III +11.5%, Colston Loveland +10.9%). Enforces a hard 12.0% anomaly ceiling; quarantined VERIFY quotes (>12% edge) are never returned here.",
       inputSchema: {
         type: "object",
         properties: {
@@ -125,7 +125,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             content: [
               {
                 type: "text",
-                text: "AUTH_ERROR: PROPWIRE_API_KEY is required for executable edge feeds.",
+                text: "AUTH_ERROR: PropWire_API_KEY is required for executable edge feeds.",
               },
             ],
           };
@@ -222,7 +222,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             content: [
               {
                 type: "text",
-                text: "AUTH_ERROR: PROPWIRE_API_KEY is required for diagnostic feeds.",
+                text: "AUTH_ERROR: PropWire_API_KEY is required for diagnostic feeds.",
               },
             ],
           };
@@ -277,7 +277,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.error("PROP·WIRE Fail-Closed MCP Server active on stdio");
+  console.error("PropWire Fail-Closed MCP Server active on stdio");
 }
 
 main().catch((error) => {

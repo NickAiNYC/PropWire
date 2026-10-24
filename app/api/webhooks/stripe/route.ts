@@ -93,9 +93,9 @@ export async function POST(req: Request) {
       // Secure key delivery via email (Resend)
       if (process.env.RESEND_API_KEY) {
         await resend.emails.send({
-          from: "PROP·WIRE Terminal <terminal@propwire.io>",
+          from: "PropWire Terminal <terminal@propwire.io>",
           to: email,
-          subject: `Your PROP·WIRE ${tier.toUpperCase()} Access & API Key`,
+          subject: `Your PropWire ${tier.toUpperCase()} Access & API Key`,
           html: `
             <div style="font-family: monospace; background: #080d14; color: #e2e8f0; padding: 24px; border-radius: 8px;">
               <h2 style="color: #4ade80; margin-top: 0;">Subscription Activated: ${tier.toUpperCase()} Tier</h2>

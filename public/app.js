@@ -2402,7 +2402,7 @@
           </div>
 
           <div style="margin-top:10px;" class="sniper-notice-box">
-            <strong>ℹ️ iOS Safari Notice:</strong> Web Push on iPhone requires adding PROP·WIRE to your Home Screen (Share → Add to Home Screen) on iOS 16.4+.
+            <strong>ℹ️ iOS Safari Notice:</strong> Web Push on iPhone requires adding PropWire to your Home Screen (Share → Add to Home Screen) on iOS 16.4+.
           </div>
 
           <div style="margin-top:14px;">
@@ -2518,7 +2518,7 @@
             body: JSON.stringify({
               event: 'PROP_WIRE_TEST_PING',
               timestamp: new Date().toISOString(),
-              message: 'PROP·WIRE Autonomous Market Sniper Connected!',
+              message: 'PropWire Autonomous Market Sniper Connected!',
               terminal: 'https://propwire.vercel.app'
             })
           });
@@ -2606,7 +2606,7 @@
 
     if (state.sniper.browserNotify && typeof Notification !== 'undefined' && Notification.permission === 'granted') {
       try {
-        const notif = new Notification(`🎯 PROP·WIRE Sniper: ${quote.player_name}`, {
+        const notif = new Notification(`🎯 PropWire Sniper: ${quote.player_name}`, {
           body: `${side} ${quote.line} (${oddsText(side === 'UNDER' ? quote.under_odds : quote.over_odds)}) · Edge +${(edge * 100).toFixed(1)}% · Tap to confirm`,
           icon: 'icon-192.png'
         });
@@ -2624,7 +2624,7 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           event: 'PROP_WIRE_SNIPER_ALERT',
-          source: 'PROP·WIRE Autonomous Market Telemetry',
+          source: 'PropWire Autonomous Market Telemetry',
           timestamp: new Date().toISOString(),
           player_id: quote.player_id,
           player: quote.player_name,

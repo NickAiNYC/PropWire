@@ -58,7 +58,7 @@
     /** v1 ships no live data: every fixture row/quote is flagged upstream. */
     fixturesOnly: true,
     fixtureNotice: 'Research fixtures — synthetic model data for terminal validation. Not sportsbook quotes. Not for wagering decisions.',
-    pageTitle: 'PROP·WIRE · NBA Player Props (Research Fixtures)',
+    pageTitle: 'PropWire · NBA Player Props (Research Fixtures)',
 
     /** Allow viewer/app.js to lend its helper functions to hook implementations. */
     bindContext(helpers) {

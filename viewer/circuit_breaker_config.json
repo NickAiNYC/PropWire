@@ -1,6 +1,6 @@
 {
   "config_version": "2026.10.24-1",
-  "description": "Shared quantitative circuit breaker parameters for the PROP·WIRE terminal & cron runner, namespaced per sport and versioned. NFL values are the exact calibrated pre-refactor values (proven byte-identical by test/nfl-parity.snapshot.mjs). Each sport owns its own block; do NOT copy NFL yardage thresholds to another sport. Blocks without backtest evidence must carry \"calibrated\": false and \"calibration\": \"uncalibrated_tuning_parameters\" and will surface a visible research-only badge in the UI.",
+  "description": "Shared quantitative circuit breaker parameters for the PropWire terminal & cron runner, namespaced per sport and versioned. NFL values are the exact calibrated pre-refactor values (proven byte-identical by test/nfl-parity.snapshot.mjs). Each sport owns its own block; do NOT copy NFL yardage thresholds to another sport. Blocks without backtest evidence must carry \"calibrated\": false and \"calibration\": \"uncalibrated_tuning_parameters\" and will surface a visible research-only badge in the UI.",
   "sports": {
     "nfl": {
       "label": "NFL",

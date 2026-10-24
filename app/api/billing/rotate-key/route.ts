@@ -56,9 +56,9 @@ export async function POST() {
     // Email new key to account owner
     if (process.env.RESEND_API_KEY && session.user.email) {
       await resend.emails.send({
-        from: "PROP·WIRE Security <terminal@propwire.io>",
+        from: "PropWire Security <terminal@propwire.io>",
         to: session.user.email,
-        subject: "Your Rotated PROP·WIRE API Key",
+        subject: "Your Rotated PropWire API Key",
         html: `
           <div style="font-family: monospace; background: #080d14; color: #e2e8f0; padding: 24px; border-radius: 8px;">
             <h3 style="color: #38bdf8;">API Key Rotated Successfully</h3>

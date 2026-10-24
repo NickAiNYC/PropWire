@@ -103,7 +103,7 @@ button { color: inherit; }
   width: 100%;
 }
 
-/* 1. Stop PROP·WIRE brand and Slate dropdown from overlapping */
+/* 1. Stop PropWire brand and Slate dropdown from overlapping */
 .topbar, .header-bar, .pw-topbar {
   display: flex;
   align-items: center;

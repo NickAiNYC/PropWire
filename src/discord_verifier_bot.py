@@ -6,8 +6,8 @@ import discord
 from discord.ext import commands
 
 DISCORD_BOT_TOKEN = os.environ.get("DISCORD_BOT_TOKEN")
-PROPWIRE_VERIFY_URL = os.environ.get(
-    "PROPWIRE_VERIFY_URL", "https://propwire.vercel.app/api/v1/verify-receipt"
+PropWire_VERIFY_URL = os.environ.get(
+    "PropWire_VERIFY_URL", "https://propwire.vercel.app/api/v1/verify-receipt"
 )
 POST_BETS_CHANNEL_ID = int(os.environ.get("POST_BETS_CHANNEL_ID", "0"))
 VERIFIED_EXECUTION_ROLE_NAME = "Receipt Verified"
@@ -46,7 +46,7 @@ def build_verification_embed(author: discord.Member, payload: dict) -> discord.E
         description=f"**{badge_text}**\nBook: `{entry['book']}` · Market: `{entry['market']}`",
         color=color_hex,
     )
-    embed.set_author(name=f"PROP·WIRE Cryptographic Audit · {author.display_name}")
+    embed.set_author(name=f"PropWire Cryptographic Audit · {author.display_name}")
 
     # Entry Metrics
     embed.add_field(
@@ -107,7 +107,7 @@ def build_verification_embed(author: discord.Member, payload: dict) -> discord.E
 
 @bot.event
 async def on_ready():
-    print(f"PROP·WIRE Discord Gatekeeper Bot active as {bot.user} (ID: {bot.user.id if bot.user else 'N/A'})")
+    print(f"PropWire Discord Gatekeeper Bot active as {bot.user} (ID: {bot.user.id if bot.user else 'N/A'})")
 
 
 @bot.event
@@ -127,8 +127,8 @@ async def on_message(message: discord.Message):
             await message.delete()
             try:
                 await message.author.send(
-                    "⚠ **PROP·WIRE Gatekeeper:** Unverified picks and screenshots are blocked in `#post-bets`. "
-                    "Include your 64-character SHA-256 execution receipt hash from the PROP·WIRE terminal."
+                    "⚠ **PropWire Gatekeeper:** Unverified picks and screenshots are blocked in `#post-bets`. "
+                    "Include your 64-character SHA-256 execution receipt hash from the PropWire terminal."
                 )
             except discord.Forbidden:
                 pass
@@ -139,7 +139,7 @@ async def on_message(message: discord.Message):
     async with aiohttp.ClientSession() as session:
         try:
             async with session.post(
-                PROPWIRE_VERIFY_URL,
+                PropWire_VERIFY_URL,
                 json={"receipt_hash": receipt_hash},
                 timeout=aiohttp.ClientTimeout(total=8),
             ) as resp:
@@ -148,7 +148,7 @@ async def on_message(message: discord.Message):
                     try:
                         await message.author.send(
                             f"❌ **Receipt Verification Failed ({resp.status}):** Hash `{receipt_hash[:12]}…` "
-                            "was not found in the PROP·WIRE ledger."
+                            "was not found in the PropWire ledger."
                         )
                     except discord.Forbidden:
                         pass
@@ -176,7 +176,7 @@ async def on_message(message: discord.Message):
     if isinstance(message.author, discord.Member) and message.guild:
         role = discord.utils.get(message.guild.roles, name=VERIFIED_EXECUTION_ROLE_NAME)
         if role and role not in message.author.roles:
-            await message.author.add_roles(role, reason="Posted valid PROP·WIRE SHA-256 receipt")
+            await message.author.add_roles(role, reason="Posted valid PropWire SHA-256 receipt")
 
 
 if __name__ == "__main__":

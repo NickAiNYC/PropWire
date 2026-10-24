@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-ingest_edges.py — Direct Postgres Ingestion Pipeline for PROP·WIRE Market Edges
+ingest_edges.py — Direct Postgres Ingestion Pipeline for PropWire Market Edges
 
 Reads:
   1. snapshots_<slate>.jsonl (latest live snapshots)
@@ -325,7 +325,7 @@ def ingest_data(
 
 
 def main():
-    parser = argparse.ArgumentParser(description="PROP·WIRE Live MarketEdge DB Ingestion")
+    parser = argparse.ArgumentParser(description="PropWire Live MarketEdge DB Ingestion")
     parser.add_argument("--slate", type=str, default="2026_w7", help="Slate identifier (e.g. 2026_w7)")
     parser.add_argument("--snapshot-file", type=str, default=None, help="Path to snapshots jsonl file")
     parser.add_argument("--clv-file", type=str, default=None, help="Path to clv_audit_report.json")

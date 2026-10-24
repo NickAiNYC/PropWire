@@ -25,7 +25,7 @@ export const TerminalHeader: React.FC<TerminalHeaderProps> = ({
           <div className="flex items-center gap-2">
             <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.8)]" />
             <span className="text-sm font-extrabold tracking-widest text-white">
-              PROP·WIRE
+              PropWire
             </span>
           </div>
           <div className="hidden sm:flex items-center gap-2 rounded-md border border-zinc-700 bg-zinc-900/60 px-2.5 py-1 text-[11px] text-zinc-300">

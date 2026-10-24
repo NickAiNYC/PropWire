@@ -29,7 +29,7 @@ export const LegalTermsModal: React.FC<LegalTermsModalProps> = ({ onClose }) => 
               Institutional Compliance & Terms
             </span>
             <h3 className="text-base font-bold text-white mt-0.5">
-              PROP·WIRE Service Disclaimers &amp; Terms of Use
+              PropWire Service Disclaimers &amp; Terms of Use
             </h3>
           </div>
           <button
@@ -46,7 +46,7 @@ export const LegalTermsModal: React.FC<LegalTermsModalProps> = ({ onClose }) => 
               1. Quantitative Research Software Only
             </h4>
             <p>
-              PROP·WIRE is an independent quantitative research terminal, mathematical modeling engine, and cryptographic data clearinghouse. PROP·WIRE is not a sportsbook, bookmaker, gambling operator, or gaming vendor. We do not accept, broker, facilitate, or place wagers of any kind.
+              PropWire is an independent quantitative research terminal, mathematical modeling engine, and cryptographic data clearinghouse. PropWire is not a sportsbook, bookmaker, gambling operator, or gaming vendor. We do not accept, broker, facilitate, or place wagers of any kind.
             </p>
           </section>
 
@@ -82,7 +82,7 @@ export const LegalTermsModal: React.FC<LegalTermsModalProps> = ({ onClose }) => 
               5. Fail-Closed Anomaly Defense
             </h4>
             <p>
-              PROP·WIRE enforces hardcoded execution gates (12% anomaly ceiling) to safeguard bankrolls against unmodeled news, provider typos, and suspended alt-lines. Data provided through diagnostic feeds flagged with AGENT_EXECUTION_DIRECTIVE: DO_NOT_BET_QUARANTINED_RECORD must never be executed automatically.
+              PropWire enforces hardcoded execution gates (12% anomaly ceiling) to safeguard bankrolls against unmodeled news, provider typos, and suspended alt-lines. Data provided through diagnostic feeds flagged with AGENT_EXECUTION_DIRECTIVE: DO_NOT_BET_QUARANTINED_RECORD must never be executed automatically.
             </p>
           </section>
         </div>

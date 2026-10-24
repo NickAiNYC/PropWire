@@ -234,7 +234,7 @@ export const PricingAndLandingPage: React.FC = () => {
       "command": "npx",
       "args": ["-y", "@propwire/mcp-server"],
       "env": {
-        "PROPWIRE_API_KEY": "pw_live_your_quant_key_here"
+        "PropWire_API_KEY": "pw_live_your_quant_key_here"
       }
     }
   }
@@ -260,7 +260,7 @@ export const PricingAndLandingPage: React.FC = () => {
             </button>
           </div>
           <p className="mt-8 text-[10px] text-slate-600">
-            PROP·WIRE is an independent quantitative research terminal. Not a sportsbook. 21+ Call 1-800-GAMBLER.
+            PropWire is an independent quantitative research terminal. Not a sportsbook. 21+ Call 1-800-GAMBLER.
           </p>
         </div>
       </footer>
