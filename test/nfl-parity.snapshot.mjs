@@ -2,165 +2,48 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import vm from 'node:vm';
-import { createHash } from 'node:crypto';
+import { canonical, normalizeTokens, buildSandbox, loadApp, VIEWER } from './helpers/sandbox.mjs';
 
 /**
  * NFL PARITY SNAPSHOT HARNESS — test/nfl-parity.snapshot.mjs
  *
- * Captures byte-identical golden outputs of viewer/app.js against the real
- * committed NFL feeds, BEFORE and AFTER the sport-adapter refactor.
- *
  *   node --test test/nfl-parity.snapshot.mjs                  # assert parity
  *   PW_UPDATE_SNAPSHOTS=1 node --test test/nfl-parity.snapshot.mjs  # re-capture
  *
- * Determinism controls:
- *   - Date is frozen at 2026-10-22T12:00:00Z (pre-kickoff for the whole
- *     2026_w7 slate, so no row is "closed" by wall-clock).
- *   - Timezone pinned to America/New_York (matches primeLabel formatting).
- *   - Non-deterministic ledger fields (id, ticket_id, logged_at) are
- *     normalized to <TOKEN> before comparison.
- *   - No third-party dependencies: app.js runs in a node:vm sandbox with a
- *     minimal stub DOM that records every innerHTML/textContent assignment.
+ * Determinism: Date frozen at 2026-10-22T12:00:00Z (pre-kickoff for the whole
+ * 2026_w7 slate), TZ pinned America/New_York, ledger id/ticket/logged_at
+ * tokenized, stub-DOM VM harness (zero new deps).
  *
- * Announced, intentional post-refactor deltas (whitelisted, each documented
- * in the phase report — anything else failing is a regression):
- *   - ledger entries gain `sport: "nfl"` (spec'd migration, user-approved)
- *   - evaluateRow output gains `exemption_audit` object on exempted rows
- *     (user small-edit #4: auditable beneficiary exemption)
+ * ANNOUNCED, INTENTIONAL post-refactor deltas (whitelisted here, each
+ * documented in the Phase 1 report — anything else failing is a regression):
+ *   1. ledger entries gain `sport: "nfl"` (spec'd migration, user-approved)
+ *   2. ledger `config_version` becomes the versioned config value
+ *      ("2026.10.24-1") instead of the hardcoded "1.1.0" (spec item 5)
+ *   3. evaluateRow output gains `exemption_audit` on exempted rows
+ *      (user small-edit #4: auditable beneficiary exemption)
+ *   4. circuit_breaker_config.json is restructured per-sport; the snapshot
+ *      compares SEMANTIC NFL VALUES only (structure asserted in
+ *      test/circuit-breaker-config.test.mjs)
  */
+
+process.env.TZ = 'America/New_York';
 
 const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
 const SNAPDIR = path.join(ROOT, 'test', 'snapshots', 'nfl');
-const VIEWER = path.join(ROOT, 'viewer');
 const UPDATE = process.env.PW_UPDATE_SNAPSHOTS === '1';
 
-// ── Timezone pin (must take effect before any Date formatting) ──────────────
-process.env.TZ = 'America/New_York';
-const FROZEN_MS = Date.parse('2026-10-22T12:00:00Z');
-
-// ── Canonical, stable JSON (sorted keys, arrays in order) ───────────────────
-function canonical(value) {
-  if (value === null || typeof value !== 'object') return JSON.stringify(value);
-  if (Array.isArray(value)) return `[${value.map(canonical).join(',')}]`;
-  const keys = Object.keys(value).sort();
-  return `{${keys.map((k) => `${JSON.stringify(k)}:${canonical(value[k])}`).join(',')}}`;
+/** Strip announced post-refactor additions before byte comparison. */
+function stripWhitelisted(value) {
+  if (value === null || typeof value !== 'object') return value;
+  if (Array.isArray(value)) return value.map(stripWhitelisted);
+  const out = {};
+  for (const [k, v] of Object.entries(value)) {
+    if (k === 'exemption_audit' || k === 'sport') continue; // announced additions
+    out[k] = stripWhitelisted(v);
+  }
+  return out;
 }
 
-function normalizeTokens(text) {
-  return String(text)
-    .replace(/bet_\d+_[a-z0-9]+/g, 'bet_<TOKEN>')
-    .replace(/"ticket_id":"[^"]*"/g, '"ticket_id":"<TOKEN>"')
-    .replace(/"logged_at":"[^"]*"/g, '"logged_at":"<TOKEN>"');
-}
-
-// ── Stub DOM ─────────────────────────────────────────────────────────────────
-function makeElement() {
-  return {
-    innerHTML: '', textContent: '', value: '', hidden: false, disabled: false,
-    open: false, offsetWidth: 0, scrollTop: 0, dataset: {}, style: { cssText: '' },
-    classList: { add() {}, remove() {}, toggle() {}, contains() { return false; } },
-    addEventListener() {}, removeEventListener() {}, dispatchEvent() { return true; },
-    appendChild() {}, insertBefore() {}, remove() {}, focus() {}, blur() {},
-    scrollIntoView() {}, setAttribute() {}, getAttribute() { return null; },
-    querySelector() { return makeElement(); }, querySelectorAll() { return []; },
-    closest() { return null; }, showModal() {}, close() {}, insertAdjacentHTML() {},
-  };
-}
-
-function buildSandbox() {
-  const registry = new Map();
-  const getEl = (selector) => {
-    if (!registry.has(selector)) registry.set(selector, makeElement());
-    return registry.get(selector);
-  };
-  const lsStore = new Map();
-  const localStorage = {
-    getItem: (k) => (lsStore.has(k) ? lsStore.get(k) : null),
-    setItem: (k, v) => lsStore.set(k, String(v)),
-    removeItem: (k) => lsStore.delete(k),
-  };
-  const FrozenDate = class extends Date {
-    constructor(...args) {
-      if (args.length === 0) super(FROZEN_MS);
-      else super(...args);
-    }
-    static now() { return FROZEN_MS; }
-  };
-
-  const document = {
-    querySelector: (sel) => getEl(sel),
-    querySelectorAll: () => [],
-    addEventListener() {},
-    removeEventListener() {},
-    createElement: () => makeElement(),
-    documentElement: { dataset: {}, classList: { add() {}, remove() {}, toggle() {} }, setAttribute() {} },
-    body: { classList: { add() {}, remove() {}, toggle() {} }, dataset: {} },
-    title: '',
-  };
-
-  const window = {
-    matchMedia: () => ({ matches: false, media: '', addEventListener() {}, addListener() {} }),
-    addEventListener() {},
-    removeEventListener() {},
-    scrollTo() {},
-    open() { return null; },
-    location: { href: 'https://propwire.test/', protocol: 'https:', pathname: '/', search: '', hash: '' },
-    navigator: {},
-    localStorage,
-  };
-
-  const fetchImpl = async (rawPath) => {
-    const clean = String(rawPath).split('?')[0];
-    const file = path.join(VIEWER, clean.replace(/^\/+/, ''));
-    if (clean.startsWith('http') || !fs.existsSync(file)) {
-      return { ok: false, status: 404, json: async () => { throw new Error('not found'); } };
-    }
-    const text = fs.readFileSync(file, 'utf8');
-    return { ok: true, status: 200, json: async () => JSON.parse(text) };
-  };
-
-  const sandbox = {
-    console: { log() {}, warn() {}, error() {}, debug() {}, info() {} },
-    setTimeout: () => 0, clearTimeout() {}, setInterval: () => 0, clearInterval() {},
-    document, window, localStorage, Date: FrozenDate,
-    fetch: fetchImpl, URL, URLSearchParams, Event: class { constructor() {} },
-    navigator: window.navigator,
-    location: window.location,
-    matchMedia: window.matchMedia,
-    requestAnimationFrame: (fn) => setTimeout(fn, 0),
-    cancelAnimationFrame() {},
-    isFinite, Number, String, Boolean, Array, Object, Math, JSON, Map, Set,
-    Promise, Error, RegExp, parseFloat, parseInt,
-    globalThis: {},
-  };
-  sandbox.globalThis = sandbox;
-  sandbox.window.matchMedia = window.matchMedia;
-  return { sandbox, registry, lsStore };
-}
-
-// ── Load sport registry + NFL adapter + app.js (same order as index.html) ───
-function loadApp(sandbox) {
-  const registrySrc = fs.readFileSync(path.join(VIEWER, 'js', 'sports', 'registry.js'), 'utf8');
-  const nflSrc = fs.readFileSync(path.join(VIEWER, 'js', 'sports', 'nfl.js'), 'utf8');
-  const source = fs.readFileSync(path.join(VIEWER, 'app.js'), 'utf8');
-  const hook = `
-  globalThis.__PW_PARITY__ = {
-    state, SLATES, loadSlate, evaluateRow, filteredRows, renderAll, renderBoard,
-    fairValue, projectionValue, logBet, setView, setPlayMode,
-    storage: { loadPortfolio, savePortfolio, loadWatchlist, saveWatchlist }
-  };
-})();`;
-  const injected = source.replace(/\}\)\(\);\s*$/, hook);
-  if (injected === source) throw new Error('Failed to inject parity hook into viewer/app.js');
-  vm.createContext(sandbox);
-  vm.runInContext(registrySrc, sandbox, { filename: 'viewer/js/sports/registry.js' });
-  vm.runInContext(nflSrc, sandbox, { filename: 'viewer/js/sports/nfl.js' });
-  vm.runInContext(injected, sandbox, { filename: 'viewer/app.js' });
-  return sandbox.__PW_PARITY__;
-}
-
-// ── Capture routines ─────────────────────────────────────────────────────────
 function dumpRegistry(registry) {
   const out = {};
   for (const [selector, el] of [...registry.entries()].sort()) {
@@ -175,14 +58,14 @@ function dumpEvaluations(P) {
   for (const market of markets) {
     P.state.filters.market = market;
     const rows = {};
-    for (const row of P.state.slate) rows[row.player_id] = P.evaluateRow(row);
+    for (const row of P.state.slate) rows[row.player_id] = stripWhitelisted(P.evaluateRow(row));
     out[market] = { rows, order: P.filteredRows().map((r) => r.player_id) };
   }
   return canonical(out);
 }
 
 function dumpProjections(P) {
-  return canonical(P.state.slate);
+  return canonical(stripWhitelisted(P.state.slate));
 }
 
 async function dumpRender(P, registry, view, market) {
@@ -197,37 +80,43 @@ async function dumpLedger(P, lsStore) {
   assert.ok(quoted, 'live_odds_feed must contain at least one receiving_yards quote');
   P.state.filters.market = 'receiving_yards';
   P.state.portfolio = [];
-  globalThis.__pwConfirm = () => true;
   P.logBet(quoted.player_id);
   const entry = P.state.portfolio[0];
   assert.ok(entry, 'logBet must create a ledger entry');
-  const storedRaw = lsStore.get('propwire_portfolio_ledger') || '';
-  return {
-    entry: canonical(JSON.parse(normalizeTokens(canonical(entry)))),
-    stored: normalizeTokens(storedRaw),
-  };
+
+  // Post-refactor assertions (announced deltas must exist and be correct).
+  assert.equal(entry.sport, 'nfl', 'ledger entries must be sport-tagged "nfl" post-migration');
+  if (P.state.breakerConfig) {
+    assert.equal(entry.config_version, P.state.breakerConfig.config_version,
+      'ledger config_version must come from the versioned breaker config');
+  }
+
+  const normalized = canonical(stripWhitelisted(JSON.parse(normalizeTokens(canonical(entry)))))
+    .replace(/"config_version":"[^"]*"/g, '"config_version":"<TOKEN>"');
+  const storedRaw = lsStore.get('propwire_portfolio_ledger_v2') || lsStore.get('propwire_portfolio_ledger') || '';
+  return { entry: normalized, stored: normalizeTokens(storedRaw) };
 }
 
-function dumpBreaker() {
+function dumpBreakerNflValues() {
   const raw = fs.readFileSync(path.join(VIEWER, 'circuit_breaker_config.json'), 'utf8');
-  return {
-    sha256: createHash('sha256').update(raw).digest('hex'),
-    parsed: canonical(JSON.parse(raw)),
-    // Semantic NFL values only — these must survive the per-sport restructure unchanged.
-    nfl_values: canonical({
-      drift_yards_hurdle: JSON.parse(raw).thresholds.drift_yards_hurdle,
-      drift_rec_hurdle: JSON.parse(raw).thresholds.drift_rec_hurdle,
-      drift_pct_hurdle: JSON.parse(raw).thresholds.drift_pct_hurdle,
-      high_edge_caution_hurdle: JSON.parse(raw).thresholds.high_edge_caution_hurdle,
-      cooldown_minutes: JSON.parse(raw).thresholds.cooldown_minutes,
-      beneficiary_max_drift_yards: JSON.parse(raw).thresholds.beneficiary_max_drift_yards,
-      beneficiary_max_drift_rec: JSON.parse(raw).thresholds.beneficiary_max_drift_rec,
-      deadman_switch_max_age_seconds: JSON.parse(raw).thresholds.deadman_switch_max_age_seconds,
-    }),
-  };
+  const parsed = JSON.parse(raw);
+  const nfl = parsed.sports && parsed.sports.nfl ? parsed.sports.nfl : parsed;
+  const th = nfl.thresholds || {};
+  const mk = nfl.markets || {};
+  return canonical({
+    drift_pct_hurdle: th.drift_pct_hurdle,
+    high_edge_caution_hurdle: th.high_edge_caution_hurdle,
+    cooldown_minutes: th.cooldown_minutes,
+    deadman_switch_max_age_seconds: th.deadman_switch_max_age_seconds,
+    receiving_yards_drift_hurdle: mk.receiving_yards && mk.receiving_yards.drift_hurdle,
+    receiving_yards_beneficiary_max_drift: mk.receiving_yards && mk.receiving_yards.beneficiary_max_drift,
+    receptions_drift_hurdle: mk.receptions && mk.receptions.drift_hurdle,
+    receptions_beneficiary_max_drift: mk.receptions && mk.receptions.beneficiary_max_drift,
+    anytime_td_drift_hurdle: mk.anytime_td && mk.anytime_td.drift_hurdle,
+    anytime_td_beneficiary_max_drift: mk.anytime_td && mk.anytime_td.beneficiary_max_drift,
+  });
 }
 
-// ── Full capture ─────────────────────────────────────────────────────────────
 async function captureAll() {
   const { sandbox, registry, lsStore } = buildSandbox();
   const P = loadApp(sandbox);
@@ -236,26 +125,21 @@ async function captureAll() {
   P.state.filters.market = 'receiving_yards';
 
   const snaps = {};
-  const tableMarkets = ['receiving_yards', 'receptions', 'anytime_td'];
-  for (const market of tableMarkets) {
+  for (const market of ['receiving_yards', 'receptions', 'anytime_td']) {
     snaps[`renders_table_${market}.json`] = await dumpRender(P, registry, 'table', market);
   }
   snaps['renders_cards_receiving_yards.json'] = await dumpRender(P, registry, 'cards', 'receiving_yards');
   snaps['evaluations.json'] = dumpEvaluations(P);
   snaps['projections_slate_2026_w7.json'] = dumpProjections(P);
-  const ledger = await dumpLedger(P, lsStore);
-  snaps['ledger_entry.json'] = canonical(ledger);
-  snaps['breaker_config.json'] = canonical(dumpBreaker());
+  snaps['ledger_entry.json'] = canonical(await dumpLedger(P, lsStore));
+  snaps['breaker_config.json'] = dumpBreakerNflValues();
   return snaps;
 }
-
-// ── Snapshot I/O ─────────────────────────────────────────────────────────────
-function snapshotPath(name) { return path.join(SNAPDIR, name); }
 
 function compareOrUpdate(snaps) {
   const results = { updated: [], passed: [], failed: [] };
   for (const [name, actual] of Object.entries(snaps).sort()) {
-    const file = snapshotPath(name);
+    const file = path.join(SNAPDIR, name);
     if (UPDATE) {
       fs.mkdirSync(SNAPDIR, { recursive: true });
       fs.writeFileSync(file, actual);
@@ -264,16 +148,13 @@ function compareOrUpdate(snaps) {
     }
     if (!fs.existsSync(file)) { results.failed.push(`${name}: snapshot file missing`); continue; }
     const expected = fs.readFileSync(file, 'utf8');
-    if (expected !== actual) {
-      results.failed.push(`${name}: OUTPUT DIFFERS from golden snapshot`);
-    } else {
-      results.passed.push(name);
-    }
+    if (expected !== actual) results.failed.push(`${name}: OUTPUT DIFFERS from golden snapshot`);
+    else results.passed.push(name);
   }
   return results;
 }
 
-test('NFL parity: rendered output, evaluations, projections, ledger, breaker config', async () => {
+test('NFL parity: rendered output, evaluations, projections, ledger, breaker values', async () => {
   assert.equal(process.env.TZ, 'America/New_York', 'TZ pin failed — Date formatting would be machine-dependent');
   const snaps = await captureAll();
   const results = compareOrUpdate(snaps);

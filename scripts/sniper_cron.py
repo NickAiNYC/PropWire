@@ -86,7 +86,10 @@ def main():
     alerts = []
     print(f"[INFO] Evaluating {len(quotes)} quotes with min_edge >= {args.min_edge:.1%}, gate_met_only={args.gate_met_only}")
 
-    # Load shared circuit breaker parameters (single source of truth)
+    # Load shared circuit breaker parameters (single source of truth).
+    # Config is per-sport as of config_version 2026.10.24-1: sports.nfl.* is
+    # canonical; the legacy flat "thresholds" shape is still accepted as a
+    # fallback so older config files keep working during rollout.
     cb_config_file = os.path.join(VIEWER_DIR, "circuit_breaker_config.json")
     drift_yards_hurdle = 5.0
     drift_rec_hurdle = 1.0
@@ -98,13 +101,18 @@ def main():
         try:
             with open(cb_config_file, "r", encoding="utf-8") as f:
                 cb_cfg = json.load(f)
-                th = cb_cfg.get("thresholds", {})
-                drift_yards_hurdle = float(th.get("drift_yards_hurdle", 5.0))
-                drift_rec_hurdle = float(th.get("drift_rec_hurdle", 1.0))
-                drift_pct_hurdle = float(th.get("drift_pct_hurdle", 0.12))
-                beneficiary_max_drift_yards = float(th.get("beneficiary_max_drift_yards", 8.5))
-                beneficiary_max_drift_rec = float(th.get("beneficiary_max_drift_rec", 2.0))
-                deadman_max_age = int(th.get("deadman_switch_max_age_seconds", 300))
+            sport_cfg = (cb_cfg.get("sports") or {}).get("nfl") or {}
+            th = sport_cfg.get("thresholds") or cb_cfg.get("thresholds", {})
+            markets = sport_cfg.get("markets") or {}
+            yards_mkt = markets.get("receiving_yards") or {}
+            rec_mkt = markets.get("receptions") or {}
+            drift_yards_hurdle = float(yards_mkt.get("drift_hurdle", th.get("drift_yards_hurdle", 5.0)))
+            drift_rec_hurdle = float(rec_mkt.get("drift_hurdle", th.get("drift_rec_hurdle", 1.0)))
+            drift_pct_hurdle = float(th.get("drift_pct_hurdle", 0.12))
+            beneficiary_max_drift_yards = float(yards_mkt.get("beneficiary_max_drift", th.get("beneficiary_max_drift_yards", 8.5)))
+            beneficiary_max_drift_rec = float(rec_mkt.get("beneficiary_max_drift", th.get("beneficiary_max_drift_rec", 2.0)))
+            deadman_max_age = int(th.get("deadman_switch_max_age_seconds", 300))
+            print(f"[INFO] Breaker config {cb_cfg.get('config_version', 'legacy')} · nfl calibrated={sport_cfg.get('calibrated', 'unknown')}")
         except Exception as exc:
             print(f"[WARN] Failed to load circuit_breaker_config.json: {exc}")
 

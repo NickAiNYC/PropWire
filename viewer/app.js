@@ -15,9 +15,84 @@
   const MODEL_ALPHA = adapter.model.alpha;
   const MODEL_K = adapter.model.k;
 
+  // ── Sport-namespaced storage + one-time legacy migration ──────────────────
+  // Policy: read legacy keys → write sport-namespaced copies → keep legacy
+  // keys untouched (30-day readability window) → log counts → show a one-time
+  // notice. Never delete legacy keys in the release that introduces these.
+  const MIGRATION_FLAG = 'propwire_migration_v2';
+  const STORE = adapter.storageKeys;
+
+  function migrateLegacyStorage() {
+    const counts = {};
+    try {
+      const done = JSON.parse(localStorage.getItem(MIGRATION_FLAG) || 'null');
+      if (done && done.version === 2) return { counts, notice: done };
+      const L = adapter.legacyKeys;
+      if (localStorage.getItem(L.portfolioLedger) !== null && localStorage.getItem(STORE.ledger) === null) {
+        try {
+          const entries = JSON.parse(localStorage.getItem(L.portfolioLedger));
+          if (Array.isArray(entries)) {
+            const tagged = entries.map((e) => ({ sport: SPORT_ID, ...e }));
+            localStorage.setItem(STORE.ledger, JSON.stringify(tagged));
+            counts[STORE.ledger] = tagged.length;
+          }
+        } catch (_) {}
+      }
+      const copies = [[L.watchlist, STORE.watchlist], [L.sniperConfig, STORE.sniperConfig], [L.dismissedCorrelations, STORE.dismissedCorrelations]];
+      for (const [from, to] of copies) {
+        const raw = localStorage.getItem(from);
+        if (raw !== null && localStorage.getItem(to) === null) {
+          localStorage.setItem(to, raw);
+          counts[to] = 1;
+        }
+      }
+      const notice = { version: 2, at: new Date().toISOString(), migrated: Object.keys(counts).length > 0, counts, notice_shown: false };
+      localStorage.setItem(MIGRATION_FLAG, JSON.stringify(notice));
+      console.log('[PropWire] storage migration v2 complete:', counts);
+      return { counts, notice };
+    } catch (_) {
+      return { counts, notice: null };
+    }
+  }
+  const migrationResult = migrateLegacyStorage();
+
+  /** One-time bottom-sheet notice after storage migration (spec item 6d). */
+  function showMigrationNoticeOnce() {
+    try {
+      const notice = JSON.parse(localStorage.getItem(MIGRATION_FLAG) || 'null');
+      if (!notice || !notice.migrated || notice.notice_shown) return;
+      const dialog = document.createElement('dialog');
+      dialog.className = 'migration-notice-sheet';
+      dialog.setAttribute('aria-label', 'Storage migration notice');
+      dialog.style.cssText = 'border:none; border-radius:16px 16px 0 0; padding:20px; max-width:420px; width:calc(100% - 24px); margin:auto auto 0; font-family:inherit;';
+      dialog.innerHTML = `
+        <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+          <span style="font-size:18px;">✓</span>
+          <strong style="font-size:14px;">We reorganized your saved props</strong>
+        </div>
+        <p style="margin:0 0 14px; font-size:13px; line-height:1.5; color:#94a3b8;">Your NFL watchlist and ledger are intact. Saved data now lives under per-sport storage so NBA and UFC get their own spaces.</p>
+        <div style="display:flex; gap:8px; justify-content:flex-end;">
+          <button type="button" data-migration-view style="padding:8px 14px; border-radius:8px; border:1px solid #334155; background:transparent; color:#e2e8f0; font-size:13px;">View ledger</button>
+          <button type="button" data-migration-ok style="padding:8px 14px; border-radius:8px; border:none; background:#a3e635; color:#0f172a; font-size:13px; font-weight:600;">Got it</button>
+        </div>`;
+      dialog.addEventListener('click', (event) => {
+        if (event.target.closest('[data-migration-ok]') || event.target === dialog) {
+          dialog.close();
+        } else if (event.target.closest('[data-migration-view]')) {
+          dialog.close();
+          openPortfolioDialog();
+        }
+      });
+      document.body.appendChild(dialog);
+      dialog.showModal();
+      notice.notice_shown = true;
+      localStorage.setItem(MIGRATION_FLAG, JSON.stringify(notice));
+    } catch (_) {}
+  }
+
   function loadPortfolio() {
     try {
-      const raw = localStorage.getItem('propwire_portfolio_ledger');
+      const raw = localStorage.getItem(STORE.ledger);
       return raw ? JSON.parse(raw) : [];
     } catch (_) {
       return [];
@@ -26,13 +101,13 @@
 
   function savePortfolio(portfolio) {
     try {
-      localStorage.setItem('propwire_portfolio_ledger', JSON.stringify(portfolio));
+      localStorage.setItem(STORE.ledger, JSON.stringify(portfolio));
     } catch (_) {}
   }
 
   function loadWatchlist() {
     try {
-      const raw = localStorage.getItem('propwire_watchlist');
+      const raw = localStorage.getItem(STORE.watchlist);
       return raw ? JSON.parse(raw) : [];
     } catch (_) {
       return [];
@@ -41,13 +116,13 @@
 
   function saveWatchlist(watchlist) {
     try {
-      localStorage.setItem('propwire_watchlist', JSON.stringify(watchlist));
+      localStorage.setItem(STORE.watchlist, JSON.stringify(watchlist));
     } catch (_) {}
   }
 
   function loadSniperConfig() {
     try {
-      const raw = localStorage.getItem('propwire_sniper_config');
+      const raw = localStorage.getItem(STORE.sniperConfig);
       return raw ? JSON.parse(raw) : {
         enabled: false,
         minEdge: 0.15,
@@ -74,7 +149,7 @@
 
   function saveSniperConfig(cfg) {
     try {
-      localStorage.setItem('propwire_sniper_config', JSON.stringify(cfg));
+      localStorage.setItem(STORE.sniperConfig, JSON.stringify(cfg));
     } catch (_) {}
   }
 
@@ -97,7 +172,7 @@
     watchlist: loadWatchlist(),
     sniper: loadSniperConfig(),
     sniperCooldowns: {},
-    dismissedCorrelations: new Set(JSON.parse(localStorage.getItem('propwire_dismissed_correlations') || '[]')),
+    dismissedCorrelations: new Set(JSON.parse(localStorage.getItem(STORE.dismissedCorrelations) || '[]')),
     tickFlashes: {},
     priceHistory: {},
     openSnapshots: {},
@@ -169,6 +244,42 @@
 
   /** Current market definition from the active sport adapter. */
   const marketDef = (id = state.filters.market) => adapter.markets[id] || adapter.markets[adapter.defaultMarket];
+
+  /**
+   * Circuit breaker parameters for one market: config-first
+   * (viewer/circuit_breaker_config.json, fetched at slate load), adapter
+   * fallback on fetch failure. NEVER copy NFL values to another sport —
+   * uncalibrated sports carry "calibrated": false in their own block.
+   */
+  function breakerFor(marketId) {
+    const mdef = marketDef(marketId);
+    const cfg = state.breakerConfig;
+    const sportCfg = cfg && cfg.sports ? cfg.sports[SPORT_ID] : null;
+    if (sportCfg) {
+      const mk = (sportCfg.markets && sportCfg.markets[marketId]) || {};
+      const th = sportCfg.thresholds || {};
+      return {
+        driftHurdle: Number.isFinite(Number(mk.drift_hurdle)) ? Number(mk.drift_hurdle) : mdef.breaker.driftHurdle,
+        pctHurdle: Number.isFinite(Number(th.drift_pct_hurdle)) ? Number(th.drift_pct_hurdle) : adapter.breakerFallback.drift_pct_hurdle,
+        beneficiaryMax: Number.isFinite(Number(mk.beneficiary_max_drift)) ? Number(mk.beneficiary_max_drift) : mdef.breaker.beneficiaryMax,
+        highEdge: Number.isFinite(Number(th.high_edge_caution_hurdle)) ? Number(th.high_edge_caution_hurdle) : adapter.breakerFallback.high_edge_caution_hurdle,
+        cooldownMinutes: Number.isFinite(Number(th.cooldown_minutes)) ? Number(th.cooldown_minutes) : adapter.breakerFallback.cooldown_minutes,
+        calibrated: sportCfg.calibrated !== false,
+        configVersion: cfg.config_version || '1.1.0',
+        source: 'config'
+      };
+    }
+    return {
+      driftHurdle: mdef.breaker.driftHurdle,
+      pctHurdle: adapter.breakerFallback.drift_pct_hurdle,
+      beneficiaryMax: mdef.breaker.beneficiaryMax,
+      highEdge: adapter.breakerFallback.high_edge_caution_hurdle,
+      cooldownMinutes: adapter.breakerFallback.cooldown_minutes,
+      calibrated: adapter.breakerFallback.calibrated,
+      configVersion: '1.1.0',
+      source: 'adapter-fallback'
+    };
+  }
 
   function keyDriverTag(row, beneficiary) {
     return adapter.driverTag(row, beneficiary, state.filters.market);
@@ -502,6 +613,7 @@
     initInstall();
     initPollingTimer();
     initPullToRefresh();
+    showMigrationNoticeOnce();
     await loadSlate(state.slateKey);
     checkDeepLinks();
     if ('serviceWorker' in navigator && location.protocol !== 'file:') {
@@ -1411,7 +1523,7 @@
     if ($('#slateSelector')) $('#slateSelector').value = slateKey;
     renderSkeletons();
 
-    const [slate, games, picks, injuries, odds, clvReport, snapshots, newsState] = await Promise.all([
+    const [slate, games, picks, injuries, odds, clvReport, snapshots, newsState, breakerCfg] = await Promise.all([
       fetchJson(config.slate, []),
       fetchJson(config.games, []),
       fetchJson(config.picks, {}),
@@ -1419,7 +1531,8 @@
       config.odds ? fetchJson(config.odds, { quotes: [] }) : Promise.resolve({ quotes: [] }),
       fetchClvAuditReport(),
       config.snapshots ? fetchJson(config.snapshots, []) : Promise.resolve([]),
-      fetchJson('news_watcher_state.json', null)
+      fetchJson('news_watcher_state.json', null),
+      fetchJson('circuit_breaker_config.json', null)
     ]);
 
     state.slate = Array.isArray(slate) ? slate : [];
@@ -1428,6 +1541,7 @@
     state.injuries = injuries && typeof injuries === 'object' ? injuries : { injuries: [], impacted_beneficiaries: {} };
     state.odds = normalizeFeed(odds);
     state.newsWatcherState = newsState && typeof newsState === 'object' ? newsState : { teams_locked: {}, players_pending: {} };
+    state.breakerConfig = breakerCfg && typeof breakerCfg === 'object' && breakerCfg.sports ? breakerCfg : null;
 
     // Build open snapshots map & price trajectory history
     state.openSnapshots = {};
@@ -1986,7 +2100,7 @@
   }
 
   function updatePortfolioBadge(shouldPulse = false) {
-    const count = (state.portfolio || []).length;
+    const count = (state.portfolio || []).filter((b) => b.sport === SPORT_ID).length;
     const badge = $('#portfolioCountBadge');
     if (badge) {
       badge.textContent = count;
@@ -2129,12 +2243,12 @@
   /* ─── CORRELATED EXPOSURE RISK ENGINE ─── */
   function checkCorrelatedRisk(row, evaluation) {
     if (!row) return null;
-    const correlationKey = `${row.team}::${state.filters.market}`;
+    const correlationKey = adapter.correlationKey(row, state.filters.market);
     if (state.dismissedCorrelations && state.dismissedCorrelations.has(correlationKey)) {
       return null;
     }
 
-    const portfolio = state.portfolio || [];
+    const portfolio = (state.portfolio || []).filter((b) => b.sport === SPORT_ID);
     const competing = portfolio.find(
       (b) => b.team === row.team && b.player_id !== row.player_id && b.market === state.filters.market
     );
@@ -2187,7 +2301,9 @@
 
   function getPortfolioCorrelations(portfolio = state.portfolio || []) {
     const map = {};
-    (portfolio || []).forEach((bet) => {
+    (portfolio || []).filter((bet) => bet.sport === SPORT_ID).forEach((bet) => {
+      // Key format must stay `${team}::${market}` — dismissal lookups in the
+      // portfolio dialog and checkCorrelatedRisk use the same shape.
       const key = `${bet.team}::${bet.market}`;
       if (!map[key]) map[key] = [];
       map[key].push(bet);
@@ -2227,7 +2343,7 @@
     if (!state.dismissedCorrelations) state.dismissedCorrelations = new Set();
     state.dismissedCorrelations.add(key);
     try {
-      localStorage.setItem('propwire_dismissed_correlations', JSON.stringify([...state.dismissedCorrelations]));
+      localStorage.setItem(STORE.dismissedCorrelations, JSON.stringify([...state.dismissedCorrelations]));
     } catch (_) {}
     renderBoard();
     if ($('#portfolioDialog')?.open) openPortfolioDialog();
@@ -2583,7 +2699,7 @@
     const dist = distributionRange(row);
     const isTopEdge = evaluation.edge >= 0.15;
     const isWatched = (state.watchlist || []).includes(row.player_id);
-    const isLogged = (state.portfolio || []).some((b) => b.player_id === row.player_id && b.market === state.filters.market);
+    const isLogged = (state.portfolio || []).some((b) => b.sport === SPORT_ID && b.player_id === row.player_id && b.market === state.filters.market);
     const starBtn = `<button class="star-btn ${isWatched ? 'starred' : ''}" type="button" data-watch-player="${esc(row.player_id)}" title="${isWatched ? 'Remove from Watchlist' : 'Add to Watchlist'}" aria-label="Watch">${isWatched ? '★' : '☆'}</button>`;
     const logoImg = teamCrest(row.team, 'md');
     const bulletSvg = propBulletGraphSvg(dist, evaluation, evaluation.side || 'OVER');
@@ -2627,7 +2743,7 @@
     const evaluation = evaluateRow(row);
     const injury = injuryFor(row);
     const dist = distributionRange(row);
-    const isLogged = (state.portfolio || []).some((b) => b.player_id === row.player_id && b.market === state.filters.market);
+    const isLogged = (state.portfolio || []).some((b) => b.sport === SPORT_ID && b.player_id === row.player_id && b.market === state.filters.market);
     const isWatched = (state.watchlist || []).includes(row.player_id);
     const isTopEdge = evaluation.edge >= 0.15;
     const beneficiary = beneficiaryFor(row);
@@ -2822,6 +2938,7 @@
 
     const beneficiary = beneficiaryFor(row);
     const playerInjury = injuryFor(row);
+    const breaker = breakerFor(state.filters.market);
 
     let volatilityHalt = false;
     let isExemptModeledMove = false;
@@ -2832,14 +2949,14 @@
       driftVal = +(curLine - openLine).toFixed(1);
       const absDrift = Math.abs(driftVal);
       const driftPct = absDrift / openLine;
-      const hurdle = mdef.breaker.driftHurdle;
+      const hurdle = breaker.driftHurdle;
 
       // Check if move matches modeled injury redistribution
       const isModeledSurge = Boolean(beneficiary) && driftVal > 0;
       const isModeledAbsence = Boolean(playerInjury && (playerInjury.report_status === 'OUT' || playerInjury.report_status === 'IR')) && driftVal < 0;
 
       // Bound beneficiary surge to realistic model target absorption (max +8.5 yds / +2.0 rec)
-      const maxBeneficiaryDrift = mdef.breaker.beneficiaryMax;
+      const maxBeneficiaryDrift = breaker.beneficiaryMax;
       const isOversteamedBeneficiary = isModeledSurge && driftVal > maxBeneficiaryDrift;
 
       if (isOversteamedBeneficiary) {
@@ -2847,7 +2964,7 @@
         haltReason = `Beneficiary line surged ${driftVal > 0 ? '+' : ''}${driftVal} ${mdef.breakerUnit}, exceeding model absorption limit (+${maxBeneficiaryDrift}). Possible second-order news or book over-reaction.`;
       } else if (isModeledSurge || isModeledAbsence) {
         isExemptModeledMove = true;
-      } else if (absDrift >= hurdle || driftPct >= 0.12) {
+      } else if (absDrift >= hurdle || driftPct >= breaker.pctHurdle) {
         volatilityHalt = true;
         haltReason = `Line moved sharply (${driftVal > 0 ? '+' : ''}${driftVal} ${mdef.breakerUnit}, ${(driftPct * 100).toFixed(0)}% vs open). Model baseline may be stale — check breaking news before trading.`;
       }
@@ -2860,16 +2977,34 @@
       haltReason = `Offense Locked: ${teamLock.reason || 'Breaking news pending on team'}. Trading halted pending human review.`;
     }
 
-    // High Edge Safeguard (15%+ on liquid books)
-    const highEdgeCaution = edge >= 0.15;
+    // High Edge Safeguard (hurdle from per-sport config; 15% on calibrated NFL)
+    const highEdgeCaution = edge >= breaker.highEdge;
     const highEdgeWarning = highEdgeCaution
       ? `Large edge (${(edge * 100).toFixed(1)}%). May reflect stale model baseline or unmodeled news — check status.`
       : '';
 
+    // Exemption audit trail (spec small-edit: every exemption must log the
+    // comparison between the model-implied move and the observed market move
+    // so the rule is auditable after the fact).
+    let exemptionAudit = null;
+    if (isExemptModeledMove) {
+      const modeledMove = beneficiary && Number.isFinite(Number(beneficiary.added_targets))
+        ? Number(beneficiary.added_targets)
+        : (playerInjury && Number.isFinite(Number(playerInjury.vacated_targets)) ? -Number(playerInjury.vacated_targets) : null);
+      exemptionAudit = {
+        observed_drift: driftVal,
+        modeled_move: modeledMove === null ? null : +modeledMove.toFixed(1),
+        delta_vs_model: modeledMove === null ? null : +(driftVal - modeledMove).toFixed(1),
+        rule: beneficiary ? 'exempt_modeled_beneficiaries' : 'exempt_modeled_injuries',
+        config_version: breaker.configVersion
+      };
+      console.debug('[PropWire] breaker exemption audit:', exemptionAudit);
+    }
+
     const roundedEdgePct = +(num(edge) * 100).toFixed(1);
     const roundedGatePct = activePolicy ? +(activePolicy.gate * 100).toFixed(1) : 0;
     const qualified = Boolean(activePolicy) && roundedEdgePct >= roundedGatePct && ev > 0;
-    const dataCheck = edge > 0.12 || volatilityHalt || highEdgeCaution;
+    const dataCheck = edge > breaker.pctHurdle || volatilityHalt || highEdgeCaution;
     const actionable = qState === 'verified' && qualified && !closed && !volatilityHalt;
 
     let stake = 0;
@@ -2894,6 +3029,7 @@
       haltReason,
       driftVal,
       isExemptModeledMove,
+      exemption_audit: exemptionAudit,
       highEdgeCaution,
       highEdgeWarning,
       closed,
@@ -3232,7 +3368,7 @@
     const row = state.slate.find((item) => item.player_id === playerId);
     if (!row) return;
     const evaluation = evaluateRow(row);
-    const existingIndex = (state.portfolio || []).findIndex((b) => b.player_id === playerId && b.market === state.filters.market);
+    const existingIndex = (state.portfolio || []).findIndex((b) => b.sport === SPORT_ID && b.player_id === playerId && b.market === state.filters.market);
     if (existingIndex >= 0) {
       const removedEntry = state.portfolio.splice(existingIndex, 1)[0];
       savePortfolio(state.portfolio);
@@ -3260,6 +3396,7 @@
       const risk = checkCorrelatedRisk(row, evaluation);
       const entry = {
         id: `bet_${Date.now()}_${ticketId.toLowerCase()}`,
+        sport: SPORT_ID,
         ticket_id: ticketId,
         player_id: row.player_id,
         player_name: row.player_display_name,
@@ -3276,7 +3413,8 @@
         correlation_warning: risk ? risk.message : null,
         volatility_flag: Boolean(evaluation.volatilityHalt),
         volatility_reason: evaluation.volatilityHalt ? evaluation.haltReason : null,
-        config_version: "1.1.0",
+        exemption_audit: evaluation.exemption_audit || null,
+        config_version: (state.breakerConfig && state.breakerConfig.config_version) || "1.1.0",
         logged_at: new Date().toISOString()
       };
       if (!Array.isArray(state.portfolio)) state.portfolio = [];
@@ -3426,6 +3564,7 @@
 
           const entry = {
             id: item.id || `bet_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+            sport: item.sport || SPORT_ID,
             player_id: item.player_id || '',
             player_name: String(item.player_name),
             team: item.team || '',
@@ -3441,7 +3580,7 @@
             logged_at: item.logged_at || new Date().toISOString()
           };
 
-          const existingIdx = current.findIndex((b) => (b.id && b.id === entry.id) || (b.player_id && b.player_id === entry.player_id && b.market === entry.market && b.side === entry.side));
+          const existingIdx = current.findIndex((b) => (b.id && b.id === entry.id) || (b.player_id && b.player_id === entry.player_id && b.sport === entry.sport && b.market === entry.market && b.side === entry.side));
           if (existingIdx >= 0) {
             current[existingIdx] = { ...current[existingIdx], ...entry };
             updated++;
@@ -4055,7 +4194,7 @@
   }
 
   function executionTicketMarkup(row, evaluation, wagerDollars) {
-    const isLogged = (state.portfolio || []).some((b) => b.player_id === row.player_id && b.market === state.filters.market);
+    const isLogged = (state.portfolio || []).some((b) => b.sport === SPORT_ID && b.player_id === row.player_id && b.market === state.filters.market);
     const existingBet = (state.portfolio || []).find((b) => b.player_id === row.player_id && b.market === state.filters.market);
     const side = existingBet ? existingBet.side : (evaluation.side || 'OVER');
     const lineVal = existingBet ? existingBet.line : (evaluation.line || fairValue(row));
@@ -4331,7 +4470,7 @@
 
   function detailMarkup(row, evaluation, injury, beneficiary, fair, projection) {
     const isWatched = (state.watchlist || []).includes(row.player_id);
-    const isLogged = (state.portfolio || []).some((b) => b.player_id === row.player_id && b.market === state.filters.market);
+    const isLogged = (state.portfolio || []).some((b) => b.sport === SPORT_ID && b.player_id === row.player_id && b.market === state.filters.market);
     const watchButton = `<button class="star-modal-btn ${isWatched ? 'starred' : ''}" type="button" id="modalWatchlistBtn" data-watch-player="${esc(row.player_id)}">${isWatched ? '★ On Watchlist' : '☆ Add to Watchlist'}</button>`;
 
     const baseShare = num(row.f_tgt_share || row.target_share, 0.20);
