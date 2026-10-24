@@ -58,6 +58,10 @@ test('fixture dataset surfaces the RESEARCH FIXTURES banner (NBA)', async () => 
   assert.equal(banner.hidden, false, 'fixture banner visible');
   assert.ok(banner.className.includes('fixture'), 'fixture tone class');
   assert.match(banner.innerHTML, /RESEARCH FIXTURES/);
+  // Banner must SAY what it means (audit M15): sample data, not actionable,
+  // not a research record — never just a bare "FIXTURE" label.
+  assert.match(banner.innerHTML, /not actionable/i);
+  assert.match(banner.innerHTML, /not a research record/i);
   assert.match(banner.innerHTML, /not sportsbook quotes/i);
   assert.equal(P.state.feedHealth.dataKind, 'fixture');
   // Fixture timestamps sit in the future relative to the frozen test clock → fresh.

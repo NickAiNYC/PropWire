@@ -1752,7 +1752,7 @@
     const items = [];
     let tone = 'ok';
     if (health.dataKind === 'fixture') {
-      items.push('<strong>RESEARCH FIXTURES</strong><span>Synthetic model data — not sportsbook quotes. Not for wagering decisions.</span>');
+      items.push('<strong>RESEARCH FIXTURES</strong><span>Sample data for demonstration — not actionable, not a research record. Synthetic values; not sportsbook quotes.</span>');
       tone = 'fixture';
     }
     if (health.slate === 'error') {
@@ -1786,6 +1786,24 @@
       + '<button type="button" id="dqRetryBtn" class="dq-retry-btn">Retry</button>';
     const retry = document.getElementById('dqRetryBtn');
     if (retry) retry.addEventListener('click', () => window.location.reload());
+  }
+
+  /**
+   * Per-sport calibration badge (audit H9): the spec requires a VISIBLE
+   * uncalibrated badge on rows of an uncalibrated sport, not just a config
+   * flag. Sourced from the breaker config's sports block with the adapter
+   * fallback, so badge truth = breaker truth. Calibrated sports (NFL)
+   * render nothing — the badge must be a real signal, not chrome.
+   */
+  function sportCalibrationBadge() {
+    const cfgSport = state.breakerConfig && state.breakerConfig.sports
+      ? state.breakerConfig.sports[SPORT_ID]
+      : null;
+    const calibrated = cfgSport && typeof cfgSport.calibrated === 'boolean'
+      ? cfgSport.calibrated
+      : !(adapter.breakerFallback && adapter.breakerFallback.calibrated === false);
+    return calibrated ? ''
+      : '<span class="uncal-tag" title="Model parameters are not calibrated for this sport — outputs are directional research only, never actionable.">UNCALIBRATED</span>';
   }
 
   function normalizeFeed(feed) {
@@ -2964,7 +2982,7 @@
             <div class="player-name">${starBtn} ${esc(row.player_display_name)}${injury ? `<span class="injury-tag">${esc(injury.report_status)}</span>` : ''}</div>
             <div class="player-meta-line">
               <span class="cell-sub">${esc(row.team)} · ${esc(roleLabel(row))}</span>
-              ${keyDriverTag(row, beneficiary)}
+              ${keyDriverTag(row, beneficiary)}${sportCalibrationBadge()}
               ${corrRisk ? `<span class="corr-risk-pill ${corrRisk.badgeClass}" title="${esc(corrRisk.message)}">${esc(corrRisk.badgeText)} <button type="button" class="corr-dismiss-btn" data-dismiss-corr="${esc(corrRisk.dismissKey)}" title="Dismiss warning" aria-label="Dismiss">×</button></span>` : ''}
             </div>
           </div>
@@ -3122,7 +3140,7 @@
             ${crest}
             <div class="card-name-group">
               <span class="card-player-name">${esc(row.player_display_name)}</span>
-              <span class="card-team-matchup">${esc(row.position)} · ${esc(row.team)} ${row.is_home ? 'vs' : '@'} ${esc(row.opponent_team)}</span>
+              <span class="card-team-matchup">${esc(row.position)} · ${esc(row.team)} ${row.is_home ? 'vs' : '@'} ${esc(row.opponent_team)}</span>${sportCalibrationBadge()}
             </div>
           </div>
           <div class="card-hero-edge-block">
