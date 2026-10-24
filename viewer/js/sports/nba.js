@@ -314,7 +314,7 @@
       return `<span class="driver-badge depth" title="Bench rotation role">${SVG_ICONS.depth} Bench</span>`;
     },
 
-    // ── Detail modal adapters (NFL keeps its verbatim branches in app.js) ───
+    // ── Detail modal hooks (NFL's verbatim hooks live in nfl.js) ────────────
     detail: {
       scenarioCapable: false,
       marketLabel: (market) => ({

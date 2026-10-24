@@ -277,6 +277,30 @@
       }
     },
 
+    // ── Detail modal hooks (Phase 2 remediation, audit item B4) ─────────────
+    // VERBATIM extraction of the pre-adapter inline fallbacks that used to
+    // live in viewer/app.js detailMarkup(). The modal now calls
+    // adapter.detail.* unconditionally — no sport branches remain in app.js.
+    // Byte-equality with the pre-refactor modal is proven by the
+    // test/snapshots/nfl/detail_modal.json golden.
+    detail: {
+      scenarioCapable: true,
+      marketLabel: (market) => (market === 'receptions' ? 'Receptions' : 'Receiving yards'),
+      modelSpec: (market) => market === 'receptions' ? 'MODEL SPEC: INTEGER POISSON' : market === 'anytime_td' ? 'MODEL SPEC: ZERO-INFLATED POISSON' : 'MODEL SPEC: CONTINUOUS MEDIAN',
+      distributionDesc: (market) => market === 'receptions' ? 'Discrete Poisson (Half-step)' : market === 'anytime_td' ? 'Poisson Red Zone Model' : 'Calibrated Continuous Log-Normal',
+      sampleNote: (row) => `${num(row.games_prior, 16)} games prior · ${row.season || '2026'}`,
+      scopeNote: (row, market) => market === 'receptions'
+        ? `Receptions use integer outcomes and half-step lines. Fair line calibrated at P(over) = ${pct(row.p_rec_at_fair_line)}.`
+        : 'Receiving-yards fair line is the calibrated continuous median, where P(over) is exactly 50.0%.',
+      environment: (row, game) => {
+        const isDome = row.is_dome || game?.roof === 'dome';
+        const wind = game?.wind ?? row.wind_speed ?? row.wind;
+        const tag = isDome ? 'ENV: DOME' : (Number.isFinite(wind) && wind > 0) ? `ENV: ${wind} MPH WIND` : 'ENV: MILD / OUTDOOR';
+        const desc = isDome ? 'Indoor Dome (Controlled Conditions)' : (Number.isFinite(wind) && wind > 0) ? `${wind} mph wind (${game?.home_team ? `${game.home_team} stadium` : 'Open'})` : 'Controlled / mild conditions';
+        return { tag, desc, dome: isDome };
+      }
+    },
+
     // ── Storage namespaces ──────────────────────────────────────────────────
     // Legacy keys are NEVER renamed or deleted (30-day dual-write policy);
     // migration copies legacy data into these sport-namespaced keys once.

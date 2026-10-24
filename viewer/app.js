@@ -4504,10 +4504,10 @@
     const beneficiary = beneficiaryFor(row);
     const fair = fairValue(row);
     const projection = projectionValue(row);
-    /** Market label: adapter hook first, NFL verbatim fallback. */
+    /** Market label: adapter hook; generic id fallback for adapters that ship no detail block. */
     const detailMarketLabel = (market) => (adapter.detail && adapter.detail.marketLabel)
       ? adapter.detail.marketLabel(market)
-      : (market === 'receptions' ? 'Receptions' : 'Receiving yards');
+      : market;
 
     const sideBadge = evaluation.state !== 'none'
       ? `<span class="detail-side-badge ${evaluation.side === 'UNDER' ? 'badge-under' : 'badge-over'}">${evaluation.side}</span>`
@@ -4842,30 +4842,27 @@
     `;
 
     const game = state.games.find((item) => item.game_id === row.game_id);
-    const isDome = row.is_dome || game?.roof === 'dome';
-    const wind = game?.wind ?? row.wind_speed ?? row.wind;
-    // Venue environment: adapters may own it (NBA arenas are fixed indoor
-    // venues); NFL keeps the exact pre-adapter dome/wind copy.
-    const envFallbackTag = isDome ? 'ENV: DOME' : (Number.isFinite(wind) && wind > 0) ? `ENV: ${wind} MPH WIND` : 'ENV: MILD / OUTDOOR';
-    const envFallbackDesc = isDome ? 'Indoor Dome (Controlled Conditions)' : (Number.isFinite(wind) && wind > 0) ? `${wind} mph wind (${game?.home_team ? `${game.home_team} stadium` : 'Open'})` : 'Controlled / mild conditions';
+    // Venue environment: every adapter owns its environment copy via
+    // detail.environment(row, game). (Phase 2 remediation, audit item B4:
+    // the NFL dome/wind strings moved verbatim into nfl.js — no sport
+    // branches remain in app.js.)
     const env = (adapter.detail && adapter.detail.environment)
       ? adapter.detail.environment(row, game)
-      : { tag: envFallbackTag, desc: envFallbackDesc };
+      : { tag: 'ENV: NOT MODELED', desc: 'Environment context is not modeled for this sport.' };
     const envTag = env.tag;
     const weatherDesc = env.desc;
 
     const isReceptions = state.filters.market === 'receptions';
-    const isAnytimeTd = state.filters.market === 'anytime_td';
-    // Detail-model copy: adapters with a `detail` hook own their wording;
-    // NFL (no hook) keeps the exact pre-adapter strings.
+    // Detail-model copy: every adapter owns its wording via detail hooks
+    // (NFL hooks live in nfl.js, NBA hooks in nba.js). The fallbacks below
+    // are sport-neutral placeholders for hypothetical adapters that ship
+    // without a detail block — they must never re-introduce sport branches.
     const hasDetailHooks = Boolean(adapter.detail);
-    const modelSpecTag = hasDetailHooks ? adapter.detail.modelSpec(state.filters.market) : isReceptions ? 'MODEL SPEC: INTEGER POISSON' : isAnytimeTd ? 'MODEL SPEC: ZERO-INFLATED POISSON' : 'MODEL SPEC: CONTINUOUS MEDIAN';
-    const distributionDesc = hasDetailHooks ? adapter.detail.distributionDesc(state.filters.market) : isReceptions ? 'Discrete Poisson (Half-step)' : isAnytimeTd ? 'Poisson Red Zone Model' : 'Calibrated Continuous Log-Normal';
+    const modelSpecTag = hasDetailHooks ? adapter.detail.modelSpec(state.filters.market) : 'MODEL SPEC: NOT SPECIFIED';
+    const distributionDesc = hasDetailHooks ? adapter.detail.distributionDesc(state.filters.market) : 'Distribution: not specified';
     const fairPVal = isReceptions ? pct(row.p_rec_at_fair_line) : '50.0%';
-    const sampleDesc = hasDetailHooks ? adapter.detail.sampleNote(row, state.filters.market) : `${num(row.games_prior, 16)} games prior · ${row.season || '2026'}`;
-    const scopeNote = hasDetailHooks ? adapter.detail.scopeNote(state.filters.market) : isReceptions
-      ? `Receptions use integer outcomes and half-step lines. Fair line calibrated at P(over) = ${pct(row.p_rec_at_fair_line)}.`
-      : 'Receiving-yards fair line is the calibrated continuous median, where P(over) is exactly 50.0%.';
+    const sampleDesc = hasDetailHooks ? adapter.detail.sampleNote(row, state.filters.market) : 'Sample basis: not specified';
+    const scopeNote = hasDetailHooks ? adapter.detail.scopeNote(row, state.filters.market) : 'Scope notes are not specified for this sport.';
 
     return `
       <!-- Prominent Verdict Strip at Top: Line, Edge, Kelly Stake -->
@@ -4938,7 +4935,7 @@
         <div class="spec-col spec-col-invalidation">
           <div class="spec-header">
             <span class="spec-title">Invalidation &amp; Risk Envelope</span>
-            <span class="spec-tag ${isDome ? 'tag-dome' : 'tag-wind'}">${envTag}</span>
+            <span class="spec-tag ${env.dome ? 'tag-dome' : 'tag-wind'}">${envTag}</span>
           </div>
           <div class="spec-body">
             <div class="spec-meta-list">
