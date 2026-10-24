@@ -29,6 +29,12 @@
       ctx = helpers || {};
     },
 
+    // ── Distribution model constants (compound NegBin/Gamma, NFL-calibrated) ─
+    model: {
+      alpha: 0.1097,
+      k: 1.555
+    },
+
     // ── Slate registry (verbatim from app.js SLATES, pre-adapter) ───────────
     slates: {
       '2026_w7': {
@@ -224,7 +230,7 @@
         games: (n) => `${n} Games`,
         teams: (n) => `${n} Teams`,
         records: (n) => `${n} Modeled player records`,
-        injestedTail: (ingested, verified) => `${ingested} ingested (${verified} verified)`
+        ingestedTail: (ingested, verified) => `${ingested} ingested (${verified} verified)`
       },
       injuredQuantImpact: {
         vacated: (item) => `Vacates ${item.vacated_targets} tgt/g (${item.vacated_air_yards ? `${item.vacated_air_yards} air yds/g` : 'high volume'})`

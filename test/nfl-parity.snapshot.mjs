@@ -139,8 +139,10 @@ function buildSandbox() {
   return { sandbox, registry, lsStore };
 }
 
-// ── Load app.js with an in-closure test hook injected before the final `})();`
+// ── Load sport registry + NFL adapter + app.js (same order as index.html) ───
 function loadApp(sandbox) {
+  const registrySrc = fs.readFileSync(path.join(VIEWER, 'js', 'sports', 'registry.js'), 'utf8');
+  const nflSrc = fs.readFileSync(path.join(VIEWER, 'js', 'sports', 'nfl.js'), 'utf8');
   const source = fs.readFileSync(path.join(VIEWER, 'app.js'), 'utf8');
   const hook = `
   globalThis.__PW_PARITY__ = {
@@ -152,6 +154,8 @@ function loadApp(sandbox) {
   const injected = source.replace(/\}\)\(\);\s*$/, hook);
   if (injected === source) throw new Error('Failed to inject parity hook into viewer/app.js');
   vm.createContext(sandbox);
+  vm.runInContext(registrySrc, sandbox, { filename: 'viewer/js/sports/registry.js' });
+  vm.runInContext(nflSrc, sandbox, { filename: 'viewer/js/sports/nfl.js' });
   vm.runInContext(injected, sandbox, { filename: 'viewer/app.js' });
   return sandbox.__PW_PARITY__;
 }
