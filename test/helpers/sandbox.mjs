@@ -122,6 +122,7 @@ export function loadApp(sandbox) {
     renderAll, renderBoard, fairValue, projectionValue, logBet, setView,
     setPlayMode, breakerFor,
     sportSwitcherItems, switchToSport, defaultBootSlate,
+    feedHealthStates, updateFeedHealthUI, stampProvenance,
     storage: { loadPortfolio, savePortfolio, loadWatchlist, saveWatchlist, migrateLegacyStorage, MIGRATION_FLAG, STORE, migrationResult }
   };
 })();`;

@@ -6532,3 +6532,65 @@ article[data-focused="true"] {
     min-height: 40px; /* WCAG 2.2 AA comfortable touch target */
   }
 }
+
+/* ─── Data Quality Banner (Phase 2 failure-mode UI) ────────────────────── */
+.data-quality-banner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: stretch;
+  margin: 8px 12px 0;
+  padding: 8px 10px;
+  border: 1px solid var(--line-strong);
+  border-left: 3px solid var(--baby-blue);
+  border-radius: 8px;
+  background: var(--bg-elevated);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.data-quality-banner[hidden] { display: none; }
+
+.data-quality-banner .dq-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 2px 10px 2px 0;
+  min-width: 180px;
+}
+
+.data-quality-banner .dq-item strong {
+  color: var(--text-primary);
+  letter-spacing: 0.6px;
+}
+
+.data-quality-banner.fixture { border-left-color: var(--warn-amber); }
+.data-quality-banner.fixture .dq-item strong { color: var(--warn-amber); }
+
+.data-quality-banner.warn { border-left-color: var(--warn-amber); }
+.data-quality-banner.warn .dq-item strong { color: var(--warn-amber); }
+
+.data-quality-banner.error { border-left-color: var(--danger); }
+.data-quality-banner.error .dq-item strong { color: var(--danger); }
+
+.dq-retry-btn {
+  appearance: none;
+  margin-left: auto;
+  align-self: center;
+  border: 1px solid var(--line-strong);
+  background: var(--surface-3);
+  color: var(--text-primary);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 6px 14px;
+  min-height: 32px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.dq-retry-btn:focus-visible {
+  outline: 2px solid var(--baby-blue-ring);
+  outline-offset: 2px;
+}

@@ -1558,6 +1558,17 @@
     }
   }
 
+  /** fetchJson + transport status — powers the Phase 2 failure-mode UI. */
+  async function fetchJsonStatus(path, fallback) {
+    try {
+      const response = await fetch(`${path}?v=${Date.now()}`, { cache: 'no-store' });
+      if (!response.ok) return { data: fallback, ok: false, status: response.status };
+      return { data: await response.json(), ok: true, status: response.status };
+    } catch (_) {
+      return { data: fallback, ok: false, status: 0 };
+    }
+  }
+
   async function fetchClvAuditReport() {
     try {
       const report = await fetchJson('clv_audit_report.json', null);
@@ -1611,17 +1622,21 @@
     if ($('#slateSelector')) $('#slateSelector').value = slateKey;
     renderSkeletons();
 
-    const [slate, games, picks, injuries, odds, clvReport, snapshots, newsState, breakerCfg] = await Promise.all([
-      fetchJson(config.slate, []),
-      fetchJson(config.games, []),
+    const [slateRes, gamesRes, picks, injuries, oddsRes, clvReport, snapshots, newsRes, breakerCfg] = await Promise.all([
+      fetchJsonStatus(config.slate, []),
+      fetchJsonStatus(config.games, []),
       fetchJson(config.picks, {}),
       config.injuries ? fetchJson(config.injuries, { injuries: [], impacted_beneficiaries: {} }) : Promise.resolve({ injuries: [], impacted_beneficiaries: {} }),
-      config.odds ? fetchJson(config.odds, { quotes: [] }) : Promise.resolve({ quotes: [] }),
+      config.odds ? fetchJsonStatus(config.odds, { quotes: [] }) : Promise.resolve({ data: { quotes: [] }, ok: true, status: 0 }),
       fetchClvAuditReport(),
       config.snapshots ? fetchJson(config.snapshots, []) : Promise.resolve([]),
-      fetchJson('news_watcher_state.json', null),
+      fetchJsonStatus('news_watcher_state.json', null),
       fetchJson('circuit_breaker_config.json', null)
     ]);
+    const slate = slateRes.data;
+    const games = gamesRes.data;
+    const odds = oddsRes.data;
+    const newsState = newsRes.data;
 
     state.slate = Array.isArray(slate) ? slate : [];
     state.games = Array.isArray(games) ? games : [];
@@ -1630,6 +1645,19 @@
     state.odds = normalizeFeed(odds);
     state.newsWatcherState = newsState && typeof newsState === 'object' ? newsState : { teams_locked: {}, players_pending: {} };
     state.breakerConfig = breakerCfg && typeof breakerCfg === 'object' && breakerCfg.sports ? breakerCfg : null;
+
+    // Feed health (Phase 2 failure-mode UI): transport status per critical
+    // feed + data kind. Consumed by updateFeedHealthUI(); staleness is
+    // derived at render time against the per-sport config thresholds.
+    state.feedHealth = {
+      slate: slateRes.ok ? 'ok' : 'error',
+      games: gamesRes.ok ? 'ok' : 'error',
+      odds: oddsRes.ok ? 'ok' : 'error',
+      news: newsRes.ok ? 'ok' : 'error',
+      dataKind: (state.odds.feed_status === 'fixture') || adapter.fixturesOnly === true ? 'fixture' : 'live',
+      oddsUpdatedAt: state.odds.updated_at || null,
+      newsLastPolledAt: state.newsWatcherState.last_polled_at || null
+    };
 
     // Build open snapshots map & price trajectory history
     state.openSnapshots = {};
@@ -1659,6 +1687,7 @@
     });
 
     renderAll(clvReport);
+    updateFeedHealthUI();
     updateSniperUIBadges();
     checkSniperAlerts();
     window.__PROP_WIRE_READY__ = true;
@@ -1666,6 +1695,95 @@
     window.__PROP_WIRE_TRIGGER_POLL__ = triggerOddsPoll;
     window.__PROP_WIRE_EXPORT__ = handleLedgerExport;
     window.__PROP_WIRE_IMPORT__ = handleLedgerImportFile;
+  }
+
+  // ─── Feed health: failure-mode UI (Phase 2) ─────────────────────────────
+  // A feed outage must NEVER masquerade as "the market is efficient": every
+  // transport failure, staleness breach, and fixture dataset is surfaced in
+  // a dedicated banner. All DOM access goes through elById() so the parity
+  // sandbox (no getElementById) proves this chrome sits outside the NFL
+  // golden snapshots.
+  function feedThresholds() {
+    const cfg = state.breakerConfig;
+    const sportCfg = cfg && cfg.sports ? cfg.sports[SPORT_ID] : null;
+    const th = (sportCfg && sportCfg.thresholds) || {};
+    const numOr = (value, fallback) => (Number.isFinite(Number(value)) ? Number(value) : fallback);
+    return {
+      oddsStaleSeconds: numOr(th.odds_stale_max_age_seconds, 21600),
+      newsStaleSeconds: numOr(th.deadman_switch_max_age_seconds, 300)
+    };
+  }
+
+  function feedHealthStates() {
+    const health = state.feedHealth || {};
+    const thresholds = feedThresholds();
+    const now = Date.now();
+    const ageSeconds = (iso) => {
+      const t = iso ? Date.parse(iso) : NaN;
+      return Number.isFinite(t) ? Math.max(0, (now - t) / 1000) : null;
+    };
+    const oddsAge = health.odds === 'ok' ? ageSeconds(health.oddsUpdatedAt) : null;
+    const oddsFreshness = health.odds === 'error' ? 'error'
+      : oddsAge === null ? 'unknown'
+        : oddsAge > thresholds.oddsStaleSeconds ? 'stale' : 'ok';
+    const newsAge = ageSeconds(health.newsLastPolledAt);
+    const newsFreshness = health.news === 'error' ? 'error'
+      : newsAge === null ? 'unknown'
+        : newsAge > thresholds.newsStaleSeconds ? 'stale' : 'ok';
+    // Staleness semantics apply to LIVE feeds only: fixture datasets are
+    // static by design (fixed updated_at), so their age is not a health
+    // signal. Transport failures still surface for every data kind.
+    const fixtureStatic = health.dataKind === 'fixture';
+    return {
+      ...health,
+      oddsFreshness: fixtureStatic && oddsFreshness !== 'error' ? 'ok' : oddsFreshness,
+      newsFreshness: fixtureStatic && newsFreshness !== 'error' ? 'ok' : newsFreshness,
+      oddsAgeSeconds: oddsAge,
+      thresholds
+    };
+  }
+
+  function updateFeedHealthUI() {
+    const banner = elById('dataQualityBanner');
+    if (!banner) return;
+    const health = feedHealthStates();
+    const items = [];
+    let tone = 'ok';
+    if (health.dataKind === 'fixture') {
+      items.push('<strong>RESEARCH FIXTURES</strong><span>Synthetic model data — not sportsbook quotes. Not for wagering decisions.</span>');
+      tone = 'fixture';
+    }
+    if (health.slate === 'error') {
+      items.push('<strong>SLATE FEED OFFLINE</strong><span>The slate file failed to load — the board is empty because data is missing, not because the market is efficient.</span>');
+      tone = 'error';
+    }
+    if (health.games === 'error') {
+      items.push('<strong>GAMES FEED OFFLINE</strong><span>Matchup context may be incomplete.</span>');
+      if (tone === 'ok') tone = 'warn';
+    }
+    if (health.odds === 'error') {
+      items.push('<strong>ODDS FEED OFFLINE</strong><span>Projections render without market quotes; no actionable classification is possible.</span>');
+      tone = 'error';
+    } else if (health.oddsFreshness === 'stale') {
+      items.push(`<strong>ODDS STALE</strong><span>Last update ${Math.max(1, Math.round(health.oddsAgeSeconds / 60))}m ago (limit ${Math.round(health.thresholds.oddsStaleSeconds / 60)}m) — treat prices as historical.</span>`);
+      if (tone === 'ok') tone = 'warn';
+    }
+    if (health.newsFreshness === 'stale') {
+      items.push('<strong>NEWS FEED STALE</strong><span>News watcher exceeded the dead-man threshold — automated sniper dispatch is suppressed.</span>');
+      if (tone === 'ok') tone = 'warn';
+    }
+    if (!items.length) {
+      banner.hidden = true;
+      banner.innerHTML = '';
+      banner.className = 'data-quality-banner';
+      return;
+    }
+    banner.hidden = false;
+    banner.className = `data-quality-banner ${tone}`;
+    banner.innerHTML = items.map((item) => `<div class="dq-item">${item}</div>`).join('')
+      + '<button type="button" id="dqRetryBtn" class="dq-retry-btn">Retry</button>';
+    const retry = document.getElementById('dqRetryBtn');
+    if (retry) retry.addEventListener('click', () => window.location.reload());
   }
 
   function normalizeFeed(feed) {
@@ -3477,6 +3595,21 @@
   }
   const showToast = toast;
 
+  /**
+   * Fixture provenance (Phase 2): entries logged against synthetic fixture
+   * data are stamped `data_provenance: "fixture"` so per-sport CLV stats can
+   * never blend research fixtures with live-book fills. Live-book entries
+   * carry NO field — the NFL ledger schema stays byte-identical (parity
+   * goldens assert this).
+   */
+  function stampProvenance(entry, row) {
+    const quote = findQuote(row, state.filters.market);
+    if ((quote && quote._fixture === true) || adapter.fixturesOnly === true) {
+      entry.data_provenance = 'fixture';
+    }
+    return entry;
+  }
+
   function logBet(playerId) {
     if (state.userTier === 'free') {
       const pricingDialog = $('#pricingDialog');
@@ -3536,6 +3669,7 @@
         config_version: (state.breakerConfig && state.breakerConfig.config_version) || "1.1.0",
         logged_at: new Date().toISOString()
       };
+      stampProvenance(entry, row);
       if (!Array.isArray(state.portfolio)) state.portfolio = [];
       state.portfolio.unshift(entry);
       savePortfolio(state.portfolio);
@@ -4508,6 +4642,7 @@
           ev: evaluation.ev || 0,
           logged_at: new Date().toISOString()
         };
+        stampProvenance(entry, row);
 
         if (!Array.isArray(state.portfolio)) state.portfolio = [];
         if (existingIdx >= 0) {

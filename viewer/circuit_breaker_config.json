@@ -9,12 +9,26 @@
         "drift_pct_hurdle": 0.12,
         "high_edge_caution_hurdle": 0.15,
         "cooldown_minutes": 15,
-        "deadman_switch_max_age_seconds": 300
+        "deadman_switch_max_age_seconds": 300,
+        "odds_stale_max_age_seconds": 21600
       },
       "markets": {
-        "receiving_yards": { "drift_hurdle": 5.0, "beneficiary_max_drift": 8.5, "unit": "yds" },
-        "receptions": { "drift_hurdle": 1.0, "beneficiary_max_drift": 2.0, "unit": "rec" },
-        "anytime_td": { "drift_hurdle": 1.0, "beneficiary_max_drift": 2.0, "unit": "rec", "note": "inherits reception-scale drift bounds (pre-refactor behavior)" }
+        "receiving_yards": {
+          "drift_hurdle": 5.0,
+          "beneficiary_max_drift": 8.5,
+          "unit": "yds"
+        },
+        "receptions": {
+          "drift_hurdle": 1.0,
+          "beneficiary_max_drift": 2.0,
+          "unit": "rec"
+        },
+        "anytime_td": {
+          "drift_hurdle": 1.0,
+          "beneficiary_max_drift": 2.0,
+          "unit": "rec",
+          "note": "inherits reception-scale drift bounds (pre-refactor behavior)"
+        }
       },
       "exemption_rules": {
         "exempt_modeled_beneficiaries": true,
@@ -36,16 +50,37 @@
       "note": "NBA v1 ships research fixtures only (no backtest evidence). Drift bounds are order-of-magnitude placeholders scaled to NBA stat variance (points ~6x receptions). The UI must surface the research-only badge while calibrated is false.",
       "thresholds": {
         "drift_pct_hurdle": 0.15,
-        "high_edge_caution_hurdle": 0.20,
+        "high_edge_caution_hurdle": 0.2,
         "cooldown_minutes": 15,
-        "deadman_switch_max_age_seconds": 300
+        "deadman_switch_max_age_seconds": 300,
+        "odds_stale_max_age_seconds": 21600
       },
       "markets": {
-        "points": { "drift_hurdle": 3.0, "beneficiary_max_drift": 5.0, "unit": "pts" },
-        "rebounds": { "drift_hurdle": 2.0, "beneficiary_max_drift": 3.5, "unit": "reb" },
-        "assists": { "drift_hurdle": 2.0, "beneficiary_max_drift": 3.5, "unit": "ast" },
-        "threes": { "drift_hurdle": 1.0, "beneficiary_max_drift": 1.5, "unit": "3pm" },
-        "pra": { "drift_hurdle": 5.0, "beneficiary_max_drift": 8.0, "unit": "pra" }
+        "points": {
+          "drift_hurdle": 3.0,
+          "beneficiary_max_drift": 5.0,
+          "unit": "pts"
+        },
+        "rebounds": {
+          "drift_hurdle": 2.0,
+          "beneficiary_max_drift": 3.5,
+          "unit": "reb"
+        },
+        "assists": {
+          "drift_hurdle": 2.0,
+          "beneficiary_max_drift": 3.5,
+          "unit": "ast"
+        },
+        "threes": {
+          "drift_hurdle": 1.0,
+          "beneficiary_max_drift": 1.5,
+          "unit": "3pm"
+        },
+        "pra": {
+          "drift_hurdle": 5.0,
+          "beneficiary_max_drift": 8.0,
+          "unit": "pra"
+        }
       },
       "exemption_rules": {
         "exempt_modeled_beneficiaries": true,

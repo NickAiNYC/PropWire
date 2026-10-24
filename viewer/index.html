@@ -231,6 +231,11 @@
   </div>
 
   <main class="shell page" id="slateBoard">
+    <!-- Data Quality Banner: fixture / offline / stale feed states (Phase 2
+         failure-mode UI). Populated by updateFeedHealthUI(); never silent on
+         a feed outage. -->
+    <div class="data-quality-banner" id="dataQualityBanner" hidden></div>
+
     <!-- Structured Injury & Vacated-Volume Card Grid Drawer -->
     <div class="injury-drawer-wrap" id="availabilityDetails" hidden></div>
 
