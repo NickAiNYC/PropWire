@@ -32,8 +32,9 @@ CI must re-run it against the pushed SHA before merge.
 
 ## 1. Verified state (machine-checkable)
 
-- Branch `phase/2-nba`, tip `2cd9f7f`, 16 commits over `propwire/main`
-  (`1ea8990`), 81 files changed, +4,381/−258.
+- Branch `phase/2-nba`, 18 commits over `propwire/main` (`1ea8990`) — the
+  last two are docs-only (remediation report + this pre-push addendum);
+  the last code-bearing commit is `2cd9f7f`.
 - Local suite: **83/83 pass** (`npm test` = `node --test`), including the
   10-snapshot NFL parity harness, after every commit in this series.
 - `node --check` clean on every touched JS file; `py_compile` + `--selftest`
@@ -128,6 +129,145 @@ and `docs/MULTISPORT.md` §1/§7. See `docs/PHASE2_REMEDIATION_REPORT.md` and
 - Bundle: `download/phase2/propwire-phase2-nba.bundle` —
   `git bundle verify … && git fetch phase2.bundle phase/2-nba:phase/2-nba`
   inside any clone of NickAiNYC/PropWire, then push.
-- Patches: `download/phase2/patches/0001…0016-*.patch` —
+- Patches: `download/phase2/patches/0001…0018-*.patch` —
   `git am` on a branch cut from `main @ 1ea8990`.
 - Or: paste a fresh PAT in chat and the push + PR open happen from here.
+
+## 9. Pre-push checklist results (second audit, 2026-10-24)
+
+### 9.1 Root `app.js` — present on every ref; "deleted" claim corrected
+
+| Ref | `git ls-tree <ref> -- app.js` |
+|---|---|
+| `bdc229f` (Phase 1 base) | `100644 blob 9c196b4a` |
+| `propwire/main` (`1ea8990`) | `100644 blob 9c196b4a` — identical bytes |
+| `phase/1-adapter` (`5cc0196`) | `100644 blob 9c196b4a` — identical bytes |
+| `phase/2-nba` (`97b1502`) | `100644 blob df62ec1e` — 6 brand-string lines only (see §9.6) |
+
+`app.js` was **never deleted**. Any Phase 1 claim of root-frontend deletion
+was inaccurate; the accurate position is: **retained by design**, because
+`test/decision-gates.test.cjs` loads the root file in its VM sandbox (CI
+dependency, verified in Phase 0). Real cleanup therefore requires migrating
+that test to `viewer/app.js` first — queued as its own task with its own
+proof, not smuggled into a blockers phase. The TASK 0 tree checks in this
+report were run against git refs (`propwire/main`), not the working tree;
+the earlier working-tree confusion (checkout on `ui/header-style-refresh`)
+affected only the first in-session grep, which was re-run on
+`phase/2-nba` before any edit.
+
+### 9.2 `public/` — stale directory, never a symlink; documented, not deleted
+
+`git ls-tree propwire/main public` → `040000 tree 5751c833…` — a **regular
+directory** (a symlink would be mode `120000`). The tree object is
+**byte-identical to the pre-Phase-1 base** (`bdc229f` → same `5751c833`), so
+`public/` has not changed at any point in Phase 1 or Phase 2 history, and no
+symlink ever landed. 26 files vs `viewer/`'s 49; it has **no `js/` at all** —
+it predates the adapter layer entirely. One live reference exists:
+`api/main.py` `resolve_file("AUDIT_REPORT", "public/clv_audit_report.json")`
+uses a `public/` path as its **local-dev fallback** (production resolves
+`/data` first per the function's candidate order). Decision: per the
+audit's own menu this is closest to "stub — document it": **not deleted in
+this phase** (deleting would require a 2-line `api/main.py` change to avoid
+breaking the local-dev write path — unforced scope in a blockers phase).
+Proper removal queued as a dedicated cleanup task: repoint `api/main.py`,
+`git rm -r public/`, prove tests green. The Phase 1 "atomic git symlink"
+claim is corrected: **no symlink exists in any reachable tree.**
+
+### 9.3 `propwire-ui-redesign` — stale label, not divergent work
+
+- Log (author, date, subject): `19c36f3` / `b87f9d7` / `58d7165` /
+  `55ab717` / `6a7fe12` — all **Nick Altstein, 2026-10-20, 13:28–14:25
+  -0400**; tip subject "feat(ledger): add json export/import and gate
+  pipeline runner".
+- **`git merge-base propwire/main propwire/propwire-ui-redesign` =
+  `19c36f3` (the branch tip itself) and `--is-ancestor` = YES.** The branch
+  is **fully contained in main**; main is strictly ahead of it. The
+  154-file / −243,751-line diff vs main is "old Oct-20 snapshot vs main
+  today" (main gained the data files and viewer work after Oct 20) — not
+  unmerged or hostile work.
+- Secret sweep on the tip (`ghp_`/`github_pat_`/`gho_`/`sk-`/AKIA): clean.
+- Recommendation: delete the remote label for hygiene
+  (`git push propwire --delete propwire-ui-redesign`). It shares nothing
+  with the `phase/2-nba` push (same lineage, strictly behind).
+
+### 9.4 H6 — DECIDED: Phase 2 merges promptly
+
+Blast radius first: the `state.riskPolicy.edgeGate` TypeError fires when
+`renderBoard()` renders the anti-tout empty state — i.e. **actionable rows
+hit 0 on a non-historical slate while a picks policy exists** — a
+user-reachable render crash on production `main @ 1ea8990` today.
+
+Decision: **Option 1 — Phase 2 merges promptly.** The fix (`83714bd`, 3
+lines + tests) is already written, reviewed here, and on `phase/2-nba`; a
+hotfix branch duplicates it and a Phase 1 revert would unwind validated
+adapter infrastructure to remove a 3-line bug. Fallback if Phase 2 review
+stalls: `git cherry-pick 83714bd` onto a `hotfix/edgegate` branch cut from
+`main` — say the word and a bundle for that exists within minutes. Not
+reverting.
+
+### 9.5 B2 evidence — the actual assertions, verbatim
+
+Two new snapshots, named: **`detail_modal.json`** (9th; B4 proof — captured
+from the pre-refactor code in commit `1d0fcb0`, byte-identical after the
+re-hook) and **`dom_access_log.json`** (10th; the spy golden).
+
+The whitelist (one logical surface: sport chrome + feed-health banner; 10
+ids) — `test/nfl-parity.snapshot.mjs`:
+
+```js
+/** Ids the NFL boot/render path is ALLOWED to resolve via getElementById. */
+const NFL_DOM_ALLOWLIST = new Set([
+  // Phase 2 sport chrome (the earned, documented whitelist delta)
+  'sportSwitcher', 'marketChipGroup', 'positionChipGroup', 'signalSheetChips',
+  'slateSelector', 'mobileSlateSelector', 'modeTopBtn', 'topCount',
+  // Feed-health failure-mode UI
+  'dataQualityBanner', 'dqRetryBtn',
+]);
+```
+
+The spy assertion (earned, allowlist-based — fails on ANY newly resolved
+id, whatever the counts):
+
+```js
+const unexpected = [...new Set(domCalls.filter((c) => c.resolved).map((c) => c.id))]
+  .filter((id) => !NFL_DOM_ALLOWLIST.has(id));
+assert.deepStrictEqual(unexpected, [],
+  `NFL path populated non-allowlisted element(s) via getElementById: ${unexpected.join(', ')}`);
+```
+
+Honest classification, per the audit's own framing: this is the **earned**
+form — spec-listed ids only — **supplemented by** a regression-freeze layer:
+`dom_access_log.json` also pins the observed `{calls, resolved}` counts per
+id, so even call-count drift on an allowlisted id (a new resolve site for
+`topCount`, say) fails the suite and forces a conscious look. Third layer:
+the render goldens now **contain the chrome innerHTML itself** — changing
+what gets written into an allowlisted element fails byte-parity too. So the
+guarantee is "no unexpected element, no unexpected writes, no silent count
+drift" — not merely observed counts.
+
+### 9.6 Out-of-band changes in this branch (disclosed)
+
+- **Branding pass** (user directive, "PropWire everywhere"): 45 tracked
+  files, string replacements only, incl. 6 brand-string lines in the
+  CI-loaded root `app.js` (logic untouched; full suite green after).
+- Header logo: binary PNG retired from the pages, replaced by the
+  text-corrected two-tone SVG; `viewer/sw.js` cache `125→126` + `?v=`
+  bumps so installs stop serving the stale cached surface.
+- E2E screenshots refreshed at the final state (6 files).
+- `docs/EDGE_GATE.md` + this report + `MULTISPORT.md` updates.
+
+### 9.7 EDGE_GATE.md phase-plan position (one sentence, as requested)
+
+`EDGE_GATE.md` is the documentation half of Phase 1.5, landed early inside
+Phase 2 as a deliberate soft consolidation — Phase 1.5 is now
+infrastructure-only (candidate registration ledger, independent closing
+capture, evaluation harness).
+
+### 9.8 H7 / H8 pointers (content lives in `docs/MULTISPORT.md`)
+
+- **H7** — branch topology + rebase plan: MULTISPORT.md §7 (verified:
+  `main 1ea8990` = merge of `bdc229f`+`5cc0196`; `phase/2-nba` 18
+  commits on top; clean merge, no rebase).
+- **H8** — NBA distribution rationale + 3PM/PRA caveat + Phase 4
+  follow-up: MULTISPORT.md §2 "Markets and the distribution choice".
+- **H10** — test enumeration (added vs modified, by name): this report §2.
