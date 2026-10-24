@@ -197,6 +197,13 @@ test('NBA slate keying: US Eastern date, DST boundaries handled', () => {
   assert.equal(nba.etDateKey('2026-03-08T06:30:00Z'), '2026-03-08', '01:30 EST Mar 8 (before spring-forward)');
   assert.equal(nba.etDateKey('2026-03-08T07:30:00Z'), '2026-03-08', '03:30 EDT Mar 8 (after spring-forward)');
   assert.equal(nba.etDateKey('not-a-date'), null, 'invalid input maps to null');
+  // Cross-midnight PT tips (audit M13): a 10:30pm PT tip is 1:30am ET the
+  // NEXT calendar day — the DST vectors above do not catch this case, so it
+  // gets explicit vectors in both winter (PST, UTC-8) and summer (PDT, UTC-7).
+  assert.equal(nba.etDateKey('2026-01-15T06:30:00Z'), '2026-01-15',
+    '10:30pm PST Jan 14 tip = 1:30am ET Jan 15 → slate key is the ET date');
+  assert.equal(nba.etDateKey('2026-07-15T05:30:00Z'), '2026-07-15',
+    '10:30pm PDT Jul 14 tip = 1:30am ET Jul 15 → slate key is the ET date');
   // defaultSlateKey resolves the first non-historical Eastern-dated slate.
   assert.equal(nba.defaultSlateKey(), FIXTURE_DATE);
 });

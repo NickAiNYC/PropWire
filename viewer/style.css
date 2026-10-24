@@ -6611,3 +6611,27 @@ article[data-focused="true"] {
   white-space: nowrap;
   margin-left: 6px;
 }
+
+/* 375px fit fix (audit B3): .pw-topbar-right was flex-shrink:0 with
+   all-nowrap children, so the slate select + injury pill + upgrade + menu
+   cluster overflowed the viewport (documentElement.scrollWidth 463 vs 375 —
+   real overflow; body{overflow-x:hidden} merely clipped it). Let the
+   cluster shrink and degrade gracefully: the injury pill truncates with an
+   ellipsis (the status dot stays visible); buttons keep their size. */
+@media (max-width: 768px) {
+  .pw-topbar-right {
+    flex-shrink: 1 !important;
+    min-width: 0 !important;
+  }
+  .pw-injury-header-pill {
+    flex-shrink: 1 !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+  }
+  .pw-injury-header-pill .slim-injury-text {
+    flex-shrink: 1 !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+}
