@@ -2101,7 +2101,7 @@
           <div class="anti-tout-shield">🛡️</div>
           <div class="anti-tout-title">0 Qualified Plays Today</div>
           <div class="anti-tout-subtitle">The market is efficient. Do not bet.</div>
-          <p class="anti-tout-desc">Our quantitative engine requires a verified statistical edge (>${(state.riskPolicy.edgeGate * 100).toFixed(0)}%) with positive expected Closing Line Value. When books price efficiently, discipline is the edge.</p>
+          <p class="anti-tout-desc">Our quantitative engine requires a verified statistical edge (>${((policy() ? policy().gate : 0.10) * 100).toFixed(0)}%) with positive expected Closing Line Value. When books price efficiently, discipline is the edge.</p>
           <div class="anti-tout-actions">
             <button type="button" class="anti-tout-btn" id="antiToutViewAllBtn">Explore Full Modeled Slate (${state.slate.length})</button>
           </div>
