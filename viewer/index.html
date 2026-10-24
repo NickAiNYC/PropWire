@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#090d16">
-  <meta name="build-hash" content="2026-w7-v3">
+  <meta name="build-hash" content="2026-w7-v4">
   <meta name="description" content="PropWire NFL receiving props research terminal.">
   <title>PropWire · NFL Receiving Props</title>
 
@@ -38,11 +38,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/style.css?v=2026_v126">
-  <script src="/js/sports/registry.js?v=2026_v126" defer></script>
-  <script src="/js/sports/nfl.js?v=2026_v126" defer></script>
-  <script src="/js/sports/nba.js?v=2026_v126" defer></script>
-  <script src="/app.js?v=2026_v126" defer></script>
+  <link rel="stylesheet" href="/style.css?v=2026_v127">
+  <script src="/js/sports/registry.js?v=2026_v127" defer></script>
+  <script src="/js/sports/nfl.js?v=2026_v127" defer></script>
+  <script src="/js/sports/nba.js?v=2026_v127" defer></script>
+  <script src="/app.js?v=2026_v127" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#slateBoard">Skip to slate</a>
@@ -127,8 +127,8 @@
 
         <!-- Commercial Pricing / Membership Tiers (Mobile & Desktop) -->
         <button type="button" id="pricingBtn" class="pw-btn-nav pw-btn-upgrade" title="Commercial Membership Tiers & Access">
-          <span class="pro-text-desktop pw-desktop-only" style="color:#B6F36B; font-weight:700; letter-spacing:0.5px;">PRO · $29</span>
-          <span class="pro-text-mobile pw-mobile-only" style="color:#B6F36B; font-weight:700; letter-spacing:0.5px;">PRO</span>
+          <span class="pro-text-desktop pw-desktop-only">PRO · $29</span>
+          <span class="pro-text-mobile pw-mobile-only">PRO</span>
         </button>
 
         <!-- Desktop Action Buttons -->
@@ -165,7 +165,7 @@
       <!-- Single Horizontal Scrolling Chip Row (Mode, Market, Pos, More) -->
       <div class="pw-chip-scroll-row" id="mobileFilterStrip" role="toolbar" aria-label="Filter chips">
         <!-- Active vs All Mode Switcher -->
-        <div class="chip-segment-group" role="radiogroup" aria-label="Dataset Mode">
+        <div class="chip-segment-group" data-eyebrow="MODE" role="radiogroup" aria-label="Dataset Mode">
           <button type="button" class="chip-pill active" data-mode="actionable" id="modeActionableBtn" role="radio" aria-checked="true" title="Show plays clearing edge gate">
             <span>ACTIVE</span>
             <span class="chip-count-pill" id="actionableCount">33</span>
@@ -183,7 +183,7 @@
         <div class="chip-divider"></div>
 
         <!-- Prop Market Chips (population is adapter-driven; see renderSportChrome) -->
-        <div class="chip-segment-group" id="marketChipGroup" role="radiogroup" aria-label="Market">
+        <div class="chip-segment-group" id="marketChipGroup" data-eyebrow="MARKET" role="radiogroup" aria-label="Market">
           <button type="button" class="chip-pill active" data-market="receiving_yards" role="radio" aria-checked="true">Yards</button>
           <button type="button" class="chip-pill" data-market="receptions" role="radio" aria-checked="false">Rec</button>
           <button type="button" class="chip-pill" data-market="anytime_td" role="radio" aria-checked="false">TD</button>
@@ -192,7 +192,7 @@
         <div class="chip-divider"></div>
 
         <!-- Position Chips (population is adapter-driven; see renderSportChrome) -->
-        <div class="chip-segment-group" id="positionChipGroup" role="radiogroup" aria-label="Position">
+        <div class="chip-segment-group" id="positionChipGroup" data-eyebrow="POS" role="radiogroup" aria-label="Position">
           <button type="button" class="chip-pill active" data-pos="ALL" role="radio" aria-checked="true">All</button>
           <button type="button" class="chip-pill" data-pos="WR" role="radio" aria-checked="false">WR</button>
           <button type="button" class="chip-pill" data-pos="TE" role="radio" aria-checked="false">TE</button>
