@@ -3,16 +3,19 @@ import assert from 'node:assert/strict';
 import { buildSandbox, loadApp } from './helpers/sandbox.mjs';
 
 /**
- * TOP PLAYS RANKING — Phase 2, commit 4.
+ * TOP PLAYS RANKING — Phase 2, commit 4 (revised by the Phase 2 audit, H5).
  *
- * EV-ranked Top Plays mode (adapter-driven). Order contract (user-approved
- * default): EV per unit staked desc → probability edge desc → receipt-
- * verified first → player name asc. Rows without a bookable quote in the
- * active market, or with incomplete projection inputs, are hidden.
+ * EV-ranked Top Plays mode (adapter-driven). Order contract (audit-revised):
+ * EV per unit staked desc → probability edge desc → MODEL CONFIDENCE
+ * (narrower adapter distribution interval first — receipt coverage is a
+ * data-availability signal, not a quality signal, so "verified" no longer
+ * ranks plays) → sample size (games_prior desc, neutral when absent) →
+ * player name asc. Rows without a bookable quote in the active market, or
+ * with incomplete projection inputs, are hidden.
  *
  * The fixture feed carries deterministic tie pairs exactly to pin the
- * tie-break chain: Player H / Player I / Player T share EV 0.101 and edge
- * 0.055, so the name sort decides (Player H < Player I < Player T).
+ * tie-break chain: Player H and Player I share EV 0.101 and edge 0.055 with
+ * different model interval widths (5 vs 2), so confidence decides.
  */
 
 async function loadNba() {
@@ -39,15 +42,17 @@ test('Top Plays: EV per unit descending within the active market', async () => {
   ]);
 });
 
-test('Top Plays: deterministic tie-break by name when EV and edge tie', async () => {
+test('Top Plays: model confidence (narrower interval) breaks EV and edge ties', async () => {
   const P = await loadNba();
   P.state.filters.market = 'rebounds';
   const names = P.filteredRows().map((r) => r.player_display_name);
-  // rebounds quotes: Player H .101/.055, Player I .101/.055 (tie → name),
-  // Player L .077, Player K .068, Player W .061.
+  // rebounds quotes: Player H .101/.055 (mu 11.4/sd 2.6 → width 5),
+  // Player I .101/.055 (mu 3.9/sd 1.4 → width 2) — full EV+edge tie, so the
+  // tighter model interval ranks first even though "Player H" sorts earlier
+  // by name; then Player L .077, Player K .068, Player W .061.
   assert.deepEqual(names, [
-    'Player H', // "Player H" < "Player I" — name decides
-    'Player I',
+    'Player I', // width 2 beats width 5 on the confidence tie-break
+    'Player H',
     'Player L',
     'Player K',
     'Player W',
@@ -81,20 +86,36 @@ test('Top Plays: incomplete projection inputs are hidden even when quoted', asyn
   assert.equal(P.adapter.hasCompleteInputs(probe, 'points'), false);
 });
 
-test('Top Plays: receipt-verified wins the final tie-break', async () => {
+test('Top Plays: sample size and name decide after confidence; verified flag is ignored', async () => {
   const P = await loadNba();
   P.state.filters.market = 'points';
-  // Force an EV+edge tie between Player S (.112/.061) and Player P (.066/.040) and
-  // mark Player P verified — verified must precede despite name order.
-  const sga = P.state.odds.quotes.find((q) => q.player_id === 'fx-nba-player-s');
-  const braun = P.state.odds.quotes.find((q) => q.player_id === 'fx-nba-player-p');
-  braun.evaluation.expected_return = sga.evaluation.expected_return;
-  braun.evaluation.prob_edge = sga.evaluation.prob_edge;
-  braun.verified = true;
-  braun.receipt_id = 'deadbeefcafebabe';
-  const names = P.filteredRows().map((r) => r.player_display_name);
-  assert.equal(names[0], 'Player P', 'verified quote precedes on full tie');
-  assert.equal(names[1], 'Player S');
+  const sgaQuote = P.state.odds.quotes.find((q) => q.player_id === 'fx-nba-player-s');
+  const pQuote = P.state.odds.quotes.find((q) => q.player_id === 'fx-nba-player-p');
+  const sgaRow = P.state.slate.find((r) => r.player_id === 'fx-nba-player-s');
+  const pRow = P.state.slate.find((r) => r.player_id === 'fx-nba-player-p');
+  // Force a full EV+edge+confidence tie: Player P width 7 (mu 12.4/sd 3.5)
+  // → widen sd to 6.1 so the interval width equals Player S's 11.
+  pQuote.evaluation.expected_return = sgaQuote.evaluation.expected_return;
+  pQuote.evaluation.prob_edge = sgaQuote.evaluation.prob_edge;
+  pRow.sd_pts = 6.1;
+  const pairOrder = () => P.filteredRows()
+    .map((r) => r.player_display_name)
+    .filter((n) => n === 'Player S' || n === 'Player P');
+
+  // Equal confidence, no sample info → name decides (Player P < Player S).
+  assert.deepEqual(pairOrder(), ['Player P', 'Player S']);
+
+  // Sample size decides: more prior games ranks first.
+  sgaRow.games_prior = 12;
+  pRow.games_prior = 5;
+  assert.deepEqual(pairOrder(), ['Player S', 'Player P']);
+
+  // "verified" is a data-availability flag, not a quality signal: marking
+  // the losing side verified must NOT reorder the ranking (audit H5).
+  pQuote.verified = true;
+  pQuote.receipt_id = 'deadbeefcafebabe';
+  assert.deepEqual(pairOrder(), ['Player S', 'Player P'],
+    'a verified receipt must never outrank an equally supported play');
 });
 
 test('NFL Top Plays keeps the picks-file behavior (verbatim, parity-guarded)', async () => {

@@ -2199,8 +2199,16 @@
         return num(qB.edge) - num(qA.edge);
       });
     } else if (state.filters.playMode === 'top' && adapter.topPlays && adapter.topPlays.source === 'ev_ranked') {
-      // Top Plays order (user-approved default): EV per unit desc, then
-      // probability edge desc, then receipt-verified first, then name.
+      // Top Plays order (audit H5 revision): EV per unit desc, then
+      // probability edge desc, then MODEL CONFIDENCE — narrower adapter
+      // distribution interval first, because receipt coverage is a
+      // data-availability signal, not a quality signal, and must never
+      // rank one play above an equally good one — then sample size
+      // (games_prior desc; neutral when the feed omits it), then name.
+      const confWidth = (row) => {
+        const dist = marketDef(state.filters.market).dist(row);
+        return Math.max(0, num(dist.high) - num(dist.low));
+      };
       rows.sort((a, b) => {
         const qA = evaluateRow(a);
         const qB = evaluateRow(b);
@@ -2210,9 +2218,12 @@
         const edgeA = num(qA.edge);
         const edgeB = num(qB.edge);
         if (edgeB !== edgeA) return edgeB - edgeA;
-        const verA = qA.state === 'verified' ? 1 : 0;
-        const verB = qB.state === 'verified' ? 1 : 0;
-        if (verB !== verA) return verB - verA;
+        const widthA = confWidth(a);
+        const widthB = confWidth(b);
+        if (widthA !== widthB) return widthA - widthB;
+        const sampleA = num(a.games_prior);
+        const sampleB = num(b.games_prior);
+        if (sampleB !== sampleA) return sampleB - sampleA;
         return String(a.player_display_name).localeCompare(String(b.player_display_name));
       });
     } else if (typeof adapter.sortDefault === 'function') {
