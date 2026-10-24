@@ -254,13 +254,13 @@ def selftest():
 
     # Box-score normalization shape + provenance.
     row = normalize_boxscore_row({
-        "player": {"id": 999, "first_name": "Jayson", "last_name": "Tatum", "position": "SF"},
+        "player": {"id": 999, "first_name": "Test", "last_name": "Player", "position": "SF"},
         "team": {"abbreviation": "BOS"},
         "game": {"id": 12345},
         "min": "36:12", "pts": 31, "reb": 8, "ast": 5, "fg3m": 4,
     })
     assert row["player_id"] == "bdl-999"
-    assert row["player_display_name"] == "Jayson Tatum"
+    assert row["player_display_name"] == "Test Player"
     assert row["pts"] == 31 and row["fg3m"] == 4
     assert row["_fixture"] is False and row["source"] == "balldontlie"
 

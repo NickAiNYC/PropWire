@@ -11,9 +11,8 @@ import { buildSandbox, loadApp } from './helpers/sandbox.mjs';
  * active market, or with incomplete projection inputs, are hidden.
  *
  * The fixture feed carries deterministic tie pairs exactly to pin the
- * tie-break chain: Towns / Bridges / Holmgren share EV 0.101 and edge
- * 0.055, so the name sort decides (Chet Holmgren < Karl-Anthony Towns <
- * Mikal Bridges).
+ * tie-break chain: Player H / Player I / Player T share EV 0.101 and edge
+ * 0.055, so the name sort decides (Player H < Player I < Player T).
  */
 
 async function loadNba() {
@@ -28,15 +27,15 @@ test('Top Plays: EV per unit descending within the active market', async () => {
   const P = await loadNba();
   P.state.filters.market = 'points';
   const names = P.filteredRows().map((r) => r.player_display_name);
-  // points quotes: SGA .112, Holmgren .101, Brunson .096, Gordon .075,
-  // J. Williams .072, Braun .066 — every other player lacks a points quote.
+  // points quotes: Player S .112, Player T .101, Player G .096, Player O .075,
+  // Player U .072, Player P .066 — every other player lacks a points quote.
   assert.deepEqual(names, [
-    'Shai Gilgeous-Alexander',
-    'Chet Holmgren',
-    'Jalen Brunson',
-    'Aaron Gordon',
-    'Jalen Williams',
-    'Christian Braun',
+    'Player S',
+    'Player T',
+    'Player G',
+    'Player O',
+    'Player U',
+    'Player P',
   ]);
 });
 
@@ -44,14 +43,14 @@ test('Top Plays: deterministic tie-break by name when EV and edge tie', async ()
   const P = await loadNba();
   P.state.filters.market = 'rebounds';
   const names = P.filteredRows().map((r) => r.player_display_name);
-  // rebounds quotes: Towns .101/.055, Bridges .101/.055 (tie → name),
-  // Robinson .077, Hart .068, Hartenstein .061.
+  // rebounds quotes: Player H .101/.055, Player I .101/.055 (tie → name),
+  // Player L .077, Player K .068, Player W .061.
   assert.deepEqual(names, [
-    'Karl-Anthony Towns', // "Karl-Anthony…" < "Mikal…" — name decides
-    'Mikal Bridges',
-    'Mitchell Robinson',
-    'Josh Hart',
-    'Isaiah Hartenstein',
+    'Player H', // "Player H" < "Player I" — name decides
+    'Player I',
+    'Player L',
+    'Player K',
+    'Player W',
   ]);
 });
 
@@ -85,17 +84,17 @@ test('Top Plays: incomplete projection inputs are hidden even when quoted', asyn
 test('Top Plays: receipt-verified wins the final tie-break', async () => {
   const P = await loadNba();
   P.state.filters.market = 'points';
-  // Force an EV+edge tie between SGA (.112/.061) and Braun (.066/.040) and
-  // mark Braun verified — verified must precede despite name order.
-  const sga = P.state.odds.quotes.find((q) => q.player_id === 'fx-nba-shai_gilgeous_alexander');
-  const braun = P.state.odds.quotes.find((q) => q.player_id === 'fx-nba-christian_braun');
+  // Force an EV+edge tie between Player S (.112/.061) and Player P (.066/.040) and
+  // mark Player P verified — verified must precede despite name order.
+  const sga = P.state.odds.quotes.find((q) => q.player_id === 'fx-nba-player-s');
+  const braun = P.state.odds.quotes.find((q) => q.player_id === 'fx-nba-player-p');
   braun.evaluation.expected_return = sga.evaluation.expected_return;
   braun.evaluation.prob_edge = sga.evaluation.prob_edge;
   braun.verified = true;
   braun.receipt_id = 'deadbeefcafebabe';
   const names = P.filteredRows().map((r) => r.player_display_name);
-  assert.equal(names[0], 'Christian Braun', 'verified quote precedes on full tie');
-  assert.equal(names[1], 'Shai Gilgeous-Alexander');
+  assert.equal(names[0], 'Player P', 'verified quote precedes on full tie');
+  assert.equal(names[1], 'Player S');
 });
 
 test('NFL Top Plays keeps the picks-file behavior (verbatim, parity-guarded)', async () => {

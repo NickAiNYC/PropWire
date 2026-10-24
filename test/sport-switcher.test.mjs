@@ -82,7 +82,7 @@ test('NBA boot integration: default slate loads, renders, evaluates without thro
     const evaluation = P.evaluateRow(row);
     assert.equal(evaluation.actionable, false, `${row.player_id} must not be actionable on fixture data`);
   }
-  const quotedRow = P.state.slate.find((r) => r.player_id === 'fx-nba-shai_gilgeous_alexander');
+  const quotedRow = P.state.slate.find((r) => r.player_id === 'fx-nba-player-s');
   assert.equal(P.evaluateRow(quotedRow).state, 'ingested');
 
   // Rendering pipeline must complete without throwing for table + cards.

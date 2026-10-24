@@ -1,7 +1,7 @@
 [
  {
-  "player_id": "fx-nba-jayson_tatum",
-  "player_display_name": "Jayson Tatum",
+  "player_id": "fx-nba-player-a",
+  "player_display_name": "Player A",
   "position": "SF",
   "team": "BOS",
   "opponent_team": "NYK",
@@ -33,8 +33,8 @@
   "sd_pra": 6.95
  },
  {
-  "player_id": "fx-nba-jaylen_brown",
-  "player_display_name": "Jaylen Brown",
+  "player_id": "fx-nba-player-b",
+  "player_display_name": "Player B",
   "position": "SG",
   "team": "BOS",
   "opponent_team": "NYK",
@@ -66,8 +66,8 @@
   "sd_pra": 6.28
  },
  {
-  "player_id": "fx-nba-derrick_white",
-  "player_display_name": "Derrick White",
+  "player_id": "fx-nba-player-c",
+  "player_display_name": "Player C",
   "position": "PG",
   "team": "BOS",
   "opponent_team": "NYK",
@@ -99,8 +99,8 @@
   "sd_pra": 4.53
  },
  {
-  "player_id": "fx-nba-payton_pritchard",
-  "player_display_name": "Payton Pritchard",
+  "player_id": "fx-nba-player-d",
+  "player_display_name": "Player D",
   "position": "PG",
   "team": "BOS",
   "opponent_team": "NYK",
@@ -132,8 +132,8 @@
   "sd_pra": 4.25
  },
  {
-  "player_id": "fx-nba-al_horford",
-  "player_display_name": "Al Horford",
+  "player_id": "fx-nba-player-e",
+  "player_display_name": "Player E",
   "position": "C",
   "team": "BOS",
   "opponent_team": "NYK",
@@ -165,8 +165,8 @@
   "sd_pra": 3.91
  },
  {
-  "player_id": "fx-nba-neemias_queta",
-  "player_display_name": "Neemias Queta",
+  "player_id": "fx-nba-player-f",
+  "player_display_name": "Player F",
   "position": "C",
   "team": "BOS",
   "opponent_team": "NYK",
@@ -198,8 +198,8 @@
   "sd_pra": 2.95
  },
  {
-  "player_id": "fx-nba-jalen_brunson",
-  "player_display_name": "Jalen Brunson",
+  "player_id": "fx-nba-player-g",
+  "player_display_name": "Player G",
   "position": "PG",
   "team": "NYK",
   "opponent_team": "BOS",
@@ -231,8 +231,8 @@
   "sd_pra": 6.39
  },
  {
-  "player_id": "fx-nba-karl_anthony_towns",
-  "player_display_name": "Karl-Anthony Towns",
+  "player_id": "fx-nba-player-h",
+  "player_display_name": "Player H",
   "position": "C",
   "team": "NYK",
   "opponent_team": "BOS",
@@ -264,8 +264,8 @@
   "sd_pra": 6.31
  },
  {
-  "player_id": "fx-nba-mikal_bridges",
-  "player_display_name": "Mikal Bridges",
+  "player_id": "fx-nba-player-i",
+  "player_display_name": "Player I",
   "position": "SF",
   "team": "NYK",
   "opponent_team": "BOS",
@@ -297,8 +297,8 @@
   "sd_pra": 4.52
  },
  {
-  "player_id": "fx-nba-og_anunoby",
-  "player_display_name": "OG Anunoby",
+  "player_id": "fx-nba-player-j",
+  "player_display_name": "Player J",
   "position": "SF",
   "team": "NYK",
   "opponent_team": "BOS",
@@ -330,8 +330,8 @@
   "sd_pra": 4.74
  },
  {
-  "player_id": "fx-nba-josh_hart",
-  "player_display_name": "Josh Hart",
+  "player_id": "fx-nba-player-k",
+  "player_display_name": "Player K",
   "position": "SG",
   "team": "NYK",
   "opponent_team": "BOS",
@@ -363,8 +363,8 @@
   "sd_pra": 4.26
  },
  {
-  "player_id": "fx-nba-mitchell_robinson",
-  "player_display_name": "Mitchell Robinson",
+  "player_id": "fx-nba-player-l",
+  "player_display_name": "Player L",
   "position": "C",
   "team": "NYK",
   "opponent_team": "BOS",
@@ -396,8 +396,8 @@
   "sd_pra": 3.38
  },
  {
-  "player_id": "fx-nba-nikola_jokic",
-  "player_display_name": "Nikola Jokic",
+  "player_id": "fx-nba-player-m",
+  "player_display_name": "Player M",
   "position": "C",
   "team": "DEN",
   "opponent_team": "OKC",
@@ -429,8 +429,8 @@
   "sd_pra": 7.04
  },
  {
-  "player_id": "fx-nba-jamal_murray",
-  "player_display_name": "Jamal Murray",
+  "player_id": "fx-nba-player-n",
+  "player_display_name": "Player N",
   "position": "PG",
   "team": "DEN",
   "opponent_team": "OKC",
@@ -462,8 +462,8 @@
   "sd_pra": 5.56
  },
  {
-  "player_id": "fx-nba-aaron_gordon",
-  "player_display_name": "Aaron Gordon",
+  "player_id": "fx-nba-player-o",
+  "player_display_name": "Player O",
   "position": "PF",
   "team": "DEN",
   "opponent_team": "OKC",
@@ -495,8 +495,8 @@
   "sd_pra": 4.49
  },
  {
-  "player_id": "fx-nba-christian_braun",
-  "player_display_name": "Christian Braun",
+  "player_id": "fx-nba-player-p",
+  "player_display_name": "Player P",
   "position": "SG",
   "team": "DEN",
   "opponent_team": "OKC",
@@ -528,8 +528,8 @@
   "sd_pra": 3.99
  },
  {
-  "player_id": "fx-nba-peyton_watson",
-  "player_display_name": "Peyton Watson",
+  "player_id": "fx-nba-player-q",
+  "player_display_name": "Player Q",
   "position": "SF",
   "team": "DEN",
   "opponent_team": "OKC",
@@ -561,8 +561,8 @@
   "sd_pra": 3.26
  },
  {
-  "player_id": "fx-nba-jonas_valanciunas",
-  "player_display_name": "Jonas Valanciunas",
+  "player_id": "fx-nba-player-r",
+  "player_display_name": "Player R",
   "position": "C",
   "team": "DEN",
   "opponent_team": "OKC",
@@ -594,8 +594,8 @@
   "sd_pra": 3.72
  },
  {
-  "player_id": "fx-nba-shai_gilgeous_alexander",
-  "player_display_name": "Shai Gilgeous-Alexander",
+  "player_id": "fx-nba-player-s",
+  "player_display_name": "Player S",
   "position": "PG",
   "team": "OKC",
   "opponent_team": "DEN",
@@ -627,8 +627,8 @@
   "sd_pra": 6.7
  },
  {
-  "player_id": "fx-nba-chet_holmgren",
-  "player_display_name": "Chet Holmgren",
+  "player_id": "fx-nba-player-t",
+  "player_display_name": "Player T",
   "position": "C",
   "team": "OKC",
   "opponent_team": "DEN",
@@ -660,8 +660,8 @@
   "sd_pra": 5.06
  },
  {
-  "player_id": "fx-nba-jalen_williams",
-  "player_display_name": "Jalen Williams",
+  "player_id": "fx-nba-player-u",
+  "player_display_name": "Player U",
   "position": "SF",
   "team": "OKC",
   "opponent_team": "DEN",
@@ -693,8 +693,8 @@
   "sd_pra": 4.83
  },
  {
-  "player_id": "fx-nba-luguentz_dort",
-  "player_display_name": "Luguentz Dort",
+  "player_id": "fx-nba-player-v",
+  "player_display_name": "Player V",
   "position": "SG",
   "team": "OKC",
   "opponent_team": "DEN",
@@ -726,8 +726,8 @@
   "sd_pra": 3.39
  },
  {
-  "player_id": "fx-nba-isaiah_hartenstein",
-  "player_display_name": "Isaiah Hartenstein",
+  "player_id": "fx-nba-player-w",
+  "player_display_name": "Player W",
   "position": "C",
   "team": "OKC",
   "opponent_team": "DEN",
@@ -759,8 +759,8 @@
   "sd_pra": 3.75
  },
  {
-  "player_id": "fx-nba-cason_wallace",
-  "player_display_name": "Cason Wallace",
+  "player_id": "fx-nba-player-x",
+  "player_display_name": "Player X",
   "position": "PG",
   "team": "OKC",
   "opponent_team": "DEN",
