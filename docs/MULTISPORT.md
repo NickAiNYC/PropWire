@@ -58,9 +58,19 @@ Required by the registry: `id`, `label`, `periodNoun`, `markets`,
   adapters and falls back to `nfl` on garbage/tamper/storage failure.
 - Per-sport chrome (market chips, position chips, signal-sheet labels,
   slate selectors, page title) is populated by `renderSportChrome()` via
-  `elById()` — a `getElementById` wrapper that degrades to a no-op in the
-  parity sandbox, which is how Phase 2 UI provably sits outside the NFL
-  golden snapshots.
+  `elById()`. Since the Phase 2 audit (item B2), the parity sandbox
+  implements `getElementById` against the shipped page's ids, records every
+  call, and CAPTURES chrome content in the goldens — the NFL parity
+  statement is therefore:
+
+  > **NFL parity, stated precisely (audit M12):** the NFL JS data path
+  > (evaluations, projections, ledger entry shape, breaker values, detail
+  > modal) is byte-identical to the pre-adapter build across 10 goldens;
+  > the NFL user experience deliberately changes by the addition of the
+  > sport switcher, market/position chrome, and the feed-health banner
+  > (spec'd UX, captured in the goldens as an earned whitelist delta, and
+  > pinned by the `dom_access_log` snapshot + allowlist assertion so no
+  > unexpected element can be populated silently).
 
 ## 2. NBA v1 data contract (research fixtures)
 
@@ -80,12 +90,26 @@ Provenance rules (enforced by tests):
 - Every fixture row/quote carries `_fixture: true`; quote sources say
   "not a sportsbook quote"; `verified` is always `false` — fixtures never
   claim verification, therefore never render as actionable.
+- **Fixture naming policy (audit B1):** fixture players are anonymized
+  (`Player A` … `Player X`, stable ids `fx-nba-player-a`…). Real athlete
+  names are never combined with synthetic statistics in fixture data —
+  that combination is a right-of-publicity liability in a commercial
+  product and a scrape-adjacency trap where an LLM or scraper quoting the
+  JSON could mistake fabricated numbers for real research. Teams and
+  positions are kept (league context is needed to exercise the UI); the
+  anonymous incomplete-input probe row keeps its descriptive name.
 - Ledger entries logged against fixture quotes are stamped
   `data_provenance: "fixture"` (both entry-creation sites) so per-sport CLV
   stats can never blend synthetic data with live-book fills. NFL live
   entries carry NO such field — the ledger schema is byte-identical.
 - The RESEARCH FIXTURES banner (`dataQualityBanner`) is always visible on a
-  fixture slate.
+  fixture slate and states what it means: "Sample data for demonstration —
+  not actionable, not a research record. Synthetic values; not sportsbook
+  quotes." (audit M15).
+- Distinct from fixtures: the NFL feeds (`slate_2026_w*.json` etc.) carry
+  REAL historical model data for real players — that is the product's
+  research dataset, not synthetic fixtures, and is out of scope for the
+  naming policy above.
 
 ### Breaker status
 
@@ -93,14 +117,26 @@ Provenance rules (enforced by tests):
 `calibration: "uncalibrated_tuning_parameters"`. Drift bounds are
 order-of-magnitude placeholders scaled to NBA stat variance and must never
 copy NFL values (test-enforced). The uncalibrated flag is what the UI uses
-to keep the research framing honest.
+to keep the research framing honest — concretely, every rendered NBA row
+carries a visible `UNCALIBRATED` badge (table and cards), driven from the
+same config flag (audit H9: a config flag without a visible badge is
+cosmetic).
 
-### Markets
+### Markets and the distribution choice (audit H8)
 
 `points`, `rebounds`, `assists`, `threes` (3PM), `pra` — normal-approximation
 ranges (`mu`/`sd` per row, documented uncalibrated fallback `sd = max(1, 0.35·mu)`).
 Slate keys are **US Eastern calendar dates** (`etDateKey` handles DST via the
-IANA tz database; mirrored in Python by `scripts/fetch_nba.py`).
+IANA tz database and cross-midnight PT tips via explicit test vectors;
+mirrored in Python by `scripts/fetch_nba.py`).
+
+The normal approximation is an inherited v1 scaffolding choice, not a
+claim: it is defensible for points, wrong for 3PM (low mean, discrete,
+right-skewed — a normal puts mass on negative counts), and ignores the
+correlated-sum structure of PRA. **Known follow-up: 3PM and PRA require
+discrete (negative-binomial / correlated-component) treatment in the Phase
+4 calibration pass.** Recorded here so a future reviewer sees this was
+inherited, not chosen silently.
 
 ## 3. Upgrading NBA to live data
 
@@ -151,9 +187,59 @@ Adapter-driven via `topPlays.source`:
 - `picks_file` (NFL): verbatim `picks.top_projections` membership.
 - `ev_ranked` (NBA): rows require a bookable quote in the active market AND
   complete projection inputs; order is EV per unit staked desc →
-  probability edge desc → receipt-verified first → player name asc.
+  probability edge desc → **model confidence** (narrower adapter
+distribution interval first) → **sample size** (`games_prior` desc,
+neutral when the feed omits it) → player name asc.
 
-## 6. Adding a sport (checklist)
+  The audit-revised chain (H5) removes the earlier "receipt-verified
+  first" tie-break: receipt coverage is a data-availability signal, not a
+  quality signal, and ranking one play above an equally good one because a
+  covered book supplied a receipt is selection bias. `verified` still
+  gates actionable classification and still renders honestly in the book
+  cell — it just never ranks plays.
+
+## 6. Mobile fit (audit B3)
+
+At 375px the NFL page measured `documentElement.scrollWidth` 463 vs a 375
+viewport — real overflow that `body{overflow-x: hidden}` merely clipped
+(clipping is not fitting). Empirical element-level measurement with
+ancestor-clip detection located the leak: `.pw-topbar-right` was
+`flex-shrink: 0 !important` with all-nowrap children (slate select, injury
+pill, upgrade button, menu button); its right edge equalled the document
+scrollWidth exactly. The horizontally scrolling chip strip is an internal
+scroller and was never the problem.
+
+Fix: the topbar-right cluster may shrink; the injury pill truncates to dot
++ ellipsis; buttons keep size. Re-measured after the fix: NFL and NBA both
+fit at 375px and 390px (`scrollWidth == clientWidth`), pill still visible
+and tappable. Regressions of this kind are caught by the E2E screenshots
+(`test/screenshots/phase2_*.png`), refreshed with the fix.
+
+## 7. Branch topology (audit H7)
+
+Phase 2 was developed stacked on `phase/1-adapter` before Phase 1 was
+reviewed. Actual state, verified by remote refs on 2026-10-24:
+
+```
+main 1ea8990 = "Merge pull request #1 from NickAiNYC/phase/1-adapter"
+             (parents: bdc229f + 5cc0196; diff vs 5cc0196 is empty)
+phase/2-nba: 7 Phase 2 commits on top of 5cc0196
+             → merging into main is a clean merge (no rebase needed)
+```
+
+CI evidence: `phase/1-adapter @ 5cc0196` success (run 40063252959) and
+`main @ 1ea8990` success (run 40063281580). A stale pre-Phase-1 branch
+`propwire-ui-redesign` (Oct 20, −243k lines) exists on the remote and is
+not part of this stack; recommend deleting it after review.
+
+The Phase 1-merged-with-known-bug case (audit H6): the
+`riskPolicy.edgeGate` crash fix landed on `phase/2-nba` (commit 83714bd)
+after the Phase 1 merge, so `main` carries the live crash until the Phase
+2 PR merges. Decision recorded here: the fix rides the Phase 2 PR (it is
+backport-equivalent — one commit, `phase/2-nba` contains it); do not merge
+Phase 2 into a release context without that commit.
+
+## 8. Adding a sport (checklist)
 
 1. `viewer/js/sports/<sport>.js` — full adapter (contract above).
 2. Fixture feeds (or a gated ingest script like `fetch_nba.py`) with
@@ -167,4 +253,6 @@ Adapter-driven via `topPlays.source`:
 6. Tests: adapter contract, feed schema/provenance, breaker isolation,
    copy-compliance lint, boot integration.
 7. `sw.js` precache entry + cache-name bump; asset `?v=` bump on the pages.
-8. NFL parity must stay byte-identical (8 goldens, zero new whitelist).
+8. NFL parity must stay byte-identical (10 goldens incl. detail modal +
+   dom access log; the earned chrome whitelist + allowlist assertion are
+   part of the contract — see test/nfl-parity.snapshot.mjs).
