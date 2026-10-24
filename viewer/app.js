@@ -192,9 +192,10 @@
   } catch (_) {}
 
   const $ = (selector) => document.querySelector(selector);
-  // Parity-proof DOM access for switcher/chrome elements: the snapshot sandbox
-  // does not implement getElementById, so this helper degrades to null there —
-  // provably keeping Phase 2 chrome outside the NFL golden snapshots.
+  // Parity-proof DOM access for switcher/chrome elements (audit B2, fixed):
+  // the snapshot sandbox now implements getElementById against the shipped
+  // HTML's ids and records every call — chrome writes are CAPTURED in the
+  // goldens and pinned by the dom_access_log snapshot + allowlist assertion.
   const elById = (id) => (typeof document.getElementById === 'function' ? document.getElementById(id) : null);
   const $$ = (selector) => [...document.querySelectorAll(selector)];
   const finite = (value) => Number.isFinite(Number(value));
@@ -1453,9 +1454,10 @@
   function toggleTheme() {}
 
   // ─── Sport switcher + per-sport filter chrome (Phase 2) ─────────────
-  // DOM population goes through document.getElementById (NOT the $ helper)
-  // with null guards: the parity sandbox does not implement getElementById,
-  // so these writes are provably outside the NFL golden snapshots.
+  // DOM population goes through document.getElementById (NOT the $ helper).
+  // Since the audit B2 remediation the parity sandbox RESOLVES these ids and
+  // the chrome content is captured in the NFL goldens as an earned,
+  // documented whitelist delta (see test/nfl-parity.snapshot.mjs).
   const SPORT_SWITCHER_KEY = 'propwire_active_sport';
 
   function sportSwitcherItems() {
@@ -1700,9 +1702,9 @@
   // ─── Feed health: failure-mode UI (Phase 2) ─────────────────────────────
   // A feed outage must NEVER masquerade as "the market is efficient": every
   // transport failure, staleness breach, and fixture dataset is surfaced in
-  // a dedicated banner. All DOM access goes through elById() so the parity
-  // sandbox (no getElementById) proves this chrome sits outside the NFL
-  // golden snapshots.
+  // a dedicated banner. Banner content is captured in the NFL parity goldens
+  // (and its DOM access is pinned by the dom_access_log snapshot) since the
+  // audit B2 remediation enabled getElementById in the sandbox.
   function feedThresholds() {
     const cfg = state.breakerConfig;
     const sportCfg = cfg && cfg.sports ? cfg.sports[SPORT_ID] : null;

@@ -24,25 +24,55 @@ export function normalizeTokens(text) {
     .replace(/"logged_at":"[^"]*"/g, '"logged_at":"<TOKEN>"');
 }
 
-export function makeElement() {
-  return {
-    innerHTML: '', textContent: '', value: '', hidden: false, disabled: false,
+export function makeElement(knownIds) {
+  const el = {
+    textContent: '', value: '', hidden: false, disabled: false,
     open: false, offsetWidth: 0, scrollTop: 0, dataset: {}, style: { cssText: '' },
+    title: '', id: '',
     classList: { add() {}, remove() {}, toggle() {}, contains() { return false; } },
     addEventListener() {}, removeEventListener() {}, dispatchEvent() { return true; },
     appendChild() {}, insertBefore() {}, remove() {}, focus() {}, blur() {},
     scrollIntoView() {}, setAttribute() {}, getAttribute() { return null; },
-    querySelector() { return makeElement(); }, querySelectorAll() { return []; },
+    querySelector() { return makeElement(knownIds); }, querySelectorAll() { return []; },
     closest() { return null; }, showModal() {}, close() {}, insertAdjacentHTML() {},
   };
+  // innerHTML setter mimics live-DOM behavior: ids injected via markup
+  // (e.g. the banner's dqRetryBtn) become resolvable by getElementById, so
+  // the parity harness exercises the same paths a real page does.
+  let inner = '';
+  Object.defineProperty(el, 'innerHTML', {
+    get: () => inner,
+    set: (value) => {
+      inner = String(value);
+      if (knownIds) {
+        for (const match of inner.matchAll(/\bid="([^"]+)"/g)) knownIds.add(match[1]);
+      }
+    },
+  });
+  return el;
 }
 
 export function buildSandbox({ seedLocalStorage = {} } = {}) {
   const registry = new Map();
   const getEl = (selector) => {
-    if (!registry.has(selector)) registry.set(selector, makeElement());
+    if (!registry.has(selector)) registry.set(selector, makeElement(knownIds));
     return registry.get(selector);
   };
+  // Static id inventory of the shipped page (viewer/index.html): the stub
+  // DOM resolves getElementById ONLY for ids a real browser could resolve —
+  // ids present in the static HTML, plus ids injected later via innerHTML.
+  // Every call is recorded so the parity test can pin exactly which elements
+  // the booted app reads and populates (dom_access_log snapshot).
+  const staticIds = (() => {
+    try {
+      const html = fs.readFileSync(path.join(VIEWER, 'index.html'), 'utf8');
+      return new Set([...html.matchAll(/\bid="([^"]+)"/g)].map((m) => m[1]));
+    } catch (_) {
+      return new Set();
+    }
+  })();
+  const knownIds = new Set(staticIds);
+  const domCalls = [];
   const lsStore = new Map(Object.entries(seedLocalStorage));
   const localStorage = {
     getItem: (k) => (lsStore.has(k) ? lsStore.get(k) : null),
@@ -60,6 +90,12 @@ export function buildSandbox({ seedLocalStorage = {} } = {}) {
   const document = {
     querySelector: (sel) => getEl(sel),
     querySelectorAll: () => [],
+    getElementById: (id) => {
+      const key = String(id);
+      const resolved = knownIds.has(key);
+      domCalls.push({ id: key, resolved });
+      return resolved ? getEl(`#${key}`) : null;
+    },
     addEventListener() {},
     removeEventListener() {},
     createElement: () => makeElement(),
@@ -105,7 +141,7 @@ export function buildSandbox({ seedLocalStorage = {} } = {}) {
   };
   sandbox.globalThis = sandbox;
   sandbox.window.matchMedia = window.matchMedia;
-  return { sandbox, registry, lsStore };
+  return { sandbox, registry, lsStore, domCalls, knownIds };
 }
 
 /** Load registry.js + every adapter + app.js (same order as the HTML pages). */
@@ -123,7 +159,7 @@ export function loadApp(sandbox) {
     setPlayMode, breakerFor,
     sportSwitcherItems, switchToSport, defaultBootSlate,
     feedHealthStates, updateFeedHealthUI, stampProvenance,
-    renderDetailModal,
+    renderSportChrome, renderDetailModal,
     storage: { loadPortfolio, savePortfolio, loadWatchlist, saveWatchlist, migrateLegacyStorage, MIGRATION_FLAG, STORE, migrationResult }
   };
 })();`;
