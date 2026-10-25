@@ -1557,7 +1557,7 @@
       signalGroup.innerHTML = intents.map((i, idx) => `<button type="button" class="signal-chip-btn${idx === 0 ? ' active' : ''}" data-intent="${esc(i.id)}">${esc(i.label)}</button>`).join('');
     }
     const slateOptions = (config) => Object.entries(config).map(([key, slate]) =>
-      `<option value="${esc(key)}">${esc(slate.state || key)}</option>`).join('');
+      `<option value="${esc(key)}">${esc(slate.shortLabel || slate.state || key)}</option>`).join('');
     const slateSelector = elById('slateSelector');
     if (slateSelector) slateSelector.innerHTML = slateOptions(adapter.slates);
     const mobileSlateSelector = elById('mobileSlateSelector');
