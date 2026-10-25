@@ -847,6 +847,26 @@
     }
 
     document.addEventListener('click', (e) => {
+      const modelHelp = e.target.closest('[data-model-only-help]');
+      if (modelHelp) {
+        e.preventDefault();
+        e.stopPropagation();
+        const popover = modelHelp.parentElement?.querySelector('.model-only-popover');
+        const willOpen = Boolean(popover?.hidden);
+        document.querySelectorAll('.model-only-popover:not([hidden])').forEach((item) => { item.hidden = true; });
+        document.querySelectorAll('[data-model-only-help][aria-expanded="true"]').forEach((item) => item.setAttribute('aria-expanded', 'false'));
+        if (popover && willOpen) {
+          popover.hidden = false;
+          modelHelp.setAttribute('aria-expanded', 'true');
+          triggerHaptic('light');
+        }
+        return;
+      }
+      if (!e.target.closest('.model-only-popover')) {
+        document.querySelectorAll('.model-only-popover:not([hidden])').forEach((item) => { item.hidden = true; });
+        document.querySelectorAll('[data-model-only-help][aria-expanded="true"]').forEach((item) => item.setAttribute('aria-expanded', 'false'));
+      }
+
       const pricingTrigger = e.target.closest('[data-open-pricing]');
       if (pricingTrigger && pricingDialog) {
         e.preventDefault();
@@ -2997,8 +3017,15 @@
     const logoImg = teamCrest(row.team, 'md');
     const bulletSvg = propBulletGraphSvg(dist, evaluation, evaluation.side || 'OVER');
     const corrRisk = checkCorrelatedRisk(row, evaluation);
+    const rowStateClass = evaluation.state === 'ingested'
+      ? 'row-state-unverified'
+      : evaluation.state === 'none'
+        ? 'row-state-no-quote'
+        : evaluation.actionable
+          ? 'row-state-actionable'
+          : 'row-state-quoted';
 
-    return `<tr class="slate-row ${isTopEdge ? 'top-edge-play' : ''}" data-testid="slate-row" data-player-id="${esc(row.player_id)}" style="--row-index:${Math.min(index, 14)};" tabindex="0" role="button" aria-label="Inspect ${esc(row.player_display_name)}">
+    return `<tr class="slate-row ${rowStateClass} ${isTopEdge ? 'top-edge-play' : ''}" data-testid="slate-row" data-player-id="${esc(row.player_id)}" style="--row-index:${Math.min(index, 14)};" tabindex="0" role="button" aria-label="Inspect ${esc(row.player_display_name)}">
       <td>
         <div class="player-cell">
           ${logoImg}
@@ -3121,7 +3148,8 @@
       gridColsHtml = `
         <div class="card-grid-col col-book" style="grid-column: span 2;">
           <span class="grid-col-lbl">STATUS</span>
-          <span class="grid-col-val color-muted" style="font-size:12px;">No Active Quote</span>
+          <button type="button" class="grid-col-val color-muted model-only-help mobile-model-help" data-model-only-help aria-expanded="false" aria-label="Why is there no active quote?">${SVG_ICONS.lock} No Active Quote</button>
+          <span class="model-only-popover" role="status" hidden>No verified market receipt is available. Projections remain visible, but price-dependent actions stay locked.</span>
           <span class="grid-col-sub">Proj ${dist.proj.toFixed(1)}</span>
         </div>
         <div class="card-grid-col col-steam">
@@ -3355,7 +3383,7 @@
       </div>`;
     }
     if (evaluation.state === 'none') {
-      return `<div class="book-cell"><span class="number-main book-empty" aria-label="No market quote">—</span><div class="book-meta"><span class="meta-pill model-only" title="No verified market receipt is available. Model projections remain visible, but price-dependent actions stay locked.">Model only</span>${injury ? `<span class="injury-warning-tag" title="Snap risk unpriced">${SVG_ICONS.warn} ${esc(injury.report_status)}</span>` : ''}</div></div>`;
+      return `<div class="book-cell"><span class="number-main book-empty" aria-label="No market quote">—</span><div class="book-meta model-only-help-wrap"><button type="button" class="meta-pill model-only model-only-help" data-model-only-help aria-expanded="false" aria-label="Why is this model only?">${SVG_ICONS.lock} Model only</button><span class="model-only-popover" role="status" hidden>No verified market receipt is available. Projections remain visible, but price-dependent actions stay locked.</span>${injury ? `<span class="injury-warning-tag" title="Snap risk unpriced">${SVG_ICONS.warn} ${esc(injury.report_status)}</span>` : ''}</div></div>`;
     }
     const quoteKey = row ? `${row.player_id}::${state.filters.market}` : '';
     const flash = quoteKey && state.tickFlashes ? state.tickFlashes[quoteKey] : null;
@@ -3567,6 +3595,7 @@
       event.stopPropagation();
       return;
     }
+    if (event.target.closest('[data-model-only-help], .model-only-popover')) return;
     if (event.target.closest('.info-trigger') || event.target.closest('.help-bubble')) return;
     const dismissBtn = event.target.closest('[data-dismiss-corr]');
     if (dismissBtn) {
