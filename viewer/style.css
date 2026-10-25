@@ -7464,3 +7464,159 @@ body {
     flex: 0 0 auto !important;
   }
 }
+
+/* Official brand lockup: give the supplied PropWire logo enough room to
+   read as the header identity instead of an incidental toolbar icon. */
+.pw-brand {
+  min-width: 164px;
+  padding-right: 4px;
+}
+.pw-brand-img {
+  width: 160px;
+  height: 40px;
+  max-width: none;
+  object-fit: contain;
+  object-position: left center;
+}
+
+@media (min-width: 769px) and (max-width: 1199px) {
+  .pw-brand { min-width: 144px; }
+  .pw-brand-img { width: 140px; height: 35px; max-width: none; }
+}
+
+@media (max-width: 768px) {
+  .pw-brand { min-width: 112px; padding-right: 0; }
+  .pw-brand-img {
+    width: 112px !important;
+    height: 28px !important;
+    max-width: none !important;
+  }
+}
+
+/* ─── Warm Clinical terminal refinement ───────────────────────────────
+   A low-fatigue obsidian canvas, restrained semantic color, and clearer
+   table/telemetry grouping for long research sessions. */
+:root {
+  --bg-canvas: #0f131a;
+  --bg-surface: #141a23;
+  --bg-elevated: #19212c;
+  --surface: #141a23;
+  --surface-2: #19212c;
+  --surface-3: #202a37;
+  --surface-row-hover: #1a2330;
+  --text-primary: #e2e8f0;
+  --text-secondary: #aab5c6;
+  --text-muted: #94a3b8;
+  --text: #e2e8f0;
+  --text-dim: #aab5c6;
+  --muted: #94a3b8;
+  --faint: #6f7d91;
+  --line: #273244;
+  --line-strong: #36445a;
+  --brand-green: #3ccf91;
+  --brand-green-bright: #69dda9;
+  --brand-green-dim: rgba(60, 207, 145, .12);
+  --brand-green-border: rgba(60, 207, 145, .34);
+  --warn-amber: #d9a441;
+  --amber: #d9a441;
+  --danger: #b4535a;
+}
+html,
+body { background: #0f131a; color: #e2e8f0; }
+.table-scroll { background: #141a23; border-color: #273244; }
+.slate-table th {
+  position: sticky;
+  top: 133px;
+  z-index: 12;
+  background: rgba(25, 33, 44, .98);
+  color: #94a3b8;
+  border-bottom-color: #36445a;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, .025);
+}
+.shell:has(.data-quality-banner:not([hidden])) .slate-table th { top: 169px; }
+.slate-table th,
+.slate-table td { border-right-color: rgba(148, 163, 184, .08); }
+.slate-table tbody tr[data-testid="slate-row"] { background: #141a23; }
+.slate-table tbody tr[data-testid="slate-row"]:nth-child(even) { background: #161d27; }
+.slate-table tbody tr[data-testid="slate-row"] td {
+  background: inherit;
+  transition: background-color .14s ease, box-shadow .14s ease, filter .14s ease;
+}
+.slate-table tbody tr[data-testid="slate-row"]:hover td {
+  background: #1a2330;
+  filter: brightness(1.02);
+}
+.slate-table tbody tr[data-testid="slate-row"]:hover td:first-child {
+  box-shadow: inset 2px 0 #64748b;
+}
+.slate-table tbody tr[data-testid="slate-row"]:focus-visible td:first-child,
+.slate-table tbody tr.keyboard-focus td:first-child {
+  box-shadow: inset 2px 0 #3ccf91;
+}
+.team-logo-badge { opacity: .72; filter: saturate(.72) drop-shadow(0 1px 2px rgba(0,0,0,.35)); }
+.position-box,
+.team-chip { color: #7f8da1; border-color: #2d394a; background: #18202b; }
+.bullet-svg .bullet-track { fill: #263143; }
+.bullet-svg .bullet-fill { fill: #465264; }
+.bullet-svg .bullet-proj-marker { fill: #3ccf91; stroke: #0f131a; }
+.bullet-svg .bullet-book-marker { stroke: #d9a441; }
+.bullet-svg .bullet-fair-marker { stroke: #e2e8f0; }
+.bullet-ci-tag { color: #aab5c6; background: #1b2430; border-color: #2d394a; }
+.meta-pill.actionable,
+.exec-tag.actionable { color: #69dda9; background: rgba(20, 83, 57, .42); border-color: rgba(60, 207, 145, .32); }
+.meta-pill.caution { color: #e7bd68; background: rgba(111, 73, 17, .34); border-color: rgba(217, 164, 65, .34); }
+.meta-pill.unverified,
+.meta-pill.model-only,
+.exec-tag-none { color: #94a3b8; background: #1b2430; border-color: #2d394a; }
+.meta-pill.model-only::before,
+.exec-tag-none::before { content: '🔒'; font-size: 8px; margin-right: 4px; filter: grayscale(1); }
+.injury-warning-tag,
+.pw-injury-status-badge.status-out,
+.pw-injury-status-badge.status-ir {
+  color: #d8898f;
+  background: rgba(92, 32, 39, .34);
+  border-color: rgba(180, 83, 90, .38);
+}
+.pw-risk-group {
+  gap: 4px;
+  padding: 3px;
+  background: #151c26;
+  border-color: #2d394a;
+}
+.pw-risk-group .pw-stepper {
+  min-height: 24px;
+  padding: 0 4px 0 8px;
+  border-radius: 4px;
+  background: #1c2531;
+  border: 1px solid #2b3748;
+}
+.pw-risk-sep { display: none; }
+.pw-stepper-label::before { content: '◇'; margin-right: 4px; color: #708097; }
+.pw-stepper-val { color: #e2e8f0; }
+.data-quality-banner.warn,
+.data-quality-banner.error {
+  background: #211c17;
+  border-left-color: #d9a441;
+}
+.data-quality-banner.error { border-left-color: #b4535a; }
+.dq-retry-btn {
+  position: relative;
+  background: #28231d;
+  border-color: rgba(217, 164, 65, .42);
+  color: #e7c77f;
+}
+.data-quality-banner.warn .dq-retry-btn,
+.data-quality-banner.error .dq-retry-btn {
+  animation: retry-attention 2.8s ease-in-out infinite;
+}
+@keyframes retry-attention {
+  0%, 72%, 100% { box-shadow: 0 0 0 0 rgba(217, 164, 65, 0); }
+  84% { box-shadow: 0 0 0 4px rgba(217, 164, 65, .10); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .slate-table tbody tr[data-testid="slate-row"] td,
+  .dq-retry-btn { transition: none; animation: none !important; }
+}
+@media (max-width: 768px) {
+  .slate-table th { position: static; }
+}
