@@ -344,15 +344,15 @@
           <!-- Background Track (0 to maxScale) -->
           <rect class="bullet-track" x="0" y="5" width="100" height="4" rx="1.5" fill="#2a2d35" />
           <!-- 80% Confidence Interval Bar -->
-          <rect class="bullet-fill" x="${lowPct.toFixed(1)}" y="4.5" width="${widthPct.toFixed(1)}" height="5" rx="1" fill="#a3e635" />
+          <rect class="bullet-fill" x="${lowPct.toFixed(1)}" y="4.5" width="${widthPct.toFixed(1)}" height="5" rx="1" fill="#465264" />
           <!-- Edge Delta Highlight -->
           ${hasBook && deltaWidth > 0 ? `<rect x="${deltaStart.toFixed(1)}" y="4.5" width="${deltaWidth.toFixed(1)}" height="5" fill="${deltaColor}" />` : ''}
           <!-- Book Line Marker (Crisp Vertical Amber Tick) -->
-          ${hasBook ? `<line x1="${bookPct.toFixed(1)}" y1="1" x2="${bookPct.toFixed(1)}" y2="13" stroke="#f59e0b" stroke-width="1.8" />` : ''}
+          ${hasBook ? `<line class="bullet-book-marker" x1="${bookPct.toFixed(1)}" y1="1" x2="${bookPct.toFixed(1)}" y2="13" stroke="#d9a441" stroke-width="1.8" />` : ''}
           <!-- Fair Line Marker (Solid White Tick) -->
-          <line x1="${fairPct.toFixed(1)}" y1="2.5" x2="${fairPct.toFixed(1)}" y2="11.5" stroke="#f8fafc" stroke-width="1.6" />
+          <line class="bullet-fair-marker" x1="${fairPct.toFixed(1)}" y1="2.5" x2="${fairPct.toFixed(1)}" y2="11.5" stroke="#e2e8f0" stroke-width="1.6" />
           <!-- Model Projection Mean (Volt Green Dot) -->
-          <circle cx="${projPct.toFixed(1)}" cy="7" r="2.5" fill="#a3e635" stroke="#070a12" stroke-width="0.8" />
+          <circle class="bullet-proj-marker" cx="${projPct.toFixed(1)}" cy="7" r="2.5" fill="#3ccf91" stroke="#0f131a" stroke-width="0.8" />
         </svg>
         <div class="bullet-bottom-sub">
           <span class="bullet-ci-wrap">80% <span class="bullet-ci-tag">${dist.low}–${dist.high}${unit}</span></span>
@@ -3355,7 +3355,7 @@
       </div>`;
     }
     if (evaluation.state === 'none') {
-      return `<div class="book-cell"><span class="number-main book-empty" aria-label="No market quote">—</span><div class="book-meta"><span class="meta-pill model-only">Model only</span>${injury ? `<span class="injury-warning-tag" title="Snap risk unpriced">${SVG_ICONS.warn} ${esc(injury.report_status)}</span>` : ''}</div></div>`;
+      return `<div class="book-cell"><span class="number-main book-empty" aria-label="No market quote">—</span><div class="book-meta"><span class="meta-pill model-only" title="No verified market receipt is available. Model projections remain visible, but price-dependent actions stay locked.">Model only</span>${injury ? `<span class="injury-warning-tag" title="Snap risk unpriced">${SVG_ICONS.warn} ${esc(injury.report_status)}</span>` : ''}</div></div>`;
     }
     const quoteKey = row ? `${row.player_id}::${state.filters.market}` : '';
     const flash = quoteKey && state.tickFlashes ? state.tickFlashes[quoteKey] : null;
@@ -3416,7 +3416,7 @@
       return `<div class="edge-cell-wrap">
         <div class="edge-cell edge-cell-none ${flashClass}">
           <span class="edge-line-top text-muted">—</span>
-          <span class="exec-tag exec-tag-none">MODEL ONLY</span>
+          <span class="exec-tag exec-tag-none" title="No verified market receipt is available. Edge and staking remain locked.">MODEL ONLY</span>
         </div>
       </div>`;
     }
