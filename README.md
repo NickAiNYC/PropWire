@@ -151,14 +151,14 @@ Railway provides a persistent process and non-ephemeral filesystem required for 
 The viewer frontend and pre-computed slate data are deployed to Vercel at global edge:
 
 - **Live Production URL**: [https://receiving-props-agent.vercel.app](https://receiving-props-agent.vercel.app)
-- **Vercel Project**: [`receiving-props-agent`](https://vercel.com/nicks-projects-ec56abd4/receiving-props-agent)
-- **Configuration**: Configured via [`viewer/vercel.json`](viewer/vercel.json) with `cleanUrls` and edge caching (`s-maxage=60`).
+- **Vercel Project**: [`propwire`](https://vercel.com/nicks-projects-ec56abd4/propwire)
+- **Deployment root**: repository root (`.`). The root [`vercel.json`](vercel.json) publishes `viewer/`; do not deploy from inside `viewer/`.
+- **Configuration**: Service workers are never cached, HTML/data use short edge caching, and versioned static assets use immutable caching.
 
 #### Deploying Slate Updates to Vercel
 Whenever the weekly pipeline runs (`python src/week1.py`), updated projections and picks are automatically synced to `viewer/slate_projections.json` and `viewer/current_picks.json`. To push the new slate to Vercel production:
 
 ```bash
-cd viewer
 vercel --prod
 ```
 The edge deployment builds and propagates globally in ~4 seconds.

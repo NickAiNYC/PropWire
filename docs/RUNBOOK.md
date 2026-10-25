@@ -4,6 +4,29 @@ Decisions are recorded here with their rationale and, where applicable, their
 executable procedure. "Recorded" is not "done": each section states its own
 status.
 
+## Production safety defaults
+
+- **Fail closed.** Missing authentication, entitlement, provenance, or
+  verification configuration disables the protected operation. Local bypasses
+  must be explicit, narrowly scoped, and off by default. Never place fallback
+  credentials in source.
+- **A green build is not a freshness check.** Unit tests validate application
+  behavior; scheduled workflows, deployment targeting, live endpoint auth, and
+  feed freshness require their own recorded verification.
+
+## Vercel project topology (merge gate active)
+
+- `propwire` is the production project and publishes `viewer/` from repository
+  root using the root `vercel.json`.
+- `propwire-github` is currently an unintended duplicate Git integration. Its
+  PR check is advisory and does **not** validate the production project.
+- Do not merge a Vercel-affecting PR until the duplicate Git integration is
+  disconnected/archived in Vercel and the `propwire` project has produced the
+  required preview/check. Do not promote or copy deployments between these two
+  projects; they have independent settings and rollback histories.
+- After merge, production deployment must originate from `propwire` and be
+  verified against the merged Git SHA before the change is called live.
+
 ---
 
 ## D1 — `.venv` history rewrite (status: PROCEDURE WRITTEN, awaiting merge + authorization)
@@ -45,6 +68,12 @@ in that window rebases afterwards at its author's cost.
   writing** (issue/PR comment or chat log: "D1 force-push authorized").
   The standing "never force-push main" rule is suspended ONLY for this
   operation and ONLY by that written authorization.
+- [ ] Capture the rollback SHA immediately before the rewrite push; scheduled
+  automation can advance `main` after authorization:
+  ```bash
+  ROLLBACK_SHA=$(git ls-remote origin refs/heads/main | cut -f1)
+  test -n "$ROLLBACK_SHA" && printf 'rollback main: %s\n' "$ROLLBACK_SHA"
+  ```
 
 ### Procedure
 
@@ -80,6 +109,12 @@ git push origin --delete phase/1-adapter phase/2-nba propwire-ui-redesign 2>/dev
 ```
 
 ### Post-operation state and limits (read before claiming anything)
+
+- **Post-rewrite deploy:** after the D1 force-push and green CI on the rewritten
+  SHA, create and verify a new Vercel production deployment from repository
+  root. D1 does not redeploy the site; until this step finishes, GitHub `main`
+  and the live product intentionally point at different trees. Record both the
+  rewritten Git SHA and resulting Vercel deployment URL in the operation log.
 
 - `refs/pull/*` on GitHub are **not rewritten** by a force-push; GitHub keeps
   pre-rewrite objects reachable via PR refs until its own GC. Consequences:

@@ -307,8 +307,8 @@
             <span class="bullet-dim">P(TD)</span> <strong class="bullet-bold text-accent">${pct(dist.prob, 0)}</strong>
           </div>
           <svg class="bullet-svg" viewBox="0 0 100 14" preserveAspectRatio="none" aria-hidden="true">
-            <rect x="0" y="5" width="100" height="4" rx="2" fill="rgba(255,255,255,0.06)" />
-            <rect x="0" y="4.5" width="${probPct.toFixed(1)}" height="5" rx="2" fill="var(--accent)" />
+            <rect class="bullet-track" x="0" y="5" width="100" height="4" rx="2" fill="#2a2d35" />
+            <rect class="bullet-fill" x="0" y="4.5" width="${probPct.toFixed(1)}" height="5" rx="2" fill="#a3e635" />
           </svg>
           <div class="bullet-bottom-sub"><span>Model: ${pct(dist.prob, 1)}</span></div>
         </div>`;
@@ -342,9 +342,9 @@
         </div>
         <svg class="bullet-svg" viewBox="0 0 100 14" preserveAspectRatio="none" aria-hidden="true">
           <!-- Background Track (0 to maxScale) -->
-          <rect x="0" y="5" width="100" height="4" rx="1.5" fill="rgba(255,255,255,0.06)" />
+          <rect class="bullet-track" x="0" y="5" width="100" height="4" rx="1.5" fill="#2a2d35" />
           <!-- 80% Confidence Interval Bar -->
-          <rect x="${lowPct.toFixed(1)}" y="4.5" width="${widthPct.toFixed(1)}" height="5" rx="1" fill="rgba(148, 163, 184, 0.22)" />
+          <rect class="bullet-fill" x="${lowPct.toFixed(1)}" y="4.5" width="${widthPct.toFixed(1)}" height="5" rx="1" fill="#a3e635" />
           <!-- Edge Delta Highlight -->
           ${hasBook && deltaWidth > 0 ? `<rect x="${deltaStart.toFixed(1)}" y="4.5" width="${deltaWidth.toFixed(1)}" height="5" fill="${deltaColor}" />` : ''}
           <!-- Book Line Marker (Crisp Vertical Amber Tick) -->
@@ -356,7 +356,7 @@
         </svg>
         <div class="bullet-bottom-sub">
           <span class="bullet-ci-wrap">80% <span class="bullet-ci-tag">${dist.low}–${dist.high}${unit}</span></span>
-          <span class="bullet-bk">${hasBook ? `Bk ${bookLine.toFixed(1)}` : 'No quote'}</span>
+          <span class="bullet-bk">${hasBook ? `Bk ${bookLine.toFixed(1)}` : 'Model only'}</span>
         </div>
       </div>`;
   }
@@ -497,9 +497,33 @@
     }
     const mobileStatusText = $('#mobileStatusText');
     if (mobileStatusText) {
-      mobileStatusText.textContent = `Live · ${state.nextPollSeconds}s`;
+      mobileStatusText.textContent = `${feedVerificationLabel()} · ${state.nextPollSeconds}s`;
       mobileStatusText.style.color = '';
     }
+  }
+
+  function feedVerificationLabel(feed = state.odds) {
+    const status = String((feed && feed.feed_status) || '').toUpperCase();
+    const verifiedQuotes = Number(feed && feed.verified_quotes_count) || 0;
+    if (status === 'FIXTURE' || adapter.fixturesOnly === true) return 'FIXTURE';
+    if (verifiedQuotes > 0 && !status.includes('UNVERIFIED')) return 'VERIFIED';
+    return 'UNVERIFIED';
+  }
+
+  function updateFeedVerificationUI() {
+    const label = feedVerificationLabel();
+    const selector = $('#slateSelector');
+    const activeOption = selector && selector.querySelector
+      ? selector.querySelector(`option[value="${state.slateKey}"]`)
+      : null;
+    if (activeOption && !SLATES[state.slateKey]?.historical) {
+      const slateLabel = `W${SLATES[state.slateKey].week}`;
+      activeOption.textContent = `${slateLabel} ${label[0]}${label.slice(1).toLowerCase()}`;
+    }
+    const statusPill = $('#mobileStatusPill');
+    if (statusPill) statusPill.title = `${label} odds feed · Tap for telemetry`;
+    const mobileStatusText = $('#mobileStatusText');
+    if (mobileStatusText) mobileStatusText.textContent = label;
   }
 
   async function triggerOddsPoll(isAuto = false) {
@@ -1660,6 +1684,7 @@
       oddsUpdatedAt: state.odds.updated_at || null,
       newsLastPolledAt: state.newsWatcherState.last_polled_at || null
     };
+    updateFeedVerificationUI();
 
     // Build open snapshots map & price trajectory history
     state.openSnapshots = {};
@@ -3330,7 +3355,7 @@
       </div>`;
     }
     if (evaluation.state === 'none') {
-      return `<div class="book-cell"><span class="number-main">No quote</span><div class="book-meta"><span class="meta-pill model-only">Model only</span>${injury ? `<span class="injury-warning-tag" title="Snap risk unpriced">${SVG_ICONS.warn} ${esc(injury.report_status)}</span>` : ''}</div></div>`;
+      return `<div class="book-cell"><span class="number-main book-empty" aria-label="No market quote">—</span><div class="book-meta"><span class="meta-pill model-only">Model only</span>${injury ? `<span class="injury-warning-tag" title="Snap risk unpriced">${SVG_ICONS.warn} ${esc(injury.report_status)}</span>` : ''}</div></div>`;
     }
     const quoteKey = row ? `${row.player_id}::${state.filters.market}` : '';
     const flash = quoteKey && state.tickFlashes ? state.tickFlashes[quoteKey] : null;
@@ -3391,7 +3416,7 @@
       return `<div class="edge-cell-wrap">
         <div class="edge-cell edge-cell-none ${flashClass}">
           <span class="edge-line-top text-muted">—</span>
-          <span class="exec-tag exec-tag-none">NO QUOTE</span>
+          <span class="exec-tag exec-tag-none">MODEL ONLY</span>
         </div>
       </div>`;
     }
