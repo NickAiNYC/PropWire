@@ -7464,3 +7464,31 @@ body {
     flex: 0 0 auto !important;
   }
 }
+
+/* Official brand lockup: give the supplied PropWire logo enough room to
+   read as the header identity instead of an incidental toolbar icon. */
+.pw-brand {
+  min-width: 164px;
+  padding-right: 4px;
+}
+.pw-brand-img {
+  width: 160px;
+  height: 40px;
+  max-width: none;
+  object-fit: contain;
+  object-position: left center;
+}
+
+@media (min-width: 769px) and (max-width: 1199px) {
+  .pw-brand { min-width: 144px; }
+  .pw-brand-img { width: 140px; height: 35px; max-width: none; }
+}
+
+@media (max-width: 768px) {
+  .pw-brand { min-width: 112px; padding-right: 0; }
+  .pw-brand-img {
+    width: 112px !important;
+    height: 28px !important;
+    max-width: none !important;
+  }
+}
