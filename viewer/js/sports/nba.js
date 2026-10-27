@@ -75,6 +75,7 @@
       '2026-10-22': {
         season: 2026,
         date: '2026-10-22',
+        shortLabel: 'Oct 22 Fixture',
         state: 'Fixture slate · Oct 22, 2026',
         slate: 'nba_slate_2026-10-22.json',
         games: 'nba_games_2026-10-22.json',

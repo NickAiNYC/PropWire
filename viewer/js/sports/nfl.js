@@ -40,6 +40,7 @@
       '2026_w7': {
         season: 2026,
         week: 7,
+        shortLabel: 'W7 Live',
         state: 'Upcoming slate · Oct 22–26',
         slate: 'slate_2026_w7.json',
         games: 'games_2026_w7.json',
@@ -52,6 +53,7 @@
       '2026_w1': {
         season: 2026,
         week: 1,
+        shortLabel: 'W1 Audit',
         state: 'Historical audit · Sept 10–14',
         slate: 'slate_2026_w1.json',
         games: 'games_2026_w1.json',
