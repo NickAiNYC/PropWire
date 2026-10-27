@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>PropWire Track Record: Graded Decisions, CLV and Calibration</title>
+  <meta name="description" content="Every graded PropWire decision published as-is: ledger record, full-board close calibration, holdout model evaluation including negative results, and the honest sample-size caveats.">
+  <link rel="canonical" href="https://propwire.vercel.app/performance/">
+  <meta property="og:title" content="PropWire Track Record: Graded Decisions, CLV and Calibration">
+  <meta property="og:description" content="Every graded PropWire decision published as-is: ledger record, full-board close calibration, holdout model evaluation including negative results, and the honest sample-size caveats.">
+  <meta property="og:url" content="https://propwire.vercel.app/performance/">
+  <meta name="robots" content="index,follow">
+  <link rel="stylesheet" href="/public.css">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <script type="application/ld+json">{
+ "@context": "https://schema.org",
+ "@graph": [
+  {
+   "@type": "BreadcrumbList",
+   "itemListElement": [
+    {
+     "@type": "ListItem",
+     "position": 1,
+     "name": "PropWire",
+     "item": "https://propwire.vercel.app/"
+    },
+    {
+     "@type": "ListItem",
+     "position": 2,
+     "name": "Track Record"
+    }
+   ]
+  },
+  {
+   "@type": "WebPage",
+   "name": "PropWire Track Record: Graded Decisions, CLV and Calibration",
+   "description": "Every graded PropWire decision published as-is: ledger record, full-board close calibration, holdout model evaluation including negative results, and the honest sample-size caveats.",
+   "url": "https://propwire.vercel.app/performance/",
+   "isPartOf": {
+    "@type": "WebSite",
+    "name": "PropWire",
+    "url": "https://propwire.vercel.app/"
+   }
+  }
+ ]
+}</script>
+</head>
+<body>
+
+  <header class="pub-header">
+    <a class="pub-brand" href="/">PropWire</a>
+    <nav class="pub-nav">
+      <a href="/nfl/props/receiving-yards/">NFL Receiving Yards</a>
+      <a href="/nfl/props/receptions/">NFL Receptions</a>
+      <a href="/performance/">Track Record</a>
+      <a href="/methodology/">Methodology</a>
+    </nav>
+  </header>
+  <main class="pub-main">
+    <nav class="pub-crumbs" aria-label="Breadcrumb"><ol>
+            <li><a href="/">PropWire</a></li>
+      <li aria-current="page">Track Record</li>
+    </ol></nav>
+
+    <h1>PropWire Track Record &amp; Evidence</h1>
+    <p class="pub-lede">Everything graded so far, published as-is &mdash;
+    including the small sample, the losing weeks and the model defects. We
+    believe a reproducible, versioned record beats an "8&ndash;0" graphic, so
+    this page shows the receipts.</p>
+    <section>
+      <h2>Graded ledger (all records)</h2>
+      <p><strong>7-1-0</strong> over
+      <strong>8</strong> graded records &mdash;
+      win rate 87.5%, beat-close rate
+      100.0%, average close beating value
+      4.29% of implied probability, net P&amp;L
+      549.64 on 790.0 staked
+      (ROI 69.57%). Ledger root hash
+      <code>178e29974bf8748c</code>.</p>
+      <p class="pub-note"><strong>Read this honestly:</strong> 8
+      records is a tiny sample. None of these rates are meaningful evidence of
+      edge yet. We publish them anyway so the methodology is auditable from
+      day one, and so there is no incentive to quietly drop bad weeks.</p>
+      <div class="pub-tablewrap">
+      <table class="pub-table">
+        <thead><tr><th>Player</th><th>Market</th><th>Bet</th><th>Odds</th>
+        <th>Close</th><th>CLV</th><th>Outcome</th><th>Net</th></tr></thead>
+        <tbody><tr><td>Amon-Ra St. Brown</td><td>rec_yds</td><td>OVER 78.5</td><td>-115</td><td>81.5 (-115)</td><td class='pub-num'>3.0 yds / 4.97%</td><td>WIN</td><td class='pub-num'>104.35</td></tr>
+<tr><td>Hunter Henry</td><td>rec_yds</td><td>OVER 31.5</td><td>-115</td><td>33.5 (-115)</td><td class='pub-num'>2.0 yds / 3.32%</td><td>WIN</td><td class='pub-num'>86.96</td></tr>
+<tr><td>DeMario Douglas</td><td>rec_yds</td><td>OVER 34.5</td><td>-110</td><td>36.5 (-115)</td><td class='pub-num'>2.0 yds / 4.33%</td><td>WIN</td><td class='pub-num'>90.91</td></tr>
+<tr><td>Jaxon Smith-Njigba</td><td>rec_yds</td><td>OVER 100.5</td><td>170</td><td>103.5 (160)</td><td class='pub-num'>3.0 yds / 6.41%</td><td>LOSS</td><td class='pub-num'>-80.0</td></tr>
+<tr><td>Chris Olave</td><td>rec_yds</td><td>OVER 75.5</td><td>-115</td><td>77.5 (-115)</td><td class='pub-num'>2.0 yds / 3.32%</td><td>WIN</td><td class='pub-num'>86.96</td></tr>
+<tr><td>A.J. Brown</td><td>rec_yds</td><td>UNDER 69.5</td><td>-105</td><td>67.5 (-115)</td><td class='pub-num'>2.0 yds / 5.35%</td><td>WIN</td><td class='pub-num'>95.24</td></tr>
+<tr><td>Colston Loveland</td><td>rec_yds</td><td>OVER 44.5</td><td>-115</td><td>46.5 (-115)</td><td class='pub-num'>2.0 yds / 3.32%</td><td>WIN</td><td class='pub-num'>86.96</td></tr>
+<tr><td>DK Metcalf</td><td>rec_yds</td><td>UNDER 54.5</td><td>-115</td><td>52.5 (-115)</td><td class='pub-num'>2.0 yds / 3.32%</td><td>WIN</td><td class='pub-num'>78.26</td></tr></tbody>
+      </table>
+      </div>
+    </section>
+    <section>
+      <h2>Full-board close calibration (week 07)</h2>
+      <p>Every graded board decision, not just ledger bets:
+      <strong>37</strong>
+      graded, <strong>2</strong>
+      beat the close (5.4%).
+      Average line delta 0.05,
+      average CLV EV 0.82%,
+      verification rate 100%,
+      immutable ledger: True.</p>
+      <p class="pub-note">This is the number most services will not show you:
+      across the full board only 2 of 37 decisions beat the close that week.
+      That is what an honest calibration record looks like early.</p>
+    </section>
+    <section>
+      <h2>Published model evaluation (holdout)</h2>
+      <p>Decision cutoff enforced: <strong>yes</strong>;
+      862 snapshots evaluated,
+      0 future snapshots excluded
+      to prevent leakage.</p>
+      <dl class="pub-stats">
+        <div><dt>Brier score (model)</dt><dd>0.3176</dd></div>
+        <div><dt>Brier score (naive baseline)</dt><dd>0.25</dd></div>
+        <div><dt>Brier skill</dt><dd>-27.06%</dd></div>
+        <div><dt>Log loss (model)</dt><dd>0.8319</dd></div>
+        <div><dt>Log loss (baseline)</dt><dd>0.6931</dd></div>
+      </dl>
+      <p class="pub-note"><strong>The model currently underperforms the naive
+      baseline on this holdout.</strong> We publish that because it is true.
+      Recalibration is an active workstream; roles and thresholds carry
+      provisional labels everywhere in the product until the skill score turns
+      positive.</p>
+    </section>
+    <section>
+      <h2>What we publish as the sample grows</h2>
+      <p>Calibration by predicted-probability bucket; win rate with sample
+      size; ROI with a confidence interval; maximum drawdown; splits by sport,
+      market and model version; and losing weeks next to winning weeks, every
+      week. The commitment is the record, not the highlight reel.</p>
+    </section>
+    <section class="pub-limitations">
+      <h2>Model limitations</h2>
+      
+<p>PropWire publishes model limitations alongside every page. Roles and
+thresholds are provisional pending chronological holdout validation. In our
+published week-1 holdout evaluation the model's Brier score trailed the naive
+baseline; we treat that as an open defect, not a marketing problem, and we
+publish recalibration results as they land. Snapshots are taken pre-kickoff;
+quotes age and lines move, so every number here carries a timestamp and a
+verification state. Route-participation and late-scratch information are not
+fully modeled. Nothing on this site is betting advice.</p>
+
+    </section>
+  </main>
+  <footer class="pub-footer">
+    <p>PropWire is quantitative research, not betting advice. No wager should
+    be placed based on any content on this site. 21+ where applicable. If
+    gambling stops being fun, call 1-800-GAMBLER.</p>
+    <nav class="pub-footer-nav">
+      <a href="/performance/">Track Record</a>
+      <a href="/methodology/">Methodology</a>
+      <a href="/">Terminal</a>
+    </nav>
+  </footer>
+</body>
+</html>
