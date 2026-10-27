@@ -62,6 +62,17 @@ test('NBA adapter: contract complete, markets cover marketOrder, storage keys na
   assert.deepEqual(JSON.parse(JSON.stringify(Object.keys(nba.legacyKeys))), [], 'NBA ships no legacy keys');
   assert.equal(nba.correlationKey({ team: 'DEN' }, 'points'), 'DEN::points');
 
+  // Two fixture nights registered; the Oct 22 opener stays the boot default
+  // (registration order IS the selector order — pinned so reordering the
+  // registry can never silently move the default slate).
+  assert.deepEqual(Object.keys(nba.slates), ['2026-10-22', '2026-10-23']);
+  for (const slate of Object.values(nba.slates)) {
+    assert.match(slate.injuries, /^nba_injuries_\d{4}-\d{2}-\d{2}\.json$/, 'availability feed wired per slate');
+    assert.equal(slate.picks, null);
+    assert.equal(slate.snapshots, null);
+  }
+  assert.equal(nba.defaultSlateKey(), '2026-10-22');
+
   // v1 is fixture-only and breaker values are uncalibrated by contract.
   assert.equal(nba.fixturesOnly, true);
   assert.match(nba.fixtureNotice, /Research fixtures/);
@@ -118,7 +129,8 @@ test('NBA adapter: market hooks resolve fixture-row fields per market', () => {
   assert.equal(nba.sortDefault(row, 'rebounds'), 8.2);
 });
 
-test('NBA fixture feeds: provenance flags, required schema, ISO-8601 UTC stamps', () => {
+test('NBA fixture feeds: provenance flags, required schema, ISO-8601 UTC stamps (both nights)', () => {
+  for (const FIXTURE_DATE of ['2026-10-22', '2026-10-23']) {
   const slate = readViewerJson(`nba_slate_${FIXTURE_DATE}.json`);
   const games = readViewerJson(`nba_games_${FIXTURE_DATE}.json`);
   const odds = readViewerJson(`nba_odds_${FIXTURE_DATE}.json`);
@@ -126,6 +138,8 @@ test('NBA fixture feeds: provenance flags, required schema, ISO-8601 UTC stamps'
   // Slate/games stay BARE arrays (viewer loadSlate schema, parity guard).
   assert.ok(Array.isArray(slate) && slate.length >= 24, 'slate must be a non-empty bare array');
   assert.ok(Array.isArray(games) && games.length >= 1, 'games must be a non-empty bare array');
+  // Oct 22 is the 2-game opener; Oct 23 is the generated full night.
+  assert.equal(games.length, FIXTURE_DATE === '2026-10-22' ? 2 : 10, `${FIXTURE_DATE} game count pinned`);
 
   const marketFields = {
     points: ['proj_pts', 'fair_line_pts', 'mu_pts', 'sd_pts'],
@@ -143,7 +157,19 @@ test('NBA fixture feeds: provenance flags, required schema, ISO-8601 UTC stamps'
     ids.add(row.player_id);
   }
   assert.equal(ids.size, slate.length, 'player ids must be unique');
-  assert.ok(slate.some((r) => r.player_id === 'fx-nba-two_way_callup'), 'data-gate probe row present');
+  if (FIXTURE_DATE === '2026-10-22') {
+    assert.ok(slate.some((r) => r.player_id === 'fx-nba-two_way_callup'), 'data-gate probe row present');
+  } else {
+    assert.ok(slate.every((r) => Number.isFinite(Number(r.proj_pts))), 'full-night rows are complete (no probe row)');
+  }
+
+  // Game-feed ids and slate-row game_ids must join (away-first convention,
+  // mirroring the NFL `2026_07_AWAY_HOME` shape) — a mismatch silently
+  // empties the per-game filter (regression: Oct 22 shipped home-first ids).
+  const gameIds = new Set(games.map((g) => g.game_id));
+  for (const row of slate) {
+    assert.ok(gameIds.has(row.game_id), `${row.player_id} game_id ${row.game_id} must exist in the games feed`);
+  }
 
   for (const game of games) {
     assert.equal(game._fixture, true);
@@ -172,6 +198,29 @@ test('NBA fixture feeds: provenance flags, required schema, ISO-8601 UTC stamps'
   // Every quoted player exists on the slate (referential integrity).
   for (const quote of odds.quotes) assert.ok(ids.has(quote.player_id), `quote ${quote.quote_id} references unknown player`);
 
+  // Availability feed: provenance + schema + referential integrity.
+  const injuries = readViewerJson(`nba_injuries_${FIXTURE_DATE}.json`);
+  assert.equal(injuries._fixture, true, 'injuries envelope carries _fixture');
+  assert.equal(injuries.slate_date, FIXTURE_DATE);
+  assert.equal(injuries.total_active_injuries, injuries.injuries.length);
+  assert.ok(injuries.injuries.length >= 1, 'at least one availability item (surge machinery must have data)');
+  for (const item of injuries.injuries) {
+    assert.equal(item._fixture, true, `${item.injury_id} must carry _fixture`);
+    assert.ok(ids.has(item.player_id), `injury ${item.injury_id} references unknown player`);
+    assert.ok(['OUT', 'QUESTIONABLE', 'LIMITED', 'DAY-TO-DAY'].includes(item.report_status), `${item.injury_id} status`);
+    assert.ok(Number.isFinite(Number(item.vacated_minutes)), 'minutes-vacated semantics (NBA, not NFL targets)');
+    for (const bene of Object.values(item.redistribution_plan)) {
+      assert.equal(bene._fixture, true);
+      assert.ok(Number(bene.added_minutes) > 0, 'redistribution carries added minutes');
+    }
+  }
+  for (const [pid, bene] of Object.entries(injuries.impacted_beneficiaries)) {
+    assert.equal(bene._fixture, true, `beneficiary ${pid} must carry _fixture`);
+    assert.ok(ids.has(pid), `beneficiary ${pid} references unknown player`);
+    assert.equal(bene.player_id, pid);
+    assert.ok(Number(bene.added_minutes) > 0);
+  }
+
   function nbaMarketOk(row, fields) {
     for (const list of Object.values(fields)) {
       for (const field of list) {
@@ -181,14 +230,17 @@ test('NBA fixture feeds: provenance flags, required schema, ISO-8601 UTC stamps'
     }
     return true;
   }
+  }
 });
 
 test('NBA slate keying: US Eastern date, DST boundaries handled', () => {
   const nba = loadNba();
+  for (const FIXTURE_DATE of ['2026-10-22', '2026-10-23']) {
   const games = readViewerJson(`nba_games_${FIXTURE_DATE}.json`);
   // The slate key equals the Eastern calendar date of every game tipoff.
   for (const game of games) {
     assert.equal(nba.etDateKey(game.tipoff_utc), FIXTURE_DATE, `${game.game_id} tipoff maps to the slate key in ET`);
+  }
   }
   // DST boundaries: EDT (UTC-4) → EST (UTC-5) on 2026-11-01; EST → EDT on 2026-03-08.
   assert.equal(nba.etDateKey('2026-11-01T03:30:00Z'), '2026-10-31', '23:30 EDT Oct 31');
@@ -241,9 +293,14 @@ test('NBA copy compliance: no banned marketing words on any new NBA surface', ()
   // claims are banned.
   const sources = [
     path.join(VIEWER, 'js', 'sports', 'nba.js'),
-    path.join(VIEWER, `nba_slate_${FIXTURE_DATE}.json`),
-    path.join(VIEWER, `nba_games_${FIXTURE_DATE}.json`),
-    path.join(VIEWER, `nba_odds_${FIXTURE_DATE}.json`),
+    path.join(VIEWER, 'nba_slate_2026-10-22.json'),
+    path.join(VIEWER, 'nba_games_2026-10-22.json'),
+    path.join(VIEWER, 'nba_odds_2026-10-22.json'),
+    path.join(VIEWER, 'nba_injuries_2026-10-22.json'),
+    path.join(VIEWER, 'nba_slate_2026-10-23.json'),
+    path.join(VIEWER, 'nba_games_2026-10-23.json'),
+    path.join(VIEWER, 'nba_odds_2026-10-23.json'),
+    path.join(VIEWER, 'nba_injuries_2026-10-23.json'),
   ];
   for (const file of sources) {
     const text = fs.readFileSync(file, 'utf8');
@@ -253,9 +310,11 @@ test('NBA copy compliance: no banned marketing words on any new NBA surface', ()
   // "verified" may only appear as the DENIAL form in fixture data:
   //   · the JSON boolean "verified": false
   //   · the phrase "unverified ..." (word-boundary safe)
-  const oddsText = fs.readFileSync(path.join(VIEWER, `nba_odds_${FIXTURE_DATE}.json`), 'utf8');
-  for (const match of oddsText.matchAll(/"verified"\s*:\s*(true|false)/g)) {
-    assert.equal(match[1], 'false', 'fixture quotes must set verified:false');
+  for (const date of ['2026-10-22', '2026-10-23']) {
+    const oddsText = fs.readFileSync(path.join(VIEWER, `nba_odds_${date}.json`), 'utf8');
+    for (const match of oddsText.matchAll(/"verified"\s*:\s*(true|false)/g)) {
+      assert.equal(match[1], 'false', 'fixture quotes must set verified:false');
+    }
   }
   const nbaJs = fs.readFileSync(path.join(VIEWER, 'js', 'sports', 'nba.js'), 'utf8')
     // Strip comments and template interpolations so only literal copy is
