@@ -67,7 +67,7 @@ switches, 390px viewport fits (`scrollWidth == clientWidth`).
 - [ ] Add Playwright keyboard, touch, offline, and stale-to-fresh transition tests (high risk, P1).
 - [ ] Add FastAPI tests for auth unavailable/invalid/active, readiness, CORS, and admin endpoints (high risk, P0).
 - [ ] Exercise settlement concurrency against the selected durable datastore (high risk, P0).
-- [ ] Pin the theme toggle contract (aria-state + localStorage persistence) — owed since PR #13 shipped live theme chrome in app.js §11.
+- [x] Theme toggle contract — closed 2026-10-27: the dark-lock restyle removed the toggle entirely (app.js §11 dark-locks and clears stale `propwire-theme` keys), so there is no aria/persistence contract left to pin.
 
 ## CI Gates
 

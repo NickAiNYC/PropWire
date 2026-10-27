@@ -511,8 +511,8 @@ def methodology_page():
 
 def write_public_css():
     css = """:root {
-  --bg: #0a0e17; --panel: #111827; --line: #1f2a3d; --text: #d7dde8;
-  --dim: #8792a6; --accent: #4ea1ff; --good: #3ddc97; --warn: #f5b455;
+  --bg: #0f131a; --panel: #141a23; --line: #273244; --text: #f3f6fa;
+  --dim: #8792a6; --accent: #7dd3fc; --good: #3ddc97; --warn: #f5b455;
 }
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--bg); color: var(--text);

@@ -4,8 +4,8 @@
   "description": "Quantitative NFL Receiving Props & Market Terminal",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#090d16",
-  "theme_color": "#090d16",
+  "background_color": "#0f131a",
+  "theme_color": "#0f131a",
   "orientation": "portrait-primary",
   "icons": [
     {
