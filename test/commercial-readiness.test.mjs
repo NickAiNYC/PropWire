@@ -55,6 +55,11 @@ test('backend entitlement fails closed and CORS is allowlisted', async () => {
 
 test('slate labels guard optional week metadata', async () => {
   const app = await read('../viewer/app.js');
-  assert.match(app, /Number\.isFinite\(Number\(slate\.week\)\)/);
-  assert.doesNotMatch(app, /const slateLabel = `W\$\{SLATES\[state\.slateKey\]\.week\}`/);
+  // Merge resolution 2026-10-27: the NBA slate-label fix (slateCfg.week
+  // != null guard + shortLabel passthrough for date-keyed slates)
+  // superseded the earlier Number.isFinite(Number(slate.week)) form.
+  // Intent unchanged: no "Wundefined" labels ever render, and non-week
+  // slates keep their own label instead of a week-derived one.
+  assert.match(app, /if \(slateCfg\.week != null\)/);
+  assert.doesNotMatch(app, /W\$\{SLATES\[state\.slateKey\]\.week\}/);
 });

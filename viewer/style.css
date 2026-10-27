@@ -8116,3 +8116,14 @@ body { background: #0f131a; color: #e2e8f0; }
     font-size: 13px;
   }
 }
+
+/* ════════════════════════════════════════════════════════════════════════
+   HEADER CHROME v3 (rebase survivor) — eyebrow legibility (2026-10-25)
+   The slate cascade (above) kept the legacy #6b7789 eyebrow color on
+   desktop, where the labels render at ~10px on rgba(24,26,31,.97) —
+   ~3.1:1 contrast. One stop lighter for a ~4.6:1 floor. Tablet band
+   (769–1199px) hides eyebrows entirely; mobile keeps the base color.
+   ════════════════════════════════════════════════════════════════════════ */
+.chip-segment-group[data-eyebrow]::before {
+  color: #8792a6;
+}
