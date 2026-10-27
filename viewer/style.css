@@ -8127,3 +8127,11 @@ body { background: #0f131a; color: #e2e8f0; }
 .chip-segment-group[data-eyebrow]::before {
   color: #8792a6;
 }
+
+/* Public research page links in the compliance footer (B4, 2026-10-27) */
+.compliance-research-nav {
+  display: flex;
+  gap: .5rem;
+  flex-wrap: wrap;
+  margin: .8rem 0 0;
+}
