@@ -8484,3 +8484,76 @@ select:focus-visible {
   background: #161d29;
   border-color: #2a3547;
 }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   v148 · OWNER REVISION PASS — brand clearance + mint accent layer
+   (a) Brand tile clearance: the v3 lockup's desktop img (208×52) was
+       clipped 7px top/bottom by the legacy 38px .pw-brand chip
+       (overflow:hidden) — the P stem lost its cap. The tile now hugs
+       the lockup at every breakpoint; the ≤768 chip keeps its
+       !important box (probe-verified 0px cut there already).
+   (b) Mint accent layer: restore the owner's pre-neon green system
+       (#34d399 / #6ee7b7 / rgba(16,185,129,·)) on active toggles,
+       keyboard focus, live ping and the projection marker. FanDuel blue
+       stays on primary CTAs, links, inputs and the brand lockup.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ── 10. BRAND TILE: size to the lockup, never clip the P ─────────── */
+.pw-brand {
+  height: auto;
+  width: auto;
+  min-width: 0;
+  max-width: none;
+  flex: 0 0 auto;
+  padding: 1px 8px;
+}
+
+/* ── 11. MINT ACCENT LAYER: active toggles ────────────────────────── */
+.chip-pill.active,
+.tier-pill-btn.active,
+.pw-btn-nav.active,
+.pw-seg-btn.active,
+.sport-switcher-bar .active {
+  background: rgba(16, 185, 129, 0.16) !important;
+  border-color: rgba(52, 211, 153, 0.45) !important;
+  color: #6ee7b7 !important;
+  box-shadow:
+    0 0 0 1px rgba(16, 185, 129, 0.26),
+    0 0 14px rgba(16, 185, 129, 0.16),
+    var(--edge-hi) !important;
+}
+.sport-switch-btn.active::before {
+  background: #34d399;
+  border-color: rgba(52, 211, 153, 0.8);
+  box-shadow: 0 0 8px rgba(52, 211, 153, 0.55);
+}
+.bottom-nav-item.active {
+  background: rgba(16, 185, 129, 0.09);
+  color: #6ee7b7;
+}
+.bottom-nav-item.active::before { background: #34d399; }
+
+/* Keyboard focus rail: mint (was a sky/emerald mix) */
+tr.keyboard-focus,
+tr.terminal-focused,
+tr[data-focused="true"] {
+  background: linear-gradient(90deg, rgba(16, 185, 129, 0.08) 0%, transparent 100%) !important;
+}
+tr.keyboard-focus td:first-child,
+tr.terminal-focused td:first-child,
+tr[data-focused="true"] td:first-child {
+  border-left: 2px solid #3ccf91 !important;
+}
+.slate-table tbody tr.keyboard-focus td:first-child {
+  box-shadow: inset 2px 0 #3ccf91;
+}
+
+/* Live ping ring wraps a green dot — ring goes green too */
+.pw-live-status-dot .polling-dot::after,
+.live-polling-widget .polling-dot::after {
+  border-color: rgba(52, 211, 153, 0.7);
+}
+
+/* Bullet projection marker: mint (v146 value — pops on the quiet track,
+   brighter than --accent-success which stays on profit text) */
+.bullet-svg .bullet-proj-marker { fill: #3ccf91; }
