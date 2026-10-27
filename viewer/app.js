@@ -1,6 +1,26 @@
 (() => {
   'use strict';
 
+  // ══ MODULE MAP ═════════════════════════════════════════════════════════
+  // One IIFE, one `state` store, ~130 functions. Sections, in file order:
+  //   §1  Sport adapter layer                    §12 Data ingestion & feed health
+  //   §2  Storage migration                      §13 Render pipeline
+  //   §3  Persistence I/O (ledger/watchlist)     §14 Portfolio risk & sniper
+  //   §4  Application state + helpers            §15 Board atoms (rows/cards)
+  //   §5  Team identity (logos)                  §16 Evaluation core (gate/Kelly)
+  //   §6  Distribution visuals                   §17 Navigation & toasts
+  //   §7  Device feedback & polling              §18 Ledger mutations & I/O
+  //   §8  Odds polling pipeline                  §19 Portfolio & CLV dialogs
+  //   §9  Boot & control binding                 §20 Detail analytics markups
+  //   §10 Gestures, sheet & keyboard nav         §21 Detail modal & scenarios
+  //   §11 View state & sport chrome              §22 Odds & distribution math
+  // Invariants worth keeping while editing:
+  //   • `state` (§4) is the only mutable store; DOM writes flow through the
+  //     render*/update* functions (§13) — never paint from stale locals.
+  //   • Quote acceptance lives in evaluateRow (§16); never bypass it.
+  //   • Live market data must never be served from cache (sw.js + §8).
+  // ════════════════════════════════════════════════════════════════════════
+
   // ── Sport adapter layer ────────────────────────────────────────────────────
   // Boot sport is fixed to NFL in this phase; the user-facing switcher ships
   // with the NBA adapter (phase 2). Every sport-specific branch below has
@@ -59,6 +79,8 @@
     }
   }
   const migrationResult = migrateLegacyStorage();
+
+  // ── §3. Persistence I/O — ledger / watchlist / sniper config ───────────
 
   /** One-time bottom-sheet notice after storage migration (spec item 6d). */
   function showMigrationNoticeOnce() {
@@ -157,6 +179,8 @@
     } catch (_) {}
   }
 
+  // ── §4. Application state + DOM & format helpers ──────────────────────
+
   const state = {
     slateKey: '2026_w7',
     slate: [],
@@ -208,9 +232,16 @@
   const esc = (value) => String(value ?? '').replace(/[&<>'"]/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[character]);
   const bookShort = (book) => ({ DraftKings: 'DK', FanDuel: 'FD', BetMGM: 'MGM', Caesars: 'CZR', Pinnacle: 'PIN' })[book] || book || 'Book';
 
+  // Display-only fallback for the CLV ledger root hash when a report lacks
+  // one (demo-ledger provenance). FLAG (Phase 3, see TECH-DEBT.md §R1): a
+  // hardcoded hash presented as data deserves a re-audit.
+  const CLV_ROOT_HASH_FALLBACK = '207ba3d4c4225c1d';
+
   // Map PropWire team codes to official ESPN CDN slugs + subtle brand ring tints
   // (NFL crest metadata lives on the adapter; other sports bring their own).
   const NFL_LOGO_MAP = adapter.logo.map;
+
+  // ── §5. Team identity — logos & crests ────────────────────────────────
 
   function teamLogoUrl(team) {
     if (!team) return '';
@@ -262,6 +293,8 @@
    * fallback on fetch failure. NEVER copy NFL values to another sport —
    * uncalibrated sports carry "calibrated": false in their own block.
    */
+  // ── §6. Distribution visuals — bullet graphs, sparklines, insights ────
+
   function breakerFor(marketId) {
     const mdef = marketDef(marketId);
     const cfg = state.breakerConfig;
@@ -400,6 +433,8 @@
   state.nextPollSeconds = 46;
 
   let hapticSwitchEl = null;
+  // ── §7. Device feedback & polling — haptics, pull-to-refresh, feed UI ─
+
   function triggerHaptic(style = 'light') {
     try {
       if (typeof navigator !== 'undefined' && navigator.vibrate) {
@@ -534,6 +569,8 @@
     if (mobileStatusText) mobileStatusText.textContent = label;
   }
 
+  // ── §8. Odds polling pipeline — live quotes, never cached ─────────────
+
   async function triggerOddsPoll(isAuto = false) {
     const refreshBtn = $('#manualPollBtn');
     if (refreshBtn) refreshBtn.classList.add('is-spinning');
@@ -631,6 +668,8 @@
       }
     }
   }
+
+  // ── §9. Boot & control binding — init, deep links, bindControls ───────
 
   async function init() {
     initTheme();
@@ -1205,6 +1244,8 @@
   }
 
   let wasCardSwiped = false;
+  // ── §10. Gestures, bottom sheet & keyboard navigation ─────────────────
+
   function initMobileSwipeGestures() {
     const cardView = $('#cardView');
     if (!cardView) return;
@@ -1461,6 +1502,8 @@
     document.addEventListener('keydown', handleKeyNav);
   }
 
+  // ── §11. View state & sport switcher chrome ───────────────────────────
+
   function getVisibleItems() {
     if (state.view === 'table') {
       return $$('#slateRows tr[data-testid="slate-row"]');
@@ -1476,7 +1519,11 @@
     });
   }
 
-  // Terminal is permanently locked into dark institutional mode
+  // Terminal is permanently locked into dark institutional mode at boot;
+  // the theme toggle shipped live with the commercial-execution hardening
+  // PR (#13) and lives here in §11: header button flips light/dark with
+  // localStorage persistence. Owed follow-up (see docs/TECH-DEBT.md): a
+  // pinning test for the toggle's aria-state + persistence contract.
   const THEME_KEY = 'propwire-theme';
 
   function applyTheme(theme) {
@@ -1605,6 +1652,8 @@
       installBtn.hidden = true;
     });
   }
+
+  // ── §12. Data ingestion — fetch, slate loading, feed health ───────────
 
   async function fetchJson(path, fallback) {
     try {
@@ -1912,7 +1961,7 @@
       const total = report.total_records ?? report.records.length;
       const beatRate = report.beat_close_rate_pct ?? (report.summary ? +(report.summary.positive_clv_pct * 100).toFixed(1) : 0);
       const avgClv = report.avg_clv_prob_pct ?? (report.summary ? +(report.summary.avg_clv_ev * 100).toFixed(2) : 0);
-      const root = report.ledger_root_hash || '207ba3d4c4225c1d';
+      const root = report.ledger_root_hash || CLV_ROOT_HASH_FALLBACK;
       el.innerHTML = `<strong>CLV</strong> ${total} verified records · ${beatRate}% beat close · +${avgClv}% mean CLV · Root #${root}`;
     } else {
       el.innerHTML = `<strong>CLV</strong> 0 verified live records.`;
@@ -1927,6 +1976,8 @@
     renderBoard();
     updateClvFooter(clvReport || state.clvAuditReport);
   }
+
+  // ── §13. Render pipeline — header, injuries, teams, chips, board ──────
 
   function renderHeader() {
     const config = SLATES[state.slateKey];
@@ -2546,6 +2597,8 @@
     btn.innerHTML = isWatched ? '★ On Watchlist' : '☆ Add to Watchlist';
   }
 
+  // ── §14. Watchlist & portfolio risk — sparklines, correlations, sniper ─
+
   function venueBadge(row) {
     const game = state.games.find((item) => item.game_id === row.game_id);
     const isDome = row.is_dome || game?.roof === 'dome';
@@ -3040,6 +3093,8 @@
     }, 6000);
   }
 
+  // ── §15. Board atoms — one-tap confirm, table rows, prop cards ────────
+
   function openOneTapConfirm(playerId, market) {
     if (!playerId) return;
     const row = (state.slate || []).find((r) => r.player_id === playerId);
@@ -3287,6 +3342,8 @@
         </div>
       </article>`;
   }
+
+  // ── §16. Evaluation core — fair value, gate/Kelly, cell renderers ─────
 
   function fairValue(row) {
     return marketDef().fair(row);
@@ -3662,6 +3719,8 @@
     return Number.isFinite(kickoff.getTime()) && kickoff.getTime() <= Date.now();
   }
 
+  // ── §17. Navigation & feedback — views, inspect, toasts, provenance ───
+
   function setView(view) {
     if (window.matchMedia && window.matchMedia('(max-width: 768px)').matches) {
       state.view = 'cards';
@@ -3777,6 +3836,8 @@
     }
     return entry;
   }
+
+  // ── §18. Ledger mutations & data import/export ────────────────────────
 
   function logBet(playerId) {
     const row = state.slate.find((item) => item.player_id === playerId);
@@ -4105,6 +4166,8 @@
     };
     reader.readAsText(file);
   }
+
+  // ── §19. Portfolio & CLV report dialogs ───────────────────────────────
 
   function openPortfolioDialog() {
     const dialog = $('#portfolioDialog');
@@ -4450,6 +4513,8 @@
     $('#clvReportContent').innerHTML = kpiHtml;
   }
 
+  // ── §20. Detail analytics markups — hurdle ruler, bridge, ticket ──────
+
   function quantHurdleRuler(row, evaluation, fair, projection) {
     if (evaluation.state === 'none' || !evaluation.line) return '';
     const side = evaluation.side || 'OVER';
@@ -4732,6 +4797,8 @@
       </div>
     `;
   }
+
+  // ── §21. Detail modal & scenario modeling ─────────────────────────────
 
   function openDetail(playerId) {
     const row = state.slate.find((item) => item.player_id === playerId);
@@ -5242,6 +5309,8 @@
     parts.push('Late inactive news or an unmodeled role change can invalidate the projection.');
     return parts.join(' ');
   }
+
+  // ── §22. Odds & distribution math utilities ───────────────────────────
 
   function americanToDecimal(odds) {
     const value = num(odds, -110);
