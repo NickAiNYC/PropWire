@@ -8,101 +8,101 @@
   {
    "_fixture": true,
    "injury_id": "fx-inj-1-2026-10-22",
-   "player_id": "fx-nba-player-a",
-   "player_name": "Player A",
+   "player_id": "fx-nba-jayson-tatum",
+   "player_name": "Jayson Tatum",
    "team": "BOS",
    "opponent": "NYK",
    "game_id": "nba-20261022-BOS-NYK",
    "position": "SF",
-   "injury_type": "Knee \u2014 Patellar Tendonitis",
+   "injury_type": "Achilles (left) \u2014 rehab",
    "report_status": "OUT",
-   "practice_status": "Did Not Practice (Estimated)",
+   "practice_status": "Out (Rehab Assignment)",
    "severity": "CRITICAL",
-   "source": "PropWire fixture availability report \u2014 synthetic, not a real injury report",
+   "source": "Public injury reporting (real status on a fixture slate); stat impact modeled synthetically.",
    "updated_at": "2026-10-22T17:00:00Z",
-   "notes": "Ruled out for the opener; absence is synthetic fixture context. Vacates a primary usage role and the largest minutes share on the roster.",
-   "vacated_minutes": 36.0,
-   "vacated_usage": 0.315,
+   "notes": "Continues his Achilles rehab with no return timetable \u2014 real public reporting; the slate modeling here is synthetic. Boston redistributes his creation load in the meantime.",
+   "vacated_minutes": 32.0,
+   "vacated_usage": 0.3,
    "redistribution_plan": {
-    "fx-nba-player-b": {
+    "fx-nba-jaylen-brown": {
      "_fixture": true,
-     "beneficiary_name": "Player B",
+     "beneficiary_name": "Jaylen Brown",
      "position": "SG",
      "absorption_share": 0.4,
      "role_type": "Primary creation minutes",
-     "added_minutes": 6.5,
+     "added_minutes": 6.0,
      "role_label": "PROVISIONAL SURGE (Minutes Vacancy)",
      "role_class": "role-surge",
-     "invalidation_risk": "Defensive matchups dictate whether the expanded role survives the second unit."
+     "invalidation_risk": "Defensive shells bracket his spots once the scouting report catches up."
     },
-    "fx-nba-player-c": {
+    "fx-nba-jayson-tatum": {
      "_fixture": true,
-     "beneficiary_name": "Player C",
-     "position": "PG",
+     "beneficiary_name": "Jayson Tatum",
+     "position": "SF",
      "absorption_share": 0.3,
-     "role_type": "Secondary ball-handling bulk",
+     "role_type": "Secondary on-ball bulk",
      "added_minutes": 4.5,
      "role_label": "PROVISIONAL SURGE (Minutes Vacancy)",
      "role_class": "role-surge",
-     "invalidation_risk": "Foul trouble collapses the experiment quickly; bench guard steals minutes."
+     "invalidation_risk": "Bench units may route creation through the backup guard instead."
     }
    }
   },
   {
    "_fixture": true,
    "injury_id": "fx-inj-2-2026-10-22",
-   "player_id": "fx-nba-player-s",
-   "player_name": "Player S",
-   "team": "OKC",
-   "opponent": "DEN",
-   "game_id": "nba-20261022-DEN-OKC",
-   "position": "PG",
-   "injury_type": "Ankle Sprain (Grade 1)",
+   "player_id": "fx-nba-two_way_callup",
+   "player_name": "Two-Way Callup",
+   "team": "NYK",
+   "opponent": "BOS",
+   "game_id": "nba-20261022-BOS-NYK",
+   "position": "SG",
+   "injury_type": "Two-Way Assignment (G League Shuttle)",
    "report_status": "QUESTIONABLE",
-   "practice_status": "Limited Practice (Estimated)",
+   "practice_status": "Availability Pending",
    "severity": "ELEVATED",
-   "source": "PropWire fixture availability report \u2014 synthetic, not a real injury report",
+   "source": "Operational availability context (fixture) \u2014 not an injury report.",
    "updated_at": "2026-10-22T17:00:00Z",
-   "notes": "Game-time decision on a synthetic fixture slate; a limited designation flags minutes risk without removing the player from the board.",
-   "vacated_minutes": 17.3,
-   "vacated_usage": 0.345,
+   "notes": "Two-way shuttle: whether he suits up depends on the G League assignment window on a synthetic fixture slate.",
+   "vacated_minutes": 4.5,
+   "vacated_usage": 0.14,
    "redistribution_plan": {}
   }
  ],
  "impacted_beneficiaries": {
-  "fx-nba-player-b": {
+  "fx-nba-jaylen-brown": {
    "_fixture": true,
-   "player_id": "fx-nba-player-b",
-   "player_name": "Player B",
+   "player_id": "fx-nba-jaylen-brown",
+   "player_name": "Jaylen Brown",
    "team": "BOS",
    "opponent": "NYK",
    "game_id": "nba-20261022-BOS-NYK",
    "position": "SG",
-   "catalyst_injury": "Player A (Knee \u2014 Patellar Tendonitis OUT)",
+   "catalyst_injury": "Jayson Tatum (Achilles (left) \u2014 rehab OUT)",
    "injury_id": "fx-inj-1-2026-10-22",
    "role_type": "Primary creation minutes",
    "role_label": "PROVISIONAL SURGE (Minutes Vacancy)",
    "role_class": "role-surge",
    "absorption_share": 0.4,
-   "added_minutes": 6.5,
-   "invalidation_risk": "Defensive matchups dictate whether the expanded role survives the second unit."
+   "added_minutes": 6.0,
+   "invalidation_risk": "Defensive shells bracket his spots once the scouting report catches up."
   },
-  "fx-nba-player-c": {
+  "fx-nba-jayson-tatum": {
    "_fixture": true,
-   "player_id": "fx-nba-player-c",
-   "player_name": "Player C",
+   "player_id": "fx-nba-jayson-tatum",
+   "player_name": "Jayson Tatum",
    "team": "BOS",
    "opponent": "NYK",
    "game_id": "nba-20261022-BOS-NYK",
-   "position": "PG",
-   "catalyst_injury": "Player A (Knee \u2014 Patellar Tendonitis OUT)",
+   "position": "SF",
+   "catalyst_injury": "Jayson Tatum (Achilles (left) \u2014 rehab OUT)",
    "injury_id": "fx-inj-1-2026-10-22",
-   "role_type": "Secondary ball-handling bulk",
+   "role_type": "Secondary on-ball bulk",
    "role_label": "PROVISIONAL SURGE (Minutes Vacancy)",
    "role_class": "role-surge",
    "absorption_share": 0.3,
    "added_minutes": 4.5,
-   "invalidation_risk": "Foul trouble collapses the experiment quickly; bench guard steals minutes."
+   "invalidation_risk": "Bench units may route creation through the backup guard instead."
   }
  }
 }

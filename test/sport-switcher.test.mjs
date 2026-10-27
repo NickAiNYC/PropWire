@@ -61,10 +61,10 @@ test('NBA boot integration: default slate loads, renders, evaluates without thro
   await P.loadSlate(P.defaultBootSlate());
 
   assert.equal(P.state.slateKey, '2026-10-22');
-  assert.equal(P.state.slate.length, 25, 'fixture slate rows loaded');
+  assert.equal(P.state.slate.length, 29, 'fixture slate rows loaded');
   assert.equal(P.state.filters.market, 'points', 'market resets to the adapter default');
   assert.ok(P.state.games.length === 2, 'fixture games loaded');
-  assert.ok(P.state.odds.quotes.length === 16, 'fixture quotes loaded');
+  assert.ok(P.state.odds.quotes.length === 11, 'fixture quotes loaded');
   // Per-sport storage: NBA uses its own namespaces, never NFL's.
   assert.equal(P.storage.STORE.watchlist, 'propwire_watchlist_nba');
   assert.equal(P.storage.STORE.sniperConfig, 'propwire_sniper_config_nba');
@@ -82,7 +82,7 @@ test('NBA boot integration: default slate loads, renders, evaluates without thro
     const evaluation = P.evaluateRow(row);
     assert.equal(evaluation.actionable, false, `${row.player_id} must not be actionable on fixture data`);
   }
-  const quotedRow = P.state.slate.find((r) => r.player_id === 'fx-nba-player-s');
+  const quotedRow = P.state.slate.find((r) => r.player_id === 'fx-nba-jaylen-brown');
   assert.equal(P.evaluateRow(quotedRow).state, 'ingested');
 
   // Rendering pipeline must complete without throwing for table + cards.

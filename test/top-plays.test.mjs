@@ -13,9 +13,10 @@ import { buildSandbox, loadApp } from './helpers/sandbox.mjs';
  * player name asc. Rows without a bookable quote in the active market, or
  * with incomplete projection inputs, are hidden.
  *
- * The fixture feed carries deterministic tie pairs exactly to pin the
- * tie-break chain: Player H and Player I share EV 0.101 and edge 0.055 with
- * different model interval widths (5 vs 2), so confidence decides.
+ * The fixture feed carries REAL player names (owner decision 2026-10-27,
+ * see docs/MULTISPORT.md §2). Deterministic ties are engineered in-test so
+ * the full tie-break chain stays pinned regardless of file content:
+ * equal EV + edge with different model interval widths → confidence decides.
  */
 
 async function loadNba() {
@@ -30,32 +31,36 @@ test('Top Plays: EV per unit descending within the active market', async () => {
   const P = await loadNba();
   P.state.filters.market = 'points';
   const names = P.filteredRows().map((r) => r.player_display_name);
-  // points quotes: Player S .112, Player T .101, Player G .096, Player O .075,
-  // Player U .072, Player P .066 — every other player lacks a points quote.
+  // points quotes on the opener night: Jaylen Brown .195, Jalen Brunson .191,
+  // Nikola Jokic .191, Shai Gilgeous-Alexander .156 — every other player lacks
+  // a points quote. Brunson/Jokic share EV AND edge, share interval width
+  // (identical mu/sd profiles), so the name tie-break orders them.
   assert.deepEqual(names, [
-    'Player S',
-    'Player T',
-    'Player G',
-    'Player O',
-    'Player U',
-    'Player P',
+    'Jaylen Brown',
+    'Jalen Brunson',
+    'Nikola Jokic',
+    'Shai Gilgeous-Alexander',
   ]);
 });
 
 test('Top Plays: model confidence (narrower interval) breaks EV and edge ties', async () => {
   const P = await loadNba();
   P.state.filters.market = 'rebounds';
+  // Engineer the full EV+edge tie on the only two rebound quotes: Jamal
+  // Murray (EV .402, edge .072, interval width 2) vs Karl-Anthony Towns
+  // (narrowed via sd_reb 0.6 → width 1). Towns sorts LATER by name, so the
+  // confidence tie-break — not the name — must put Towns first.
+  const townsQuote = P.state.odds.quotes.find((q) => q.player_id === 'fx-nba-karl-anthony-towns');
+  const murrayQuote = P.state.odds.quotes.find((q) => q.player_id === 'fx-nba-jamal-murray');
+  assert.ok(townsQuote && murrayQuote, 'both rebound quotes exist on the opener night');
+  townsQuote.evaluation.expected_return = murrayQuote.evaluation.expected_return;
+  townsQuote.evaluation.prob_edge = murrayQuote.evaluation.prob_edge;
+  const townsRow = P.state.slate.find((r) => r.player_id === 'fx-nba-karl-anthony-towns');
+  townsRow.sd_reb = 0.6;
   const names = P.filteredRows().map((r) => r.player_display_name);
-  // rebounds quotes: Player H .101/.055 (mu 11.4/sd 2.6 → width 5),
-  // Player I .101/.055 (mu 3.9/sd 1.4 → width 2) — full EV+edge tie, so the
-  // tighter model interval ranks first even though "Player H" sorts earlier
-  // by name; then Player L .077, Player K .068, Player W .061.
   assert.deepEqual(names, [
-    'Player I', // width 2 beats width 5 on the confidence tie-break
-    'Player H',
-    'Player L',
-    'Player K',
-    'Player W',
+    'Karl-Anthony Towns', // width 1 beats width 2 on the confidence tie-break
+    'Jamal Murray',
   ]);
 });
 
@@ -89,32 +94,32 @@ test('Top Plays: incomplete projection inputs are hidden even when quoted', asyn
 test('Top Plays: sample size and name decide after confidence; verified flag is ignored', async () => {
   const P = await loadNba();
   P.state.filters.market = 'points';
-  const sgaQuote = P.state.odds.quotes.find((q) => q.player_id === 'fx-nba-player-s');
-  const pQuote = P.state.odds.quotes.find((q) => q.player_id === 'fx-nba-player-p');
-  const sgaRow = P.state.slate.find((r) => r.player_id === 'fx-nba-player-s');
-  const pRow = P.state.slate.find((r) => r.player_id === 'fx-nba-player-p');
-  // Force a full EV+edge+confidence tie: Player P width 7 (mu 12.4/sd 3.5)
-  // → widen sd to 6.1 so the interval width equals Player S's 11.
-  pQuote.evaluation.expected_return = sgaQuote.evaluation.expected_return;
-  pQuote.evaluation.prob_edge = sgaQuote.evaluation.prob_edge;
-  pRow.sd_pts = 6.1;
+  const brownQuote = P.state.odds.quotes.find((q) => q.player_id === 'fx-nba-jaylen-brown');
+  const jokicQuote = P.state.odds.quotes.find((q) => q.player_id === 'fx-nba-nikola-jokic');
+  const brownRow = P.state.slate.find((r) => r.player_id === 'fx-nba-jaylen-brown');
+  const jokicRow = P.state.slate.find((r) => r.player_id === 'fx-nba-nikola-jokic');
+  // Force a full EV+edge+confidence tie: Jokic width 13 (mu 28.5/sd 6.8)
+  // → narrow sd to 6.1 so the interval width equals Brown's 11.
+  jokicQuote.evaluation.expected_return = brownQuote.evaluation.expected_return;
+  jokicQuote.evaluation.prob_edge = brownQuote.evaluation.prob_edge;
+  jokicRow.sd_pts = 6.1;
   const pairOrder = () => P.filteredRows()
     .map((r) => r.player_display_name)
-    .filter((n) => n === 'Player S' || n === 'Player P');
+    .filter((n) => n === 'Jaylen Brown' || n === 'Nikola Jokic');
 
-  // Equal confidence, no sample info → name decides (Player P < Player S).
-  assert.deepEqual(pairOrder(), ['Player P', 'Player S']);
+  // Equal confidence, no sample info → name decides (Brown < Jokic).
+  assert.deepEqual(pairOrder(), ['Jaylen Brown', 'Nikola Jokic']);
 
   // Sample size decides: more prior games ranks first.
-  sgaRow.games_prior = 12;
-  pRow.games_prior = 5;
-  assert.deepEqual(pairOrder(), ['Player S', 'Player P']);
+  brownRow.games_prior = 12;
+  jokicRow.games_prior = 5;
+  assert.deepEqual(pairOrder(), ['Jaylen Brown', 'Nikola Jokic']);
 
   // "verified" is a data-availability flag, not a quality signal: marking
   // the losing side verified must NOT reorder the ranking (audit H5).
-  pQuote.verified = true;
-  pQuote.receipt_id = 'deadbeefcafebabe';
-  assert.deepEqual(pairOrder(), ['Player S', 'Player P'],
+  jokicQuote.verified = true;
+  jokicQuote.receipt_id = 'deadbeefcafebabe';
+  assert.deepEqual(pairOrder(), ['Jaylen Brown', 'Nikola Jokic'],
     'a verified receipt must never outrank an equally supported play');
 });
 

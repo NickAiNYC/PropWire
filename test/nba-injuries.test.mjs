@@ -140,7 +140,7 @@ test('Oct 23 full night boots: 10 games, 70 rows, availability data, game filter
   const { P, ready } = bootNba({ slateKey: '2026-10-23' });
   await ready;
 
-  assert.equal(P.state.slate.length, 70, 'full-night modeled rows');
+  assert.equal(P.state.slate.length, 140, 'full-night modeled rows');
   assert.equal(P.state.games.length, 10, 'full-night games');
   assert.equal(P.state.injuries.injuries.length, 3, 'full-night availability items');
 

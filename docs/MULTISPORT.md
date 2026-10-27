@@ -83,35 +83,43 @@ machinery and Top-Play ranking.
 
 | File | Shape | Provenance |
 |---|---|---|
-| `viewer/nba_slate_2026-10-22.json` | bare array, 25 rows (incl. one deliberate incomplete-input probe) | `_fixture: true` per row |
-| `viewer/nba_games_2026-10-22.json` | bare array, 2 games (opener doubleheader), `tipoff_utc` + `gametime_et` | `_fixture: true` per game |
-| `viewer/nba_odds_2026-10-22.json` | envelope, `feed_status: "fixture"`, 16 quotes with EV ranking + deterministic tie pairs | `_fixture: true` per quote + fixture notice |
+| `viewer/nba_slate_2026-10-22.json` | bare array, 29 rows incl. one deliberate incomplete-input probe (real-name rosters, generated) | `_fixture: true` per row |
+| `viewer/nba_games_2026-10-22.json` | bare array, 2 games (opener night), `tipoff_utc` + `gametime_et` | `_fixture: true` per game |
+| `viewer/nba_odds_2026-10-22.json` | envelope, `feed_status: "fixture"`, 11 EV-ranked quotes at realistic two-sided prices | `_fixture: true` per quote + fixture notice |
 | `viewer/nba_injuries_2026-10-22.json` | envelope, 2 availability items + minutes-based `impacted_beneficiaries` | `_fixture: true` per item/beneficiary + envelope |
-| `viewer/nba_slate_2026-10-23.json` | bare array, 70 rows across the full night (generated) | `_fixture: true` per row |
+| `viewer/nba_slate_2026-10-23.json` | bare array, 140 rows across the full night (7 per team per game, generated) | `_fixture: true` per row |
 | `viewer/nba_games_2026-10-23.json` | bare array, 10 games (generated) | `_fixture: true` per game |
-| `viewer/nba_odds_2026-10-23.json` | envelope, 45 EV-ranked quotes (generated) | `_fixture: true` per quote + fixture notice |
+| `viewer/nba_odds_2026-10-23.json` | envelope, 56 EV-ranked quotes at realistic two-sided prices (generated) | `_fixture: true` per quote + fixture notice |
 | `viewer/nba_injuries_2026-10-23.json` | envelope, 3 availability items + beneficiaries (generated) | `_fixture: true` per item/beneficiary + envelope |
 
-The Oct 23 full night is **generated, not hand-authored**:
-`python3 scripts/build_nba_fixtures.py` (offline, deterministic seed, no API
-key) rebuilds all four Oct 23 files plus the Oct 22 injuries companion and
-self-validates every constraint the node suite enforces before writing.
+**All eight files are generated** by
+`python3 scripts/build_nba_fixtures.py` (offline, deterministic seeds, no API
+key), which rebuilds the full set and self-validates every constraint the
+node suite enforces before writing.
 
 Provenance rules (enforced by tests):
 
 - Every fixture row/quote carries `_fixture: true`; quote sources say
   "not a sportsbook quote"; `verified` is always `false` — fixtures never
   claim verification, therefore never render as actionable.
-- **Fixture naming policy (audit B1):** fixture players are anonymized
-  (`Player A` … `Player X`, stable ids `fx-nba-player-a`…; the pool continues
-  `Player Y`, `Player Z`, then `Player AA`–`Player CS` for the Oct 23 full
-  night, ids `fx-nba-player-<lowercase>`). Real athlete names are never
-  combined with synthetic statistics in fixture data —
-  that combination is a right-of-publicity liability in a commercial
-  product and a scrape-adjacency trap where an LLM or scraper quoting the
-  JSON could mistake fabricated numbers for real research. Teams and
-  positions are kept (league context is needed to exercise the UI); the
-  anonymous incomplete-input probe row keeps its descriptive name.
+- **Fixture naming policy (supersedes audit B1, owner decision 2026-10-27):**
+  fixture rows use REAL player names on REAL late-October-2026 rosters so the
+  demo board reads like a real slate. The original audit-B1 anonymization
+  (Player A …) was a right-of-publicity/scrape-adjacency guard; the owner has
+  explicitly accepted that trade for the fixture surface. Mitigations stay
+  mandatory and are test-enforced: every row/quote/item carries `_fixture:
+  true`; quotes never claim verification (`verified: false`); the RESEARCH
+  FIXTURES banner stays on every page; the UNCALIBRATED badge stays on every
+  NBA row; every stat line is a synthetic projection built around public
+  per-game profiles (not sportsbook quotes, not scouting-grade research).
+  Roster snapshot caveats: the 2026 offseason is reflected where verified
+  (Giannis -> MIA, LeBron -> PHI, M. Turner -> MIL, Kessler -> LAL,
+  Zubac -> IND, Ayton -> WAS, K. Durant -> HOU); depth slots are approximate.
+  Injury items: Jayson Tatum's Oct-22 status is real public reporting
+  (Achilles rehab); EVERY other item's source field says "not a real injury
+  report" and notes phrase the status as hypothetical fixture context. The
+  anonymous incomplete-input probe row (`fx-nba-two_way_callup`) keeps its
+  descriptive name.
 - Ledger entries logged against fixture quotes are stamped
   `data_provenance: "fixture"` (both entry-creation sites) so per-sport CLV
   stats can never blend synthetic data with live-book fills. NFL live
