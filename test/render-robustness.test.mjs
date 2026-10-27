@@ -19,6 +19,16 @@ test('anti-tout empty state renders with the active gate (no riskPolicy crash)',
   const P = loadApp(sandbox);
   await P.loadSlate('2026_w7');
 
+  // 2026-10-27 messaging contract: a stale live feed now renders the
+  // "Live qualification paused" state (pinned in feed-health.test.mjs).
+  // This test exercises the ANTI-TOUT branch — the riskPolicy crash path
+  // lives in its gate interpolation — so the feed must be fresh/verified.
+  P.state.feedHealth = {
+    dataKind: 'live', odds: 'ok', news: 'ok',
+    oddsUpdatedAt: new Date().toISOString(),
+    newsLastPolledAt: new Date().toISOString(),
+  };
+
   // Simulate a total odds-feed outage: zero quotes → zero actionable rows.
   P.state.odds.quotes = [];
   P.state.filters.playMode = 'actionable';
@@ -44,6 +54,12 @@ test('anti-tout gate falls back to 10% when no picks policy exists', async () =>
   const { sandbox, registry } = buildSandbox();
   const P = loadApp(sandbox);
   await P.loadSlate('2026_w7');
+  // Fresh/verified feed required to reach the anti-tout branch (see above).
+  P.state.feedHealth = {
+    dataKind: 'live', odds: 'ok', news: 'ok',
+    oddsUpdatedAt: new Date().toISOString(),
+    newsLastPolledAt: new Date().toISOString(),
+  };
   P.state.picks = {};           // e.g. picks feed unavailable
   P.state.odds.quotes = [];
   P.state.filters.playMode = 'actionable';

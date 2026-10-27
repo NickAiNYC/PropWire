@@ -1,16 +1,16 @@
 // PropWire Service Worker (offline shell only; market data always fails closed)
-const CACHE_NAME = 'propwire-v144-prod';
+const CACHE_NAME = 'propwire-v145-prod';
 const STATIC_ASSETS = [
   '/index.html',
   '/style.css',
   '/app.js',
-  '/style.css?v=2026_v144',
-  '/app.js?v=2026_v144',
-  '/js/sports/registry.js?v=2026_v144',
-  '/js/sports/nfl.js?v=2026_v144',
-  '/js/sports/nba.js?v=2026_v144',
-  '/propwire-logo.svg?v=2026_v144',
-  '/propwire-logo-dark.svg?v=2026_v144',
+  '/style.css?v=2026_v145',
+  '/app.js?v=2026_v145',
+  '/js/sports/registry.js?v=2026_v145',
+  '/js/sports/nfl.js?v=2026_v145',
+  '/js/sports/nba.js?v=2026_v145',
+  '/propwire-logo.svg?v=2026_v145',
+  '/propwire-logo-dark.svg?v=2026_v145',
   '/manifest.json',
   '/favicon.svg',
   '/icon-192.png',
