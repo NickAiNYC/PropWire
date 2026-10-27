@@ -19,7 +19,7 @@ jobs:
           persist-credentials: false
       - name: Verify runtime
         run: node --version
-      - name: Run decision-gate regression tests
-        run: npm test
-      - name: Check browser JavaScript syntax
-        run: node --check app.js
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Run production readiness gate
+        run: npm run check:production

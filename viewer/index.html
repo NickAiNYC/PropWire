@@ -38,11 +38,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/style.css?v=2026_v133">
+  <link rel="stylesheet" href="/style.css?v=2026_v140">
   <script src="/js/sports/registry.js?v=2026_v127" defer></script>
   <script src="/js/sports/nfl.js?v=2026_v127" defer></script>
   <script src="/js/sports/nba.js?v=2026_v127" defer></script>
-  <script src="/app.js?v=2026_v133" defer></script>
+  <script src="/app.js?v=2026_v140" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#slateBoard">Skip to slate</a>
@@ -53,7 +53,7 @@
       <!-- Left: Brand + Live Status Dot -->
       <div class="pw-topbar-left">
         <a href="#slateBoard" class="pw-brand" aria-label="PropWire home">
-          <img src="/propwire-logo.svg?v=v4_mark" alt="PropWire" class="pw-brand-img" height="22">
+          <img src="/propwire-logo-full.png?v=v137_mark" alt="PropWire" class="pw-brand-img" height="26">
         </a>
         <div class="pw-telemetry-pod" aria-label="System telemetry">
         <div class="pw-live-status-dot" id="mobileStatusPill" title="Live Odds Feed Active · Tap for Telemetry">
@@ -141,6 +141,11 @@
         </button>
         <button type="button" id="exportBtn" class="pw-btn-icon pw-desktop-only" aria-label="Export CSV" title="Export CSV">↓</button>
 
+        <button type="button" id="themeToggle" class="pw-theme-toggle" aria-label="Switch to light theme" title="Switch color theme">
+          <svg class="theme-icon theme-icon-sun" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="10" cy="10" r="3.2"/><path d="M10 1.5v2M10 16.5v2M1.5 10h2M16.5 10h2M4 4l1.4 1.4M14.6 14.6L16 16M16 4l-1.4 1.4M5.4 14.6L4 16"/></svg>
+          <svg class="theme-icon theme-icon-moon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M16.8 12.8A7 7 0 017.2 3.2a7 7 0 109.6 9.6z"/></svg>
+        </button>
+
         <!-- Mobile Menu / Hamburger Button -->
         <button type="button" id="mobileMenuBtn" class="pw-mobile-menu-btn pw-mobile-only" aria-label="Open Settings &amp; Risk Policy" title="Settings &amp; Risk Policy">
           <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="menu-icon" width="16" height="16">
@@ -154,14 +159,19 @@
 
     <!-- TIER 2: Filter & Matchup Control Bar -->
     <div class="pw-filterbar">
-      <!-- Search Input (100% width on mobile) -->
-      <div class="pw-search-wrap command-search-wrap">
-        <svg class="pw-search-icon" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <circle cx="7" cy="7" r="4.5"/>
-          <path d="M10.5 10.5L14 14"/>
-        </svg>
-        <input type="search" id="searchInput" class="pw-search-input" placeholder="Search player or team..." autocomplete="off">
-        <kbd class="pw-kbd pw-desktop-only">/</kbd>
+      <div class="pw-command-row">
+        <div class="sport-switcher-bar" id="sportSwitcherBar">
+          <div class="sport-switcher" id="sportSwitcher" role="radiogroup" aria-label="Active sport"></div>
+        </div>
+        <!-- Search Input -->
+        <div class="pw-search-wrap command-search-wrap">
+          <svg class="pw-search-icon" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="7" cy="7" r="4.5"/>
+            <path d="M10.5 10.5L14 14"/>
+          </svg>
+          <input type="search" id="searchInput" class="pw-search-input" placeholder="Search player or team..." autocomplete="off">
+          <kbd class="pw-kbd pw-desktop-only">/</kbd>
+        </div>
       </div>
 
       <!-- Single Horizontal Scrolling Chip Row (Mode, Market, Pos, More) -->
@@ -216,6 +226,14 @@
         </button>
       </div>
 
+      <button type="button" class="mobile-usage-ticker" id="mobileUsageTicker" aria-expanded="false" aria-controls="availabilityDetails">
+        <span class="mobile-usage-icon" aria-hidden="true">!</span>
+        <span class="mobile-usage-label">Injury &amp; usage</span>
+        <span class="mobile-usage-summary" id="mobileUsageSummary">Loading availability…</span>
+        <span class="mobile-usage-count" id="mobileUsageCount">0</span>
+        <span class="mobile-usage-chevron" aria-hidden="true">⌄</span>
+      </button>
+
       <!-- Desktop View Switcher -->
       <div class="pw-segmented pw-view-toggle view-switch pw-desktop-only" role="group" aria-label="View layout switcher">
         <button type="button" data-view="table" class="pw-seg-btn active">Table</button>
@@ -223,14 +241,6 @@
       </div>
     </div>
   </header>
-
-  <!-- Sport Switcher: segmented control directly below the terminal header
-       (deliberately NOT a bottom-sheet or swipe surface to avoid conflicts
-       with swipe-to-log). Population + wiring are adapter-driven; switching
-       persists the per-device preference and reloads single-sport. -->
-  <div class="sport-switcher-bar" id="sportSwitcherBar">
-    <div class="sport-switcher" id="sportSwitcher" role="radiogroup" aria-label="Active sport"></div>
-  </div>
 
   <main class="shell page" id="slateBoard">
     <!-- Data Quality Banner: fixture / offline / stale feed states (Phase 2
@@ -345,6 +355,18 @@
     </form>
   </dialog>
 
+  <!-- Verified execution review: research handoff, never sportsbook placement. -->
+  <dialog class="detail-dialog execution-dialog" id="executionDialog" aria-labelledby="executionTitle">
+    <form method="dialog" class="dialog-shell execution-shell">
+      <div class="dialog-sheet-handle" aria-hidden="true"></div>
+      <div class="dialog-header execution-dialog-header">
+        <div><div class="eyebrow">Verified execution review</div><h2 id="executionTitle">Execution slip</h2></div>
+        <button class="icon-button" value="cancel" aria-label="Close execution slip">×</button>
+      </div>
+      <div class="dialog-body execution-body" id="executionContent"></div>
+    </form>
+  </dialog>
+
   <!-- Settings & Risk Policy Bottom Sheet (Mobile Menu Trigger) -->
   <dialog class="detail-dialog settings-dialog" id="settingsDialog" aria-labelledby="settingsTitle">
     <form method="dialog" class="dialog-shell">
@@ -398,24 +420,10 @@
           </div>
         </div>
 
-        <!-- Commercial Membership Tier Switcher -->
+        <!-- Membership status is server-authoritative. -->
         <div class="settings-section">
-          <h3>Membership Tier (Gating Engine)</h3>
-          <p class="settings-desc">Switch membership tier to evaluate the hard edge value gate.</p>
-          <div class="tier-switcher-grid" style="display:grid; grid-template-columns: repeat(3, 1fr); gap:6px;">
-            <button type="button" class="tier-pill-btn" data-set-tier="free">
-              <span class="tier-pill-name" style="display:block; font-weight:700; font-size:12px;">Observer</span>
-              <span class="tier-pill-price" style="display:block; font-size:10px; color:#94a3b8;">Free</span>
-            </button>
-            <button type="button" class="tier-pill-btn active" data-set-tier="sharp">
-              <span class="tier-pill-name" style="display:block; font-weight:700; font-size:12px; color:#B6F36B;">Sharp</span>
-              <span class="tier-pill-price" style="display:block; font-size:10px; color:#94a3b8;">$29/mo</span>
-            </button>
-            <button type="button" class="tier-pill-btn" data-set-tier="quant">
-              <span class="tier-pill-name" style="display:block; font-weight:700; font-size:12px;">Quant</span>
-              <span class="tier-pill-price" style="display:block; font-size:10px; color:#94a3b8;">$99/mo</span>
-            </button>
-          </div>
+          <h3>Membership Access</h3>
+          <p class="settings-desc">Observer mode. Paid access is verified by the server after sign-in and cannot be changed on this device.</p>
         </div>
 
         <!-- Slate Selection -->
@@ -564,7 +572,7 @@
               <li class="locked">🔒 Personal CLV Ledger &amp; Beat-Close tracking</li>
               <li class="locked">🔒 Real-time Sniper alerts &amp; webhooks</li>
             </ul>
-            <button type="button" class="tier-cta-btn secondary" data-switch-tier="free">Active: Observer Mode</button>
+            <button type="button" class="tier-cta-btn secondary" disabled>Active: Observer Mode</button>
           </div>
 
           <div class="pricing-tier-card featured" data-tier="sharp">
@@ -580,7 +588,7 @@
               <li>✓ <strong>Same-team exposure &amp; hedge detection</strong></li>
               <li>✓ <strong>Sniper Webhook &amp; Discord/Telegram alerts</strong></li>
             </ul>
-            <button type="button" class="tier-cta-btn primary" data-switch-tier="sharp">Unlock Sharp Tier ($29/mo)</button>
+            <button type="button" class="tier-cta-btn primary" data-checkout-tier="sharp">Sign in to unlock Sharp ($29/mo)</button>
           </div>
 
           <div class="pricing-tier-card" data-tier="quant">
@@ -594,7 +602,7 @@
               <li>✓ <strong>Sub-minute priority ingestion stream</strong></li>
               <li>✓ <strong>Custom Kelly covariance matrix parameters</strong></li>
             </ul>
-            <button type="button" class="tier-cta-btn secondary" data-switch-tier="quant">Subscribe Quant ($99/mo)</button>
+            <button type="button" class="tier-cta-btn secondary" data-checkout-tier="quant">Sign in to unlock Quant ($99/mo)</button>
           </div>
         </div>
 

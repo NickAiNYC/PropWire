@@ -34,7 +34,7 @@ export function makeElement(knownIds) {
     appendChild() {}, insertBefore() {}, remove() {}, focus() {}, blur() {},
     scrollIntoView() {}, setAttribute() {}, getAttribute() { return null; },
     querySelector() { return makeElement(knownIds); }, querySelectorAll() { return []; },
-    closest() { return null; }, showModal() {}, close() {}, insertAdjacentHTML() {},
+    closest() { return null; }, showModal() { this.open = true; }, close() { this.open = false; }, insertAdjacentHTML() {},
   };
   // innerHTML setter mimics live-DOM behavior: ids injected via markup
   // (e.g. the banner's dqRetryBtn) become resolvable by getElementById, so
@@ -200,6 +200,24 @@ export function attachSyntheticQuote(P, { market = 'receiving_yards' } = {}) {
   return quote;
 }
 
+/** Harness-only trusted state for exercising the allowed mutation path. */
+export function authorizeSyntheticExecution(P, quote) {
+  P.state.userTier = 'sharp';
+  quote.verified = true;
+  quote.source_url = 'https://example.test/quotes/harness';
+  quote.receipt_id = 'receipt_harness_verified';
+  quote.observed_at = '2026-10-22T11:59:30Z';
+  quote.evaluation.prob_edge = 0.11;
+  quote.evaluation.expected_return = 0.05;
+  quote.evaluation.status = 'QUALIFIED';
+  P.state.feedHealth = {
+    slate: 'ok', games: 'ok', odds: 'ok', news: 'ok', dataKind: 'live',
+    oddsUpdatedAt: '2026-10-22T11:59:30Z',
+    newsLastPolledAt: '2026-10-22T11:59:30Z',
+  };
+  return quote;
+}
+
 /** Load registry.js + every adapter + app.js (same order as the HTML pages). */
 export function loadApp(sandbox) {
   const sources = [
@@ -211,10 +229,10 @@ export function loadApp(sandbox) {
   const hook = `
   globalThis.__PW_PARITY__ = {
     state, SLATES, SPORT_ID, adapter, loadSlate, evaluateRow, filteredRows,
-    renderAll, renderBoard, fairValue, projectionValue, logBet, setView,
+    renderAll, renderBoard, fairValue, projectionValue, logBet, openExecutionSlip, confirmExecution, setView,
     setPlayMode, breakerFor,
     sportSwitcherItems, switchToSport, defaultBootSlate,
-    feedHealthStates, updateFeedHealthUI, feedVerificationLabel, updateFeedVerificationUI, stampProvenance,
+    feedHealthStates, updateFeedHealthUI, feedVerificationLabel, updateFeedVerificationUI, executionDecision, stampProvenance,
     renderSportChrome, renderDetailModal,
     storage: { loadPortfolio, savePortfolio, loadWatchlist, saveWatchlist, migrateLegacyStorage, MIGRATION_FLAG, STORE, migrationResult }
   };

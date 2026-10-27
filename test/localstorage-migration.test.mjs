@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { buildSandbox, loadApp, attachSyntheticQuote } from './helpers/sandbox.mjs';
+import { buildSandbox, loadApp, attachSyntheticQuote, authorizeSyntheticExecution } from './helpers/sandbox.mjs';
 
 /**
  * localStorage migration tests (spec item 6) — simulate pre-migration state
@@ -96,10 +96,12 @@ test('migration: entries created post-migration are sport-tagged on write', asyn
   await P.loadSlate('2026_w7');
   // Shipped demo quotes intentionally fail slate matching (provenance hotfix);
   // the harness attaches its own synthetic quote so logBet has real input.
-  attachSyntheticQuote(P);
+  const synthetic = attachSyntheticQuote(P);
+  authorizeSyntheticExecution(P, synthetic);
   P.state.filters.market = 'receiving_yards';
   P.state.portfolio = [];
   P.logBet(P.state.odds.quotes.find((q) => q.market === 'receiving_yards' && q.player_id).player_id);
+  P.confirmExecution(P.state.odds.quotes.find((q) => q.market === 'receiving_yards' && q.player_id).player_id);
   const stored = JSON.parse(lsStore.get('propwire_portfolio_ledger_v2'));
   assert.equal(stored[0].sport, 'nfl');
   // Legacy key untouched by new writes.

@@ -168,6 +168,7 @@
     view: matchMedia('(max-width: 768px)').matches ? 'cards' : 'table',
     deferredInstall: null,
     selectedPlayerId: null,
+    selectedExecutionPlayerId: null,
     focusedIndex: -1,
     scenarioTargetShare: null,
     bankroll: 5000,
@@ -181,9 +182,10 @@
     priceHistory: {},
     openSnapshots: {},
     bottomTab: 'slate',
-    userTier: (function() {
-      try { return localStorage.getItem('propwire_user_tier') || 'sharp'; } catch(_) { return 'sharp'; }
-    })(),
+    // Entitlements are fail-closed in the static viewer. A paid tier must be
+    // supplied by an authenticated server surface; localStorage is never an
+    // authority for access control.
+    userTier: 'free',
     slateScrollY: 0
   };
   try {
@@ -517,8 +519,11 @@
       ? selector.querySelector(`option[value="${state.slateKey}"]`)
       : null;
     if (activeOption && !SLATES[state.slateKey]?.historical) {
-      const slateLabel = `W${SLATES[state.slateKey].week}`;
-      activeOption.textContent = `${slateLabel} ${label[0]}${label.slice(1).toLowerCase()}`;
+      const slate = SLATES[state.slateKey] || {};
+      const slateLabel = Number.isFinite(Number(slate.week))
+        ? `W${Number(slate.week)}`
+        : String(slate.state || slate.date || state.slateKey || 'Current slate');
+      activeOption.textContent = `${slateLabel} · ${label[0]}${label.slice(1).toLowerCase()}`;
     }
     const statusPill = $('#mobileStatusPill');
     if (statusPill) statusPill.title = `${label} odds feed · Tap for telemetry`;
@@ -547,29 +552,12 @@
       const oddsUrl = config.odds || 'live_odds_feed.json';
       const freshData = await fetchJson(`${oddsUrl}?t=${Date.now()}`, null);
       if (freshData && freshData.quotes) {
-        // If file is static, simulate micro-tick line/odds movement on active books to ensure live telemetry reactivity
         const quotes = freshData.quotes;
-        if (quotes.length > 0) {
-          const activeMarketQuotes = quotes.filter((q) => q.market === state.filters.market);
-          const targetQuotes = activeMarketQuotes.length > 0 ? activeMarketQuotes : quotes;
-          const shiftIndices = [0, 1, 2, 3];
-          shiftIndices.forEach((idx, i) => {
-            const q = targetQuotes[idx];
-            if (!q) return;
-            const dir = (i % 2 === 0) ? 1 : -1;
-            const evShift = dir * (0.022 + Math.random() * 0.012);
-            if (!q.evaluation) q.evaluation = {};
-            q.evaluation.expected_return = Number(q.evaluation.expected_return || 0) + evShift;
-            q.evaluation.prob_edge = Number(q.evaluation.prob_edge || 0) + (evShift * 0.6);
-            if (dir > 0) {
-              q.over_odds = (q.over_odds || -110) + 10;
-            } else {
-              q.over_odds = (q.over_odds || -110) - 10;
-            }
-          });
-        }
-
         state.odds = freshData;
+        if (state.feedHealth) {
+          state.feedHealth.odds = 'ok';
+          state.feedHealth.oddsUpdatedAt = freshData.updated_at || null;
+        }
 
         // Compute directional EV / edge tick flashes
         state.tickFlashes = {};
@@ -628,7 +616,9 @@
           triggerHaptic('light');
         }
 
-        toast(isAuto ? `Auto-polled live odds: Bovada API active (${upMoves + downMoves} moves)` : `Refreshed live quotes: ${quotes.length} verified (${upMoves + downMoves} moves)`);
+        const verifiedCount = quotes.filter((quote) => quoteState(quote) === 'verified').length;
+        const refreshSummary = `${quotes.length} ingested · ${verifiedCount} receipt-verified`;
+        toast(isAuto ? `Odds checked: ${refreshSummary} (${upMoves + downMoves} provider moves)` : `Refresh complete: ${refreshSummary}`);
       }
     } catch (e) {
       console.warn('Live odds polling error:', e);
@@ -640,8 +630,7 @@
   }
 
   async function init() {
-    document.documentElement.dataset.theme = 'dark';
-    document.documentElement.classList.add('dark');
+    initTheme();
     renderSportChrome();
     bindControls();
     initInstall();
@@ -725,6 +714,11 @@
     if (availBtn) availBtn.addEventListener('click', toggleInjuries);
     const injuryToggle = $('#injuryToggle');
     if (injuryToggle) injuryToggle.addEventListener('click', toggleInjuries);
+    const mobileUsageTicker = $('#mobileUsageTicker');
+    if (mobileUsageTicker) mobileUsageTicker.addEventListener('click', () => {
+      triggerHaptic('light');
+      toggleInjuries();
+    });
     const exportBtn = $('#exportBtn');
     if (exportBtn) exportBtn.addEventListener('click', handleSlateExportCsv);
     if ($('#searchInput')) $('#searchInput').addEventListener('input', syncFilters);
@@ -874,25 +868,11 @@
         pricingDialog.showModal();
       }
 
-      const switchBtn = e.target.closest('[data-switch-tier], [data-set-tier]');
-      if (switchBtn) {
-        triggerHaptic('medium');
-        const newTier = switchBtn.dataset.switchTier || switchBtn.dataset.setTier;
-        state.userTier = newTier;
-        try {
-          localStorage.setItem('propwire_user_tier', newTier);
-        } catch (_) {}
-        document.querySelectorAll('[data-switch-tier], [data-set-tier]').forEach((b) => {
-          const t = b.dataset.switchTier || b.dataset.setTier;
-          b.classList.toggle('active', t === newTier);
-        });
-        const pricingBtnSpan = $('#pricingBtn span');
-        if (pricingBtnSpan) {
-          pricingBtnSpan.textContent = newTier === 'free' ? 'UPGRADE · $29' : newTier === 'quant' ? 'QUANT · $299' : 'PRO · $29';
-        }
-        if (pricingDialog && pricingDialog.open) pricingDialog.close();
-        renderBoard();
-        toast(`Active tier: ${newTier === 'free' ? 'Observer (Free Mode)' : newTier === 'quant' ? 'Quant (API Tier)' : 'Sharp (Pro Active)'}`);
+      const checkoutBtn = e.target.closest('[data-checkout-tier]');
+      if (checkoutBtn) {
+        e.preventDefault();
+        triggerHaptic('light');
+        toast('Sign in to manage membership. Access is verified by the server.');
       }
     });
 
@@ -1216,7 +1196,7 @@
     updateSniperUIBadges();
 
     // Wire native bottom-sheet behaviors: tap backdrop to close + swipe down to dismiss
-    [$('#detailDialog'), $('#settingsDialog'), $('#moreFiltersDialog'), $('#portfolioDialog'), $('#clvDialog'), $('#sniperDialog'), $('#pricingDialog')].forEach(setupBottomSheet);
+    [$('#detailDialog'), $('#executionDialog'), $('#settingsDialog'), $('#moreFiltersDialog'), $('#portfolioDialog'), $('#clvDialog'), $('#sniperDialog'), $('#pricingDialog')].forEach(setupBottomSheet);
 
     initMobileSwipeGestures();
   }
@@ -1494,8 +1474,37 @@
   }
 
   // Terminal is permanently locked into dark institutional mode
-  function initTheme() {}
-  function toggleTheme() {}
+  const THEME_KEY = 'propwire-theme';
+
+  function applyTheme(theme) {
+    const next = theme === 'light' ? 'light' : 'dark';
+    document.documentElement.dataset.theme = next;
+    document.documentElement.classList.toggle('dark', next === 'dark');
+    const toggle = $('#themeToggle');
+    if (toggle) {
+      toggle.setAttribute('aria-label', `Switch to ${next === 'dark' ? 'light' : 'dark'} theme`);
+      toggle.setAttribute('aria-pressed', String(next === 'light'));
+      toggle.title = `${next === 'dark' ? 'Light' : 'Dark'} high-trust theme`;
+    }
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute('content', next === 'light' ? '#f4f6f8' : '#0f131a');
+    return next;
+  }
+
+  function initTheme() {
+    let saved = 'dark';
+    try { saved = localStorage.getItem(THEME_KEY) || 'dark'; } catch (_) {}
+    applyTheme(saved);
+    const toggle = $('#themeToggle');
+    if (toggle) toggle.addEventListener('click', toggleTheme);
+  }
+
+  function toggleTheme() {
+    const current = document.documentElement.dataset.theme === 'light' ? 'light' : 'dark';
+    const next = applyTheme(current === 'dark' ? 'light' : 'dark');
+    try { localStorage.setItem(THEME_KEY, next); } catch (_) {}
+    triggerHaptic('light');
+  }
 
   // ─── Sport switcher + per-sport filter chrome (Phase 2) ─────────────
   // DOM population goes through document.getElementById (NOT the $ helper).
@@ -1790,6 +1799,32 @@
     };
   }
 
+  function executionDecision(row, evaluation = null) {
+    const result = evaluation || evaluateRow(row);
+    const health = feedHealthStates();
+    const quote = result.quote || null;
+    const receipt = quote && (quote.receipt_id || quote.provider_quote_id || quote.source_url || (/^https?:\/\//i.test(quote.source || '') && quote.content_hash));
+    const observedAt = quote && Date.parse(quote.observed_at || '');
+    const completeQuote = Boolean(
+      quote && receipt && Number.isFinite(observedAt) && result.book &&
+      Number.isFinite(Number(result.line)) && Number.isFinite(Number(result.odds))
+    );
+    const deny = (code, message) => ({ allowed: false, code, message, mode: 'research' });
+
+    if (SLATES[state.slateKey]?.historical || health.dataKind === 'fixture') return deny('historical', 'Historical and fixture slates are research-only.');
+    if (state.userTier === 'free') return deny('unauthorized', 'Sign in with an active membership to review executable prices.');
+    if (result.state === 'none') return deny('no_quote', 'No sportsbook quote is available for this projection.');
+    if (result.state !== 'verified') return deny('unverified', 'Price unverified—refresh or choose another book.');
+    if (!completeQuote) return deny('incomplete_quote', 'The quote is missing its book, line, odds, timestamp, or receipt.');
+    if (health.odds !== 'ok' || health.oddsFreshness !== 'ok') return deny('stale_odds', 'Odds are stale or unavailable. The slate is in research mode.');
+    if (health.news !== 'ok' || health.newsFreshness !== 'ok') return deny('stale_news', 'News context is stale or unavailable. Refresh before reviewing a wager.');
+    if (result.closed) return deny('closed', 'This market is closed.');
+    if (result.volatilityHalt) return deny('volatility_halt', result.haltReason || 'Execution is halted after an abnormal line move.');
+    if (result.dataCheck || result.highEdgeCaution) return deny('verification_required', result.highEdgeWarning || 'Refresh the price and news context before acting.');
+    if (!result.qualified || !result.actionable) return deny('below_gate', 'This price does not clear the configured execution gate.');
+    return { allowed: true, code: 'actionable', message: 'Verified, fresh, and clears the execution gate.', mode: 'live' };
+  }
+
   function updateFeedHealthUI() {
     const banner = elById('dataQualityBanner');
     if (!banner) return;
@@ -1931,18 +1966,31 @@
     const details = $('#availabilityDetails') || $('#injuryDetails');
     const slimBanner = $('#slimInjuryBanner');
     const slimText = $('#slimInjuryText');
+    const mobileUsageTicker = $('#mobileUsageTicker');
+    const mobileUsageSummary = $('#mobileUsageSummary');
+    const mobileUsageCount = $('#mobileUsageCount');
 
     if (!injuries.length) {
       if (countEl) countEl.textContent = '0 Alerts';
       if (previewEl) previewEl.textContent = 'No active injury alerts';
       if (details) details.hidden = true;
       if (slimBanner) slimBanner.hidden = true;
+      if (mobileUsageTicker) mobileUsageTicker.hidden = true;
       return;
     }
 
     if (countEl) countEl.textContent = `${injuries.length} Injury Alerts`;
     if (slimText) slimText.textContent = `${injuries.length} Alerts`;
     if (slimBanner && !slimBanner.dataset.dismissed) slimBanner.hidden = false;
+    if (mobileUsageTicker) mobileUsageTicker.hidden = false;
+    if (mobileUsageCount) mobileUsageCount.textContent = String(injuries.length);
+    if (mobileUsageSummary) {
+      mobileUsageSummary.textContent = injuries.slice(0, 2).map((item) => {
+        const last = String(item.player_name || '').split(' ').pop();
+        const status = item.report_status === 'QUESTIONABLE' ? 'Q' : item.report_status === 'LIMITED' ? 'LIM' : item.report_status;
+        return `${item.team} ${last} ${status}`;
+      }).join(' · ');
+    }
 
     if (previewEl) {
       const topItems = injuries.slice(0, 3).map(i => {
@@ -2070,6 +2118,11 @@
     if (chevron) chevron.textContent = open ? '▴' : '▾';
     const toggleBtn = $('#availabilityToggle');
     if (toggleBtn) toggleBtn.setAttribute('aria-expanded', String(open));
+    const mobileTicker = $('#mobileUsageTicker');
+    if (mobileTicker) {
+      mobileTicker.setAttribute('aria-expanded', String(open));
+      mobileTicker.classList.toggle('is-open', open);
+    }
   }
 
   function renderTeams() {
@@ -3076,6 +3129,7 @@
     const crest = teamCrest(row.team, 'md');
     const fairVal = dist.fair;
     const sparklineHtml = renderPriceSparkline(row, quote, evaluation);
+    const execution = executionDecision(row, evaluation);
 
     // Row 1 Hero Edge & Context Subtag
     let heroEdgeHtml = '';
@@ -3179,7 +3233,9 @@
         </div>
         <div class="card-grid-col col-action">
           <button type="button" class="card-btn-view" data-inspect="${esc(row.player_id)}" aria-label="View Details">View &rsaquo;</button>
-          <button type="button" class="card-btn-log ${isLogged ? 'logged' : ''}" data-log-bet="${esc(row.player_id)}" aria-label="${isLogged ? 'In Ledger' : 'Add to Ledger'}" title="Add to Ledger">${isLogged ? '✓' : '+'}</button>
+          ${isLogged || execution.allowed
+            ? `<button type="button" class="card-btn-log ${isLogged ? 'logged' : ''}" data-log-bet="${esc(row.player_id)}" aria-label="${isLogged ? 'Remove from Ledger' : 'Review verified play'}" title="${isLogged ? 'Remove from Ledger' : 'Review verified play'}">${isLogged ? '✓' : 'Review'}</button>`
+            : `<button type="button" class="card-btn-log blocked" disabled aria-label="Execution blocked: ${esc(execution.message)}" title="${esc(execution.message)}">${SVG_ICONS.lock}</button>`}
         </div>
       `;
     }
@@ -3326,7 +3382,9 @@
     const roundedGatePct = activePolicy ? +(activePolicy.gate * 100).toFixed(1) : 0;
     const qualified = Boolean(activePolicy) && roundedEdgePct >= roundedGatePct && ev > 0;
     const dataCheck = edge > breaker.pctHurdle || volatilityHalt || highEdgeCaution;
-    const actionable = qState === 'verified' && qualified && !closed && !volatilityHalt;
+    const health = feedHealthStates();
+    const liveFeedsFresh = health.dataKind !== 'fixture' && health.odds === 'ok' && health.oddsFreshness === 'ok' && health.news === 'ok' && health.newsFreshness === 'ok';
+    const actionable = qState === 'verified' && qualified && !closed && !volatilityHalt && !dataCheck && liveFeedsFresh;
 
     let stake = 0;
     if (actionable) {
@@ -3433,7 +3491,12 @@
       </div>`;
     }
 
-    const logBtn = row ? `<button class="row-log-btn ${isLogged ? 'logged' : ''}" type="button" data-log-bet="${esc(row.player_id)}" title="${isLogged ? 'In Ledger (Click to remove)' : 'Quick-Log to Ledger'}" aria-label="Log to Ledger">${isLogged ? '✓' : '+'}</button>` : '';
+    const decision = row ? executionDecision(row, evaluation) : { allowed: false, message: '' };
+    const logBtn = row && (isLogged || decision.allowed)
+      ? `<button class="row-log-btn ${isLogged ? 'logged' : ''}" type="button" data-log-bet="${esc(row.player_id)}" title="${isLogged ? 'Remove from Ledger' : 'Review verified play'}" aria-label="${isLogged ? 'Remove from Ledger' : 'Review verified play'}">${isLogged ? '✓' : 'Review'}</button>`
+      : row
+        ? `<button class="row-log-btn blocked" type="button" disabled aria-label="Execution blocked: ${esc(decision.message)}" title="${esc(decision.message)}">${SVG_ICONS.lock}</button>`
+        : '';
 
     const quoteKey = row ? `${row.player_id}::${state.filters.market}` : '';
     const flash = quoteKey && state.tickFlashes ? state.tickFlashes[quoteKey] : null;
@@ -3696,12 +3759,6 @@
   }
 
   function logBet(playerId) {
-    if (state.userTier === 'free') {
-      const pricingDialog = $('#pricingDialog');
-      if (pricingDialog) pricingDialog.showModal();
-      toast('🔒 Pro Feature: Personal CLV Ledger requires Sharp membership ($29/mo).');
-      return;
-    }
     const row = state.slate.find((item) => item.player_id === playerId);
     if (!row) return;
     const evaluation = evaluateRow(row);
@@ -3724,11 +3781,91 @@
         }
       });
     } else {
-      const mdef = marketDef(state.filters.market);
-      if (evaluation.volatilityHalt) {
-        const proceed = confirm(`⚠️ Volatility Warning: ${row.player_display_name}'s line moved sharply (${evaluation.driftVal > 0 ? '+' : ''}${evaluation.driftVal} ${mdef.breakerUnit} vs open).\n\nModel baseline may be stale due to unmodeled news/line steam.\n\nLog to your personal ledger anyway?`);
-        if (!proceed) return;
+      const decision = executionDecision(row, evaluation);
+      if (!decision.allowed) {
+        toast(`Blocked: ${decision.message}`);
+        return;
       }
+      openExecutionSlip(playerId);
+    }
+  }
+
+  function executionOffers(row) {
+    return (state.odds?.quotes || []).filter((quote) => quote.market === state.filters.market &&
+      (quote.player_id === row.player_id || String(quote.player_name).toLowerCase() === String(row.player_display_name).toLowerCase()));
+  }
+
+  function executionSlipMarkup(row, evaluation, decision) {
+    const observed = evaluation.quote?.observed_at ? new Date(evaluation.quote.observed_at) : null;
+    const timestamp = observed && Number.isFinite(observed.getTime()) ? observed.toLocaleString() : 'Missing';
+    const stakeDollars = (num(state.bankroll, 5000) * num(evaluation.stake)).toFixed(2);
+    const offers = executionOffers(row);
+    const reasons = decision.allowed ? ['Verified receipt', 'Fresh odds and news', `Clears ${pct(policy()?.gate || 0, 0)} gate`] : [decision.message];
+    return `
+      <section class="execution-identity">
+        <div><span class="execution-kicker">${esc(row.position)} · ${esc(row.team)} ${row.is_home ? 'vs' : '@'} ${esc(row.opponent_team)}</span><h3>${esc(row.player_display_name)}</h3></div>
+        <span class="execution-state ${decision.allowed ? 'is-ready' : 'is-blocked'}">${decision.allowed ? 'Verified · ready' : 'Blocked'}</span>
+      </section>
+      <section class="execution-summary" aria-label="Execution terms">
+        <div><span>Book</span><strong>${esc(evaluation.book || '—')}</strong></div>
+        <div><span>Timestamp</span><strong class="execution-time">${esc(timestamp)}</strong></div>
+        <div><span>Price</span><strong>${esc(evaluation.side || '—')} ${Number(evaluation.line).toFixed(1)} · ${oddsText(evaluation.odds)}</strong></div>
+        <div><span>Model fair</span><strong>${Number(fairValue(row)).toFixed(1)}</strong></div>
+        <div><span>Edge</span><strong>${signedPct(evaluation.edge)}</strong></div>
+        <div><span>Kelly stake</span><strong>${pct(evaluation.stake, 2)} · $${stakeDollars}</strong></div>
+      </section>
+      <section class="execution-checks ${decision.allowed ? '' : 'has-block'}">
+        <h4>${decision.allowed ? 'Guard checks passed' : 'Blocking reason'}</h4>
+        <ul>${reasons.map((reason) => `<li>${esc(reason)}</li>`).join('')}</ul>
+      </section>
+      <section class="cross-book-section">
+        <div class="execution-section-heading"><h4>Cross-book comparison</h4><span>${offers.length} observed offer${offers.length === 1 ? '' : 's'}</span></div>
+        <div class="cross-book-list">
+          ${offers.map((offer) => {
+            const side = String(offer.evaluation?.best_side || evaluation.side || 'OVER').toUpperCase();
+            const price = side === 'UNDER' ? offer.under_odds : offer.over_odds;
+            const verified = quoteState(offer) === 'verified';
+            return `<div class="cross-book-row ${offer === evaluation.quote ? 'is-selected' : ''}">
+              <span><b>${esc(offer.book || 'Book')}</b><small>${verified ? 'Receipt verified' : 'Unverified'}</small></span>
+              <strong>${side} ${Number(offer.line).toFixed(1)}</strong><strong>${oddsText(price)}</strong>
+              <span class="cross-book-status">${offer === evaluation.quote ? 'Selected' : verified ? 'Available' : 'Locked'}</span>
+            </div>`;
+          }).join('') || '<p class="execution-empty">No sportsbook offers are present in this snapshot.</p>'}
+        </div>
+        ${offers.length < 2 ? '<p class="execution-note">No alternative verified offers are available in this snapshot.</p>' : ''}
+      </section>
+      <footer class="execution-actions">
+        <p>PropWire does not place wagers. Confirm only after placing this exact wager externally.</p>
+        <button type="button" class="execution-confirm" id="executionConfirmBtn" ${decision.allowed ? '' : 'disabled'}>I placed this bet · record snapshot</button>
+      </footer>`;
+  }
+
+  function openExecutionSlip(playerId) {
+    const row = state.slate.find((item) => item.player_id === playerId);
+    const dialog = $('#executionDialog');
+    const content = $('#executionContent');
+    if (!row || !dialog || !content) return false;
+    const evaluation = evaluateRow(row);
+    const decision = executionDecision(row, evaluation);
+    state.selectedExecutionPlayerId = playerId;
+    $('#executionTitle').textContent = `${row.player_display_name} · execution slip`;
+    content.innerHTML = executionSlipMarkup(row, evaluation, decision);
+    const confirm = $('#executionConfirmBtn');
+    if (confirm) confirm.addEventListener('click', () => confirmExecution(playerId));
+    if (!dialog.open) dialog.showModal();
+    return decision.allowed;
+  }
+
+  function confirmExecution(playerId = state.selectedExecutionPlayerId) {
+    const row = state.slate.find((item) => item.player_id === playerId);
+    if (!row) return false;
+    const evaluation = evaluateRow(row);
+    const decision = executionDecision(row, evaluation);
+    if (!decision.allowed) {
+      openExecutionSlip(playerId);
+      toast(`Blocked: ${decision.message}`);
+      return false;
+    }
       const ticketId = Math.random().toString(36).slice(2, 6).toUpperCase();
       const risk = checkCorrelatedRisk(row, evaluation);
       const entry = {
@@ -3741,8 +3878,8 @@
         opponent: row.opponent_team,
         market: state.filters.market,
         book: evaluation.book || 'Book',
-        line: evaluation.line || fairValue(row),
-        odds: evaluation.odds || -110,
+        line: evaluation.line,
+        odds: evaluation.odds,
         side: evaluation.side || 'OVER',
         model_fair: fairValue(row),
         edge: evaluation.edge || 0,
@@ -3778,7 +3915,10 @@
           }
         }
       });
-    }
+      const dialog = $('#executionDialog');
+      if (dialog?.open) dialog.close();
+      state.selectedExecutionPlayerId = null;
+      return true;
   }
 
   function handleLedgerExport() {
