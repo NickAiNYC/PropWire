@@ -70,7 +70,8 @@ def pct(x, digits=1):
     return f"{100 * float(x):.{digits}f}%"
 
 
-def page(title, description, canonical_path, breadcrumb, body):
+def page(title, description, canonical_path, breadcrumb, body,
+         show_limitations=True):
     """Render a full standalone HTML page (no JS, CSP-safe external CSS)."""
     crumbs = []
     trail = [("PropWire", "/")] + breadcrumb
@@ -102,6 +103,11 @@ def page(title, description, canonical_path, breadcrumb, body):
             },
         ],
     }, indent=1)
+    limit_block = (f"""
+    <section class="pub-limitations">
+      <h2>Model limitations</h2>
+      {LIMITATIONS}
+    </section>""" if show_limitations else "")
     nav = """
   <header class="pub-header">
     <a class="pub-brand" href="/">PropWire</a>
@@ -134,11 +140,7 @@ def page(title, description, canonical_path, breadcrumb, body):
     <nav class="pub-crumbs" aria-label="Breadcrumb"><ol>
       {chr(10).join('      ' + c for c in crumbs)}
     </ol></nav>
-{body}
-    <section class="pub-limitations">
-      <h2>Model limitations</h2>
-      {LIMITATIONS}
-    </section>
+{body}{limit_block}
   </main>
   <footer class="pub-footer">
     <p>PropWire is quantitative research, not betting advice. No wager should
@@ -148,6 +150,9 @@ def page(title, description, canonical_path, breadcrumb, body):
       <a href="/performance/">Track Record</a>
       <a href="/methodology/">Methodology</a>
       <a href="/">Terminal</a>
+      <a href="/legal/terms/">Terms</a>
+      <a href="/legal/privacy/">Privacy</a>
+      <a href="/legal/responsible-gaming/">Responsible Gaming</a>
     </nav>
   </footer>
 </body>
@@ -509,6 +514,226 @@ def methodology_page():
         "/methodology/", [("Methodology", None)], body)
 
 
+def terms_page():
+    body = """
+    <h1>Terms of Use</h1>
+    <p class="pub-lede">Plain-language terms for using PropWire. We tried to
+    keep this short and honest rather than long and defensive. Bracketed
+    items are placeholders the operator completes before relying on this
+    document.</p>
+    <section>
+      <h2>What PropWire is</h2>
+      <p>PropWire is a quantitative research terminal for NFL player-prop
+      markets. It publishes projections, fair lines, price boundaries, line
+      snapshots and a dated track record. It is provided for informational
+      and research purposes only. PropWire is not a sportsbook, does not
+      accept wagers, never handles customer money, and is not affiliated
+      with, endorsed by or sponsored by the NFL, any team, or any sportsbook
+      named on this site. All third-party trademarks belong to their
+      respective owners and are used for identification only.</p>
+    </section>
+    <section>
+      <h2>Not betting advice</h2>
+      <p>Nothing on this site is betting advice, a recommendation, or a
+      promise of profit. The model is fallible and we publish the evidence:
+      our own holdout evaluation currently shows the model trailing a naive
+      baseline, and the track-record page includes the losing weeks. Any
+      wagering decision you make is solely yours. If you wager, you do so at
+      your own risk and you are responsible for complying with the laws of
+      your jurisdiction.</p>
+    </section>
+    <section>
+      <h2>Eligibility</h2>
+      <p>The site is intended for adults of legal age in their jurisdiction
+      (21+ in most U.S. states; 18+ in some). It is not directed to minors.
+      Access may be restricted where use of this kind of information is
+      prohibited by law. You are responsible for knowing and following the
+      rules that apply to you, including any terms of use of the sportsbooks
+      you choose to interact with.</p>
+    </section>
+    <section>
+      <h2>No warranties; availability</h2>
+      <p>The service is provided &ldquo;as is&rdquo; and &ldquo;as
+      available&rdquo; without warranties of any kind, express or implied.
+      Lines move and quotes age: snapshots carry timestamps and verification
+      states precisely because data can be wrong, stale or incomplete at any
+      moment. We do not guarantee uninterrupted availability or error-free
+      operation, and feeds may degrade without notice.</p>
+    </section>
+    <section>
+      <h2>Limitation of liability</h2>
+      <p>To the maximum extent permitted by law, PropWire and its operators
+      are not liable for any losses connected to your use of, or reliance
+      on, the site &mdash; including wagering losses, missed opportunities,
+      data errors, downtime or consequential damages. Your sole remedy for
+      dissatisfaction with the service is to stop using it.</p>
+    </section>
+    <section>
+      <h2>Acceptable use</h2>
+      <p>You may use PropWire personally for research. You may not resell or
+      republish the site's content as your own, attempt to circumvent rate
+      limits or access controls, or bulk-harvest pages or data feeds in a
+      way that degrades the service for others. If you cite the work, credit
+      PropWire with a link.</p>
+    </section>
+    <section>
+      <h2>Changes, governing law, contact</h2>
+      <p>We may update these terms as the product evolves; material changes
+      will be reflected on this page with a revised date. These terms are
+      governed by the laws of <strong>[STATE]</strong>, without regard to
+      conflict-of-law rules. Questions: <strong>[CONTACT EMAIL]</strong>.</p>
+    </section>"""
+    return page(
+        "PropWire Terms of Use &mdash; Research Terminal, Not Betting Advice",
+        "Plain-language terms: PropWire is quantitative research, not "
+        "betting advice; no wagers accepted; 21+; no profit warranties; "
+        "liability limits and acceptable use.",
+        "/legal/terms/", [("Terms of Use", None)], body,
+        show_limitations=False)
+
+
+def privacy_page():
+    body = """
+    <h1>Privacy Policy</h1>
+    <p class="pub-lede">Short version: PropWire has no accounts, asks for no
+    personal information, and stores your UI preferences in your own
+    browser. Bracketed items are placeholders the operator completes before
+    relying on this document.</p>
+    <section>
+      <h2>What we collect</h2>
+      <p><strong>We do not collect personal information.</strong> There are
+      no accounts, no sign-ups and no profiles. Your terminal settings
+      (theme, layout and similar preferences) are stored in your browser's
+      local storage and never leave your device. Clearing site data in your
+      browser removes them entirely.</p>
+    </section>
+    <section>
+      <h2>Server and hosting logs</h2>
+      <p>The site is served through a third-party host
+      (<strong>[HOSTING PROVIDER]</strong>), which processes standard request
+      logs (such as IP address, user agent and timestamps) for security and
+      abuse prevention under its own privacy policy. We do not use these
+      logs to build profiles of visitors.</p>
+    </section>
+    <section>
+      <h2>Analytics</h2>
+      <p>We may measure aggregate traffic (page views, referrers, rough
+      geography) using a privacy-respecting analytics provider that does not
+      use cookies for cross-site advertising. We do not run ad-network
+      trackers, retargeting pixels, or cross-site profiling scripts, and we
+      do not sell or share visitor data. If we ever launch accounts or
+      payments, this policy will be updated first.</p>
+    </section>
+    <section>
+      <h2>Local storage</h2>
+      <p>The terminal stores preferences under keys such as
+      <code>propwire-theme</code> and UI state in local storage. These are
+      functional, first-party, readable only by this site, and never
+      transmitted to us. You can inspect and delete them via your browser's
+      developer tools or site-data settings.</p>
+    </section>
+    <section>
+      <h2>Children</h2>
+      <p>PropWire is intended for adults of legal gambling age in their
+      jurisdiction (21+ in most U.S. states) and is not directed to
+      children. If you believe a minor has used the site, contact us and we
+      will investigate.</p>
+    </section>
+    <section>
+      <h2>Security, changes, contact</h2>
+      <p>We use static, read-only hosting and HTTPS everywhere, which
+      minimizes the attack surface for visitor data in the first place. We
+      may update this policy as the product changes; material changes appear
+      on this page with a revised date. Questions or requests:
+      <strong>[CONTACT EMAIL]</strong>.</p>
+    </section>"""
+    return page(
+        "PropWire Privacy Policy &mdash; No Accounts, No Ad Trackers",
+        "Privacy policy: no accounts, no personal data collection, "
+        "first-party local storage only, aggregate analytics, no ad-tech "
+        "trackers, no data sale.",
+        "/legal/privacy/", [("Privacy Policy", None)], body,
+        show_limitations=False)
+
+
+def responsible_gaming_page():
+    body = """
+    <h1>Responsible Gaming</h1>
+    <p class="pub-lede">PropWire is a research tool, and we take the
+    responsibilities that come with covering betting markets seriously. If
+    betting has stopped being a game for you or someone close to you, help
+    is available and it works.</p>
+    <section>
+      <h2>Our position</h2>
+      <p>Wagering should be entertainment with a budget, never a source of
+      income or a way to recover losses. Our own published results show the
+      model currently trailing a naive baseline on holdout data &mdash; that
+      is how uncertain even careful quantitative work is. No projection,
+      edge number or tool (including ours) makes a bet safe. Anyone who
+      tells you a pick is &ldquo;a lock&rdquo; is telling you something
+      untrue.</p>
+    </section>
+    <section>
+      <h2>Know the rules where you are</h2>
+      <p>Legal age is 21 in most U.S. states and 18 in some jurisdictions.
+      Betting is legal only where licensed operators are permitted to offer
+      it. You are responsible for knowing your local law. If you are under
+      the legal age where you live, do not use this site or place wagers.</p>
+    </section>
+    <section>
+      <h2>Set limits before you play</h2>
+      <ul>
+        <li>Decide a fixed entertainment budget and treat it as spent.</li>
+        <li>Use the deposit, loss and time limits every licensed sportsbook
+        is required to offer &mdash; set them before your first wager, not
+        after a bad day.</li>
+        <li>Never chase losses, borrow to bet, or bet money you need for
+        rent, food or family.</li>
+        <li>If a sportsbook's tools feel insufficient, use self-exclusion
+        programs (state-wide exclusion lists and per-operator exclusion).</li>
+      </ul>
+    </section>
+    <section>
+      <h2>Warning signs</h2>
+      <p>Betting more or more often than you planned; hiding or lying about
+      wagering; borrowing to bet; selling possessions; betting to escape
+      stress, grief or boredom; mood swinging with wins and losses;
+      neglecting work, school or relationships. If several of these sound
+      familiar, it is time to talk to someone &mdash; early conversations
+      prevent the worst outcomes.</p>
+    </section>
+    <section>
+      <h2>Where to get help</h2>
+      <ul>
+        <li><strong>1-800-GAMBLER</strong> &mdash; national problem-gambling
+        helpline network (call or text).</li>
+        <li><strong>National Council on Problem Gambling:</strong>
+        1-800-522-4700, <a href="https://www.ncpgambling.org" rel="noopener"
+        >ncpgambling.org</a>.</li>
+        <li><strong>Gamblers Anonymous:</strong> free peer support,
+        <a href="https://www.gamblersanonymous.org" rel="noopener"
+        >gamblersanonymous.org</a>.</li>
+        <li>Most U.S. states operate their own helplines and self-exclusion
+        programs; search &ldquo;[your state] problem gambling&rdquo;.</li>
+      </ul>
+    </section>
+    <section>
+      <h2>Our commitments</h2>
+      <p>We will never sell &ldquo;locks&rdquo; or guaranteed wins, never
+      market to minors, publish our full track record including losing
+      weeks, and keep this page and the site-wide 1-800-GAMBLER footer
+      visible on every page. If you think we are falling short of any of
+      these, tell us at <strong>[CONTACT EMAIL]</strong>.</p>
+    </section>"""
+    return page(
+        "PropWire Responsible Gaming &mdash; Limits, Self-Exclusion and Help",
+        "Responsible gaming: betting is entertainment with a budget; set "
+        "limits first; warning signs; 1-800-GAMBLER, NCPG and Gamblers "
+        "Anonymous help resources; our operator commitments.",
+        "/legal/responsible-gaming/", [("Responsible Gaming", None)], body,
+        show_limitations=False)
+
+
 def write_public_css():
     css = """:root {
   --bg: #0f131a; --panel: #141a23; --line: #273244; --text: #f3f6fa;
@@ -628,9 +853,13 @@ def main():
         write_page(f"nfl/props/{MARKETS[mk]['slug']}", market_page(mk, snaps))
     write_page("performance", performance_page())
     write_page("methodology", methodology_page())
+    write_page("legal/terms", terms_page())
+    write_page("legal/privacy", privacy_page())
+    write_page("legal/responsible-gaming", responsible_gaming_page())
 
     urls = ["/", "/ledger/", "/audit/", "/verify/", "/performance/",
             "/methodology/",
+            "/legal/terms/", "/legal/privacy/", "/legal/responsible-gaming/",
             "/nfl/props/receiving-yards/", "/nfl/props/receptions/"]
     for pid_items in by_player.values():
         for s in pid_items:
@@ -647,8 +876,8 @@ def main():
         f.write(f"User-agent: *\nAllow: /\n\nSitemap: {BASE_URL}/sitemap.xml\n")
 
     print(f"generated {count_players} player-market pages, "
-          f"{len(MARKETS)} market pages, performance, methodology; "
-          f"sitemap urls={len(set(urls))}")
+          f"{len(MARKETS)} market pages, performance, methodology, "
+          f"3 legal pages; sitemap urls={len(set(urls))}")
 
 
 if __name__ == "__main__":
