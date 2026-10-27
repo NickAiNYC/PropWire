@@ -165,13 +165,14 @@ Reserve at least 15% of each release for reliability/security debt. P0 trust, au
 - [ ] Replace membership-ID bearer input with a signed first-party session and server-side subject binding (owner: backend, P0).
 - [ ] Move ledger and settlement records to a durable transactional datastore with backups and restore drills (owner: backend, P0).
 - [ ] Add production error reporting, RED metrics, and symptom alerts for feed age, entitlement failures, and API latency (owner: operations, P0).
-- [ ] Complete legal review: Terms, Privacy, responsible-gaming language, age/region requirements, and marketing claims (owner: business/legal, P0).
+- [x] ~~Complete legal review: Terms, Privacy, responsible-gaming language, age/region requirements, and marketing claims (owner: business/legal, P0).~~ — boilerplate shipped 2026-10-27: generated pages at `/legal/terms/`, `/legal/privacy/`, `/legal/responsible-gaming/` (site-wide footer links, sitemap, tests). **Not legal advice** — owner must fill `[STATE]`/`[CONTACT EMAIL]`/`[HOSTING PROVIDER]` placeholders and have counsel review before relying on them.
 - [ ] Install locked Python dependencies in CI and run the Python test suite (owner: engineering, P1).
 - [ ] Record actual traffic, latency, and storage numbers before Phase 8 (owner: operations, P1).
-- [ ] B1: real cross-book ingestion — start with a data-provider decision (owner: engineering, **P0, blocked on provider selection**).
+- [ ] B1: real cross-book ingestion — start with a data-provider decision (owner: engineering, **P0, blocked on provider selection**). Full schema + capture cadence + API contract now speced in **docs/B1-LINE-HISTORY-SPEC.md** (decision table §2, DDL §3, rollout §7) — the spec exists so the decision can be made in one sitting and capture starts same-day; every week uncaptured is history that cannot be backfilled.
 - [ ] B4 v2: game pages + per-week regeneration of the public pages (owner: engineering, P1 — after PR #14 lands); pricing page needs product input.
 - [ ] B5: Decision view default mode + 3-step onboarding guide (owner: engineering, P1).
 - [ ] Resolve §R1 (root-hash fallback) during Phase 3 (owner: engineering).
 - [x] ~~Pin the theme toggle contract with a test~~ — closed 2026-10-27: the dark-lock restyle removed the toggle (app.js §11; Key decisions row), so the contract no longer exists.
 - [ ] Re-materialize ARCHITECTURE.md and expand thin docs/RELIABILITY.md from the 2026-10-27 planning session (owner: engineering, next touch of phases 5/7).
 - [x] Cache state: main @ v142; PR #16 (brand lockup v2/v3) carries coherent v143; the dark-restyle PR is stacked on #16 and carries v144 + build-hash 2026-w7-v9 — merge #16 first, then the restyle, to keep the triple coherent at every merge point.
+- [x] 2026-10-27 post-merge: #16+#17 merged (main @ 7a4adad, v144 live tree), 10 merged branches deleted; owner manual checklist — Vercel Deployment Protection OFF for prod (site currently 302s behind auth wall), PAT revoke, repo settings (description/topics/branch-protection/security toggles need Administration permission the current PAT lacks).

@@ -22,6 +22,8 @@ const walk = (dir, acc = []) => {
 test('public pages: core set exists', () => {
   for (const p of ['performance/index.html', 'methodology/index.html',
     'nfl/props/receiving-yards/index.html', 'nfl/props/receptions/index.html',
+    'legal/terms/index.html', 'legal/privacy/index.html',
+    'legal/responsible-gaming/index.html',
     'public.css', 'sitemap.xml', 'robots.txt']) {
     assert.ok(fs.existsSync(V(p)), `missing ${p}`);
   }
@@ -55,16 +57,47 @@ test('every generated page: canonical, description, no CSP violations, disclaime
   }
 });
 
+test('legal pages: CSP-safe, disclaimed, linked site-wide, RG helpline present', () => {
+  const legal = ['legal/terms/index.html', 'legal/privacy/index.html',
+    'legal/responsible-gaming/index.html'].map(V);
+  for (const f of legal) {
+    const html = fs.readFileSync(f, 'utf8');
+    assert.ok(html.includes('rel="canonical"'), `canonical missing in ${f}`);
+    assert.ok(html.includes('name="description"'), `description missing in ${f}`);
+    assert.ok(!/<style[\s>]/.test(html), `inline <style> violates CSP in ${f}`);
+    assert.ok(!/ style="/.test(html), `inline style= violates CSP in ${f}`);
+    assert.ok(!/<script(?![^>]*application\/ld\+json)/.test(html),
+      `non-JSON-LD script in ${f}`);
+    assert.ok(/not betting advice/i.test(html), `disclaimer missing in ${f}`);
+  }
+  // site-wide footer links on a model page (trust/compliance links everywhere)
+  const perf = fs.readFileSync(V('performance/index.html'), 'utf8');
+  for (const href of ['/legal/terms/', '/legal/privacy/',
+    '/legal/responsible-gaming/']) {
+    assert.ok(perf.includes(`href="${href}"`), `footer legal link ${href} missing`);
+  }
+  const rg = fs.readFileSync(V('legal/responsible-gaming/index.html'), 'utf8');
+  assert.ok(rg.includes('1-800-GAMBLER'), 'RG helpline missing');
+  assert.ok(/self-exclusion/i.test(rg), 'self-exclusion guidance missing');
+  assert.ok(/21\+/i.test(rg), 'age guidance missing');
+});
+
 test('sitemap urls are 1:1 with generated pages + core shell', () => {
   const xml = fs.readFileSync(V('sitemap.xml'), 'utf8');
   const locs = [...xml.matchAll(/<loc>(.*?)<\/loc>/g)].map((m) =>
     m[1].replace('https://propwire.vercel.app', ''));
   const gen = walk(V('nfl/players')).concat(walk(V('nfl/props')))
+    .concat(walk(V('legal')))
     .concat([V('performance/index.html'), V('methodology/index.html')])
+    .filter((f) => f.endsWith('.html'))
     .map((f) => f.replace(V(''), '').replace(/index\.html$/, ''));
   const expected = new Set([...gen, '/', '/ledger/', '/audit/', '/verify/']);
   assert.deepEqual(new Set(locs), expected);
   assert.equal(locs.length, expected.size, 'no duplicate sitemap urls');
+  for (const u of ['/legal/terms/', '/legal/privacy/',
+    '/legal/responsible-gaming/']) {
+    assert.ok(expected.has(u), `legal page missing from sitemap: ${u}`);
+  }
 });
 
 test('robots.txt points at the sitemap', () => {
