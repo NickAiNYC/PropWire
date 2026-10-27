@@ -2428,16 +2428,41 @@
         </div>`;
     } else if (state.filters.playMode === 'actionable' && rows.length === 0) {
       if ($('#resultCount')) $('#resultCount').textContent = `0 of ${state.slate.length} actionable plays`;
-      $('#emptyState').innerHTML = `
-        <div class="anti-tout-empty-wrap">
-          <div class="anti-tout-shield">🛡️</div>
-          <div class="anti-tout-title">0 Qualified Plays Today</div>
-          <div class="anti-tout-subtitle">The market is efficient. Do not bet.</div>
-          <p class="anti-tout-desc">Our quantitative engine requires a verified statistical edge (>${((policy() ? policy().gate : 0.10) * 100).toFixed(0)}%) with positive expected Closing Line Value. When books price efficiently, discipline is the edge.</p>
-          <div class="anti-tout-actions">
-            <button type="button" class="anti-tout-btn" id="antiToutViewAllBtn">Explore Full Modeled Slate (${state.slate.length})</button>
-          </div>
-        </div>`;
+      // Messaging honesty (2026-10-27 owner review): with stale or unverifiable
+      // prices the terminal CANNOT claim "the market is efficient" — a
+      // fail-closed board must say qualification is PAUSED, not that the
+      // market cleared itself. Only a fresh, verified feed with genuinely
+      // zero qualified rows earns the anti-tout efficiency message.
+      const health = feedHealthStates();
+      const feedsDegraded = health.dataKind !== 'fixture' && (
+        health.odds === 'error' || health.oddsFreshness === 'stale' ||
+        health.news === 'error' || health.newsFreshness === 'stale');
+      const lastTrusted = health.oddsUpdatedAt
+        ? new Date(health.oddsUpdatedAt).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
+        : null;
+      if (feedsDegraded) {
+        $('#emptyState').innerHTML = `
+          <div class="anti-tout-empty-wrap">
+            <div class="anti-tout-shield">🛡️</div>
+            <div class="anti-tout-title">Live qualification paused</div>
+            <p class="anti-tout-desc">Current prices cannot be verified. Model projections remain available for historical research.</p>
+            <div class="anti-tout-meta">${lastTrusted ? `Last trusted quote: ${lastTrusted}` : 'No verified quotes this session.'}</div>
+            <div class="anti-tout-actions">
+              <button type="button" class="anti-tout-btn" id="antiToutViewAllBtn">View ${state.slate.length} Research Projections</button>
+            </div>
+          </div>`;
+      } else {
+        $('#emptyState').innerHTML = `
+          <div class="anti-tout-empty-wrap">
+            <div class="anti-tout-shield">🛡️</div>
+            <div class="anti-tout-title">0 Qualified Plays Today</div>
+            <div class="anti-tout-subtitle">The market is efficient. Do not bet.</div>
+            <p class="anti-tout-desc">Our quantitative engine requires a verified statistical edge (>${((policy() ? policy().gate : 0.10) * 100).toFixed(0)}%) with positive expected Closing Line Value. When books price efficiently, discipline is the edge.</p>
+            <div class="anti-tout-actions">
+              <button type="button" class="anti-tout-btn" id="antiToutViewAllBtn">View ${state.slate.length} Research Projections</button>
+            </div>
+          </div>`;
+      }
       const btn = $('#antiToutViewAllBtn');
       if (btn) btn.addEventListener('click', () => setPlayMode('all'));
     } else {

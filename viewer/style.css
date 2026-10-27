@@ -6814,54 +6814,61 @@ article[data-focused="true"] {
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 44px 20px;
+  padding: 26px 18px;
   background: rgba(13, 17, 28, 0.65);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 12px;
-  margin: 16px 0;
+  margin: 10px 0;
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
 }
 .anti-tout-shield {
-  font-size: 38px;
-  margin-bottom: 12px;
+  font-size: 26px;
+  margin-bottom: 8px;
   filter: drop-shadow(0 0 16px rgba(125, 211, 252, 0.35));
 }
 .anti-tout-icon {
-  font-size: 32px;
+  font-size: 22px;
   color: #64748b;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 .anti-tout-title {
-  font-size: 19px;
+  font-size: 17px;
   font-weight: 800;
   color: #f8fafc;
   letter-spacing: -0.01em;
-  margin-bottom: 4px;
+  margin-bottom: 3px;
 }
 .anti-tout-subtitle {
   font-family: var(--mono);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
   color: #7dd3fc;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 .anti-tout-desc {
-  font-size: 12.5px;
+  font-size: 12px;
   line-height: 1.5;
   color: #94a3b8;
   max-width: 440px;
-  margin: 0 0 20px 0;
+  margin: 0 0 12px 0;
+}
+.anti-tout-meta {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  font-variant-numeric: tabular-nums;
+  color: #8792a6;
+  margin: -4px 0 12px 0;
 }
 .anti-tout-actions .anti-tout-btn {
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 6px;
   color: #f1f5f9;
-  font-size: 12.5px;
+  font-size: 12px;
   font-weight: 600;
-  padding: 9px 18px;
+  padding: 7px 14px;
   cursor: pointer;
   transition: all 0.12s ease;
 }
@@ -8218,3 +8225,17 @@ body { background: #0f131a; color: #ffffff; }
    ════════════════════════════════════════════════════════════════════════ */
 .bottom-nav-item.active { background: rgba(125, 211, 252, .10); color: var(--baby-blue); }
 .bottom-nav-item.active::before { background: var(--baby-blue); }
+
+/* ════════════════════════════════════════════════════════════════════════
+   HEADER DENSITY PASS (2026-10-27 owner review)
+   The receipt badge duplicates the polling widget's trust signal and was
+   the widest chip in the topbar; demote it below 1500px so the
+   logo / feed-status / slate / Gate / Kelly cluster breathes at 1280
+   (also retires the pre-existing 1280 topbar overflow). Wider cluster
+   separation + tighter intra-cluster gaps so controls read as groups.
+   ════════════════════════════════════════════════════════════════════════ */
+@media (max-width: 1499px) {
+  .pw-receipt-badge { display: none; }
+}
+.pw-topbar { gap: 14px; }
+.pw-topbar-left, .pw-topbar-right { gap: 8px; }

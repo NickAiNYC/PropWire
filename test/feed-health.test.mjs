@@ -186,3 +186,53 @@ test('ledger trust boundary: fixture entries are blocked; trusted NFL entries pr
   assert.equal('data_provenance' in FP.state.portfolio[0], false, 'NFL live entries must NOT gain the field (parity)');
   assert.equal(FP.state.portfolio[0].sport, 'nfl');
 });
+
+// ─── Messaging-consistency contract (2026-10-27 owner review) ──────────────
+// A fail-closed board must NOT claim "the market is efficient" while prices
+// are stale or unverifiable — the empty state has to say qualification is
+// PAUSED. The efficiency claim is reserved for a fresh, verified feed with
+// genuinely zero qualified rows.
+
+const STALE_LIVE_HEALTH = () => ({
+  dataKind: 'live', odds: 'ok', news: 'ok',
+  oddsUpdatedAt: new Date(Date.now() - 6 * 864e5).toISOString(),
+  newsLastPolledAt: new Date().toISOString(),
+});
+const FRESH_LIVE_HEALTH = () => ({
+  dataKind: 'live', odds: 'ok', news: 'ok',
+  oddsUpdatedAt: new Date().toISOString(),
+  newsLastPolledAt: new Date().toISOString(),
+});
+
+function renderActionableEmpty(P) {
+  P.state.odds.quotes = [];
+  P.state.filters.playMode = 'actionable';
+  P.state.filters.market = 'receiving_yards';
+  P.renderBoard();
+}
+
+test('stale live feed renders LIVE QUALIFICATION PAUSED, never the efficiency claim', async () => {
+  const { sandbox, registry } = buildSandbox();
+  const P = loadApp(sandbox);
+  await P.loadSlate('2026_w7');
+  P.state.feedHealth = STALE_LIVE_HEALTH();
+  renderActionableEmpty(P);
+  const empty = registry.get('#emptyState');
+  assert.ok(empty.innerHTML.includes('Live qualification paused'), 'paused title rendered');
+  assert.ok(empty.innerHTML.includes('cannot be verified'), 'honest body copy present');
+  assert.ok(empty.innerHTML.includes('historical research'), 'research framing present');
+  assert.ok(empty.innerHTML.includes('Last trusted quote'), 'last trusted quote time surfaced in the panel');
+  assert.ok(!/market is efficient/i.test(empty.innerHTML), 'no efficiency claim under staleness');
+});
+
+test('fresh verified feed with zero qualified rows keeps the anti-tout efficiency message', async () => {
+  const { sandbox, registry } = buildSandbox();
+  const P = loadApp(sandbox);
+  await P.loadSlate('2026_w7');
+  P.state.feedHealth = FRESH_LIVE_HEALTH();
+  renderActionableEmpty(P);
+  const empty = registry.get('#emptyState');
+  assert.ok(empty.innerHTML.includes('0 Qualified Plays Today'), 'anti-tout state intact when feeds verified');
+  assert.ok(/market is efficient/i.test(empty.innerHTML), 'efficiency claim only when prices are verifiable');
+  assert.ok(!empty.innerHTML.includes('Live qualification paused'), 'paused copy not shown on a fresh feed');
+});
