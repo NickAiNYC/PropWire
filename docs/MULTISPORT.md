@@ -76,14 +76,26 @@ Required by the registry: `id`, `label`, `periodNoun`, `markets`,
 
 Per the Phase 0.5 data-source gate, the only documented ToS-clean NBA
 source is balldontlie; its box scores are paid-tier. v1 therefore ships
-**research fixtures**: hand-authored synthetic feeds used to validate the
-multi-sport UI, breaker plumbing, ledger provenance and Top-Play ranking.
+**research fixtures**: synthetic feeds (hand-authored opener night + a
+generated full night) used to validate the
+multi-sport UI, breaker plumbing, ledger provenance, availability/surge
+machinery and Top-Play ranking.
 
 | File | Shape | Provenance |
 |---|---|---|
 | `viewer/nba_slate_2026-10-22.json` | bare array, 25 rows (incl. one deliberate incomplete-input probe) | `_fixture: true` per row |
-| `viewer/nba_games_2026-10-22.json` | bare array, 2 games, `tipoff_utc` + `gametime_et` | `_fixture: true` per game |
+| `viewer/nba_games_2026-10-22.json` | bare array, 2 games (opener doubleheader), `tipoff_utc` + `gametime_et` | `_fixture: true` per game |
 | `viewer/nba_odds_2026-10-22.json` | envelope, `feed_status: "fixture"`, 16 quotes with EV ranking + deterministic tie pairs | `_fixture: true` per quote + fixture notice |
+| `viewer/nba_injuries_2026-10-22.json` | envelope, 2 availability items + minutes-based `impacted_beneficiaries` | `_fixture: true` per item/beneficiary + envelope |
+| `viewer/nba_slate_2026-10-23.json` | bare array, 70 rows across the full night (generated) | `_fixture: true` per row |
+| `viewer/nba_games_2026-10-23.json` | bare array, 10 games (generated) | `_fixture: true` per game |
+| `viewer/nba_odds_2026-10-23.json` | envelope, 45 EV-ranked quotes (generated) | `_fixture: true` per quote + fixture notice |
+| `viewer/nba_injuries_2026-10-23.json` | envelope, 3 availability items + beneficiaries (generated) | `_fixture: true` per item/beneficiary + envelope |
+
+The Oct 23 full night is **generated, not hand-authored**:
+`python3 scripts/build_nba_fixtures.py` (offline, deterministic seed, no API
+key) rebuilds all four Oct 23 files plus the Oct 22 injuries companion and
+self-validates every constraint the node suite enforces before writing.
 
 Provenance rules (enforced by tests):
 
@@ -91,8 +103,10 @@ Provenance rules (enforced by tests):
   "not a sportsbook quote"; `verified` is always `false` — fixtures never
   claim verification, therefore never render as actionable.
 - **Fixture naming policy (audit B1):** fixture players are anonymized
-  (`Player A` … `Player X`, stable ids `fx-nba-player-a`…). Real athlete
-  names are never combined with synthetic statistics in fixture data —
+  (`Player A` … `Player X`, stable ids `fx-nba-player-a`…; the pool continues
+  `Player Y`, `Player Z`, then `Player AA`–`Player CS` for the Oct 23 full
+  night, ids `fx-nba-player-<lowercase>`). Real athlete names are never
+  combined with synthetic statistics in fixture data —
   that combination is a right-of-publicity liability in a commercial
   product and a scrape-adjacency trap where an LLM or scraper quoting the
   JSON could mistake fabricated numbers for real research. Teams and
@@ -110,6 +124,44 @@ Provenance rules (enforced by tests):
   REAL historical model data for real players — that is the product's
   research dataset, not synthetic fixtures, and is out of scope for the
   naming policy above.
+
+### Availability feed (NBA injuries)
+
+Each registered slate wires `injuries: 'nba_injuries_<date>.json'`, which
+flows through the SAME generic machinery NFL uses (`loadSlate` fetch →
+`state.injuries` → availability pill, drawer cards, surge intent, driver
+badges). NBA semantics differ from NFL and the adapter label owns the
+wording:
+
+- NBA injuries vacate **minutes** (`vacated_minutes` + `vacated_usage`),
+  not targets/air yards. The app.js quant-impact gate is
+  `item.vacated_targets || item.vacated_minutes` — sport-agnostic; NFL
+  items carry no `vacated_minutes`, so NFL rendering is unchanged.
+- `impacted_beneficiaries` rows carry `added_minutes` (driver badge
+  `Surge (+N min)`), `absorption_share`, `catalyst_injury`,
+  `invalidation_risk` — no baseline/conditional blocks (app.js never reads
+  them; they are an NFL fixture artifact).
+- QUESTIONABLE items carry a risk-weighted half of the player's minutes
+  (a game-time decision has not vacated the full role).
+
+Three generic-path defects surfaced the moment NBA had injuries, and are
+fixed + pinned by `test/nba-injuries.test.mjs`:
+
+1. the injury drawer receipt pill hardcoded a stale verified count (from a
+   pre-de-identification feed); it now derives from the same
+   `quoteState`-verified computation as the header `#marketState` pill;
+2. the quant-impact gate only checked `vacated_targets`, so every NBA item
+   silently degraded to the generic "Priced In" fallback;
+3. the slate selector rebuilt the active option as `W${week}` — NBA slates
+   are date-keyed with no `week`, rendering "Wundefined Fixture". Week-less
+   slates now keep their `shortLabel` ("Oct 22 Fixture").
+
+### Game-id convention (regression fix)
+
+Slate-row `game_id`s MUST join the games feed (repo-wide away-first shape,
+mirroring NFL `2026_07_AWAY_HOME`). The Oct 22 slate shipped home-first ids,
+which made every per-game filter selection silently match zero rows; the
+ids are normalized and both nights are pinned by a join test.
 
 ### Breaker status
 

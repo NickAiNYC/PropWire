@@ -517,8 +517,14 @@
       ? selector.querySelector(`option[value="${state.slateKey}"]`)
       : null;
     if (activeOption && !SLATES[state.slateKey]?.historical) {
-      const slateLabel = `W${SLATES[state.slateKey].week}`;
-      activeOption.textContent = `${slateLabel} ${label[0]}${label.slice(1).toLowerCase()}`;
+      // Live slates label by week and carry the feed-status suffix
+      // ("W7 Unverified"). Date-keyed fixture slates keep their shortLabel
+      // untouched — it already says "Fixture", and appending the FIXTURE
+      // status would read "Oct 22 Fixture Fixture".
+      const slateCfg = SLATES[state.slateKey] || {};
+      if (slateCfg.week != null) {
+        activeOption.textContent = `W${slateCfg.week} ${label[0]}${label.slice(1).toLowerCase()}`;
+      }
     }
     const statusPill = $('#mobileStatusPill');
     if (statusPill) statusPill.title = `${label} odds feed · Tap for telemetry`;
@@ -1557,7 +1563,7 @@
       signalGroup.innerHTML = intents.map((i, idx) => `<button type="button" class="signal-chip-btn${idx === 0 ? ' active' : ''}" data-intent="${esc(i.id)}">${esc(i.label)}</button>`).join('');
     }
     const slateOptions = (config) => Object.entries(config).map(([key, slate]) =>
-      `<option value="${esc(key)}">${esc(slate.state || key)}</option>`).join('');
+      `<option value="${esc(key)}">${esc(slate.shortLabel || slate.state || key)}</option>`).join('');
     const slateSelector = elById('slateSelector');
     if (slateSelector) slateSelector.innerHTML = slateOptions(adapter.slates);
     const mobileSlateSelector = elById('mobileSlateSelector');
@@ -1688,6 +1694,10 @@
     state.games = Array.isArray(games) ? games : [];
     state.picks = picks && typeof picks === 'object' ? picks : {};
     state.injuries = injuries && typeof injuries === 'object' ? injuries : { injuries: [], impacted_beneficiaries: {} };
+    // Slate switches invalidate the drawer body (it is built at toggle time
+    // from the previous slate's state) — collapse it so nothing stale shows.
+    const availabilityDrawer = $('#availabilityDetails') || $('#injuryDetails');
+    if (availabilityDrawer) availabilityDrawer.hidden = true;
     state.odds = normalizeFeed(odds);
     state.newsWatcherState = newsState && typeof newsState === 'object' ? newsState : { teams_locked: {}, players_pending: {} };
     state.breakerConfig = breakerCfg && typeof breakerCfg === 'object' && breakerCfg.sports ? breakerCfg : null;
@@ -1958,6 +1968,17 @@
     const injuries = Array.isArray(state.injuries.injuries) ? state.injuries.injuries : [];
     if (!injuries.length) return '';
 
+    // Same dynamic receipt count the header marketState pill uses — never a
+    // hardcoded number (the historical hardcoded count went stale when the
+    // de-identified W7 feed landed with 0 verified quotes).
+    const ingestedQuotes = Array.isArray(state.odds && state.odds.quotes) ? state.odds.quotes.length : 0;
+    const verifiedQuotes = ingestedQuotes
+      ? state.odds.quotes.filter((quote) => quoteState(quote) === 'verified').length
+      : 0;
+    const receiptPillText = ingestedQuotes > 0
+      ? `${verifiedQuotes}/${ingestedQuotes} Receipt-Verified`
+      : 'No book receipts ingested';
+
     const statusStyles = {
       red: 'status-tier-red',
       amber: 'status-tier-amber',
@@ -1973,7 +1994,9 @@
       const crest = teamCrest(item.team, 'md');
 
       let quantImpact = '';
-      if (item.vacated_targets) {
+      // Sport-agnostic gate: NFL injuries vacate targets/air yards; NBA-style
+      // injuries vacate minutes. The adapter label owns the unit wording.
+      if (item.vacated_targets || item.vacated_minutes) {
         quantImpact = adapter.labels.injuredQuantImpact.vacated(item);
       } else if (item.notes && item.notes.includes('0.50x Kelly Stake Cap')) {
         quantImpact = '0.50x Kelly Stake Cap · Elevated Variance';
@@ -2045,7 +2068,7 @@
             <span class="pw-injury-summary-preview">${topHeader}</span>
           </div>
           <div class="pw-injury-header-right">
-            <span class="pw-injury-receipt-pill">64/64 Receipt-Verified</span>
+            <span class="pw-injury-receipt-pill">${esc(receiptPillText)}</span>
             <button type="button" id="injuryCloseBtn" class="pw-injury-close-btn" aria-label="Close availability drawer">Hide details ▴</button>
           </div>
         </div>

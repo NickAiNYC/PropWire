@@ -1,0 +1,108 @@
+{
+ "_fixture": true,
+ "as_of": "2026-10-22T17:00:00Z",
+ "slate_date": "2026-10-22",
+ "season": 2026,
+ "total_active_injuries": 2,
+ "injuries": [
+  {
+   "_fixture": true,
+   "injury_id": "fx-inj-1-2026-10-22",
+   "player_id": "fx-nba-player-a",
+   "player_name": "Player A",
+   "team": "BOS",
+   "opponent": "NYK",
+   "game_id": "nba-20261022-BOS-NYK",
+   "position": "SF",
+   "injury_type": "Knee \u2014 Patellar Tendonitis",
+   "report_status": "OUT",
+   "practice_status": "Did Not Practice (Estimated)",
+   "severity": "CRITICAL",
+   "source": "PropWire fixture availability report \u2014 synthetic, not a real injury report",
+   "updated_at": "2026-10-22T17:00:00Z",
+   "notes": "Ruled out for the opener; absence is synthetic fixture context. Vacates a primary usage role and the largest minutes share on the roster.",
+   "vacated_minutes": 36.0,
+   "vacated_usage": 0.315,
+   "redistribution_plan": {
+    "fx-nba-player-b": {
+     "_fixture": true,
+     "beneficiary_name": "Player B",
+     "position": "SG",
+     "absorption_share": 0.4,
+     "role_type": "Primary creation minutes",
+     "added_minutes": 6.5,
+     "role_label": "PROVISIONAL SURGE (Minutes Vacancy)",
+     "role_class": "role-surge",
+     "invalidation_risk": "Defensive matchups dictate whether the expanded role survives the second unit."
+    },
+    "fx-nba-player-c": {
+     "_fixture": true,
+     "beneficiary_name": "Player C",
+     "position": "PG",
+     "absorption_share": 0.3,
+     "role_type": "Secondary ball-handling bulk",
+     "added_minutes": 4.5,
+     "role_label": "PROVISIONAL SURGE (Minutes Vacancy)",
+     "role_class": "role-surge",
+     "invalidation_risk": "Foul trouble collapses the experiment quickly; bench guard steals minutes."
+    }
+   }
+  },
+  {
+   "_fixture": true,
+   "injury_id": "fx-inj-2-2026-10-22",
+   "player_id": "fx-nba-player-s",
+   "player_name": "Player S",
+   "team": "OKC",
+   "opponent": "DEN",
+   "game_id": "nba-20261022-DEN-OKC",
+   "position": "PG",
+   "injury_type": "Ankle Sprain (Grade 1)",
+   "report_status": "QUESTIONABLE",
+   "practice_status": "Limited Practice (Estimated)",
+   "severity": "ELEVATED",
+   "source": "PropWire fixture availability report \u2014 synthetic, not a real injury report",
+   "updated_at": "2026-10-22T17:00:00Z",
+   "notes": "Game-time decision on a synthetic fixture slate; a limited designation flags minutes risk without removing the player from the board.",
+   "vacated_minutes": 17.3,
+   "vacated_usage": 0.345,
+   "redistribution_plan": {}
+  }
+ ],
+ "impacted_beneficiaries": {
+  "fx-nba-player-b": {
+   "_fixture": true,
+   "player_id": "fx-nba-player-b",
+   "player_name": "Player B",
+   "team": "BOS",
+   "opponent": "NYK",
+   "game_id": "nba-20261022-BOS-NYK",
+   "position": "SG",
+   "catalyst_injury": "Player A (Knee \u2014 Patellar Tendonitis OUT)",
+   "injury_id": "fx-inj-1-2026-10-22",
+   "role_type": "Primary creation minutes",
+   "role_label": "PROVISIONAL SURGE (Minutes Vacancy)",
+   "role_class": "role-surge",
+   "absorption_share": 0.4,
+   "added_minutes": 6.5,
+   "invalidation_risk": "Defensive matchups dictate whether the expanded role survives the second unit."
+  },
+  "fx-nba-player-c": {
+   "_fixture": true,
+   "player_id": "fx-nba-player-c",
+   "player_name": "Player C",
+   "team": "BOS",
+   "opponent": "NYK",
+   "game_id": "nba-20261022-BOS-NYK",
+   "position": "PG",
+   "catalyst_injury": "Player A (Knee \u2014 Patellar Tendonitis OUT)",
+   "injury_id": "fx-inj-1-2026-10-22",
+   "role_type": "Secondary ball-handling bulk",
+   "role_label": "PROVISIONAL SURGE (Minutes Vacancy)",
+   "role_class": "role-surge",
+   "absorption_share": 0.3,
+   "added_minutes": 4.5,
+   "invalidation_risk": "Foul trouble collapses the experiment quickly; bench guard steals minutes."
+  }
+ }
+}
