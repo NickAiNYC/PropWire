@@ -8176,3 +8176,29 @@ body { background: #0f131a; color: #e2e8f0; }
   .pw-brand { width: 148px !important; min-width: 148px !important; }
   .pw-brand-img { width: 136px !important; height: 34px !important; max-width: 136px !important; }
 }
+
+/* ─── Brand micro-interaction v3 — glow, light-theme aware ────────────────
+   Supersedes the line-7105 hover rule (same specificity, later block wins).
+   Glow-only: wordmarks shouldn't move (Linear/Vercel pattern); reduced-
+   motion users get a static logo. */
+.pw-brand { transition: background-color .15s ease, border-color .15s ease; }
+.pw-brand-img { transition: filter .18s ease; }
+.pw-brand:hover .pw-brand-img {
+  filter: drop-shadow(0 0 9px rgba(182, 243, 107, .38)) drop-shadow(0 0 2px rgba(182, 243, 107, .25));
+}
+[data-theme="light"] .pw-brand:hover .pw-brand-img {
+  filter: drop-shadow(0 0 7px rgba(77, 124, 15, .30));
+}
+@media (prefers-reduced-motion: reduce) {
+  .pw-brand, .pw-brand-img { transition: none; }
+}
+/* Mobile chip: the ≤768 cascade sets .pw-brand-img { display:block !important }
+   on BOTH variant imgs, which out-ranks the [data-theme] swap (no !important)
+   -> light theme showed the dark-ink SVG on the white chip ("Prop" ghosted
+   invisible). Re-assert the swap at equal importance; attr selector wins. */
+@media (max-width: 768px) {
+  .pw-brand-dark-only { display: inline-block !important; }
+  .pw-brand-light-only { display: none !important; }
+  [data-theme="light"] .pw-brand-dark-only { display: none !important; }
+  [data-theme="light"] .pw-brand-light-only { display: inline-block !important; }
+}
