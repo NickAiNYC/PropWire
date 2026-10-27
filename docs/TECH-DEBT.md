@@ -62,6 +62,7 @@ consolidated into this `docs/` set with the phase-2 PR (root copies removed).
 | 2026-10-27 | 7 | Production entitlement fails closed when Whop configuration is absent. | Missing configuration must not grant paid access. |
 | 2026-10-27 | 7 | Explicit CORS origins; header-only admin credentials. | Wildcard credentialed CORS and query-string secrets are unacceptable in production. |
 | 2026-10-27 | 2 | Cache-bump convention: user-visible viewer-asset changes bump the cache triple coherently (index `?v=` ×5, sw cache name + precache, build-hash) in the same PR; comments-only JS deltas do not require a bump. | Prevents the v134/v135-style cross-PR cache-line conflicts while still forcing client refresh for real changes. |
+| 2026-10-27 | restyle | Dark-lock + baby-blue brand (FanDuel calibration): the terminal is dark-only. PR #13's light/dark toggle is removed; app.js §11 dark-locks at boot and clears stale `propwire-theme` keys. The `[data-theme="light"]` CSS hooks stay dormant — restoring light = re-add the toggle + revert §11. Brand accent lime → baby blue (`#7dd3fc` family), slate-gray surfaces unified to navy (`#0f131a` family), primary text → white; semantic emerald/amber/red untouched. Cache v143 → v144 + build-hash 2026-w7-v9 in the same PR. | One presentation removes the three-cascade palette fight (`:root` ×3) and the maintenance surface of a half-used light theme; brand vs semantic color separation is now explicit. |
 
 ## Phase-2 pass record (2026-10-27, branch `refactor/phase2-readability`)
 
@@ -79,7 +80,8 @@ untouched. Changes to `viewer/app.js`:
   deleted them. PR #13 then shipped a **live** theme system (boot-dark,
   header toggle, localStorage persistence, meta theme-color); the rebase kept
   the implementation in §11 and replaced the removal comment with an accurate
-  one. Owed: pinning test for the toggle contract (see docs/TESTING.md backlog).
+  one. Superseded 2026-10-27: the dark-lock restyle removed the toggle and
+  rewrote §11 (see Key decisions) — no toggle contract exists to pin.
 - **Named constant**: `CLV_ROOT_HASH_FALLBACK` replaces the inline
   `'207ba3d4c4225c1d'` literal in `updateClvFooter` (see §R1).
 
@@ -170,6 +172,6 @@ Reserve at least 15% of each release for reliability/security debt. P0 trust, au
 - [ ] B4 v2: game pages + per-week regeneration of the public pages (owner: engineering, P1 — after PR #14 lands); pricing page needs product input.
 - [ ] B5: Decision view default mode + 3-step onboarding guide (owner: engineering, P1).
 - [ ] Resolve §R1 (root-hash fallback) during Phase 3 (owner: engineering).
-- [ ] Pin the theme toggle contract with a test (aria-state + persistence; shipped live in PR #13, app.js §11) (owner: engineering, P2).
+- [x] ~~Pin the theme toggle contract with a test~~ — closed 2026-10-27: the dark-lock restyle removed the toggle (app.js §11; Key decisions row), so the contract no longer exists.
 - [ ] Re-materialize ARCHITECTURE.md and expand thin docs/RELIABILITY.md from the 2026-10-27 planning session (owner: engineering, next touch of phases 5/7).
-- [ ] Cache state: main @ v141; PR #14 carries coherent v142. This phase-2 PR needs **no** cache bump (comments-only app.js delta) and is file-disjoint from PR #14 — either merge order works.
+- [x] Cache state: main @ v142; PR #16 (brand lockup v2/v3) carries coherent v143; the dark-restyle PR is stacked on #16 and carries v144 + build-hash 2026-w7-v9 — merge #16 first, then the restyle, to keep the triple coherent at every merge point.

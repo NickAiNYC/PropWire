@@ -56,16 +56,19 @@ MARK_PATHS = [
 MARK_RAW_BBOX = (15.6, 12.0, 184.4, 188.0)   # control-point hull of both paths
 
 # ── Palettes ────────────────────────────────────────────────────────────────
+# 2026-10 restyle: brand moved lime -> baby blue (white + baby-blue dark
+# theme, FanDuel-calibrated). Ramps anchor on the CSS tokens:
+# --baby-blue #7dd3fc / bright #bae6fd / deep #38bdf8.
 DARK_PALETTE = {
-    "prop": "#F3F4F6",
-    "mark_grad": ("#CDF783", "#9BE84C"),     # vertical: lighter lime top
-    "wire_grad": ("#C6F576", "#8FE04E"),     # horizontal sheen on "Wire"
+    "prop": "#FFFFFF",
+    "mark_grad": ("#A5DCFB", "#5CB9F0"),     # vertical: lighter baby-blue top
+    "wire_grad": ("#8FD2F8", "#47AEE8"),     # horizontal sheen on "Wire"
     "subtitle": "#8B949E",
 }
 LIGHT_PALETTE = {
     "prop": "#17202b",
-    "mark_grad": ("#5A971E", "#41690E"),
-    "wire_grad": ("#4d7c0f", "#3A5F0B"),
+    "mark_grad": ("#3D8FD0", "#22619C"),
+    "wire_grad": ("#2F7CBC", "#1C5286"),
     "subtitle": "#526174",
 }
 

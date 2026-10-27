@@ -1519,41 +1519,20 @@
     });
   }
 
-  // Terminal is permanently locked into dark institutional mode at boot;
-  // the theme toggle shipped live with the commercial-execution hardening
-  // PR (#13) and lives here in §11: header button flips light/dark with
-  // localStorage persistence. Owed follow-up (see docs/TECH-DEBT.md): a
-  // pinning test for the toggle's aria-state + persistence contract.
+  // Terminal is dark-locked (2026-10 restyle): one calibrated FanDuel-style
+  // dark palette — obsidian navy canvas, white text, baby-blue accent. The
+  // PR #13 light/dark toggle was removed with the restyle and any stale
+  // persisted choice is cleared so every visitor gets the same shell. The
+  // [data-theme="light"] CSS hooks stay dormant; restoring a toggle is a
+  // one-commit revert (docs/TECH-DEBT.md — dark-lock decision row).
   const THEME_KEY = 'propwire-theme';
 
-  function applyTheme(theme) {
-    const next = theme === 'light' ? 'light' : 'dark';
-    document.documentElement.dataset.theme = next;
-    document.documentElement.classList.toggle('dark', next === 'dark');
-    const toggle = $('#themeToggle');
-    if (toggle) {
-      toggle.setAttribute('aria-label', `Switch to ${next === 'dark' ? 'light' : 'dark'} theme`);
-      toggle.setAttribute('aria-pressed', String(next === 'light'));
-      toggle.title = `${next === 'dark' ? 'Light' : 'Dark'} high-trust theme`;
-    }
-    const meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.setAttribute('content', next === 'light' ? '#f4f6f8' : '#0f131a');
-    return next;
-  }
-
   function initTheme() {
-    let saved = 'dark';
-    try { saved = localStorage.getItem(THEME_KEY) || 'dark'; } catch (_) {}
-    applyTheme(saved);
-    const toggle = $('#themeToggle');
-    if (toggle) toggle.addEventListener('click', toggleTheme);
-  }
-
-  function toggleTheme() {
-    const current = document.documentElement.dataset.theme === 'light' ? 'light' : 'dark';
-    const next = applyTheme(current === 'dark' ? 'light' : 'dark');
-    try { localStorage.setItem(THEME_KEY, next); } catch (_) {}
-    triggerHaptic('light');
+    document.documentElement.dataset.theme = 'dark';
+    document.documentElement.classList.add('dark');
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute('content', '#0f131a');
+    try { localStorage.removeItem(THEME_KEY); } catch (_) {}
   }
 
   // ─── Sport switcher + per-sport filter chrome (Phase 2) ─────────────
