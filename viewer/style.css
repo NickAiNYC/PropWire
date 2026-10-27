@@ -8135,3 +8135,44 @@ body { background: #0f131a; color: #e2e8f0; }
   flex-wrap: wrap;
   margin: .8rem 0 0;
 }
+
+/* ─── Header brand lockup v2 — bigger mark, theme-aware variant ──────────
+   One vector lockup on every page. The PNG letterboxed to ~35px inside its
+   40px box (917x199 aspect 4.61 vs a 4:1 box), and the white PROP text was
+   invisible on the light topbar. Fix: SVG everywhere + a dark-ink variant
+   swapped by CSS on [data-theme="light"]. Lockup grows 40 -> 52px desktop
+   (topbar 46 -> 56), 44px tablet, 34px mobile (topbar 48). This end-of-file
+   block is the authority for brand sizing; earlier blocks are superseded. */
+.pw-brand-dark-only { display: inline-block; }
+.pw-brand-light-only { display: none; }
+[data-theme="light"] .pw-brand-dark-only { display: none; }
+[data-theme="light"] .pw-brand-light-only { display: inline-block; }
+/* The brand renders in a dark tile (.pw-brand bg #101620) that otherwise
+   never adapts — dark-ink lockup on it would be unreadable in light mode.
+   Same light treatment the cascade gives every other chrome surface. */
+[data-theme="light"] .pw-brand {
+  background: #fff !important;
+  border-color: #c8d1dc !important;
+}
+.pw-topbar { height: 56px; }
+.pw-brand { min-width: 216px; }
+.pw-brand-img { width: 208px; height: 52px; max-width: none; object-fit: contain; object-position: left center; }
+@media (min-width: 901px) and (max-width: 1199px) {
+  .pw-topbar { height: 52px; }
+  .pw-brand { min-width: 184px; }
+  .pw-brand-img { width: 176px; height: 44px; }
+}
+@media (min-width: 769px) and (max-width: 900px) {
+  /* topbar keeps auto-height wrap behavior from the <900px block */
+  .pw-brand { min-width: 184px; }
+  .pw-brand-img { width: 176px; height: 44px; }
+}
+@media (max-width: 768px) {
+  /* Mobile brand renders inside the compact chip (border/bg from the v3
+     cascade at .pw-brand ≤768); only its size grows here. Chip 124 -> 148px,
+     lockup 118x30 -> 136x34 (exact 4:1, no letterbox). */
+  .pw-topbar { height: 48px !important; min-height: 48px !important; }
+  .pw-topbar-left { flex: 0 0 148px !important; min-width: 148px !important; }
+  .pw-brand { width: 148px !important; min-width: 148px !important; }
+  .pw-brand-img { width: 136px !important; height: 34px !important; max-width: 136px !important; }
+}
