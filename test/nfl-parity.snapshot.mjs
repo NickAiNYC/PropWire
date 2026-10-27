@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { canonical, normalizeTokens, buildSandbox, loadApp, attachSyntheticQuote, VIEWER } from './helpers/sandbox.mjs';
+import { canonical, normalizeTokens, buildSandbox, loadApp, attachSyntheticQuote, authorizeSyntheticExecution, VIEWER } from './helpers/sandbox.mjs';
 
 /**
  * NFL PARITY SNAPSHOT HARNESS — test/nfl-parity.snapshot.mjs
@@ -133,6 +133,7 @@ async function dumpLedger(P, lsStore) {
   P.state.filters.market = 'receiving_yards';
   P.state.portfolio = [];
   P.logBet(quoted.player_id);
+  P.confirmExecution(quoted.player_id);
   const entry = P.state.portfolio[0];
   assert.ok(entry, 'logBet must create a ledger entry');
 
@@ -182,7 +183,8 @@ async function captureAll() {
   // Provenance hotfix: shipped demo quotes must never attach to the real
   // slate, so the harness injects its own efficient-market quote (see
   // sandbox.mjs attachSyntheticQuote) before modal/ledger/renders capture.
-  attachSyntheticQuote(P);
+  const synthetic = attachSyntheticQuote(P);
+  authorizeSyntheticExecution(P, synthetic);
   P.state.filters.market = 'receiving_yards';
 
   const snaps = {};

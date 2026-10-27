@@ -54,12 +54,20 @@ def resolve_file(path_env: str, default_filename: str) -> str:
 
 app = FastAPI(title="NFL Receiving Props Agent", version="0.2.0")
 
+allowed_origins = [
+    origin.strip()
+    for origin in os.environ.get(
+        "ALLOWED_ORIGINS",
+        "https://propwire.vercel.app,http://127.0.0.1:4180,http://localhost:4180",
+    ).split(",")
+    if origin.strip()
+]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=allowed_origins,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type", "X-Admin-Key", "X-Admin-Token"],
 )
 
 
@@ -70,9 +78,12 @@ app.add_middleware(
 
 def verify_entitlement(authorization: str | None) -> dict:
     key = os.environ.get("WHOP_API_KEY")
-    # If WHOP_API_KEY is not set in environment (e.g. self-hosted / dev), allow pass-through
     if not key:
-        return {"status": "active", "note": "whop disabled or local dev"}
+        is_production = os.environ.get("APP_ENV", "production").lower() == "production"
+        explicit_dev_bypass = os.environ.get("PROPWIRE_ALLOW_DEV_AUTH_BYPASS") == "1"
+        if not is_production and explicit_dev_bypass:
+            return {"status": "active", "note": "explicit local-development bypass"}
+        raise HTTPException(503, "entitlement verification is unavailable")
 
     if not authorization or not authorization.startswith("Bearer "):
         raise HTTPException(401, "missing bearer token")
@@ -91,9 +102,27 @@ def verify_entitlement(authorization: str | None) -> dict:
     return m
 
 
-@app.get("/health")
-def health():
+@app.get("/health/live")
+def health_live():
     return {"ok": True, "ts": datetime.now(timezone.utc).isoformat()}
+
+
+@app.get("/health")
+@app.get("/health/ready")
+def health_ready():
+    checks = {
+        "entitlement_configured": bool(os.environ.get("WHOP_API_KEY")),
+        "viewer_available": os.path.isfile(os.path.join(VIEWER_DIR, "index.html")),
+        "slate_available": any(
+            os.path.isfile(os.path.join(VIEWER_DIR, filename))
+            for filename in ("slate_2026_w7.json", "slate_projections.json")
+        ),
+    }
+    ok = all(checks.values())
+    return JSONResponse(
+        {"ok": ok, "checks": checks, "ts": datetime.now(timezone.utc).isoformat()},
+        status_code=200 if ok else 503,
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -418,15 +447,14 @@ async def run_week_stream(
     week: int = Query(1, description="Week Number"),
     odds: bool = Query(False, description="Pull live odds via The Odds API"),
     all_games: bool = Query(True, description="Include all games regardless of kickoff"),
-    admin_token: Optional[str] = Query(None, description="Admin token query parameter"),
-    x_admin_key: Optional[str] = Header(None, description="Admin token HTTP header"),
+    x_admin_key: Optional[str] = Header(None, alias="X-Admin-Key", description="Admin token HTTP header"),
 ):
     """
     Executes src/week1.py in a separate process, streaming stdout line-by-line
     via Server-Sent Events (SSE). Strictly gated behind ADMIN_TOKEN in production.
     """
     admin_secret = os.environ.get("ADMIN_TOKEN")
-    provided_key = x_admin_key or admin_token
+    provided_key = x_admin_key
     client_host = request.client.host if request.client else ""
     is_localhost = client_host in ("127.0.0.1", "::1", "localhost", "testclient")
     if admin_secret:

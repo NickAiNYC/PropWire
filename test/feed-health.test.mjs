@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { buildSandbox, loadApp, attachSyntheticQuote, VIEWER } from './helpers/sandbox.mjs';
+import { buildSandbox, loadApp, attachSyntheticQuote, authorizeSyntheticExecution, VIEWER } from './helpers/sandbox.mjs';
 
 /**
  * FEED HEALTH / FAILURE-MODE UI — Phase 2, commit 5.
@@ -157,8 +157,8 @@ test('fixture datasets suppress staleness signals (static by design)', async () 
   assert.equal(states.oddsFreshness, 'ok');
 });
 
-test('ledger provenance: fixture entries stamped, NFL live entries carry no field', async () => {
-  // NBA: every entry from fixture quotes is stamped.
+test('ledger trust boundary: fixture entries are blocked; trusted NFL entries preserve schema', async () => {
+  // NBA fixtures are research-only and must never create wager records.
   const nba = buildSandbox({ seedLocalStorage: { propwire_active_sport: 'nba' } });
   const NP = loadApp(nba.sandbox);
   await NP.loadSlate(NP.defaultBootSlate());
@@ -166,9 +166,8 @@ test('ledger provenance: fixture entries stamped, NFL live entries carry no fiel
   NP.state.filters.market = 'points';
   NP.state.portfolio = [];
   NP.logBet(fixtureQuote.player_id);
-  assert.equal(NP.state.portfolio.length, 1);
-  assert.equal(NP.state.portfolio[0].data_provenance, 'fixture');
-  assert.equal(NP.state.portfolio[0].sport, 'nba');
+  assert.equal(NP.state.portfolio.length, 0);
+  assert.equal(NP.executionDecision(NP.state.slate.find((row) => row.player_id === fixtureQuote.player_id)).code, 'historical');
 
   // NFL: the ledger schema must remain byte-identical — no provenance key.
   const nfl = buildSandbox();
@@ -176,11 +175,13 @@ test('ledger provenance: fixture entries stamped, NFL live entries carry no fiel
   await FP.loadSlate('2026_w7');
   // Shipped demo quotes intentionally fail slate matching (provenance hotfix);
   // harness-only synthetic quote provides the attachable input.
-  attachSyntheticQuote(FP);
+  const synthetic = attachSyntheticQuote(FP);
+  authorizeSyntheticExecution(FP, synthetic);
   const liveQuote = FP.state.odds.quotes.find((q) => q.quote_id === 'harness_synthetic_open');
   FP.state.filters.market = 'receiving_yards';
   FP.state.portfolio = [];
   FP.logBet(liveQuote.player_id);
+  FP.confirmExecution(liveQuote.player_id);
   assert.equal(FP.state.portfolio.length, 1);
   assert.equal('data_provenance' in FP.state.portfolio[0], false, 'NFL live entries must NOT gain the field (parity)');
   assert.equal(FP.state.portfolio[0].sport, 'nfl');

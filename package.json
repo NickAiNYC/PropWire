@@ -5,7 +5,8 @@
   "description": "Institutional quantitative receiving props terminal and CLV ledger.",
   "scripts": {
     "test": "node --test",
-    "check": "node --check app.js && node --test",
+    "check": "node --check viewer/app.js && node --check viewer/sw.js && node --test",
+    "check:production": "npm run check",
     "build:extension": "bash scripts/package_extension.sh"
   },
   "engines": {
