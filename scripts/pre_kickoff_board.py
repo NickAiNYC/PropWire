@@ -1,0 +1,152 @@
+"""
+Pre-Kickoff Board Funnel Generator (Phase 4)
+Generates the daily pre-kickoff qualified board with zero marketing fluff.
+Outputs markdown, plaintext, and HTML email formats.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import sys
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, Dict, List
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+VIEWER_DIR = BASE_DIR / "viewer"
+
+
+def generate_board(slate_key: str = "2026_w7") -> Dict[str, Any]:
+    snaps_file = VIEWER_DIR / f"snapshots_{slate_key}.json"
+    if not snaps_file.exists():
+        snaps_file = VIEWER_DIR / "snapshots_2026_w7.json"
+
+    with open(snaps_file, "r", encoding="utf-8") as f:
+        snaps = json.load(f)
+
+    # Filter to quoted props
+    quoted = [
+        s for s in snaps
+        if (s.get("quote") or {}).get("line") is not None
+        and ((s.get("quote") or {}).get("odds") is not None or (s.get("quote") or {}).get("over_odds") is not None)
+    ]
+
+    # Sort by projected volume or name
+    items: List[Dict[str, Any]] = []
+    for s in quoted[:25]:
+        q = s["quote"]
+        proj = s.get("projection") or {}
+        items.append({
+            "player": s.get("player_name"),
+            "team": s.get("team"),
+            "opponent": s.get("opponent"),
+            "market": "Yards" if s.get("market") == "receiving_yards" else "Receptions",
+            "book": q.get("book", "Consensus"),
+            "line": q.get("line"),
+            "odds": q.get("over_odds") or q.get("odds"),
+            "fair_line": proj.get("fair_line"),
+            "proj_volume": proj.get("proj_volume"),
+            "role": (s.get("role") or {}).get("label", "none")
+        })
+
+    # Build text format
+    text_lines = [
+        "PROPWIRE PRE-KICKOFF BOARD",
+        f"Slate: {slate_key} | Generated: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')}",
+        "Zero Tout Fluff · Pure Distribution Math · Transparent Limitations",
+        "=" * 60,
+        "STATUS NOTE:",
+        "Model has no statistically verified edge over market closing lines at this time.",
+        "Trigger decisions (N=37) 95% CI: [-0.10, +1.45], spans zero. For informational research only.",
+        "-" * 60,
+        f"{'PLAYER':<20} {'MKT':<6} {'LINE':<6} {'ODDS':<6} {'FAIR':<6} {'PROJ':<6} {'BOOK'}",
+        "-" * 60,
+    ]
+    for it in items:
+        text_lines.append(
+            f"{it['player']:<20} {it['market']:<6} {it['line']:<6} {it['odds']:<6} "
+            f"{it['fair_line']:<6} {it['proj_volume']:<6} {it['book']}"
+        )
+    text_lines.append("=" * 60)
+    text_lines.append("Full auditable terminal: https://propwire.vercel.app")
+    text_lines.append("To inspect model distributions: https://propwire.vercel.app/methodology/")
+
+    # Build HTML format
+    rows_html = "".join([
+        f"<tr>"
+        f"<td><strong>{it['player']}</strong> ({it['team']} vs {it['opponent']})</td>"
+        f"<td>{it['market']}</td>"
+        f"<td>{it['line']} ({it['odds']})</td>"
+        f"<td>{it['fair_line']}</td>"
+        f"<td>{it['proj_volume']}</td>"
+        f"<td>{it['book']}</td>"
+        f"</tr>"
+        for it in items
+    ])
+
+    html = f"""<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>PropWire Pre-Kickoff Board</title>
+  <style>
+    body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #070708; color: #f8fafc; padding: 24px; }}
+    .container {{ max-width: 680px; margin: 0 auto; background: #0e1117; border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 20px; }}
+    h1 {{ font-size: 18px; margin-top: 0; color: #D4FB11; }}
+    .meta {{ font-size: 12px; color: #94a3b8; margin-bottom: 16px; }}
+    .warning {{ background: rgba(245, 158, 11, 0.1); border-left: 3px solid #f59e0b; padding: 10px; font-size: 12px; color: #cbd5e1; margin-bottom: 20px; }}
+    table {{ width: 100%; border-collapse: collapse; font-size: 13px; }}
+    th {{ text-align: left; padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); color: #94a3b8; font-weight: 600; }}
+    td {{ padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.05); }}
+    .footer {{ font-size: 11px; color: #64748b; margin-top: 20px; text-align: center; }}
+    a {{ color: #D4FB11; text-decoration: none; }}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>PROPWIRE PRE-KICKOFF BOARD</h1>
+    <div class="meta">Slate {slate_key} &middot; Generated {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')}</div>
+    <div class="warning">
+      <strong>Research Disclaimer:</strong> Model edge is unvalidated across closing lines (95% CI includes zero). All metrics published for auditability and quantitative research.
+    </div>
+    <table>
+      <thead>
+        <tr><th>Player</th><th>Market</th><th>Market Line</th><th>Fair Line</th><th>Proj Vol</th><th>Book</th></tr>
+      </thead>
+      <tbody>
+        {rows_html}
+      </tbody>
+    </table>
+    <div class="footer">
+      Live terminal: <a href="https://propwire.vercel.app">propwire.vercel.app</a> &middot; Methodology: <a href="https://propwire.vercel.app/methodology/">propwire.vercel.app/methodology/</a>
+    </div>
+  </div>
+</body>
+</html>"""
+
+    return {
+        "text": "\n".join(text_lines),
+        "html": html,
+        "item_count": len(items)
+    }
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Generate zero-fluff pre-kickoff board")
+    parser.add_argument("--slate", default="2026_w7", help="Slate key")
+    parser.add_argument("--output-html", default=None, help="Path to write HTML email")
+    args = parser.parse_args()
+
+    res = generate_board(args.slate)
+    if args.output_html:
+        with open(args.output_html, "w", encoding="utf-8") as f:
+            f.write(res["html"])
+        print(f"Wrote HTML board ({res['item_count']} items) to {args.output_html}")
+    else:
+        print(res["text"])
+
+
+if __name__ == "__main__":
+    main()
