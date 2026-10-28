@@ -7813,7 +7813,7 @@ body { background: #0b0e14; color: #ffffff; }
 .meta-pill.model-only,
 .exec-tag-none { color: #94a3b8; background: #181f2a; border-color: #2a3547; }
 .meta-pill.model-only::before,
-.exec-tag-none::before { content: '🔒'; font-size: 8px; margin-right: 4px; filter: grayscale(1); }
+.exec-tag-none::before { content: ''; display: inline-block; width: 5px; height: 5px; border-radius: 50%; background: #64748B; margin-right: 5px; vertical-align: middle; }
 .injury-warning-tag,
 .pw-injury-status-badge.status-out,
 .pw-injury-status-badge.status-ir {
@@ -8123,7 +8123,7 @@ body { background: #0b0e14; color: #ffffff; }
 .execution-checks.has-block { border-color: #b7802e; background: rgba(92,60,18,.20); }
 .execution-checks h4, .execution-section-heading h4 { margin: 0; font: 650 13px/1.3 var(--sans); }
 .execution-checks ul { display: flex; flex-wrap: wrap; gap: 7px 20px; margin: 9px 0 0; padding: 0; list-style: none; color: #aeb9c9; font: 500 12px/1.4 var(--sans); }
-.execution-checks li::before { content: '✓'; margin-right: 6px; color: #65d49a; }
+.execution-checks li::before { content: '•'; margin-right: 6px; color: #65d49a; font-size: 14px; vertical-align: middle; }
 .execution-checks.has-block li::before { content: '!'; color: #d9a441; }
 .cross-book-section { margin-top: 24px; }
 .execution-section-heading { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
@@ -9969,8 +9969,14 @@ input[type="range"]::-webkit-slider-thumb:hover {
 }
 
 .anti-tout-research-strip .anti-tout-title::before {
-  content: "🛡️";
-  font-size: 14px !important;
+  content: "";
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: #38bdf8;
+  box-shadow: 0 0 6px #38bdf8;
+  margin-right: 6px;
 }
 
 .anti-tout-research-strip .anti-tout-desc {
@@ -10243,4 +10249,171 @@ input[type="range"]::-webkit-slider-thumb:hover {
 .pw-btn-upgrade {
   display: none !important;
 }
+
+/* 6. Third-Party Floating Extension Containment (1688 / Caigou Assistant Isolation) */
+[id*="1688"], [class*="1688"],
+[id*="caigou"], [class*="caigou"],
+[id*="cai-gou"], [class*="cai-gou"],
+[id*="aliprice"], [class*="aliprice"],
+[id*="extension-root"], [class*="extension-root"],
+[id*="floating-search"], [class*="floating-search"],
+div[id^="__cai"], div[class^="__cai"],
+div[id^="__1688"], div[class^="__1688"],
+div[class*="c-assistant"], div[id*="c-assistant"] {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  opacity: 0 !important;
+  width: 0 !important;
+  height: 0 !important;
+  position: absolute !important;
+  clip: rect(0, 0, 0, 0) !important;
+  z-index: -999999 !important;
+}
+
+body {
+  position: relative;
+  isolation: isolate;
+}
+
+/* 7. Bottom Clearance: Content Never Obscured By Floating Bottom Nav */
+.shell,
+.shell.page,
+#slateBoard,
+#cardView,
+#slateTableWrap,
+#portfolioView,
+#clvView,
+#auditView {
+  padding-bottom: calc(96px + env(safe-area-inset-bottom, 24px)) !important;
+}
+
+/* 8. High Contrast Alert Banner (Stale Odds / Telemetry Warning) */
+.data-quality-banner.warn {
+  background: rgba(26, 18, 7, 0.96) !important;
+  border: 1.5px solid #F59E0B !important;
+  box-shadow: 0 0 16px rgba(245, 158, 11, 0.22), 0 4px 20px rgba(0, 0, 0, 0.75) !important;
+}
+
+.data-quality-banner.warn .dq-item strong {
+  color: #F59E0B !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.06em !important;
+}
+
+.data-quality-banner.warn .dq-item strong::before {
+  background: #F59E0B !important;
+  box-shadow: 0 0 8px #F59E0B !important;
+}
+
+.data-quality-banner.warn .dq-item span {
+  color: #F3F4F6 !important;
+  font-weight: 500 !important;
+}
+
+.data-quality-banner.error {
+  background: rgba(30, 10, 10, 0.96) !important;
+  border: 1.5px solid #EF4444 !important;
+  box-shadow: 0 0 16px rgba(239, 68, 68, 0.25), 0 4px 20px rgba(0, 0, 0, 0.75) !important;
+}
+
+.data-quality-banner.error .dq-item strong {
+  color: #EF4444 !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.06em !important;
+}
+
+.data-quality-banner.error .dq-item strong::before {
+  background: #EF4444 !important;
+  box-shadow: 0 0 8px #EF4444 !important;
+}
+
+.data-quality-banner.error .dq-item span {
+  color: #FEE2E2 !important;
+  font-weight: 500 !important;
+}
+
+/* 9. Header & Filter Sub-Bar Enterprise Precision Polish */
+.pw-topbar {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.pw-filterbar {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+  background: rgba(10, 13, 19, 0.95) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+}
+
+/* Dedicated Search Input Real Estate */
+.command-search-wrap,
+.pw-search-wrap {
+  background: rgba(15, 20, 29, 0.9) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  border-radius: 999px !important;
+  transition: all 0.15s ease !important;
+}
+
+.command-search-wrap:focus-within,
+.pw-search-wrap:focus-within {
+  border-color: #38BDF8 !important;
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.18), 0 2px 8px rgba(0, 0, 0, 0.6) !important;
+}
+
+.command-search-wrap .pw-search-input {
+  color: #FFFFFF !important;
+}
+
+.command-search-wrap .pw-search-input::placeholder {
+  color: #64748B !important;
+  font-weight: 450 !important;
+}
+
+/* Standardized Segmented Control Containers */
+.chip-segment-group,
+.sport-switcher,
+.pw-view-toggle {
+  background: rgba(14, 18, 26, 0.88) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 999px !important;
+  padding: 3px !important;
+  gap: 2px !important;
+}
+
+/* Unselected Pills: Transparent with Clean Border */
+.chip-segment-group .chip-pill,
+.sport-switch-btn,
+.pw-seg-btn {
+  background: transparent !important;
+  border: 1px solid transparent !important;
+  color: #94A3B8 !important;
+  font-weight: 600 !important;
+  border-radius: 999px !important;
+  transition: all 0.15s ease !important;
+}
+
+.chip-segment-group .chip-pill:hover:not(.active),
+.sport-switch-btn:hover:not(.active),
+.pw-seg-btn:hover:not(.active) {
+  background: rgba(255, 255, 255, 0.05) !important;
+  color: #F1F5F9 !important;
+}
+
+/* Active Segmented Controls: Solid High-Contrast Fill with Sharp Contrast */
+.chip-segment-group .chip-pill.active,
+.sport-switch-btn.active,
+.pw-seg-btn.active {
+  background: #1E293B !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  color: #FFFFFF !important;
+  font-weight: 700 !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.14) !important;
+}
+
+.chip-segment-group .chip-pill.active .chip-count-pill {
+  background: rgba(212, 251, 17, 0.18) !important;
+  color: #d4fb11 !important;
+  font-weight: 800 !important;
+}
+
 

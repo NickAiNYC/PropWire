@@ -93,7 +93,7 @@
       dialog.style.cssText = 'border:none; border-radius:16px 16px 0 0; padding:20px; max-width:420px; width:calc(100% - 24px); margin:auto auto 0; font-family:inherit;';
       dialog.innerHTML = `
         <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
-          <span style="font-size:18px;">✓</span>
+          <span style="display:inline-flex; align-items:center; color:#10b981;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
           <strong style="font-size:14px;">We reorganized your saved props</strong>
         </div>
         <p style="margin:0 0 14px; font-size:13px; line-height:1.5; color:#94a3b8;">Your NFL watchlist and ledger are intact. Saved data now lives under per-sport storage so NBA and UFC get their own spaces.</p>
@@ -313,7 +313,10 @@
     dome: '<svg class="prop-icon icon-dome" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 13h12M3 13a5 5 0 0110 0M8 3v2"/></svg>',
     wind: '<svg class="prop-icon icon-wind" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 5.5h7a1.5 1.5 0 10-1.5-1.5M2 8.5h10.5a1.5 1.5 0 10-1.5-1.5M2 11.5h5a1.5 1.5 0 10-1.5-1.5"/></svg>',
     check: '<svg class="prop-icon icon-check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8.5l3.5 3.5 6.5-7"/></svg>',
-    target: '<svg class="prop-icon icon-target" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="8" r="6"/><circle cx="8" cy="8" r="2"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2"/></svg>'
+    target: '<svg class="prop-icon icon-target" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="8" r="6"/><circle cx="8" cy="8" r="2"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2"/></svg>',
+    star: (filled = false) => `<svg class="prop-icon icon-star" viewBox="0 0 16 16" fill="${filled ? '#fbbf24' : 'none'}" stroke="${filled ? '#fbbf24' : 'currentColor'}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="8 1.5 10.2 6 15 6.7 11.5 10.1 12.3 14.9 8 12.6 3.7 14.9 4.5 10.1 1 6.7 5.8 6 8 1.5"/></svg>`,
+    shield: '<svg class="prop-icon icon-shield" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 1.5l6 2.5v4c0 4.5-6 6.5-6 6.5s-6-2-6-6.5v-4l6-2.5z"/></svg>',
+    search: '<svg class="prop-icon icon-search" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5L14 14"/></svg>'
   };
 
   // Lend viewer helpers to adapter hooks (adapters are separate files with
@@ -460,6 +463,42 @@
       return `Model fair sits at ${fair.toFixed(1)} ${unit} (${signedPct(evaluation.ev)} EV on ${evaluation.side} ${evaluation.line.toFixed(1)} ${bookShort(evaluation.book)} quote · Unverified).`;
     }
     return `Model fair price sits at ${fair.toFixed(1)} ${unit} (${signedPct(evaluation.ev)} EV edge on ${evaluation.side} ${evaluation.line.toFixed(1)} ${bookShort(evaluation.book)} quote).`;
+  }
+
+  // ── Quarantine Foreign Third-Party Extension Injections (e.g. 1688 / shopping assistants) ──
+  function quarantineThirdPartyInjections() {
+    if (typeof document === 'undefined') return;
+    const purge = () => {
+      const selectors = [
+        '[id*="1688"]', '[class*="1688"]',
+        '[id*="caigou"]', '[class*="caigou"]',
+        '[id*="cai-gou"]', '[class*="cai-gou"]',
+        '[id*="aliprice"]', '[class*="aliprice"]',
+        '[id*="extension-root"]', '[class*="extension-root"]',
+        '[id*="floating-search"]', '[class*="floating-search"]',
+        'div[id^="__cai"]', 'div[class^="__cai"]',
+        'div[id^="__1688"]', 'div[class^="__1688"]'
+      ];
+      selectors.forEach(sel => {
+        document.querySelectorAll(sel).forEach(el => {
+          try { el.remove(); } catch (_) { el.style.display = 'none'; }
+        });
+      });
+    };
+    purge();
+    if (typeof MutationObserver !== 'undefined' && document.body) {
+      const obs = new MutationObserver((mutations) => {
+        let hasInjected = false;
+        for (const m of mutations) {
+          if (m.addedNodes.length) {
+            hasInjected = true;
+            break;
+          }
+        }
+        if (hasInjected) purge();
+      });
+      obs.observe(document.body, { childList: true, subtree: true });
+    }
   }
 
   document.addEventListener('DOMContentLoaded', init);
@@ -766,6 +805,7 @@
   }
 
   async function init() {
+    quarantineThirdPartyInjections();
     initTheme();
     initCrestTheming();
     // Manifest merge BEFORE chrome render: the slate selector is built from
@@ -808,7 +848,7 @@
             const rootEl = $('#clvReportEyebrow');
             if (rootEl) {
               if (isMatch) {
-                rootEl.innerHTML = `<span class="clv-root-tag" style="background:rgba(52,211,153,0.18); border:1px solid #10b981; color:#34d399; font-weight:bold; padding:3px 8px; border-radius:4px;">✓ Verified Root #${esc(cleanRoot.slice(0, 16))}</span>`;
+                rootEl.innerHTML = `<span class="clv-root-tag" style="background:rgba(52,211,153,0.18); border:1px solid #10b981; color:#34d399; font-weight:bold; padding:3px 8px; border-radius:4px;">Verified Root #${esc(cleanRoot.slice(0, 16))}</span>`;
               } else {
                 rootEl.innerHTML = `<span class="clv-root-tag" style="background:rgba(239,68,68,0.18); border:1px solid #ef4444; color:#f87171; font-weight:bold; padding:3px 8px; border-radius:4px;">Root #${esc(cleanRoot.slice(0, 16))} (Live Root: #${rootHash.slice(0, 16)})</span>`;
               }
@@ -2533,13 +2573,13 @@
                 <span class="watchlist-suggest-name">${esc(p.player_display_name)}</span>
                 <span class="watchlist-suggest-sub">${esc(p.team)} · ${esc(p.position)} · ${num(p.proj_yards || p.projection || 0).toFixed(1)} proj</span>
               </div>
-              <button type="button" class="star-btn ${isWatched ? 'starred' : ''}" data-watch-player="${esc(p.player_id)}" aria-label="Watch ${esc(p.player_display_name)}">${isWatched ? '★' : '☆'}</button>
+              <button type="button" class="star-btn ${isWatched ? 'starred' : ''}" data-watch-player="${esc(p.player_id)}" aria-label="Watch ${esc(p.player_display_name)}">${SVG_ICONS.star(isWatched)}</button>
             </div>`;
         }).join('');
 
         $('#emptyState').innerHTML = `
           <div class="anti-tout-empty-wrap watchlist-empty-wrap">
-            <div class="anti-tout-shield">★</div>
+            <div class="anti-tout-shield">${SVG_ICONS.shield}</div>
             <div class="anti-tout-title">No players watched yet</div>
             <p class="anti-tout-desc">Star modeled projections to track line movements, steam alerts, and closing line value.</p>
             <div class="watchlist-suggestions-card">
@@ -2606,7 +2646,7 @@
         if ($('#resultCount')) $('#resultCount').textContent = `Top ${displayRows.length} of ${state.slate.length} modeled research projections`;
         $('#emptyState').innerHTML = `
           <div class="anti-tout-empty-wrap anti-tout-research-strip" role="status">
-            <div class="anti-tout-shield">🛡️</div>
+            <div class="anti-tout-shield">${SVG_ICONS.shield}</div>
             <div class="anti-tout-title">Live qualification paused</div>
             <p class="anti-tout-desc">Current prices cannot be verified. Model projections remain available for historical research.</p>
             <div class="anti-tout-meta">${lastTrusted ? `Last trusted quote: ${lastTrusted}` : 'No verified quotes this session.'}</div>
@@ -2621,7 +2661,7 @@
         if ($('#resultCount')) $('#resultCount').textContent = `0 of ${state.slate.length} actionable plays`;
         $('#emptyState').innerHTML = `
           <div class="anti-tout-empty-wrap">
-            <div class="anti-tout-shield">🛡️</div>
+            <div class="anti-tout-shield">${SVG_ICONS.shield}</div>
             <div class="anti-tout-title">0 Qualified Plays Today</div>
             <div class="anti-tout-subtitle">The market is efficient. Do not bet.</div>
             <p class="anti-tout-desc">Our quantitative engine requires a verified statistical edge (>${((policy() ? policy().gate : 0.10) * 100).toFixed(0)}%) with positive expected Closing Line Value. When books price efficiently, discipline is the edge.</p>
@@ -2636,7 +2676,7 @@
       if ($('#resultCount')) $('#resultCount').textContent = `${rows.length} of ${state.slate.length} player records`;
       $('#emptyState').innerHTML = `
         <div class="anti-tout-empty-wrap">
-          <div class="anti-tout-icon">🔍</div>
+          <div class="anti-tout-icon">${SVG_ICONS.search}</div>
           <div class="anti-tout-title">No Matching Records</div>
           <div class="anti-tout-desc">No players match your active search and market filters. Try clearing search or resetting filters.</div>
         </div>`;
@@ -2846,7 +2886,7 @@
     if (!btn) return;
     const isWatched = (state.watchlist || []).includes(playerId);
     btn.className = `star-modal-btn ${isWatched ? 'starred' : ''}`;
-    btn.innerHTML = isWatched ? '★ On Watchlist' : '☆ Add to Watchlist';
+    btn.innerHTML = isWatched ? 'On Watchlist' : '+ Add to Watchlist';
   }
 
   // ── §14. Watchlist & portfolio risk — sparklines, correlations, sniper ─
@@ -3096,19 +3136,19 @@
               <span>Browser Push Notifications</span>
             </label>
             <button type="button" class="btn-subtle" id="sniperReqPermBtn" style="padding:4px 8px; font-size:11px; border-radius:4px; background:var(--surface-3); border:1px solid var(--line); color:var(--text-primary); cursor:pointer;">
-              ${isGranted ? '✓ Permission Granted' : 'Request Permission'}
+              ${isGranted ? 'Permission Granted' : 'Request Permission'}
             </button>
           </div>
 
           <div style="margin-top:10px;" class="sniper-notice-box">
-            <strong>ℹ️ iOS Safari Notice:</strong> Web Push on iPhone requires adding PropWire to your Home Screen (Share → Add to Home Screen) on iOS 16.4+.
+            <strong>iOS Safari Notice:</strong> Web Push on iPhone requires adding PropWire to your Home Screen (Share → Add to Home Screen) on iOS 16.4+.
           </div>
 
           <div style="margin-top:14px;">
             <div class="sniper-section-title" style="margin-bottom:4px;">Private Webhook (Discord / Slack / API)</div>
             <div style="font-size:11px; color:var(--muted); margin-bottom:6px;">Sends instant JSON payload upon qualifying line anomaly (Rate limited: max 1 per 15 min per line)</div>
             <div class="sniper-security-warning" style="margin-bottom:8px;">
-              <strong>⚠️ Security Notice:</strong> Never enter sensitive or public channel tokens. Webhooks post directly to the configured endpoint.
+              <strong>Security Notice:</strong> Never enter sensitive or public channel tokens. Webhooks post directly to the configured endpoint.
             </div>
             <div class="sniper-webhook-row">
               <input type="url" id="sniperWebhookInput" class="sniper-webhook-input" placeholder="https://discord.com/api/webhooks/... or https://your-server.com/api/alert" value="${esc(sniper.webhookUrl || '')}">
@@ -3145,7 +3185,7 @@
         saveSniperConfig(state.sniper);
         updateSniperUIBadges();
         if (state.sniper.enabled) {
-          toast('🎯 Sniper Activated: Polling will trigger instant 1-tap review alerts.');
+          toast('Sniper Activated: Polling will trigger instant 1-tap review alerts.');
           checkSniperAlerts();
         } else {
           toast('Sniper Deactivated.');
@@ -3186,7 +3226,7 @@
       permBtn.onclick = async () => {
         if (typeof Notification !== 'undefined') {
           const res = await Notification.requestPermission();
-          permBtn.textContent = res === 'granted' ? '✓ Permission Granted' : 'Permission: ' + res;
+          permBtn.textContent = res === 'granted' ? 'Permission Granted' : 'Permission: ' + res;
         }
       };
     }
@@ -3221,8 +3261,8 @@
               terminal: 'https://propwire.vercel.app'
             })
           });
-          toast('✓ Test payload dispatched to webhook endpoint');
-          testBtn.textContent = '✓ Sent';
+          toast('Test payload dispatched to webhook endpoint');
+          testBtn.textContent = 'Dispatched';
         } catch (err) {
           toast('Webhook dispatch error: ' + err.message);
           testBtn.textContent = 'Failed';
@@ -3305,7 +3345,7 @@
 
     if (state.sniper.browserNotify && typeof Notification !== 'undefined' && Notification.permission === 'granted') {
       try {
-        const notif = new Notification(`🎯 PropWire Sniper: ${quote.player_name}`, {
+        const notif = new Notification(`PropWire Sniper: ${quote.player_name}`, {
           body: `${side} ${quote.line} (${oddsText(side === 'UNDER' ? quote.under_odds : quote.over_odds)}) · Edge +${(edge * 100).toFixed(1)}% · Tap to confirm`,
           icon: 'icon-192.png'
         });
@@ -3340,7 +3380,7 @@
       }).catch(() => {});
     }
 
-    toast(`🎯 SNIPER ALERT: ${quote.player_name} ${side} ${quote.line} (+${(edge * 100).toFixed(1)}% Edge) · Tap to Confirm`, () => {
+    toast(`SNIPER ALERT: ${quote.player_name} ${side} ${quote.line} (+${(edge * 100).toFixed(1)}% Edge) · Tap to Confirm`, () => {
       openOneTapConfirm(quote.player_id, quote.market);
     }, 6000);
   }
@@ -3393,7 +3433,7 @@
     const isTopEdge = evaluation.edge >= 0.15;
     const isWatched = (state.watchlist || []).includes(row.player_id);
     const isLogged = (state.portfolio || []).some((b) => b.sport === SPORT_ID && b.player_id === row.player_id && b.market === state.filters.market);
-    const starBtn = `<button class="star-btn ${isWatched ? 'starred' : ''}" type="button" data-watch-player="${esc(row.player_id)}" title="${isWatched ? 'Remove from Watchlist' : 'Add to Watchlist'}" aria-label="Watch">${isWatched ? '★' : '☆'}</button>`;
+    const starBtn = `<button class="star-btn ${isWatched ? 'starred' : ''}" type="button" data-watch-player="${esc(row.player_id)}" title="${isWatched ? 'Remove from Watchlist' : 'Add to Watchlist'}" aria-label="Watch">${SVG_ICONS.star(isWatched)}</button>`;
     const logoImg = teamCrest(row.team, 'md');
     const bulletSvg = propBulletGraphSvg(dist, evaluation, evaluation.side || 'OVER');
     const corrRisk = checkCorrelatedRisk(row, evaluation);
@@ -3468,7 +3508,7 @@
       heroEdgeHtml = `<span class="card-hero-edge ${isPos ? 'positive' : 'negative'}">${isPos ? '+' : ''}${settled.delta}${settled.isYards ? 'y' : 'r'}</span>`;
       heroSubHtml = `<span class="card-edge-sub">${settled.outcome}</span>`;
     } else if (state.userTier === 'free') {
-      heroEdgeHtml = `<span class="card-hero-edge free-locked" data-open-pricing title="Unlock Edge with Sharp ($29/mo)">🔒 PRO</span>`;
+      heroEdgeHtml = `<span class="card-hero-edge free-locked" data-open-pricing title="Unlock Edge with Sharp ($29/mo)">PRO</span>`;
       heroSubHtml = `<span class="card-edge-sub">EDGE LOCKED</span>`;
     } else if (evaluation.closed) {
       heroEdgeHtml = '<span class="card-hero-edge closed">CLOSED</span>';
@@ -3561,7 +3601,7 @@
         <div class="card-grid-col col-action">
           <button type="button" class="card-btn-view" data-inspect="${esc(row.player_id)}" aria-label="View Details">View &rsaquo;</button>
           ${isLogged || execution.allowed
-            ? `<button type="button" class="card-btn-log ${isLogged ? 'logged' : ''}" data-log-bet="${esc(row.player_id)}" aria-label="${isLogged ? 'Remove from Ledger' : 'Review verified play'}" title="${isLogged ? 'Remove from Ledger' : 'Review verified play'}">${isLogged ? '✓' : 'Review'}</button>`
+            ? `<button type="button" class="card-btn-log ${isLogged ? 'logged' : ''}" data-log-bet="${esc(row.player_id)}" aria-label="${isLogged ? 'Remove from Ledger' : 'Review verified play'}" title="${isLogged ? 'Remove from Ledger' : 'Review verified play'}">${isLogged ? 'Logged' : 'Review'}</button>`
             : `<button type="button" class="card-btn-log blocked" disabled aria-label="Execution blocked: ${esc(execution.message)}" title="${esc(execution.message)}">${SVG_ICONS.lock}</button>`}
         </div>
       `;
@@ -3572,7 +3612,7 @@
         <!-- Row 1: Player ID (Star, Crest, Name, Matchup) | Right: Hero Edge & Subtag -->
         <div class="card-header-row">
           <div class="card-id-block">
-            <button class="star-btn ${isWatched ? 'starred' : ''}" type="button" data-watch-player="${esc(row.player_id)}" title="${isWatched ? 'Remove from Watchlist' : 'Add to Watchlist'}" aria-label="Watch">${isWatched ? '★' : '☆'}</button>
+            <button class="star-btn ${isWatched ? 'starred' : ''}" type="button" data-watch-player="${esc(row.player_id)}" title="${isWatched ? 'Remove from Watchlist' : 'Add to Watchlist'}" aria-label="Watch">${SVG_ICONS.star(isWatched)}</button>
             ${crest}
             <div class="card-name-group">
               <span class="card-player-name">${esc(row.player_display_name)}</span>
@@ -3829,7 +3869,7 @@
 
     const decision = row ? executionDecision(row, evaluation) : { allowed: false, message: '' };
     const logBtn = row && (isLogged || decision.allowed)
-      ? `<button class="row-log-btn ${isLogged ? 'logged' : ''}" type="button" data-log-bet="${esc(row.player_id)}" title="${isLogged ? 'Remove from Ledger' : 'Review verified play'}" aria-label="${isLogged ? 'Remove from Ledger' : 'Review verified play'}">${isLogged ? '✓' : 'Review'}</button>`
+      ? `<button class="row-log-btn ${isLogged ? 'logged' : ''}" type="button" data-log-bet="${esc(row.player_id)}" title="${isLogged ? 'Remove from Ledger' : 'Review verified play'}" aria-label="${isLogged ? 'Remove from Ledger' : 'Review verified play'}">${isLogged ? 'Logged' : 'Review'}</button>`
       : row
         ? `<button class="row-log-btn blocked" type="button" disabled aria-label="Execution blocked: ${esc(decision.message)}" title="${esc(decision.message)}">${SVG_ICONS.lock}</button>`
         : '';
@@ -3850,10 +3890,10 @@
     if (state.userTier === 'free' && !SLATES[state.slateKey]?.historical) {
       return `<div class="edge-cell-wrap">
         <button type="button" class="edge-cell free-locked ${flashClass}" data-open-pricing title="Unlock Edge with Sharp ($29/mo)" style="width:100%; border:1px dashed rgba(255,255,255,0.2); cursor:pointer;">
-          <span class="edge-line-top" style="color:#94a3b8; font-size:11px;">🔒 LOCKED</span>
+          <span class="edge-line-top" style="color:#94a3b8; font-size:11px;">LOCKED</span>
           <span class="exec-tag" style="background:rgba(255,255,255,0.06); color:#cbd5e1;">PRO TIER</span>
         </button>
-        <button class="mq-log-btn" type="button" data-open-pricing aria-label="Unlock Sharp Tier" title="Unlock Sharp Tier">🔒</button>
+        <button class="mq-log-btn" type="button" data-open-pricing aria-label="Unlock Sharp Tier" title="Unlock Sharp Tier">${SVG_ICONS.lock}</button>
       </div>`;
     }
     if (evaluation.closed) {
@@ -4111,7 +4151,7 @@
       if ($('#detailDialog').open && state.selectedPlayerId === playerId) {
         renderDetailModal(row);
       }
-      toast(`✓ Removed: ${row.player_display_name} from Ledger`, () => {
+      toast(`Removed: ${row.player_display_name} from Ledger`, () => {
         state.portfolio.splice(existingIndex, 0, removedEntry);
         savePortfolio(state.portfolio);
         updatePortfolioBadge(true);
@@ -4241,8 +4281,8 @@
         renderDetailModal(row);
       }
       const toastMessage = risk
-        ? `⚠️ Volume Risk: Logged ${entry.player_name} OVER alongside competing ${risk.competingPlayer} OVER on ${entry.team}!`
-        : `✓ Logged: ${entry.player_name} ${entry.side} ${entry.line.toFixed(1)} (${oddsText(entry.odds)}) · #${ticketId}`;
+        ? `Volume Risk: Logged ${entry.player_name} OVER alongside competing ${risk.competingPlayer} OVER on ${entry.team}!`
+        : `Logged: ${entry.player_name} ${entry.side} ${entry.line.toFixed(1)} (${oddsText(entry.odds)}) · #${ticketId}`;
       toast(toastMessage, () => {
         const idx = state.portfolio.findIndex((b) => b.id === entry.id);
         if (idx >= 0) {
@@ -5027,7 +5067,7 @@
       <div class="execution-ticket-box">
         <div class="ticket-header">
           <span class="ticket-title"><svg class="prop-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" style="width:13px;height:13px;"><path d="M2.5 3.5h11a1 1 0 011 1v8a1 1 0 01-1 1h-11a1 1 0 01-1-1v-8a1 1 0 011-1z"/><path d="M5.5 3.5v-1a1 1 0 011-1h4a1 1 0 011 1v1M8 7v4M6 9h4"/></svg> Execution Ticket · CLV Ledger</span>
-          <span class="ticket-status ${isLogged ? 'text-accent' : 'text-muted'}">${isLogged ? '✓ Logged in Portfolio' : 'Ready to Fill'}</span>
+          <span class="ticket-status ${isLogged ? 'text-accent' : 'text-muted'}">${isLogged ? 'Logged in Portfolio' : 'Ready to Fill'}</span>
         </div>
         <div class="ticket-fields-row">
           <div class="ticket-field ticket-side-field">
@@ -5224,7 +5264,7 @@
         savePortfolio(state.portfolio);
         updatePortfolioBadge();
         renderBoard();
-        ticketConfirmBtn.textContent = '✓ Updated in Ledger';
+        ticketConfirmBtn.textContent = 'Updated in Ledger';
         ticketConfirmBtn.classList.add('logged');
         toast(`Logged ${entry.side} ${entry.line.toFixed(1)} ${entry.player_name} ($${customStake.toFixed(0)}) to CLV ledger`);
       });
@@ -5241,7 +5281,7 @@
         }
         const isNowLogged = (state.portfolio || []).some((b) => b.player_id === row.player_id && b.market === state.filters.market);
         modalStickyLogBtn.classList.toggle('logged', isNowLogged);
-        modalStickyLogBtn.textContent = isNowLogged ? '✓ In Ledger' : '+ Add to Ledger';
+        modalStickyLogBtn.textContent = isNowLogged ? 'In Ledger' : '+ Add to Ledger';
       });
     }
   }
@@ -5300,7 +5340,7 @@
   function detailMarkup(row, evaluation, injury, beneficiary, fair, projection) {
     const isWatched = (state.watchlist || []).includes(row.player_id);
     const isLogged = (state.portfolio || []).some((b) => b.sport === SPORT_ID && b.player_id === row.player_id && b.market === state.filters.market);
-    const watchButton = `<button class="star-modal-btn ${isWatched ? 'starred' : ''}" type="button" id="modalWatchlistBtn" data-watch-player="${esc(row.player_id)}">${isWatched ? '★ On Watchlist' : '☆ Add to Watchlist'}</button>`;
+    const watchButton = `<button class="star-modal-btn ${isWatched ? 'starred' : ''}" type="button" id="modalWatchlistBtn" data-watch-player="${esc(row.player_id)}">${isWatched ? 'On Watchlist' : '+ Add to Watchlist'}</button>`;
 
     const baseShare = num(row.f_tgt_share || row.target_share, 0.20);
     const currentShare = state.scenarioTargetShare ?? baseShare;
@@ -5542,7 +5582,7 @@
           <span class="sticky-edge ${evaluation.edge > 0 ? 'text-accent' : 'text-dim'}">${signedPct(evaluation.edge)} edge · $${wagerDollars} (${wagerPct}%)</span>
         </div>
         <button type="button" class="detail-sticky-log-btn ${isLogged ? 'logged' : ''}" id="modalStickyLogBtn">
-          ${isLogged ? '✓ In Ledger' : '+ Add to Ledger'}
+          ${isLogged ? 'In Ledger' : '+ Add to Ledger'}
         </button>
       </div>
     `;
