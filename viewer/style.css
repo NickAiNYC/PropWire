@@ -8621,10 +8621,10 @@ tr[data-focused="true"] td:first-child {
 html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 
 /* ==========================================================================
-   2027 PRODUCTION FINTECH + FITNESS TELEMETRY SYSTEM (REFERENCE EXACT MATCH)
+   2027 PRODUCTION FINTECH TELEMETRY SYSTEM (STRICT COHESION & CALM)
    ========================================================================== */
 
-/* 1. Canvas & Chrome Overhaul */
+/* 1. Strict Canvas & Translucent Chrome */
 html, body {
   background: #070709 !important;
   color: #f8fafc !important;
@@ -8646,9 +8646,9 @@ html, body {
   border-top: none !important;
 }
 
-/* 2. Inset Pill Segmented Control (Day / Week / Month / Year Style) */
+/* 2. Recessed Capsule Filter Track (Single Unified System) */
 .chip-segment-group {
-  background: rgba(255, 255, 255, 0.04) !important;
+  background: #11141c !important;
   border: 1px solid rgba(255, 255, 255, 0.07) !important;
   border-radius: 999px !important;
   padding: 4px !important;
@@ -8687,30 +8687,29 @@ html, body {
   margin-left: 4px !important;
 }
 
-/* 3. Hero Telemetry Suite (Image 1 & Image 2 Center Phone) */
+/* 3. Slate Overview Telemetry Card (Calm Finance Language) */
 .pw-hero-telemetry-suite {
   display: flex;
   flex-direction: column;
-  gap: 16px;
   width: 100%;
-  margin: 14px 0 24px 0;
+  margin: 14px 0 20px 0;
 }
 
 .pw-hero-quant-card {
   background: #11141c;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 28px;
-  padding: 22px 24px 18px 24px;
+  border-radius: 26px;
+  padding: 22px 24px;
   box-shadow: 0 16px 40px -12px rgba(0, 0, 0, 0.75);
-  position: relative;
-  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .hero-card-meta {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 8px;
 }
 
 .hero-card-tag {
@@ -8744,358 +8743,87 @@ html, body {
 .hero-metric-row {
   display: flex;
   align-items: baseline;
-  gap: 12px;
-  margin-top: 4px;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .hero-metric-val {
   font-family: var(--sans);
-  font-size: 36px;
+  font-size: 32px;
   font-weight: 800;
   color: #ffffff;
-  letter-spacing: -0.035em;
+  letter-spacing: -0.04em;
   line-height: 1.1;
 }
 
 .hero-metric-unit {
-  font-size: 20px;
+  font-size: 15px;
   font-weight: 700;
-  color: #d4fb11;
-  margin-left: 2px;
+  color: #8e95a5;
+  letter-spacing: 0.02em;
+  margin-left: 4px;
 }
 
 .hero-metric-badge {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 3px 10px;
+  padding: 4px 12px;
   border-radius: 999px;
   background: rgba(212, 251, 17, 0.14);
   color: #d4fb11;
   font-family: var(--mono);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
 }
 
 .hero-metric-sub {
   font-family: var(--sans);
   font-size: 12px;
-  color: #64748b;
-  margin-top: 4px;
+  color: #5d6678;
 }
 
-.hero-range-track {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 999px;
-  padding: 3px;
-  display: inline-flex;
-  gap: 4px;
-  margin: 16px 0 14px 0;
-}
-
-.hero-range-pill {
-  border: none;
-  border-radius: 999px;
-  background: transparent;
-  color: #8e95a5;
-  font-family: var(--sans);
-  font-size: 11.5px;
-  font-weight: 600;
-  padding: 5px 12px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.hero-range-pill.active {
-  background: #1e2330;
-  color: #ffffff;
-  font-weight: 700;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
-}
-
-.hero-chart-container {
-  position: relative;
-  width: 100%;
+.hero-pods-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
   margin-top: 6px;
 }
 
-.hero-spline-svg {
-  width: 100%;
-  height: 120px;
-  display: block;
-  overflow: visible;
-}
-
-.hero-peak-pill {
-  position: absolute;
-  transform: translate(-50%, -100%);
-  background: #d4fb11;
-  color: #070709;
-  font-family: var(--mono);
-  font-weight: 800;
-  font-size: 10.5px;
-  padding: 3px 10px;
-  border-radius: 999px;
-  box-shadow: 0 0 16px rgba(212, 251, 17, 0.65);
-  pointer-events: none;
-  white-space: nowrap;
-}
-
-.hero-axis-row {
-  display: flex;
-  justify-content: space-between;
-  font-size: 11px;
-  font-family: var(--mono);
-  color: #64748b;
-  padding: 6px 4px 0 4px;
-}
-
-.hero-axis-row .axis-active {
-  color: #d4fb11;
-  font-weight: 700;
-}
-
-/* 4. Subgrid: Circular Dial & Tick Ruler (Image 2 & 3) */
-.pw-hero-subgrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 14px;
-  width: 100%;
-}
-
-.hero-subcard {
-  background: #11141c;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 24px;
-  padding: 18px 20px;
-  box-shadow: 0 10px 30px -8px rgba(0, 0, 0, 0.6);
+.hero-pod {
+  background: #171a24;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  padding: 12px 14px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 2px;
 }
 
-.subcard-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.subcard-title {
-  font-family: var(--sans);
-  font-size: 13.5px;
-  font-weight: 700;
-  color: #f8fafc;
-}
-
-.subcard-badge-pill,
-.subcard-target-pill {
-  font-family: var(--mono);
-  font-size: 10px;
-  font-weight: 700;
-  padding: 2px 8px;
-  border-radius: 999px;
-  background: rgba(0, 210, 255, 0.12);
-  color: #00d2ff;
-  border: 1px solid rgba(0, 210, 255, 0.3);
-}
-
-.subcard-target-pill {
-  background: rgba(212, 251, 17, 0.12);
-  color: #d4fb11;
-  border-color: rgba(212, 251, 17, 0.3);
-}
-
-.subcard-dial-body {
-  display: flex;
-  align-items: center;
-  gap: 18px;
-}
-
-.subcard-ring-wrap {
-  position: relative;
-  width: 84px;
-  height: 84px;
-  flex-shrink: 0;
-}
-
-.subcard-donut-svg {
-  width: 84px;
-  height: 84px;
-  transform: rotate(-90deg);
-}
-
-.subcard-donut-svg .ring-bg {
-  fill: none;
-  stroke: rgba(255, 255, 255, 0.08);
-}
-
-.subcard-donut-svg .ring-val {
-  fill: none;
-  stroke: #00d2ff;
-  stroke-linecap: round;
-  filter: drop-shadow(0 0 6px rgba(0, 210, 255, 0.6));
-}
-
-.ring-center-txt {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-
-.ring-num {
-  font-family: var(--mono);
-  font-size: 18px;
-  font-weight: 800;
-  color: #ffffff;
-  line-height: 1;
-}
-
-.ring-sub {
-  font-size: 8px;
-  font-weight: 700;
-  color: #64748b;
-  letter-spacing: 0.06em;
-  margin-top: 2px;
-}
-
-.subcard-dial-stats {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  flex: 1;
-}
-
-.dial-stat-item {
-  display: flex;
-  flex-direction: column;
-}
-
-.dial-stat-item .stat-lbl {
+.hero-pod-lbl {
   font-size: 9.5px;
   font-family: var(--mono);
-  color: #64748b;
   font-weight: 700;
+  color: #5d6678;
+  letter-spacing: 0.05em;
 }
 
-.dial-stat-item .stat-val {
-  font-size: 15px;
-  font-family: var(--mono);
-  color: #ffffff;
-  font-weight: 700;
-}
-
-/* Tick Gauge & Needle (Image 3) */
-.gauge-center-readout {
-  display: flex;
-  align-items: baseline;
-  justify-content: center;
-  gap: 2px;
-  margin: 4px 0;
-}
-
-.gauge-big-num {
+.hero-pod-val {
+  font-size: 20px;
   font-family: var(--sans);
-  font-size: 34px;
   font-weight: 800;
   color: #ffffff;
-  letter-spacing: -0.03em;
-  line-height: 1;
+  letter-spacing: -0.02em;
 }
 
-.gauge-pct {
+.hero-pod-sub {
+  font-size: 10.5px;
   font-family: var(--sans);
-  font-size: 18px;
-  font-weight: 700;
-  color: #d4fb11;
+  color: #8e95a5;
 }
 
-.gauge-ruler-wrap {
-  position: relative;
-  width: 100%;
-  padding: 0 4px;
-  margin-bottom: 6px;
-}
-
-.gauge-pointer-needle {
-  color: #d4fb11;
-  font-size: 10px;
-  text-align: center;
-  text-shadow: 0 0 8px rgba(212, 251, 17, 0.85);
-  line-height: 1;
-  margin-bottom: 2px;
-}
-
-.gauge-ticks-track {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  height: 24px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  padding-bottom: 2px;
-}
-
-.gtick {
-  width: 1.5px;
-  height: 9px;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 1px;
-}
-
-.gtick.major {
-  height: 16px;
-  background: rgba(255, 255, 255, 0.5);
-  position: relative;
-}
-
-.gtick.major i {
-  position: absolute;
-  top: 18px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 9px;
-  font-family: var(--mono);
-  font-style: normal;
-  color: #64748b;
-}
-
-.gtick.active {
-  background: #d4fb11;
-  box-shadow: 0 0 8px rgba(212, 251, 17, 0.9);
-}
-
-.gtick.major.active i {
-  color: #d4fb11;
-  font-weight: 700;
-}
-
-.hero-gate-cta-btn {
-  background: #d4fb11 !important;
-  color: #070709 !important;
-  border: none !important;
-  border-radius: 999px !important;
-  height: 42px !important;
-  font-family: var(--sans) !important;
-  font-weight: 800 !important;
-  font-size: 13px !important;
-  width: 100% !important;
-  cursor: pointer !important;
-  box-shadow: 0 4px 16px rgba(212, 251, 17, 0.3) !important;
-  transition: transform 0.12s ease, box-shadow 0.12s ease !important;
-  display: grid !important;
-  place-items: center !important;
-  text-decoration: none !important;
-}
-
-.hero-gate-cta-btn:hover {
-  transform: translateY(-1px) !important;
-  box-shadow: 0 6px 20px rgba(212, 251, 17, 0.45) !important;
-}
-
-/* 5. Player Cards Upgrade (Exact Match to Reference Cards) */
+/* 4. Player Cards (26px Rounded Squircles, Strict Mono-Accent) */
 .card-grid {
   display: flex !important;
   flex-direction: column !important;
@@ -9130,7 +8858,7 @@ html, body {
 
 .card-player-name {
   font-family: var(--sans) !important;
-  font-size: 15px !important;
+  font-size: 15.5px !important;
   font-weight: 700 !important;
   color: #ffffff !important;
   letter-spacing: -0.015em !important;
@@ -9143,14 +8871,14 @@ html, body {
 
 .card-hero-edge {
   font-family: var(--sans) !important;
-  font-size: 22px !important;
+  font-size: 20px !important;
   font-weight: 800 !important;
   letter-spacing: -0.03em !important;
 }
 
 .card-hero-edge.positive {
   color: #d4fb11 !important;
-  text-shadow: 0 0 18px rgba(212, 251, 17, 0.4) !important;
+  text-shadow: 0 0 16px rgba(212, 251, 17, 0.4) !important;
 }
 
 .card-hairline-sep {
@@ -9162,18 +8890,19 @@ html, body {
 }
 
 .card-grid-col:not(.col-action) {
-  background: rgba(18, 23, 34, 0.8) !important;
-  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+  background: #171a24 !important;
+  border: 1px solid rgba(255, 255, 255, 0.05) !important;
   border-radius: 16px !important;
   padding: 8px 12px !important;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03) !important;
 }
 
 .card-grid-col .grid-col-lbl {
-  font-size: 9.5px !important;
+  font-size: 9px !important;
   font-family: var(--mono) !important;
   font-weight: 700 !important;
-  color: #64748b !important;
+  color: #5d6678 !important;
+  letter-spacing: 0.05em !important;
 }
 
 .card-grid-col .grid-col-val {
@@ -9203,9 +8932,9 @@ html, body {
 }
 
 .card-btn-view {
-  background: rgba(255, 255, 255, 0.06) !important;
+  background: rgba(255, 255, 255, 0.05) !important;
   color: #8e95a5 !important;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.07) !important;
   border-radius: 999px !important;
   font-size: 12px !important;
   font-weight: 600 !important;
@@ -9214,18 +8943,18 @@ html, body {
   cursor: pointer !important;
 }
 
-/* 6. Floating Frosted Capsule Bottom Dock (Image 2) */
+/* 5. Floating Frosted Capsule Bottom Dock */
 .mobile-bottom-nav {
   position: fixed !important;
-  bottom: 22px !important;
+  bottom: 20px !important;
   left: 50% !important;
   transform: translateX(-50%) !important;
-  width: min(390px, calc(100% - 32px)) !important;
-  height: 60px !important;
-  background: rgba(14, 17, 24, 0.88) !important;
+  width: min(340px, calc(100% - 32px)) !important;
+  height: 58px !important;
+  background: rgba(17, 20, 28, 0.9) !important;
   backdrop-filter: blur(24px) !important;
   -webkit-backdrop-filter: blur(24px) !important;
-  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
   border-radius: 999px !important;
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.75) !important;
   display: flex !important;
@@ -9253,7 +8982,7 @@ html, body {
   filter: drop-shadow(0 0 4px #d4fb11) !important;
 }
 
-/* 7. Seamless Header Brand Lockup (No Boxed Border) */
+/* 6. Seamless Single Header Brand Lockup */
 .pw-brand {
   background: transparent !important;
   border: none !important;
@@ -9294,6 +9023,7 @@ html, body {
     max-width: 180px !important;
   }
 }
+
 
 
 
