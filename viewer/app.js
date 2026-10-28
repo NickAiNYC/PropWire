@@ -260,7 +260,47 @@
       border: 'rgba(255,255,255,0.18)'
     };
     const sizeCls = size === 'sm' ? 'crest-sm' : size === 'lg' ? 'crest-lg' : 'crest-md';
-    return `<div class="team-crest ${sizeCls}" style="background-color:${meta.bg}; border-color:${meta.border};" title="${esc(code)}"><img src="${adapter.logo.espnCdnBase}${meta.slug}.png" alt="${esc(code)}" loading="lazy" class="crest-img" onerror="this.style.display='none'"></div>`;
+    // v150: CSP-clean crest markup. The production CSP (viewer/vercel.json)
+    // blocks inline style="" attributes and inline onerror= handlers, which
+    // flattened crest theming and killed logo error-handling on prod. Theme
+    // colors ride as data attributes and are applied via CSSOM (CSP-exempt)
+    // by the crest observer below; image errors bind addEventListener for
+    // the same reason.
+    return `<div class="team-crest ${sizeCls}" data-crest-bg="${meta.bg}" data-crest-border="${meta.border}" title="${esc(code)}"><img src="${adapter.logo.espnCdnBase}${meta.slug}.png" alt="${esc(code)}" loading="lazy" class="crest-img"></div>`;
+  }
+
+  // v150 — CSP-exempt crest theming. One delegated observer covers every
+  // render path (feed rows, cards, injury panel, prime games, ledger modal,
+  // execution dialog) without touching each innerHTML site. Individual
+  // CSSOM property assignment is allowed under style-src; setAttribute
+  // style and cssText are not, so they stay out of the markup entirely.
+  function applyCrestTheme(crest) {
+    crest.style.backgroundColor = crest.dataset.crestBg;
+    crest.style.borderColor = crest.dataset.crestBorder;
+    delete crest.dataset.crestBg;
+    delete crest.dataset.crestBorder;
+    const img = crest.querySelector('.crest-img');
+    if (img && !img.dataset.crestErrBound) {
+      img.dataset.crestErrBound = '1';
+      img.addEventListener('error', () => { img.style.display = 'none'; });
+    }
+  }
+  // Guarded: the node:test parity sandbox runs app.js in a bare vm context
+  // without MutationObserver; crest theming stays a browser-only behavior.
+  const crestThemeObserver = typeof MutationObserver === 'undefined'
+    ? null
+    : new MutationObserver((mutations) => {
+        for (const m of mutations) {
+          for (const node of m.addedNodes) {
+            if (node.nodeType !== 1) continue;
+            if (node.matches && node.matches('.team-crest[data-crest-bg]')) applyCrestTheme(node);
+            if (node.querySelectorAll) node.querySelectorAll('.team-crest[data-crest-bg]').forEach(applyCrestTheme);
+          }
+        }
+      });
+  function initCrestTheming() {
+    document.querySelectorAll('.team-crest[data-crest-bg]').forEach(applyCrestTheme);
+    if (crestThemeObserver) crestThemeObserver.observe(document.body, { childList: true, subtree: true });
   }
 
   const SVG_ICONS = {
@@ -673,6 +713,7 @@
 
   async function init() {
     initTheme();
+    initCrestTheming();
     renderSportChrome();
     bindControls();
     initInstall();
