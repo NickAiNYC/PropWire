@@ -71403,11 +71403,12 @@
     },
     "projection": {
       "fair_line": 43.5,
-      "proj_volume": 43.5,
+      "proj_volume": 49.57,
       "distribution_params": {
-        "mu_rec": 0.6053,
+        "mu_rec": 4.0637,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 12.1972
       },
       "p_over": 0.6053,
       "p_under": 0.3947,
@@ -71426,7 +71427,7 @@
     "quote": {
       "status": "verified",
       "quote_id": "dk_ne_chi_douglas_yds_open",
-      "source": "DraftKings Early Openers (TNF Verified Feed)",
+      "source": "DraftKings Opening Line",
       "book": "DraftKings",
       "line": 34.5,
       "over_odds": -110,
@@ -71493,11 +71494,12 @@
     },
     "projection": {
       "fair_line": 4.5,
-      "proj_volume": 4.5,
+      "proj_volume": 4.06,
       "distribution_params": {
-        "mu_rec": 0.5417,
+        "mu_rec": 4.0637,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 12.1972
       },
       "p_over": 0.5417,
       "p_under": 0.4583,
@@ -71516,7 +71518,7 @@
     "quote": {
       "status": "verified",
       "quote_id": "fd_ne_chi_douglas_rec_open",
-      "source": "FanDuel Early Openers (TNF Verified Feed)",
+      "source": "FanDuel Opening Line",
       "book": "FanDuel",
       "line": 3.5,
       "over_odds": 105,
@@ -71583,11 +71585,12 @@
     },
     "projection": {
       "fair_line": 39.5,
-      "proj_volume": 39.5,
+      "proj_volume": 44.91,
       "distribution_params": {
-        "mu_rec": 0.6129,
+        "mu_rec": 4.5443,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 9.8836
       },
       "p_over": 0.6129,
       "p_under": 0.3871,
@@ -71606,7 +71609,7 @@
     "quote": {
       "status": "verified",
       "quote_id": "mgm_ne_chi_henry_yds_open",
-      "source": "BetMGM Early Openers (TNF Verified Feed)",
+      "source": "BetMGM Opening Line",
       "book": "BetMGM",
       "line": 31.5,
       "over_odds": -115,
@@ -71673,11 +71676,12 @@
     },
     "projection": {
       "fair_line": 4.5,
-      "proj_volume": 4.5,
+      "proj_volume": 4.54,
       "distribution_params": {
-        "mu_rec": 0.6137,
+        "mu_rec": 4.5443,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 9.8836
       },
       "p_over": 0.6137,
       "p_under": 0.3863,
@@ -71696,7 +71700,7 @@
     "quote": {
       "status": "verified",
       "quote_id": "dk_ne_chi_henry_rec_open",
-      "source": "DraftKings Early Openers (TNF Verified Feed)",
+      "source": "DraftKings Opening Line",
       "book": "DraftKings",
       "line": 3.5,
       "over_odds": 110,
@@ -71763,11 +71767,12 @@
     },
     "projection": {
       "fair_line": 45.5,
-      "proj_volume": 45.5,
+      "proj_volume": 52.27,
       "distribution_params": {
-        "mu_rec": 0.6874,
+        "mu_rec": 4.0923,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 12.772
       },
       "p_over": 0.6874,
       "p_under": 0.3126,
@@ -71786,7 +71791,7 @@
     "quote": {
       "status": "verified",
       "quote_id": "pin_ne_chi_hollins_yds_open",
-      "source": "Pinnacle Sharp Early Openers (TNF Verified Feed)",
+      "source": "Pinnacle Opening Line",
       "book": "Pinnacle",
       "line": 29.5,
       "over_odds": -108,
@@ -71853,11 +71858,12 @@
     },
     "projection": {
       "fair_line": 61.0,
-      "proj_volume": 61.0,
+      "proj_volume": 67.23,
       "distribution_params": {
-        "mu_rec": 0.6251,
+        "mu_rec": 6.0047,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 11.1969
       },
       "p_over": 0.6251,
       "p_under": 0.3749,
@@ -71876,7 +71882,7 @@
     "quote": {
       "status": "verified",
       "quote_id": "dk_sf_atl_kittle_yds_open",
-      "source": "DraftKings Early Openers (Week 7 Verified Feed)",
+      "source": "DraftKings Opening Line",
       "book": "DraftKings",
       "line": 48.5,
       "over_odds": -112,
@@ -71943,11 +71949,12 @@
     },
     "projection": {
       "fair_line": 6.5,
-      "proj_volume": 6.5,
+      "proj_volume": 6.0,
       "distribution_params": {
-        "mu_rec": 0.6482,
+        "mu_rec": 6.0047,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 11.1969
       },
       "p_over": 0.6482,
       "p_under": 0.3518,
@@ -71966,7 +71973,7 @@
     "quote": {
       "status": "verified",
       "quote_id": "fd_sf_atl_kittle_rec_open",
-      "source": "FanDuel Early Openers (Week 7 Verified Feed)",
+      "source": "FanDuel Opening Line",
       "book": "FanDuel",
       "line": 4.5,
       "over_odds": -105,
@@ -72033,11 +72040,12 @@
     },
     "projection": {
       "fair_line": 41.5,
-      "proj_volume": 41.5,
+      "proj_volume": 46.13,
       "distribution_params": {
-        "mu_rec": 0.6325,
+        "mu_rec": 5.7246,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 8.0584
       },
       "p_over": 0.6325,
       "p_under": 0.3675,
@@ -72056,7 +72064,7 @@
     "quote": {
       "status": "verified",
       "quote_id": "mgm_sf_atl_cmc_yds_open",
-      "source": "BetMGM Early Openers (Week 7 Verified Feed)",
+      "source": "BetMGM Opening Line",
       "book": "BetMGM",
       "line": 32.5,
       "over_odds": -115,
@@ -72123,11 +72131,12 @@
     },
     "projection": {
       "fair_line": 61.0,
-      "proj_volume": 61.0,
+      "proj_volume": 67.93,
       "distribution_params": {
-        "mu_rec": 0.466,
+        "mu_rec": 5.2319,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 12.9847
       },
       "p_over": 0.466,
       "p_under": 0.534,
@@ -72146,7 +72155,7 @@
     "quote": {
       "status": "verified",
       "quote_id": "dk_ne_chi_ajb_yds_open",
-      "source": "DraftKings Early Openers (TNF Verified Feed)",
+      "source": "DraftKings Opening Line",
       "book": "DraftKings",
       "line": 64.5,
       "over_odds": -115,
@@ -72213,11 +72222,12 @@
     },
     "projection": {
       "fair_line": 113.0,
-      "proj_volume": 113.0,
+      "proj_volume": 121.42,
       "distribution_params": {
-        "mu_rec": 0.5019,
+        "mu_rec": 9.8767,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 12.2931
       },
       "p_over": 0.5019,
       "p_under": 0.4981,
@@ -72236,7 +72246,7 @@
     "quote": {
       "status": "verified",
       "quote_id": "pin_det_gb_amonra_yds_open",
-      "source": "Pinnacle Sharp Early Openers (Week 7 Verified Feed)",
+      "source": "Pinnacle Opening Line",
       "book": "Pinnacle",
       "line": 112.5,
       "over_odds": -110,
@@ -72303,11 +72313,12 @@
     },
     "projection": {
       "fair_line": 4.5,
-      "proj_volume": 4.5,
+      "proj_volume": 5.23,
       "distribution_params": {
-        "mu_rec": 0.5536,
+        "mu_rec": 5.2319,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 12.9847
       },
       "p_over": 0.5536,
       "p_under": 0.4464,
@@ -72393,11 +72404,12 @@
     },
     "projection": {
       "fair_line": 1.5,
-      "proj_volume": 1.5,
+      "proj_volume": 2.21,
       "distribution_params": {
-        "mu_rec": 0.616,
+        "mu_rec": 2.2105,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 9.8752
       },
       "p_over": 0.616,
       "p_under": 0.384,
@@ -72483,11 +72495,12 @@
     },
     "projection": {
       "fair_line": 4.5,
-      "proj_volume": 4.5,
+      "proj_volume": 5.17,
       "distribution_params": {
-        "mu_rec": 0.5452,
+        "mu_rec": 5.1697,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 11.5148
       },
       "p_over": 0.5452,
       "p_under": 0.4548,
@@ -72573,11 +72586,12 @@
     },
     "projection": {
       "fair_line": 1.5,
-      "proj_volume": 1.5,
+      "proj_volume": 1.97,
       "distribution_params": {
-        "mu_rec": 0.3152,
+        "mu_rec": 1.9706,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 7.5639
       },
       "p_over": 0.3152,
       "p_under": 0.6848,
@@ -72663,11 +72677,12 @@
     },
     "projection": {
       "fair_line": 4.5,
-      "proj_volume": 4.5,
+      "proj_volume": 4.06,
       "distribution_params": {
-        "mu_rec": 0.5417,
+        "mu_rec": 4.0637,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 12.1972
       },
       "p_over": 0.5417,
       "p_under": 0.4583,
@@ -72753,11 +72768,12 @@
     },
     "projection": {
       "fair_line": 1.5,
-      "proj_volume": 1.5,
+      "proj_volume": 1.52,
       "distribution_params": {
-        "mu_rec": 0.4352,
+        "mu_rec": 1.5191,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 13.1302
       },
       "p_over": 0.4352,
       "p_under": 0.5648,
@@ -72843,11 +72859,12 @@
     },
     "projection": {
       "fair_line": 4.5,
-      "proj_volume": 4.5,
+      "proj_volume": 4.54,
       "distribution_params": {
-        "mu_rec": 0.7712,
+        "mu_rec": 4.5443,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 9.8836
       },
       "p_over": 0.7712,
       "p_under": 0.2288,
@@ -72933,11 +72950,12 @@
     },
     "projection": {
       "fair_line": 1.5,
-      "proj_volume": 1.5,
+      "proj_volume": 1.9,
       "distribution_params": {
-        "mu_rec": 0.298,
+        "mu_rec": 1.9004,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 10.5924
       },
       "p_over": 0.298,
       "p_under": 0.702,
@@ -73023,11 +73041,12 @@
     },
     "projection": {
       "fair_line": 1.5,
-      "proj_volume": 1.5,
+      "proj_volume": 1.46,
       "distribution_params": {
-        "mu_rec": 0.416,
+        "mu_rec": 1.4569,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 14.2057
       },
       "p_over": 0.416,
       "p_under": 0.584,
@@ -73113,11 +73132,12 @@
     },
     "projection": {
       "fair_line": 3.5,
-      "proj_volume": 3.5,
+      "proj_volume": 3.6,
       "distribution_params": {
-        "mu_rec": 0.3041,
+        "mu_rec": 3.6047,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 11.905
       },
       "p_over": 0.3041,
       "p_under": 0.6959,
@@ -73203,11 +73223,12 @@
     },
     "projection": {
       "fair_line": 2.5,
-      "proj_volume": 2.5,
+      "proj_volume": 2.64,
       "distribution_params": {
-        "mu_rec": 0.4708,
+        "mu_rec": 2.6381,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 7.7646
       },
       "p_over": 0.4708,
       "p_under": 0.5292,
@@ -73293,11 +73314,12 @@
     },
     "projection": {
       "fair_line": 3.5,
-      "proj_volume": 3.5,
+      "proj_volume": 3.47,
       "distribution_params": {
-        "mu_rec": 0.4402,
+        "mu_rec": 3.4713,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 13.9074
       },
       "p_over": 0.4402,
       "p_under": 0.5598,
@@ -73383,11 +73405,12 @@
     },
     "projection": {
       "fair_line": 61.0,
-      "proj_volume": 61.0,
+      "proj_volume": 67.93,
       "distribution_params": {
-        "mu_rec": 0.4222,
+        "mu_rec": 5.2319,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 12.9847
       },
       "p_over": 0.4222,
       "p_under": 0.5778,
@@ -73473,11 +73496,12 @@
     },
     "projection": {
       "fair_line": 17.0,
-      "proj_volume": 17.0,
+      "proj_volume": 21.83,
       "distribution_params": {
-        "mu_rec": 0.6937,
+        "mu_rec": 2.2105,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 9.8752
       },
       "p_over": 0.6937,
       "p_under": 0.3063,
@@ -73563,11 +73587,12 @@
     },
     "projection": {
       "fair_line": 53.0,
-      "proj_volume": 53.0,
+      "proj_volume": 59.53,
       "distribution_params": {
-        "mu_rec": 0.5945,
+        "mu_rec": 5.1697,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 11.5148
       },
       "p_over": 0.5945,
       "p_under": 0.4055,
@@ -73653,11 +73678,12 @@
     },
     "projection": {
       "fair_line": 11.5,
-      "proj_volume": 11.5,
+      "proj_volume": 14.91,
       "distribution_params": {
-        "mu_rec": 0.3022,
+        "mu_rec": 1.9706,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 7.5639
       },
       "p_over": 0.3022,
       "p_under": 0.6978,
@@ -73743,11 +73769,12 @@
     },
     "projection": {
       "fair_line": 43.5,
-      "proj_volume": 43.5,
+      "proj_volume": 49.57,
       "distribution_params": {
-        "mu_rec": 0.5929,
+        "mu_rec": 4.0637,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 12.1972
       },
       "p_over": 0.5929,
       "p_under": 0.4071,
@@ -73833,11 +73860,12 @@
     },
     "projection": {
       "fair_line": 14.0,
-      "proj_volume": 14.0,
+      "proj_volume": 19.95,
       "distribution_params": {
-        "mu_rec": 0.3846,
+        "mu_rec": 1.5191,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 13.1302
       },
       "p_over": 0.3846,
       "p_under": 0.6154,
@@ -73923,11 +73951,12 @@
     },
     "projection": {
       "fair_line": 39.5,
-      "proj_volume": 39.5,
+      "proj_volume": 44.91,
       "distribution_params": {
-        "mu_rec": 0.5846,
+        "mu_rec": 4.5443,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 9.8836
       },
       "p_over": 0.5846,
       "p_under": 0.4154,
@@ -74013,11 +74042,12 @@
     },
     "projection": {
       "fair_line": 15.0,
-      "proj_volume": 15.0,
+      "proj_volume": 20.13,
       "distribution_params": {
-        "mu_rec": 0.315,
+        "mu_rec": 1.9004,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 10.5924
       },
       "p_over": 0.315,
       "p_under": 0.685,
@@ -74103,11 +74133,12 @@
     },
     "projection": {
       "fair_line": 14.0,
-      "proj_volume": 14.0,
+      "proj_volume": 20.7,
       "distribution_params": {
-        "mu_rec": 0.3793,
+        "mu_rec": 1.4569,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 14.2057
       },
       "p_over": 0.3793,
       "p_under": 0.6207,
@@ -74193,11 +74224,12 @@
     },
     "projection": {
       "fair_line": 37.0,
-      "proj_volume": 37.0,
+      "proj_volume": 42.91,
       "distribution_params": {
-        "mu_rec": 0.295,
+        "mu_rec": 3.6047,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 11.905
       },
       "p_over": 0.295,
       "p_under": 0.705,
@@ -74283,11 +74315,12 @@
     },
     "projection": {
       "fair_line": 17.0,
-      "proj_volume": 17.0,
+      "proj_volume": 20.48,
       "distribution_params": {
-        "mu_rec": 0.4602,
+        "mu_rec": 2.6381,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 7.7646
       },
       "p_over": 0.4602,
       "p_under": 0.5398,
@@ -74373,11 +74406,12 @@
     },
     "projection": {
       "fair_line": 41.5,
-      "proj_volume": 41.5,
+      "proj_volume": 48.28,
       "distribution_params": {
-        "mu_rec": 0.4545,
+        "mu_rec": 3.4713,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 13.9074
       },
       "p_over": 0.4545,
       "p_under": 0.5455,
@@ -74463,11 +74497,12 @@
     },
     "projection": {
       "fair_line": 2.5,
-      "proj_volume": 2.5,
+      "proj_volume": 2.66,
       "distribution_params": {
-        "mu_rec": 0.475,
+        "mu_rec": 2.6573,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 6.8808
       },
       "p_over": 0.475,
       "p_under": 0.525,
@@ -74553,11 +74588,12 @@
     },
     "projection": {
       "fair_line": 6.5,
-      "proj_volume": 6.5,
+      "proj_volume": 6.97,
       "distribution_params": {
-        "mu_rec": 0.6252,
+        "mu_rec": 6.9743,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 13.3797
       },
       "p_over": 0.6252,
       "p_under": 0.3748,
@@ -74643,11 +74679,12 @@
     },
     "projection": {
       "fair_line": 2.5,
-      "proj_volume": 2.5,
+      "proj_volume": 3.11,
       "distribution_params": {
-        "mu_rec": 0.3727,
+        "mu_rec": 3.1113,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 12.4722
       },
       "p_over": 0.3727,
       "p_under": 0.6273,
@@ -74733,11 +74770,12 @@
     },
     "projection": {
       "fair_line": 3.5,
-      "proj_volume": 3.5,
+      "proj_volume": 3.99,
       "distribution_params": {
-        "mu_rec": 0.3675,
+        "mu_rec": 3.9908,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 12.933
       },
       "p_over": 0.3675,
       "p_under": 0.6325,
@@ -74823,11 +74861,12 @@
     },
     "projection": {
       "fair_line": 1.5,
-      "proj_volume": 1.5,
+      "proj_volume": 2.18,
       "distribution_params": {
-        "mu_rec": 0.1912,
+        "mu_rec": 2.1751,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 6.884
       },
       "p_over": 0.1912,
       "p_under": 0.8088,
@@ -74913,11 +74952,12 @@
     },
     "projection": {
       "fair_line": 2.5,
-      "proj_volume": 2.5,
+      "proj_volume": 3.21,
       "distribution_params": {
-        "mu_rec": 0.3908,
+        "mu_rec": 3.2059,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 10.8922
       },
       "p_over": 0.3908,
       "p_under": 0.6092,
@@ -75003,11 +75043,12 @@
     },
     "projection": {
       "fair_line": 1.5,
-      "proj_volume": 1.5,
+      "proj_volume": 1.95,
       "distribution_params": {
-        "mu_rec": 0.5537,
+        "mu_rec": 1.9458,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 9.0516
       },
       "p_over": 0.5537,
       "p_under": 0.4463,
@@ -75093,11 +75134,12 @@
     },
     "projection": {
       "fair_line": 15.0,
-      "proj_volume": 15.0,
+      "proj_volume": 18.28,
       "distribution_params": {
-        "mu_rec": 0.5683,
+        "mu_rec": 2.6573,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 6.8808
       },
       "p_over": 0.5683,
       "p_under": 0.4317,
@@ -75183,11 +75225,12 @@
     },
     "projection": {
       "fair_line": 85.0,
-      "proj_volume": 85.0,
+      "proj_volume": 93.31,
       "distribution_params": {
-        "mu_rec": 0.574,
+        "mu_rec": 6.9743,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 13.3797
       },
       "p_over": 0.574,
       "p_under": 0.426,
@@ -75273,11 +75316,12 @@
     },
     "projection": {
       "fair_line": 32.5,
-      "proj_volume": 32.5,
+      "proj_volume": 38.8,
       "distribution_params": {
-        "mu_rec": 0.4021,
+        "mu_rec": 3.1113,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 12.4722
       },
       "p_over": 0.4021,
       "p_under": 0.5979,
@@ -75363,11 +75407,12 @@
     },
     "projection": {
       "fair_line": 45.0,
-      "proj_volume": 45.0,
+      "proj_volume": 51.61,
       "distribution_params": {
-        "mu_rec": 0.4005,
+        "mu_rec": 3.9908,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 12.933
       },
       "p_over": 0.4005,
       "p_under": 0.5995,
@@ -75453,11 +75498,12 @@
     },
     "projection": {
       "fair_line": 12.0,
-      "proj_volume": 12.0,
+      "proj_volume": 14.97,
       "distribution_params": {
-        "mu_rec": 0.1959,
+        "mu_rec": 2.1751,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 6.884
       },
       "p_over": 0.1959,
       "p_under": 0.8041,
@@ -75543,11 +75589,12 @@
     },
     "projection": {
       "fair_line": 29.5,
-      "proj_volume": 29.5,
+      "proj_volume": 34.92,
       "distribution_params": {
-        "mu_rec": 0.4428,
+        "mu_rec": 3.2059,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 10.8922
       },
       "p_over": 0.4428,
       "p_under": 0.5572,
@@ -75633,11 +75680,12 @@
     },
     "projection": {
       "fair_line": 13.5,
-      "proj_volume": 13.5,
+      "proj_volume": 17.61,
       "distribution_params": {
-        "mu_rec": 0.5473,
+        "mu_rec": 1.9458,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 9.0516
       },
       "p_over": 0.5473,
       "p_under": 0.4527,
@@ -75723,11 +75771,12 @@
     },
     "projection": {
       "fair_line": 14.0,
-      "proj_volume": 14.0,
+      "proj_volume": 17.42,
       "distribution_params": {
-        "mu_rec": 0.5991,
+        "mu_rec": 2.43,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 7.1691
       },
       "p_over": 0.5991,
       "p_under": 0.4009,
@@ -75813,11 +75862,12 @@
     },
     "projection": {
       "fair_line": 9.5,
-      "proj_volume": 9.5,
+      "proj_volume": 9.88,
       "distribution_params": {
-        "mu_rec": 0.67,
+        "mu_rec": 9.8767,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 12.2931
       },
       "p_over": 0.67,
       "p_under": 0.33,
@@ -75903,11 +75953,12 @@
     },
     "projection": {
       "fair_line": 3.5,
-      "proj_volume": 3.5,
+      "proj_volume": 3.45,
       "distribution_params": {
-        "mu_rec": 0.2787,
+        "mu_rec": 3.4505,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 14.9327
       },
       "p_over": 0.2787,
       "p_under": 0.7213,
@@ -75993,11 +76044,12 @@
     },
     "projection": {
       "fair_line": 1.5,
-      "proj_volume": 1.5,
+      "proj_volume": 1.86,
       "distribution_params": {
-        "mu_rec": 0.5311,
+        "mu_rec": 1.8578,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 13.2465
       },
       "p_over": 0.5311,
       "p_under": 0.4689,
@@ -76083,11 +76135,12 @@
     },
     "projection": {
       "fair_line": 3.5,
-      "proj_volume": 3.5,
+      "proj_volume": 3.73,
       "distribution_params": {
-        "mu_rec": 0.3254,
+        "mu_rec": 3.7334,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 7.9544
       },
       "p_over": 0.3254,
       "p_under": 0.6746,
@@ -76173,11 +76226,12 @@
     },
     "projection": {
       "fair_line": 3.5,
-      "proj_volume": 3.5,
+      "proj_volume": 3.9,
       "distribution_params": {
-        "mu_rec": 0.5146,
+        "mu_rec": 3.8977,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 13.0392
       },
       "p_over": 0.5146,
       "p_under": 0.4854,
@@ -76263,11 +76317,12 @@
     },
     "projection": {
       "fair_line": 1.5,
-      "proj_volume": 1.5,
+      "proj_volume": 2.17,
       "distribution_params": {
-        "mu_rec": 0.0384,
+        "mu_rec": 2.1706,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 13.4834
       },
       "p_over": 0.0384,
       "p_under": 0.9616,
@@ -76353,11 +76408,12 @@
     },
     "projection": {
       "fair_line": 3.5,
-      "proj_volume": 3.5,
+      "proj_volume": 4.18,
       "distribution_params": {
-        "mu_rec": 0.2645,
+        "mu_rec": 4.1802,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 10.5464
       },
       "p_over": 0.2645,
       "p_under": 0.7355,
@@ -76443,11 +76499,12 @@
     },
     "projection": {
       "fair_line": 1.5,
-      "proj_volume": 1.5,
+      "proj_volume": 1.45,
       "distribution_params": {
-        "mu_rec": 0.1878,
+        "mu_rec": 1.4502,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 12.6418
       },
       "p_over": 0.1878,
       "p_under": 0.8122,
@@ -76533,11 +76590,12 @@
     },
     "projection": {
       "fair_line": 113.0,
-      "proj_volume": 113.0,
+      "proj_volume": 121.42,
       "distribution_params": {
-        "mu_rec": 0.7255,
+        "mu_rec": 9.8767,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 12.2931
       },
       "p_over": 0.7255,
       "p_under": 0.2745,
@@ -76623,11 +76681,12 @@
     },
     "projection": {
       "fair_line": 44.0,
-      "proj_volume": 44.0,
+      "proj_volume": 51.53,
       "distribution_params": {
-        "mu_rec": 0.2414,
+        "mu_rec": 3.4505,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 14.9327
       },
       "p_over": 0.2414,
       "p_under": 0.7586,
@@ -76713,11 +76772,12 @@
     },
     "projection": {
       "fair_line": 18.5,
-      "proj_volume": 18.5,
+      "proj_volume": 24.61,
       "distribution_params": {
-        "mu_rec": 0.4349,
+        "mu_rec": 1.8578,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 13.2465
       },
       "p_over": 0.4349,
       "p_under": 0.5651,
@@ -76803,11 +76863,12 @@
     },
     "projection": {
       "fair_line": 25.5,
-      "proj_volume": 25.5,
+      "proj_volume": 29.7,
       "distribution_params": {
-        "mu_rec": 0.2927,
+        "mu_rec": 3.7334,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 7.9544
       },
       "p_over": 0.2927,
       "p_under": 0.7073,
@@ -76893,11 +76954,12 @@
     },
     "projection": {
       "fair_line": 44.0,
-      "proj_volume": 44.0,
+      "proj_volume": 50.82,
       "distribution_params": {
-        "mu_rec": 0.4117,
+        "mu_rec": 3.8977,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 13.0392
       },
       "p_over": 0.4117,
       "p_under": 0.5883,
@@ -76983,11 +77045,12 @@
     },
     "projection": {
       "fair_line": 23.0,
-      "proj_volume": 23.0,
+      "proj_volume": 29.27,
       "distribution_params": {
-        "mu_rec": 0.0774,
+        "mu_rec": 2.1706,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 13.4834
       },
       "p_over": 0.0774,
       "p_under": 0.9226,
@@ -77073,11 +77136,12 @@
     },
     "projection": {
       "fair_line": 38.5,
-      "proj_volume": 38.5,
+      "proj_volume": 44.09,
       "distribution_params": {
-        "mu_rec": 0.3675,
+        "mu_rec": 4.1802,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 10.5464
       },
       "p_over": 0.3675,
       "p_under": 0.6325,
@@ -77163,11 +77227,12 @@
     },
     "projection": {
       "fair_line": 12.5,
-      "proj_volume": 12.5,
+      "proj_volume": 18.33,
       "distribution_params": {
-        "mu_rec": 0.4053,
+        "mu_rec": 1.4502,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 12.6418
       },
       "p_over": 0.4053,
       "p_under": 0.5947,
@@ -77253,11 +77318,12 @@
     },
     "projection": {
       "fair_line": 34.5,
-      "proj_volume": 34.5,
+      "proj_volume": 39.89,
       "distribution_params": {
-        "mu_rec": 0.3826,
+        "mu_rec": 3.613,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 11.0407
       },
       "p_over": 0.3826,
       "p_under": 0.6174,
@@ -77343,11 +77409,12 @@
     },
     "projection": {
       "fair_line": 2.5,
-      "proj_volume": 2.5,
+      "proj_volume": 2.63,
       "distribution_params": {
-        "mu_rec": 0.4693,
+        "mu_rec": 2.6313,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 9.4179
       },
       "p_over": 0.4693,
       "p_under": 0.5307,
