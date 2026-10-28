@@ -782,11 +782,56 @@ class OddsIngestionAdapter:
             fair_line = fair_yds
             proj_volume = round(mu_rec * mu_ypr, 2)
 
-        # Compute model probabilities at the offered book line
-        if quote.market == "receptions":
-            p_over_model, p_under_model, p_push_model = compute_rec_probs(mu_rec, quote.line)
+        # Compute model probabilities at the offered book line (if line present)
+        if quote.line is not None:
+            if quote.market == "receptions":
+                p_over_model, p_under_model, p_push_model = compute_rec_probs(mu_rec, quote.line)
+            else:
+                p_over_model, p_under_model, p_push_model = compute_yards_probs(self.model, mu_rec, mu_ypr, quote.line)
         else:
-            p_over_model, p_under_model, p_push_model = compute_yards_probs(self.model, mu_rec, mu_ypr, quote.line)
+            p_over_model, p_under_model, p_push_model = 0.5, 0.5, 0.0
+
+        # Invariant 3: A quote requires book + line + captured price + observed_at.
+        # No price means no EV, no edge, no ledger entry.
+        has_captured_price = (quote.over_odds is not None and quote.over_odds != 0) or (quote.under_odds is not None and quote.under_odds != 0)
+        has_line = quote.line is not None
+        has_book = bool(quote.book)
+        has_observed = bool(quote.observed_at)
+
+        if not (has_captured_price and has_line and has_book and has_observed):
+            return MatchedEvaluation(
+                quote=quote,
+                player_id=p_id,
+                player_name=p_name,
+                team=team,
+                opponent=opp,
+                game_id=game_id,
+                position=pos,
+                market=quote.market,
+                fair_line=round(fair_line, 1),
+                book_line=round(quote.line or 0.0, 1),
+                over_odds=quote.over_odds or 0,
+                under_odds=quote.under_odds,
+                dec_odds_over=0.0,
+                dec_odds_under=0.0,
+                p_over_market_devig=0.0,
+                p_under_market_devig=0.0,
+                p_over_model=round(p_over_model, 4),
+                p_under_model=round(p_under_model, 4),
+                p_push_model=round(p_push_model, 4),
+                prob_edge=0.0,
+                break_even_adv=0.0,
+                expected_return=0.0,
+                best_side="OVER",
+                is_qualified=False,
+                status="PASS",
+                actionable_stake=0.0,
+                catalyst="none",
+                injury_context=injury_ctx,
+                proj_volume=proj_volume,
+                mu_rec=round(mu_rec, 4),
+                mu_ypr=round(mu_ypr, 4)
+            )
 
         # Compute market probabilities and de-vig
         p_over_market_devig, p_under_market_devig = devig_two_way(quote.over_odds, quote.under_odds)

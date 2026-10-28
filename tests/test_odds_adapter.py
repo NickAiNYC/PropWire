@@ -234,9 +234,40 @@ class TestOddsAdapter(unittest.TestCase):
             source="test"
         )
         ev_rec = adapter.evaluate_quote(quote_rec)
-        self.assertIsNotNone(ev_rec)
         self.assertEqual(ev_rec.fair_line % 1.0, 0.5)  # hook alignment
         self.assertEqual(ev_rec.proj_volume, 2.46)  # mean receptions
+
+    # 8. Quote Price Integrity (Phase 1 Invariant 3)
+    def test_missing_or_zero_price_fails_closed(self):
+        adapter = OddsIngestionAdapter.__new__(OddsIngestionAdapter)
+        adapter.season = 2026
+        adapter.week = 7
+        adapter.slate_players = self.mock_slate
+        adapter.injury_beneficiaries = {}
+        from freeze_slate import ReceivingModel, MODEL_ALPHA, MODEL_K
+        adapter.model = ReceivingModel(rec_params=None, ypr_params=None, alpha=MODEL_ALPHA, k=MODEL_K, means=None, sds=None, cols=None)
+
+        # Quote with 0 over_odds and None under_odds must fail closed: no EV, no edge, status PASS
+        quote_zero_price = PropQuote(
+            quote_id="test_zero_price",
+            book="DraftKings",
+            market="receiving_yards",
+            player_raw_name="DeMario Douglas",
+            team="NE",
+            opponent="CHI",
+            line=24.5,
+            over_odds=0,
+            under_odds=None,
+            observed_at="2026-10-20T02:00:00Z",
+            source="test"
+        )
+        ev_zero = adapter.evaluate_quote(quote_zero_price)
+        self.assertIsNotNone(ev_zero)
+        self.assertFalse(ev_zero.is_qualified)
+        self.assertEqual(ev_zero.actionable_stake, 0.0)
+        self.assertEqual(ev_zero.prob_edge, 0.0)
+        self.assertEqual(ev_zero.expected_return, 0.0)
+        self.assertEqual(ev_zero.status, "PASS")
 
 
 if __name__ == "__main__":

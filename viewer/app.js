@@ -1945,7 +1945,8 @@
     const observedAt = quote && Date.parse(quote.observed_at || '');
     const completeQuote = Boolean(
       quote && receipt && Number.isFinite(observedAt) && result.book &&
-      Number.isFinite(Number(result.line)) && Number.isFinite(Number(result.odds))
+      Number.isFinite(Number(result.line)) && Number.isFinite(Number(result.odds)) &&
+      Number(result.odds) !== 0
     );
     const deny = (code, message) => ({ allowed: false, code, message, mode: 'research' });
 
@@ -3470,8 +3471,15 @@
 
   function quoteState(quote) {
     if (!quote) return 'none';
+    const hasPrice = (quote.over_odds && quote.over_odds !== 0) || (quote.under_odds && quote.under_odds !== 0) || (quote.odds && quote.odds !== 0);
+    const hasLine = quote.line !== null && quote.line !== undefined && !Number.isNaN(Number(quote.line));
+    const hasBook = Boolean(quote.book);
+    const hasObservedAt = Boolean(quote.observed_at);
+    if (!hasPrice || !hasLine || !hasBook || !hasObservedAt) {
+      return 'unquoted';
+    }
     const receipt = quote.receipt_id || quote.provider_quote_id || quote.source_url || (/^https?:\/\//i.test(quote.source || '') && quote.content_hash);
-    return quote.verified === true && Boolean(receipt) && Boolean(quote.observed_at) ? 'verified' : 'ingested';
+    return quote.verified === true && Boolean(receipt) ? 'verified' : 'ingested';
   }
 
   function evaluateRow(row) {
@@ -5420,12 +5428,14 @@
   // ── §22. Odds & distribution math utilities ───────────────────────────
 
   function americanToDecimal(odds) {
-    const value = num(odds, -110);
+    const value = num(odds, NaN);
+    if (!value || Math.abs(value) === 0 || !Number.isFinite(value)) return 0;
     return value > 0 ? value / 100 + 1 : 100 / Math.abs(value) + 1;
   }
 
   function impliedProbability(odds) {
-    return 1 / americanToDecimal(odds);
+    const dec = americanToDecimal(odds);
+    return dec > 0 ? 1 / dec : 0;
   }
 
   function devig(overOdds, underOdds) {
