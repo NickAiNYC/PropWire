@@ -6,8 +6,8 @@
 //     registered as historical
 //   - app boot over real HTTP: state.slateKey === '2026_w8', slate selector
 //     lists W8 Live + legacy W7/W1 options, first Top-Play = Puka Nacua
-//     (from the enriched current_picks_2026_w8.json), build-hash 2026-w8-v16
-//   - service worker propwire-v151-prod activates + precache populated
+//     (from the enriched current_picks_2026_w8.json), build-hash 2026-w8-v17
+//   - service worker propwire-v152-prod activates + precache populated
 //   - zero console errors, zero failed requests on the critical feed set
 //   - fail-closed tripwires: manifest URL + catch-fallback present in app.js,
 //     node-test sandbox still pins the legacy baseline (404 stub)
@@ -123,7 +123,7 @@ check('boot: active option labels W8', /W8/.test(boot.activeLabel || ''), boot.a
 // paused" empty state with a one-click path to the full research slate.
 check('boot: fail-closed empty state honest (qualification paused)', boot.emptyHeadline !== null, boot.emptyHeadline || 'no headline');
 check('boot: research-projections CTA offers full w8 slate', /422/.test(boot.emptyCta || ''), boot.emptyCta || 'no CTA');
-check('boot: build-hash 2026-w8-v16 + theme #0b0e14', boot.buildHash === '2026-w8-v16' && boot.themeColor === '#0b0e14', `hash=${boot.buildHash} theme=${boot.themeColor}`);
+check('boot: build-hash 2026-w8-v17 + theme #0b0e14', boot.buildHash === '2026-w8-v17' && boot.themeColor === '#0b0e14', `hash=${boot.buildHash} theme=${boot.themeColor}`);
 check('boot: zero console/page errors', errors.length === 0, errors.slice(0, 3).join(' | ') || 'clean');
 const criticalFailures = failedRequests.filter((f) => /slate_2026_w8|games_2026_w8|current_picks_2026_w8|injuries_2026_w8|slate-index/.test(f));
 check('boot: zero failed critical feed requests', criticalFailures.length === 0, criticalFailures.join(' | ') || 'clean');
@@ -150,14 +150,14 @@ const swState = await page.evaluate(async () => {
   if (!('serviceWorker' in navigator)) return { err: 'no SW support' };
   const reg = await navigator.serviceWorker.ready.catch((e) => ({ err: e.message }));
   const keys = await caches.keys();
-  const target = keys.find((k) => k === 'propwire-v151-prod');
+  const target = keys.find((k) => k === 'propwire-v152-prod');
   if (!target) return { err: 'no v151 cache', keys };
   const cache = await caches.open(target);
   const n = (await cache.keys()).length;
-  const css = !!(await cache.match('/style.css?v=2026_v151'));
+  const css = !!(await cache.match('/style.css?v=2026_v152'));
   return { n, css };
 });
-check('SW: propwire-v151-prod active + precache populated', !swState.err && swState.n >= 10 && swState.css, swState.err ? swState.err : `${swState.n} entries, busted css: ${swState.css}`);
+check('SW: propwire-v152-prod active + precache populated', !swState.err && swState.n >= 10 && swState.css, swState.err ? swState.err : `${swState.n} entries, busted css: ${swState.css}`);
 
 await browser.close();
 server.close();

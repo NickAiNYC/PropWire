@@ -230,7 +230,68 @@
   const signedPct = (value, digits = 1) => `${num(value) > 0 ? '+' : ''}${pct(value, digits)}`;
   const oddsText = (value) => `${num(value) > 0 ? '+' : ''}${num(value)}`;
   const esc = (value) => String(value ?? '').replace(/[&<>'"]/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[character]);
-  const bookShort = (book) => ({ DraftKings: 'DK', FanDuel: 'FD', BetMGM: 'MGM', Caesars: 'CZR', Pinnacle: 'PIN' })[book] || book || 'Book';
+  const bookShort = (book) => bookShortV152(book);
+
+  // ── v152 book identity — mirrors src/odds_adapter.py BOOK_META ──────────
+  // Self-hosted wordmark badges (viewer/books/<id>.svg): same-origin, so the
+  // CSP img-src 'self' policy that v150 fixed keeps working with zero
+  // external requests. resolveBookId() normalizes display names ("DraftKings",
+  // "ESPN BET") and provider slugs ("circa_sports", "Draftkings") to one id.
+  const BOOKS = {
+    draftkings: { name: 'DraftKings', short: 'DK',   color: '#53d337', logo: 'books/draftkings.svg?v=v152' },
+    fanduel:    { name: 'FanDuel',    short: 'FD',   color: '#7ab8ff', logo: 'books/fanduel.svg?v=v152' },
+    betmgm:     { name: 'BetMGM',     short: 'MGM',  color: '#c6a45e', logo: 'books/betmgm.svg?v=v152' },
+    caesars:    { name: 'Caesars',    short: 'CZR',  color: '#c39e6d', logo: 'books/caesars.svg?v=v152' },
+    pinnacle:   { name: 'Pinnacle',   short: 'PIN',  color: '#f56f36', logo: 'books/pinnacle.svg?v=v152' },
+    betrivers:  { name: 'BetRivers',  short: 'BR',   color: '#ffc72c', logo: 'books/betrivers.svg?v=v152' },
+    fanatics:   { name: 'Fanatics',   short: 'FAN',  color: '#e03131', logo: 'books/fanatics.svg?v=v152' },
+    bet365:     { name: 'bet365',     short: '365',  color: '#0b7d57', logo: 'books/bet365.svg?v=v152' },
+    espnbet:    { name: 'ESPN BET',   short: 'ESPN', color: '#d50a0a', logo: 'books/espnbet.svg?v=v152' },
+    circa:      { name: 'Circa',      short: 'CIR',  color: '#ff8200', logo: 'books/circa.svg?v=v152' }
+  };
+  const BOOK_ALIASES = {
+    circasports: 'circa', espnbetus: 'espnbet', betonlineag: 'betonline',
+    draftkingsus: 'draftkings', fanduelus: 'fanduel', betmgmus: 'betmgm',
+    betmgmny: 'betmgm', betriversny: 'betrivers', fanaticsportsbook: 'fanatics',
+    bet365us: 'bet365', bet365nj: 'bet365'
+  };
+  const resolveBookId = (ref) => {
+    if (!ref) return null;
+    const slug = String(ref).toLowerCase().replace(/[-_ ]/g, '');
+    return BOOK_ALIASES[slug] || slug;
+  };
+  const bookMeta = (ref) => BOOKS[resolveBookId(ref)] || null;
+  // bookShort v152: consult the registry first (covers BetRivers/Fanatics/
+  // bet365/ESPN BET/Circa), keep the legacy inline map for unknown books.
+  const bookShortV152 = (book) => {
+    const meta = bookMeta(book);
+    if (meta) return meta.short;
+    return ({ DraftKings: 'DK', FanDuel: 'FD', BetMGM: 'MGM', Caesars: 'CZR', Pinnacle: 'PIN' })[book] || book || 'Book';
+  };
+  const bookLogoImg = (ref, cls = 'book-logo') => {
+    const meta = bookMeta(ref);
+    if (!meta) return '';
+    return `<img class="${cls}" src="${meta.logo}" alt="${esc(meta.name)}" title="${esc(meta.name)}" loading="lazy">`;
+  };
+  // Live-feed book patch (v152): the odds feed ships a `books` map; unknown
+  // books advertised by the provider get a text-safe fallback entry so chips
+  // still render without a badge file. Fail-closed: strings only.
+  const mergeFeedBooks = (feedBooks) => {
+    if (!feedBooks || typeof feedBooks !== 'object') return 0;
+    let merged = 0;
+    for (const [id, cfg] of Object.entries(feedBooks)) {
+      if (!id || typeof cfg !== 'object') continue;
+      if (id in BOOKS) continue;
+      const name = typeof cfg.name === 'string' ? cfg.name : id;
+      BOOKS[id] = {
+        name, short: typeof cfg.short === 'string' ? cfg.short : name.slice(0, 4),
+        color: typeof cfg.color === 'string' ? cfg.color : '#7d8592',
+        logo: typeof cfg.logo === 'string' && !cfg.logo.includes('..') ? cfg.logo : ''
+      };
+      merged += 1;
+    }
+    return merged;
+  };
 
   // Display-only fallback for the CLV ledger root hash when a report lacks
   // one (demo-ledger provenance). FLAG (Phase 3, see TECH-DEBT.md §R1): a
@@ -431,7 +492,7 @@
         </svg>
         <div class="bullet-bottom-sub">
           <span class="bullet-ci-wrap">80% <span class="bullet-ci-tag">${dist.low}–${dist.high}${unit}</span></span>
-          <span class="bullet-bk">${hasBook ? `Bk ${bookLine.toFixed(1)}` : 'Model only'}</span>
+          <span class="bullet-bk">${hasBook ? `${bookLogoImg(evaluation.book, 'book-logo book-logo-mini')}Bk ${bookLine.toFixed(1)}` : 'Model only'}</span>
         </div>
       </div>`;
   }
@@ -633,6 +694,7 @@
       const freshData = await fetchJson(`${oddsUrl}?t=${Date.now()}`, null);
       if (freshData && freshData.quotes) {
         const quotes = freshData.quotes;
+        mergeFeedBooks(freshData.books); // v152: provider-advertised books -> logo registry
         state.odds = freshData;
         if (state.feedHealth) {
           state.feedHealth.odds = 'ok';
@@ -3995,7 +4057,7 @@
         <span class="execution-state ${decision.allowed ? 'is-ready' : 'is-blocked'}">${decision.allowed ? 'Verified · ready' : 'Blocked'}</span>
       </section>
       <section class="execution-summary" aria-label="Execution terms">
-        <div><span>Book</span><strong>${esc(evaluation.book || '—')}</strong></div>
+        <div><span>Book</span><strong>${bookLogoImg(evaluation.book, 'book-logo')}${esc(evaluation.book || '—')}</strong></div>
         <div><span>Timestamp</span><strong class="execution-time">${esc(timestamp)}</strong></div>
         <div><span>Price</span><strong>${esc(evaluation.side || '—')} ${Number(evaluation.line).toFixed(1)} · ${oddsText(evaluation.odds)}</strong></div>
         <div><span>Model fair</span><strong>${Number(fairValue(row)).toFixed(1)}</strong></div>
@@ -4009,16 +4071,24 @@
       <section class="cross-book-section">
         <div class="execution-section-heading"><h4>Cross-book comparison</h4><span>${offers.length} observed offer${offers.length === 1 ? '' : 's'}</span></div>
         <div class="cross-book-list">
-          ${offers.map((offer) => {
-            const side = String(offer.evaluation?.best_side || evaluation.side || 'OVER').toUpperCase();
-            const price = side === 'UNDER' ? offer.under_odds : offer.over_odds;
-            const verified = quoteState(offer) === 'verified';
-            return `<div class="cross-book-row ${offer === evaluation.quote ? 'is-selected' : ''}">
-              <span><b>${esc(offer.book || 'Book')}</b><small>${verified ? 'Receipt verified' : 'Unverified'}</small></span>
-              <strong>${side} ${Number(offer.line).toFixed(1)}</strong><strong>${oddsText(price)}</strong>
-              <span class="cross-book-status">${offer === evaluation.quote ? 'Selected' : verified ? 'Available' : 'Locked'}</span>
+          ${(() => {
+            // v152: best-price highlight per side (American odds — higher is better)
+            const bestOver = offers.reduce((acc, o) => Math.max(acc, Number.isFinite(Number(o.over_odds)) ? Number(o.over_odds) : -Infinity), -Infinity);
+            const bestUnder = offers.reduce((acc, o) => Math.max(acc, Number.isFinite(Number(o.under_odds)) ? Number(o.under_odds) : -Infinity), -Infinity);
+            return offers.map((offer) => {
+              const side = String(offer.evaluation?.best_side || evaluation.side || 'OVER').toUpperCase();
+              const price = side === 'UNDER' ? offer.under_odds : offer.over_odds;
+              const verified = quoteState(offer) === 'verified';
+              const isBest = (side === 'UNDER'
+                ? bestUnder > -Infinity && Number(offer.under_odds) === bestUnder
+                : bestOver > -Infinity && Number(offer.over_odds) === bestOver);
+              return `<div class="cross-book-row ${offer === evaluation.quote ? 'is-selected' : ''} ${isBest && offer !== evaluation.quote ? 'is-best' : ''}">
+              <span><span class="cross-book-book">${bookLogoImg(offer.book_id || offer.book)}${esc(offer.book || 'Book')}</span><small>${verified ? 'Receipt verified' : 'Unverified'}</small></span>
+              <strong>${side} ${Number(offer.line).toFixed(1)}</strong><strong class="${isBest ? 'best-price' : ''}">${oddsText(price)}</strong>
+              <span class="cross-book-status">${offer === evaluation.quote ? 'Selected' : isBest ? 'Best price' : verified ? 'Available' : 'Locked'}</span>
             </div>`;
-          }).join('') || '<p class="execution-empty">No sportsbook offers are present in this snapshot.</p>'}
+            }).join('') || '<p class="execution-empty">No sportsbook offers are present in this snapshot.</p>';
+          })()}
         </div>
         ${offers.length < 2 ? '<p class="execution-note">No alternative verified offers are available in this snapshot.</p>' : ''}
       </section>

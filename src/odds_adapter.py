@@ -85,6 +85,57 @@ class PropQuote:
     verified: bool = False         # True ONLY when fetched from a real sportsbook/odds API with a true observation time
     receipt_id: Optional[str] = None
     source_url: Optional[str] = None
+    book_id: Optional[str] = None      # canonical slug: "draftkings" — matches viewer/books/<id>.svg
+    book_short: Optional[str] = None   # "DK" — compact chip label
+
+
+# ---
+# Book identity (v152). Canonical slug -> display/brand metadata. The viewer
+# mirrors this map in its BOOKS registry; the feed ships book_id per quote so
+# the viewer can resolve logos without guessing from display strings.
+# ---------------------------------------------------------------------------
+BOOK_META = {
+    "draftkings": {"display": "DraftKings", "short": "DK",     "color": "#53d337"},
+    "fanduel":    {"display": "FanDuel",    "short": "FD",     "color": "#7ab8ff"},
+    "betmgm":     {"display": "BetMGM",     "short": "MGM",    "color": "#c6a45e"},
+    "caesars":    {"display": "Caesars",    "short": "CZR",    "color": "#c39e6d"},
+    "pinnacle":   {"display": "Pinnacle",   "short": "PIN",    "color": "#f56f36"},
+    "betrivers":  {"display": "BetRivers",  "short": "BR",     "color": "#ffc72c"},
+    "fanatics":   {"display": "Fanatics",   "short": "FAN",    "color": "#e03131"},
+    "bet365":     {"display": "bet365",     "short": "365",    "color": "#0b7d57"},
+    "espnbet":    {"display": "ESPN BET",   "short": "ESPN",   "color": "#d50a0a"},
+    "circa":      {"display": "Circa",      "short": "CIR",    "color": "#ff8200"},
+}
+
+
+def canonical_book(raw: str) -> str:
+    """Normalize any provider book label to a canonical BOOK_META slug.
+
+    Handles provider casing drift ("Draftkings", "draftkings", "DraftKings"),
+    punctuation variants ("bet365", "bet-365"), and known aliases ("circa_sports",
+    "espnbet", "william hill us" etc. fall back to a stripped slug). Returns the
+    slug even when it is not in BOOK_META so callers can still ship a stable id;
+    display/short lookups then degrade gracefully to the raw string.
+    """
+    if not raw:
+        return "unknown"
+    slug = str(raw).strip().lower().replace("-", "").replace("_", "").replace(" ", "")
+    aliases = {
+        "circasports": "circa",
+        "espnbetus": "espnbet",
+        "williamhillus": "williamhill",
+        "betonlineag": "betonline",
+        "lowvig": "lowvig",
+        "bet365us": "bet365",
+        "bet365nj": "bet365",
+        "draftkingsus": "draftkings",
+        "fanduelus": "fanduel",
+        "betmgmus": "betmgm",
+        "betmgmny": "betmgm",
+        "betriversny": "betrivers",
+        "fanaticsportsbook": "fanatics",
+    }
+    return aliases.get(slug, slug)
 
 
 @dataclass
@@ -473,11 +524,13 @@ class TheOddsApiProvider(BaseOddsProvider):
         quotes: List[PropQuote] = []
         for q in raw_quotes:
             m_type = "receiving_yards" if "yds" in q.market else "receptions"
-            qid = f"oddsapi_{q.event_id}_{q.book}_{q.player}_{q.line}"
+            book_id = canonical_book(q.book)
+            meta = BOOK_META.get(book_id)
+            qid = f"oddsapi_{q.event_id}_{book_id}_{q.player}_{q.line}"
             receipt = hashlib.sha256(f"{qid}:{now_ts}:{q.line}:{int(q.over_odds)}".encode()).hexdigest()[:16]
             quotes.append(PropQuote(
                 quote_id=qid,
-                book=q.book.capitalize(),
+                book=meta["display"] if meta else q.book.capitalize(),
                 market=m_type,
                 player_raw_name=q.player,
                 team=None,
@@ -489,31 +542,158 @@ class TheOddsApiProvider(BaseOddsProvider):
                 source=f"The Odds API ({q.book})",
                 verified=True,
                 receipt_id=receipt,
-                source_url=f"https://api.the-odds-api.com/v4/sports/americanfootball_nfl/events/{q.event_id}/odds"
+                source_url=f"https://api.the-odds-api.com/v4/sports/americanfootball_nfl/events/{q.event_id}/odds",
+                book_id=book_id,
+                book_short=meta["short"] if meta else None
             ))
         print(f"[odds_adapter] TheOddsApiProvider fetched {len(quotes)} live quotes.")
         return quotes
 
 
+class SportsGameOddsProvider(BaseOddsProvider):
+    """
+    SportsGameOdds API (sportsgameodds.com) — per-bookmaker normalized feed.
+
+    Selected when ODDS_PROVIDER=sportsgameodds. Response shape (v2 events
+    endpoint): each event carries `odds` keyed by oddID; every odds object has
+    a `byBookmaker` map of bookmaker-slug -> {odds, lastUpdatedAt, available,
+    deeplink?} (draftkings / fanduel / betmgm / ... ). Player-prop markets are
+    statID-keyed (e.g. receiving_yards-PLAYER_ID-game-ou-over).
+
+    Chosen for DK/FD depth at indie pricing; the normalizer below is pure and
+    covered by the module selftest so provider drift is caught offline.
+    """
+    BASE = "https://api.sportsgameodds.com/v2"
+
+    def __init__(self, api_key: Optional[str] = None, timeout: int = 25):
+        self.api_key = api_key or os.environ.get("SGO_API_KEY") or os.environ.get("ODDS_API_KEY")
+        self.timeout = timeout
+
+    def fetch_quotes(self, season: int, week: int, game_id: Optional[str] = None) -> List[PropQuote]:
+        if not self.api_key:
+            print("[odds_adapter] SGO_API_KEY/ODDS_API_KEY not configured. Skipping SportsGameOddsProvider.")
+            return []
+        try:
+            import requests
+            params = {"apiKey": self.api_key, "league": "NFL", "season": season}
+            r = requests.get(f"{self.BASE}/events", params=params, timeout=self.timeout)
+            if r.status_code == 401:
+                print("[odds_adapter] SportsGameOdds rejected the key (401).")
+                return []
+            r.raise_for_status()
+            events = r.json().get("events", [])
+        except Exception as e:
+            print(f"[odds_adapter] SportsGameOddsProvider error: {e}")
+            return []
+
+        now_ts = datetime.now(timezone.utc).isoformat()
+        quotes: List[PropQuote] = []
+        for ev in events:
+            quotes.extend(self.normalize_event(ev, now_ts, week))
+        print(f"[odds_adapter] SportsGameOddsProvider fetched {len(quotes)} live quotes.")
+        return quotes
+
+    def normalize_event(self, ev: dict, now_ts: str, week: int) -> List[PropQuote]:
+        """Pure normalizer: SGO event dict -> PropQuotes (unit-tested offline)."""
+        quotes: List[PropQuote] = []
+        event_id = str(ev.get("eventID") or ev.get("id") or "unknown")
+        for odd_id, odd in (ev.get("odds") or {}).items():
+            stat_id = str(odd.get("statID") or "")
+            if stat_id not in ("receiving_yards", "receptions"):
+                continue
+            side = str(odd.get("sideID") or "")
+            if side != "over":          # over-side object carries the byBookmaker map
+                continue
+            player_id = str(odd.get("playerID") or "")
+            player_name = str(odd.get("playerName") or odd.get("title") or "")
+            line = odd.get("bookOdds") if odd.get("bookOdds") is not None else odd.get("fairOdds")
+            try:
+                line_val = float(odd.get("bookOverUnderLine") or odd.get("line") or 0.0)
+            except (TypeError, ValueError):
+                line_val = 0.0
+            by_book = odd.get("byBookmaker") or {}
+            for slug, bk in by_book.items():
+                if not isinstance(bk, dict) or bk.get("available") is False:
+                    continue
+                price = bk.get("odds")
+                if price in (None, ""):
+                    continue
+                try:
+                    over = int(float(price))
+                except (TypeError, ValueError):
+                    continue
+                book_id = canonical_book(slug)
+                meta = BOOK_META.get(book_id)
+                qid = f"sgo_{event_id}_{book_id}_{player_id or player_name}_{odd_id}"
+                receipt = hashlib.sha256(f"{qid}:{bk.get('lastUpdatedAt') or now_ts}:{over}".encode()).hexdigest()[:16]
+                quotes.append(PropQuote(
+                    quote_id=qid,
+                    book=meta["display"] if meta else str(slug),
+                    market=stat_id,
+                    player_raw_name=player_name,
+                    team=None,
+                    opponent=None,
+                    line=line_val,
+                    over_odds=over,
+                    under_odds=None,       # under side arrives as its own oddID object
+                    observed_at=str(bk.get("lastUpdatedAt") or now_ts),
+                    source=f"SportsGameOdds ({slug})",
+                    verified=True,
+                    receipt_id=receipt,
+                    source_url=str(bk.get("deeplink") or f"https://sportsgameodds.com/events/{event_id}"),
+                    book_id=book_id,
+                    book_short=meta["short"] if meta else None
+                ))
+        return quotes
+
+
+# Provider registry (v152): one env var swaps the paid feed with zero code
+# change. ODDS_PROVIDER in {oddsapi, sportsgameodds, bovada}; default keeps the
+# historical composite order (oddsapi-if-keyed -> bovada -> openers fallback).
+PROVIDER_REGISTRY = {
+    "oddsapi": TheOddsApiProvider,
+    "sportsgameodds": SportsGameOddsProvider,
+    "bovada": BovadaOddsProvider,
+}
+
+
+def provider_from_env(api_key: Optional[str] = None) -> Optional[BaseOddsProvider]:
+    """Instantiate the ODDS_PROVIDER-selected provider, or None when unset."""
+    name = (os.environ.get("ODDS_PROVIDER") or "").strip().lower()
+    if not name:
+        return None
+    cls = PROVIDER_REGISTRY.get(name)
+    if cls is None:
+        print(f"[odds_adapter] Unknown ODDS_PROVIDER={name!r}; known: {sorted(PROVIDER_REGISTRY)}")
+        return None
+    return cls(api_key=api_key)
+
+
 class CompositeLiveOddsProvider(BaseOddsProvider):
     """
     Aggregates live quotes from available providers:
-    1. TheOddsApiProvider (if ODDS_API_KEY is configured)
-    2. BovadaOddsProvider (free live endpoint)
-    3. Falls back to EarlyMarketOpenersProvider if no network quotes are returned.
+    1. ODDS_PROVIDER-selected provider (v152 registry) when configured
+    2. TheOddsApiProvider (if ODDS_API_KEY is configured)
+    3. BovadaOddsProvider (free live endpoint)
+    4. Falls back to EarlyMarketOpenersProvider if no network quotes are returned.
     """
     def __init__(self, api_key: Optional[str] = None):
+        self.selected = provider_from_env(api_key=api_key)
         self.bovada = BovadaOddsProvider()
         self.the_odds_api = TheOddsApiProvider(api_key=api_key)
         self.fallback = EarlyMarketOpenersProvider()
 
     def fetch_quotes(self, season: int, week: int, game_id: Optional[str] = None) -> List[PropQuote]:
         quotes: List[PropQuote] = []
-        # Try The Odds API if configured
-        if self.the_odds_api.api_key:
+        # 1) explicit provider selection wins
+        if self.selected is not None:
+            quotes.extend(self.selected.fetch_quotes(season, week, game_id))
+
+        # 2) The Odds API default path (when no explicit selection was made)
+        if self.selected is None and self.the_odds_api.api_key:
             quotes.extend(self.the_odds_api.fetch_quotes(season, week, game_id))
 
-        # Fetch Bovada live props
+        # 3) Bovada live props
         bovada_quotes = self.bovada.fetch_quotes(season, week, game_id)
         quotes.extend(bovada_quotes)
 
@@ -1062,6 +1242,8 @@ class OddsIngestionAdapter:
                 "source_url": source_url,
                 "content_hash": content_hash,
                 "book": e.quote.book,
+                "book_id": e.quote.book_id or canonical_book(e.quote.book),
+                "book_short": e.quote.book_short or (BOOK_META.get(canonical_book(e.quote.book)) or {}).get("short"),
                 "player_id": e.player_id,
                 "player_name": e.player_name,
                 "team": e.team,
@@ -1097,6 +1279,13 @@ class OddsIngestionAdapter:
         else:
             feed_status = "AWAITING_OPENERS"
 
+        feed_books = {}
+        for bid in sorted(set(q["book_id"] for q in quotes_list)):
+            meta = BOOK_META.get(bid)
+            if meta:
+                feed_books[bid] = {"name": meta["display"], "short": meta["short"],
+                                   "color": meta["color"], "logo": f"books/{bid}.svg"}
+
         feed_data = {
             "feed_status": feed_status,
             "updated_at": datetime.now(timezone.utc).isoformat(),
@@ -1105,6 +1294,7 @@ class OddsIngestionAdapter:
             "verified_quotes_count": verified_count,
             "unverified_books": unverified_books,
             "monitored_books": unique_books if unique_books else ["DraftKings", "FanDuel", "BetMGM", "Caesars", "Pinnacle"],
+            "books": feed_books,
             "total_quotes": len(quotes_list),
             "qualified_count": sum(1 for e in evaluations if e.is_qualified and e.quote.verified),
             "quotes": quotes_list
@@ -1126,12 +1316,77 @@ def main():
     parser.add_argument("--season", type=int, default=2026)
     parser.add_argument("--week", type=int, default=7)
     parser.add_argument("--game-id", type=str, default=None, help="Filter to specific game (e.g. 2026_07_NE_CHI)")
-    parser.add_argument("--provider", type=str, default="composite", choices=["composite", "bovada", "theoddsapi", "openers", "file"],
+    parser.add_argument("--provider", type=str, default="composite", choices=["composite", "bovada", "theoddsapi", "sportsgameodds", "openers", "file"],
                         help="Odds provider to query (default: composite)")
+    parser.add_argument("--selftest", action="store_true",
+                        help="Run offline pure-function checks (book identity, SGO normalizer, registry) and exit.")
     parser.add_argument("--feed-file", type=str, default=None, help="Path to external feed JSON file when using file provider")
     parser.add_argument("--api-key", type=str, default=None, help="The Odds API key (overrides ODDS_API_KEY env)")
     parser.add_argument("--poll", type=int, default=0, help="Polling interval in seconds (0 = run once, >0 = continuous polling loop)")
     args = parser.parse_args()
+
+    if args.selftest:
+        failures = []
+
+        def expect(cond: bool, label: str):
+            if not cond:
+                failures.append(label)
+            print(f"  {'PASS' if cond else 'FAIL'}  {label}")
+
+        expect(canonical_book("DraftKings") == "draftkings", "canonical_book caps drift")
+        expect(canonical_book("Draftkings") == "draftkings", "canonical_book odd caps")
+        expect(canonical_book("circa_sports") == "circa", "canonical_book alias circa_sports")
+        expect(canonical_book("bet-365") == "bet365", "canonical_book punctuation")
+        expect(canonical_book("") == "unknown", "canonical_book empty")
+        expect(canonical_book("ESPNBETUS") == "espnbet", "canonical_book ESPNBETUS alias")
+        expect(BOOK_META["draftkings"]["display"] == "DraftKings", "BOOK_META draftkings display")
+        expect(BOOK_META["fanduel"]["short"] == "FD", "BOOK_META fanduel short")
+
+        provider = SportsGameOddsProvider(api_key="test")
+        fixture_event = {
+            "eventID": "ev_1",
+            "odds": {
+                "receiving_yards-P1-game-ou-over": {
+                    "statID": "receiving_yards", "sideID": "over", "playerID": "P1",
+                    "playerName": "Test Receiver", "bookOverUnderLine": 78.5,
+                    "bookOdds": "over -110", "fairOdds": "over -112",
+                    "byBookmaker": {
+                        "draftkings": {"odds": "-110", "lastUpdatedAt": "2026-10-28T00:00:00Z", "available": True,
+                                        "deeplink": "https://sportsbook.draftkings.com/x"},
+                        "fanduel": {"odds": "-112", "lastUpdatedAt": "2026-10-28T00:00:00Z", "available": True},
+                        "betmgm": {"odds": None, "available": False},
+                        "circa_sports": {"odds": "-108", "lastUpdatedAt": "2026-10-28T00:00:00Z", "available": True}
+                    }
+                },
+                "receiving_yards-P1-game-ou-under": {"statID": "receiving_yards", "sideID": "under"},
+                "points-home-game-ml-home": {"statID": "points", "sideID": "home"}
+            }
+        }
+        normalized = provider.normalize_event(fixture_event, "2026-10-28T00:00:00Z", 8)
+        by_book = {q.book_id: q for q in normalized}
+        expect(len(normalized) == 3, f"SGO normalizer: 3 quotes (got {len(normalized)})")
+        expect(set(by_book) == {"draftkings", "fanduel", "circa"}, "SGO normalizer: books + alias")
+        expect(by_book["draftkings"].book == "DraftKings" and by_book["draftkings"].book_short == "DK",
+               "SGO normalizer: DK display/short")
+        expect(by_book["draftkings"].line == 78.5 and by_book["draftkings"].over_odds == -110,
+               "SGO normalizer: line + price")
+        expect(by_book["draftkings"].source_url == "https://sportsbook.draftkings.com/x", "SGO normalizer: deeplink kept")
+        expect(by_book["circa"].book == "Circa" and by_book["circa"].book_short == "CIR", "SGO normalizer: alias -> Circa meta")
+
+        import os as _os
+        _os.environ.pop("ODDS_PROVIDER", None)
+        expect(provider_from_env() is None, "registry: no env -> None")
+        _os.environ["ODDS_PROVIDER"] = "sportsgameodds"
+        expect(isinstance(provider_from_env(), SportsGameOddsProvider), "registry: env selects SGO")
+        _os.environ["ODDS_PROVIDER"] = "nonsense"
+        expect(provider_from_env() is None, "registry: unknown env -> None")
+        _os.environ.pop("ODDS_PROVIDER", None)
+
+        if failures:
+            print(f"odds_adapter selftest: {len(failures)} FAILURES")
+            sys.exit(1)
+        print("odds_adapter selftest: ALL PASS")
+        return
 
     if args.provider == "file":
         if not args.feed_file:
