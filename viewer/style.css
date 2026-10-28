@@ -8628,12 +8628,13 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 html, body {
   background: #070709 !important;
   color: #f8fafc !important;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", var(--sans) !important;
 }
 
 .pw-terminal-chrome {
   background: rgba(7, 7, 9, 0.88) !important;
-  backdrop-filter: blur(20px) !important;
-  -webkit-backdrop-filter: blur(20px) !important;
+  backdrop-filter: blur(28px) saturate(190%) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(190%) !important;
   border-bottom: 1px solid rgba(255, 255, 255, 0.07) !important;
 }
 
@@ -8686,8 +8687,9 @@ html, body {
   gap: 6px !important;
   padding: 4px 10px !important;
   border-radius: 999px !important;
-  background: #11141c !important;
+  background: rgba(17, 20, 28, 0.8) !important;
   border: 1px solid rgba(255, 255, 255, 0.07) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
   font-family: var(--mono) !important;
   font-size: 10px !important;
   color: #8e95a5 !important;
@@ -8700,30 +8702,30 @@ html, body {
   height: 6px !important;
   border-radius: 999px !important;
   background: #d4fb11 !important;
-  box-shadow: 0 0 8px rgba(212, 251, 17, 0.85) !important;
+  box-shadow: 0 0 10px rgba(212, 251, 17, 0.85) !important;
 }
 
 /* Header Action Pills */
 #slateSelector.pw-select {
-  background: #11141c !important;
+  background: rgba(17, 20, 28, 0.8) !important;
   border: 1px solid rgba(255, 255, 255, 0.08) !important;
   border-radius: 999px !important;
   color: #f8fafc !important;
-  font-family: var(--sans) !important;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", var(--sans) !important;
   font-size: 11.5px !important;
   font-weight: 600 !important;
   height: 32px !important;
   padding: 0 12px !important;
   cursor: pointer !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
 }
 
 #slimInjuryBanner.pw-injury-header-pill {
-  background: #11141c !important;
+  background: rgba(17, 20, 28, 0.8) !important;
   border: 1px solid rgba(255, 255, 255, 0.08) !important;
   border-radius: 999px !important;
   color: #8e95a5 !important;
-  font-family: var(--sans) !important;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", var(--sans) !important;
   font-size: 11.5px !important;
   font-weight: 600 !important;
   height: 32px !important;
@@ -8731,6 +8733,7 @@ html, body {
   display: inline-flex !important;
   align-items: center !important;
   gap: 6px !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
 }
 
 #slimInjuryBanner .slim-injury-dot {
@@ -8745,13 +8748,13 @@ html, body {
   border: 1px solid rgba(212, 251, 17, 0.35) !important;
   border-radius: 999px !important;
   color: #d4fb11 !important;
-  font-family: var(--sans) !important;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", var(--sans) !important;
   font-size: 11.5px !important;
   font-weight: 700 !important;
   height: 32px !important;
   padding: 0 14px !important;
   cursor: pointer !important;
-  box-shadow: 0 0 12px rgba(212, 251, 17, 0.15) !important;
+  box-shadow: 0 0 14px rgba(212, 251, 17, 0.18), inset 0 1px 0 rgba(212, 251, 17, 0.25) !important;
   transition: all 0.15s ease !important;
 }
 
@@ -8762,16 +8765,17 @@ html, body {
 }
 
 #portfolioBtn.pw-btn-ledger {
-  background: #11141c !important;
+  background: rgba(17, 20, 28, 0.8) !important;
   border: 1px solid rgba(255, 255, 255, 0.08) !important;
   border-radius: 999px !important;
   color: #8e95a5 !important;
-  font-family: var(--sans) !important;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", var(--sans) !important;
   font-size: 11.5px !important;
   font-weight: 600 !important;
   height: 32px !important;
   padding: 0 12px !important;
   cursor: pointer !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
 }
 
 #portfolioBtn .portfolio-count-badge {
@@ -8785,7 +8789,7 @@ html, body {
 }
 
 #sniperBtn.pw-btn-sniper {
-  background: #11141c !important;
+  background: rgba(17, 20, 28, 0.8) !important;
   border: 1px solid rgba(255, 255, 255, 0.08) !important;
   border-radius: 999px !important;
   color: #8e95a5 !important;
@@ -8795,7 +8799,7 @@ html, body {
 }
 
 #mobileMenuBtn.pw-mobile-menu-btn {
-  background: #11141c !important;
+  background: rgba(17, 20, 28, 0.8) !important;
   border: 1px solid rgba(255, 255, 255, 0.08) !important;
   border-radius: 999px !important;
   color: #8e95a5 !important;
@@ -8806,7 +8810,7 @@ html, body {
   justify-content: center !important;
 }
 
-/* 3. Command Bar & Recessed Capsule Filters */
+/* 3. Command Bar & Quiet Recessed Trench Filters */
 .pw-filterbar {
   background: transparent !important;
   padding: 8px 16px 12px 16px !important;
@@ -8821,8 +8825,9 @@ html, body {
 }
 
 .sport-switcher {
-  background: #11141c !important;
-  border: 1px solid rgba(255, 255, 255, 0.07) !important;
+  background: rgba(14, 17, 24, 0.6) !important;
+  border: 1px solid rgba(255, 255, 255, 0.04) !important;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.5) !important;
   border-radius: 999px !important;
   padding: 3px !important;
   display: inline-flex !important;
@@ -8833,8 +8838,8 @@ html, body {
   border: none !important;
   border-radius: 999px !important;
   background: transparent !important;
-  color: #8e95a5 !important;
-  font-family: var(--sans) !important;
+  color: #5D6678 !important;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", var(--sans) !important;
   font-size: 11.5px !important;
   font-weight: 700 !important;
   padding: 5px 14px !important;
@@ -8843,14 +8848,16 @@ html, body {
 }
 
 .sport-switch-btn.active {
-  background: #1e2330 !important;
+  background: #1C2230 !important;
+  border: 1px solid rgba(255, 255, 255, 0.09) !important;
   color: #ffffff !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
 }
 
 .command-search-wrap {
-  background: #11141c !important;
-  border: 1px solid rgba(255, 255, 255, 0.07) !important;
+  background: rgba(14, 17, 24, 0.6) !important;
+  border: 1px solid rgba(255, 255, 255, 0.04) !important;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.5) !important;
   border-radius: 999px !important;
   height: 34px !important;
   padding: 0 12px !important;
@@ -8864,10 +8871,11 @@ html, body {
 }
 
 .chip-segment-group {
-  background: #11141c !important;
-  border: 1px solid rgba(255, 255, 255, 0.07) !important;
+  background: rgba(14, 17, 24, 0.6) !important;
+  border: 1px solid rgba(255, 255, 255, 0.04) !important;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.5) !important;
   border-radius: 999px !important;
-  padding: 4px !important;
+  padding: 3px !important;
   display: inline-flex !important;
   align-items: center !important;
   gap: 3px !important;
@@ -8877,55 +8885,61 @@ html, body {
   border: none !important;
   border-radius: 999px !important;
   background: transparent !important;
-  color: #8e95a5 !important;
-  font-family: var(--sans) !important;
+  color: #5D6678 !important;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", var(--sans) !important;
   font-size: 12px !important;
   font-weight: 600 !important;
-  padding: 6px 14px !important;
+  padding: 5px 13px !important;
   cursor: pointer !important;
   transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
+.chip-segment-group .chip-pill:hover {
+  color: #cbd5e1 !important;
+}
+
 .chip-segment-group .chip-pill.active {
-  background: #1e2330 !important;
+  background: #1C2230 !important;
+  border: 1px solid rgba(255, 255, 255, 0.09) !important;
   color: #ffffff !important;
   font-weight: 700 !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
 }
 
 .chip-segment-group .chip-count-pill {
-  background: rgba(212, 251, 17, 0.16) !important;
+  background: rgba(212, 251, 17, 0.14) !important;
   color: #d4fb11 !important;
   border-radius: 999px !important;
   font-size: 10px !important;
-  font-weight: 700 !important;
+  font-weight: 800 !important;
   padding: 1px 6px !important;
   margin-left: 4px !important;
 }
 
 .chip-pill.chip-sniper-btn,
 .chip-pill.chip-more-btn {
-  background: #11141c !important;
-  border: 1px solid rgba(255, 255, 255, 0.07) !important;
+  background: rgba(14, 17, 24, 0.6) !important;
+  border: 1px solid rgba(255, 255, 255, 0.04) !important;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.5) !important;
   border-radius: 999px !important;
-  color: #8e95a5 !important;
-  font-family: var(--sans) !important;
+  color: #5D6678 !important;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", var(--sans) !important;
   font-size: 12px !important;
   font-weight: 600 !important;
-  padding: 6px 14px !important;
+  padding: 5px 13px !important;
 }
 
 .mobile-usage-ticker {
-  background: #11141c !important;
-  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+  background: rgba(14, 17, 24, 0.6) !important;
+  border: 1px solid rgba(255, 255, 255, 0.04) !important;
   border-radius: 999px !important;
-  color: #8e95a5 !important;
+  color: #5D6678 !important;
   font-size: 11px !important;
   padding: 4px 12px !important;
   margin-top: 8px !important;
 }
 
-/* 4. Slate Overview Telemetry Card (Calm Finance Language) */
+/* 4. Luminous Slate Overview Telemetry Card */
 .pw-hero-telemetry-suite {
   display: flex;
   flex-direction: column;
@@ -8934,14 +8948,33 @@ html, body {
 }
 
 .pw-hero-quant-card {
-  background: #11141c;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 26px;
-  padding: 22px 24px;
-  box-shadow: 0 16px 40px -12px rgba(0, 0, 0, 0.75);
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  background: linear-gradient(180deg, rgba(22, 26, 36, 0.78) 0%, rgba(13, 16, 23, 0.88) 100%) !important;
+  backdrop-filter: blur(28px) saturate(190%) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(190%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.07) !important;
+  border-radius: 26px !important;
+  padding: 24px 26px !important;
+  box-shadow: 
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.09),
+    0 24px 48px -12px rgba(0, 0, 0, 0.85),
+    0 8px 16px -4px rgba(0, 0, 0, 0.6) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 14px !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+/* Specular Apex Rim Light */
+.pw-hero-quant-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 15%;
+  right: 15%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(212, 251, 17, 0.35), transparent);
+  pointer-events: none;
 }
 
 .hero-card-meta {
@@ -8951,12 +8984,12 @@ html, body {
 }
 
 .hero-card-tag {
-  font-family: var(--mono);
-  font-size: 10.5px;
-  font-weight: 700;
-  color: #8e95a5;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-family: var(--mono) !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  color: #5D6678 !important;
+  letter-spacing: 0.1em !important;
+  text-transform: uppercase !important;
 }
 
 .hero-card-dots {
@@ -8966,16 +8999,16 @@ html, body {
 }
 
 .hero-dot {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.15);
 }
 
 .hero-dot.active {
-  width: 18px;
+  width: 16px;
   background: #d4fb11;
-  box-shadow: 0 0 8px rgba(212, 251, 17, 0.7);
+  box-shadow: 0 0 10px rgba(212, 251, 17, 0.75);
 }
 
 .hero-metric-row {
@@ -8987,81 +9020,94 @@ html, body {
 }
 
 .hero-metric-val {
-  font-family: var(--sans);
-  font-size: 32px;
-  font-weight: 800;
-  color: #ffffff;
-  letter-spacing: -0.04em;
-  line-height: 1.1;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", var(--sans) !important;
+  font-size: 44px !important;
+  font-weight: 900 !important;
+  color: #ffffff !important;
+  letter-spacing: -0.05em !important;
+  line-height: 1.0 !important;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.6) !important;
 }
 
 .hero-metric-unit {
-  font-size: 15px;
-  font-weight: 700;
-  color: #8e95a5;
-  letter-spacing: 0.02em;
-  margin-left: 4px;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  color: #5D6678 !important;
+  letter-spacing: 0.1em !important;
+  text-transform: uppercase !important;
+  margin-left: 6px !important;
 }
 
 .hero-metric-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 4px 12px;
-  border-radius: 999px;
-  background: rgba(212, 251, 17, 0.14);
-  color: #d4fb11;
-  font-family: var(--mono);
-  font-size: 12px;
-  font-weight: 700;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  padding: 5px 14px !important;
+  border-radius: 999px !important;
+  background: rgba(212, 251, 17, 0.12) !important;
+  border: 1px solid rgba(212, 251, 17, 0.3) !important;
+  color: #d4fb11 !important;
+  font-family: var(--mono) !important;
+  font-size: 11.5px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.02em !important;
+  box-shadow: 0 0 14px rgba(212, 251, 17, 0.2) !important;
 }
 
 .hero-metric-sub {
-  font-family: var(--sans);
-  font-size: 12px;
-  color: #5d6678;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", var(--sans) !important;
+  font-size: 12px !important;
+  color: #5D6678 !important;
+  line-height: 1.4 !important;
 }
 
 .hero-pods-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
-  margin-top: 6px;
+  margin-top: 4px;
 }
 
+/* Recessed Data Well Pods */
 .hero-pod {
-  background: #171a24;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 16px;
-  padding: 12px 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+  background: rgba(9, 11, 16, 0.75) !important;
+  border: 1px solid rgba(255, 255, 255, 0.035) !important;
+  box-shadow: 
+    inset 0 2px 5px 0 rgba(0, 0, 0, 0.55),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.2) !important;
+  border-radius: 16px !important;
+  padding: 14px 16px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 3px !important;
 }
 
 .hero-pod-lbl {
-  font-size: 9.5px;
-  font-family: var(--mono);
-  font-weight: 700;
-  color: #5d6678;
-  letter-spacing: 0.05em;
+  font-size: 9.5px !important;
+  font-family: var(--mono) !important;
+  font-weight: 700 !important;
+  color: #525C6E !important;
+  letter-spacing: 0.1em !important;
+  text-transform: uppercase !important;
 }
 
 .hero-pod-val {
-  font-size: 20px;
-  font-family: var(--sans);
-  font-weight: 800;
-  color: #ffffff;
-  letter-spacing: -0.02em;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", var(--sans) !important;
+  font-size: 24px !important;
+  font-weight: 800 !important;
+  color: #ffffff !important;
+  letter-spacing: -0.03em !important;
+  font-variant-numeric: tabular-nums !important;
+  line-height: 1.1 !important;
 }
 
 .hero-pod-sub {
-  font-size: 10.5px;
-  font-family: var(--sans);
-  color: #8e95a5;
+  font-size: 10.5px !important;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", var(--sans) !important;
+  color: #5D6678 !important;
 }
 
-/* 5. Player Cards (26px Rounded Squircles, Strict Mono-Accent) */
+/* 5. Player Cards (26px Rounded Squircles, Luminous Obsidian Surface) */
 .card-grid {
   display: flex !important;
   flex-direction: column !important;
@@ -9080,43 +9126,52 @@ html, body {
 }
 
 .mobile-quant-row {
-  background: #11141c !important;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  background: linear-gradient(180deg, rgba(22, 26, 36, 0.78) 0%, rgba(13, 16, 23, 0.88) 100%) !important;
+  backdrop-filter: blur(28px) saturate(190%) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(190%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.07) !important;
   border-radius: 26px !important;
-  padding: 18px 20px !important;
-  box-shadow: 0 12px 36px -10px rgba(0, 0, 0, 0.7) !important;
+  padding: 20px 22px !important;
+  box-shadow: 
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.09),
+    0 24px 48px -12px rgba(0, 0, 0, 0.85),
+    0 8px 16px -4px rgba(0, 0, 0, 0.6) !important;
   transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.15s ease !important;
-  gap: 12px !important;
+  gap: 14px !important;
 }
 
 .mobile-quant-row:hover {
-  border-color: rgba(212, 251, 17, 0.3) !important;
+  border-color: rgba(212, 251, 17, 0.35) !important;
   transform: translateY(-2px) !important;
+  box-shadow: 
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.12),
+    0 28px 56px -12px rgba(0, 0, 0, 0.9),
+    0 0 20px rgba(212, 251, 17, 0.1) !important;
 }
 
 .card-player-name {
-  font-family: var(--sans) !important;
-  font-size: 15.5px !important;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", var(--sans) !important;
+  font-size: 16px !important;
   font-weight: 700 !important;
   color: #ffffff !important;
   letter-spacing: -0.015em !important;
 }
 
 .card-team-matchup {
-  font-size: 11px !important;
-  color: #8e95a5 !important;
+  font-size: 11.5px !important;
+  color: #5D6678 !important;
 }
 
 .card-hero-edge {
-  font-family: var(--sans) !important;
-  font-size: 20px !important;
-  font-weight: 800 !important;
-  letter-spacing: -0.03em !important;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", var(--sans) !important;
+  font-size: 22px !important;
+  font-weight: 900 !important;
+  letter-spacing: -0.04em !important;
 }
 
 .card-hero-edge.positive {
   color: #d4fb11 !important;
-  text-shadow: 0 0 16px rgba(212, 251, 17, 0.4) !important;
+  text-shadow: 0 0 16px rgba(212, 251, 17, 0.45) !important;
 }
 
 .card-hairline-sep {
@@ -9128,24 +9183,27 @@ html, body {
 }
 
 .card-grid-col:not(.col-action) {
-  background: #171a24 !important;
-  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+  background: rgba(9, 11, 16, 0.75) !important;
+  border: 1px solid rgba(255, 255, 255, 0.035) !important;
+  box-shadow: 
+    inset 0 2px 5px 0 rgba(0, 0, 0, 0.55),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.2) !important;
   border-radius: 16px !important;
-  padding: 8px 12px !important;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03) !important;
+  padding: 10px 14px !important;
 }
 
 .card-grid-col .grid-col-lbl {
   font-size: 9px !important;
   font-family: var(--mono) !important;
   font-weight: 700 !important;
-  color: #5d6678 !important;
-  letter-spacing: 0.05em !important;
+  color: #525C6E !important;
+  letter-spacing: 0.1em !important;
+  text-transform: uppercase !important;
 }
 
 .card-grid-col .grid-col-val {
-  font-family: var(--mono) !important;
-  font-size: 14.5px !important;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", var(--sans) !important;
+  font-size: 15px !important;
   font-weight: 700 !important;
   color: #ffffff !important;
 }
@@ -9154,13 +9212,13 @@ html, body {
   background: #d4fb11 !important;
   color: #070709 !important;
   font-weight: 800 !important;
-  font-family: var(--sans) !important;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", var(--sans) !important;
   font-size: 12.5px !important;
   border-radius: 999px !important;
   border: none !important;
   height: 38px !important;
   padding: 0 16px !important;
-  box-shadow: 0 4px 14px rgba(212, 251, 17, 0.28) !important;
+  box-shadow: 0 4px 16px rgba(212, 251, 17, 0.32) !important;
   cursor: pointer !important;
   transition: transform 0.12s ease !important;
 }
@@ -9170,7 +9228,7 @@ html, body {
 }
 
 .card-btn-view {
-  background: rgba(255, 255, 255, 0.05) !important;
+  background: rgba(255, 255, 255, 0.04) !important;
   color: #8e95a5 !important;
   border: 1px solid rgba(255, 255, 255, 0.07) !important;
   border-radius: 999px !important;
@@ -9181,13 +9239,17 @@ html, body {
   cursor: pointer !important;
 }
 
-/* 6. Modernized Table View (Dark Finance Row Architecture) */
+/* 6. Modernized Table View (Luminous Obsidian Container) */
 .table-wrap {
-  background: #11141c !important;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  background: linear-gradient(180deg, rgba(22, 26, 36, 0.78) 0%, rgba(13, 16, 23, 0.88) 100%) !important;
+  backdrop-filter: blur(28px) saturate(190%) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(190%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.07) !important;
   border-radius: 26px !important;
   overflow: hidden !important;
-  box-shadow: 0 16px 40px -12px rgba(0, 0, 0, 0.75) !important;
+  box-shadow: 
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.09),
+    0 24px 48px -12px rgba(0, 0, 0, 0.85) !important;
   margin-top: 14px !important;
 }
 
@@ -9195,19 +9257,19 @@ html, body {
   width: 100% !important;
   border-collapse: collapse !important;
   background: transparent !important;
-  font-family: var(--sans) !important;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", var(--sans) !important;
 }
 
 .pw-table thead th {
-  background: #171a24 !important;
-  color: #5d6678 !important;
+  background: rgba(9, 11, 16, 0.6) !important;
+  color: #525C6E !important;
   font-family: var(--mono) !important;
   font-size: 10px !important;
   font-weight: 700 !important;
   text-transform: uppercase !important;
-  letter-spacing: 0.06em !important;
+  letter-spacing: 0.1em !important;
   padding: 14px 18px !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
   border-top: none !important;
   border-left: none !important;
   border-right: none !important;
@@ -9242,71 +9304,189 @@ html, body {
 }
 
 .pw-table .edge-pill-val {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", var(--sans) !important;
   font-size: 18px !important;
-  font-weight: 800 !important;
+  font-weight: 900 !important;
   color: #d4fb11 !important;
   text-shadow: 0 0 14px rgba(212, 251, 17, 0.35) !important;
 }
 
-/* 7. Subdued Notification & Alert Banners (No Shouting Orange) */
-.data-quality-banner,
-.alert-banner,
-.pw-injury-drawer,
-.warning-box,
-.data-quality-banner.warn {
-  background: #11141c !important;
+/* 7. Calibrated Radar Empty & Anti-Tout State */
+.anti-tout-empty-wrap,
+.anti-tout-box,
+.empty-slate-card {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  background: linear-gradient(180deg, rgba(22, 26, 36, 0.78) 0%, rgba(13, 16, 23, 0.88) 100%) !important;
+  backdrop-filter: blur(28px) saturate(190%) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(190%) !important;
   border: 1px solid rgba(255, 255, 255, 0.07) !important;
-  border-radius: 20px !important;
-  color: #8e95a5 !important;
-  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.6) !important;
+  border-radius: 26px !important;
+  box-shadow: 
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.09),
+    0 24px 48px -12px rgba(0, 0, 0, 0.85),
+    0 8px 16px -4px rgba(0, 0, 0, 0.6) !important;
+  padding: 42px 24px !important;
+  margin: 16px 0 !important;
+  position: relative !important;
+  overflow: hidden !important;
 }
 
-.data-quality-banner .dq-dot,
-.alert-banner .alert-dot {
-  background: #fbbf24 !important;
-  box-shadow: none !important;
+.anti-tout-empty-wrap::before,
+.anti-tout-box::before,
+.empty-slate-card::before {
+  content: "";
+  position: absolute;
+  top: -40px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 240px;
+  height: 240px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(212, 251, 17, 0.08) 0%, transparent 70%);
+  pointer-events: none;
 }
 
-.dq-retry-btn {
-  border-radius: 999px !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
-  background: rgba(255, 255, 255, 0.04) !important;
+.anti-tout-shield {
+  font-size: 32px !important;
+  margin-bottom: 12px !important;
+  filter: drop-shadow(0 0 16px rgba(212, 251, 17, 0.4)) !important;
+}
+
+.anti-tout-title {
   color: #ffffff !important;
-  font-size: 11px !important;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", var(--sans) !important;
+  font-size: 20px !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.02em !important;
+  margin-bottom: 6px !important;
 }
 
-/* 8. Floating Frosted Capsule Bottom Dock */
+.anti-tout-desc {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", var(--sans) !important;
+  font-size: 13px !important;
+  line-height: 1.5 !important;
+  color: #8e95a5 !important;
+  max-width: 440px !important;
+  margin: 0 0 16px 0 !important;
+}
+
+.anti-tout-meta {
+  font-family: var(--mono) !important;
+  font-size: 11px !important;
+  color: #5D6678 !important;
+  margin-bottom: 18px !important;
+}
+
+.anti-tout-btn {
+  background: #d4fb11 !important;
+  color: #070709 !important;
+  font-weight: 800 !important;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", var(--sans) !important;
+  font-size: 13px !important;
+  border-radius: 999px !important;
+  border: none !important;
+  height: 42px !important;
+  padding: 0 22px !important;
+  box-shadow: 0 4px 16px rgba(212, 251, 17, 0.32) !important;
+  cursor: pointer !important;
+  transition: transform 0.12s ease !important;
+}
+
+.anti-tout-btn:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 6px 20px rgba(212, 251, 17, 0.45) !important;
+}
+.anti-tout-box,
+.empty-slate-card {
+  background: linear-gradient(180deg, rgba(22, 26, 36, 0.75) 0%, rgba(13, 16, 23, 0.85) 100%) !important;
+  backdrop-filter: blur(28px) saturate(190%) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(190%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.07) !important;
+  border-radius: 26px !important;
+  box-shadow: 
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.08),
+    0 24px 48px -12px rgba(0, 0, 0, 0.8) !important;
+  padding: 40px 24px !important;
+  position: relative !important;
+  overflow: hidden !important;
+  text-align: center !important;
+}
+
+/* Ambient Radar Beacon */
+.anti-tout-box::before,
+.empty-slate-card::before {
+  content: "";
+  position: absolute;
+  top: -40px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(212, 251, 17, 0.08) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.anti-tout-title {
+  color: #ffffff !important;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", var(--sans) !important;
+  font-size: 20px !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.02em !important;
+}
+
+.anti-tout-badge {
+  background: rgba(212, 251, 17, 0.12) !important;
+  border: 1px solid rgba(212, 251, 17, 0.3) !important;
+  color: #d4fb11 !important;
+  border-radius: 999px !important;
+  padding: 4px 14px !important;
+  font-family: var(--mono) !important;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  box-shadow: 0 0 12px rgba(212, 251, 17, 0.18) !important;
+}
+
+/* 8. Frosted Glass Bottom Navigation Dock */
 .mobile-bottom-nav {
   position: fixed !important;
-  bottom: 20px !important;
+  bottom: 22px !important;
   left: 50% !important;
   transform: translateX(-50%) !important;
   width: min(340px, calc(100% - 32px)) !important;
-  height: 58px !important;
-  background: rgba(17, 20, 28, 0.9) !important;
-  backdrop-filter: blur(24px) !important;
-  -webkit-backdrop-filter: blur(24px) !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  height: 60px !important;
+  background: rgba(14, 18, 25, 0.75) !important;
+  backdrop-filter: blur(32px) saturate(210%) !important;
+  -webkit-backdrop-filter: blur(32px) saturate(210%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
   border-radius: 999px !important;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.75) !important;
+  box-shadow: 
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    0 24px 50px -8px rgba(0, 0, 0, 0.9),
+    0 0 0 1px rgba(0, 0, 0, 0.5) !important;
   display: flex !important;
   align-items: center !important;
   justify-content: space-around !important;
-  padding: 0 10px !important;
-  z-index: 99 !important;
+  padding: 0 8px !important;
+  z-index: 999 !important;
 }
 
 .bottom-nav-item {
   border-radius: 999px !important;
-  padding: 6px 14px !important;
-  color: #8e95a5 !important;
+  padding: 7px 14px !important;
+  color: #5D6678 !important;
   transition: all 0.15s ease !important;
 }
 
 .bottom-nav-item.active {
-  background: rgba(212, 251, 17, 0.14) !important;
+  background: rgba(212, 251, 17, 0.12) !important;
+  border: 1px solid rgba(212, 251, 17, 0.25) !important;
   color: #d4fb11 !important;
-  box-shadow: 0 0 12px rgba(212, 251, 17, 0.25) !important;
+  box-shadow: 0 0 14px rgba(212, 251, 17, 0.2) !important;
 }
 
 .bottom-nav-item.active .prop-icon {
@@ -9341,11 +9521,11 @@ html, body {
   display: none !important;
 }
 
-[data-theme=light] .pw-brand-img.pw-brand-dark-only {
+[data-theme="light"] .pw-brand-img.pw-brand-dark-only {
   display: none !important;
 }
 
-[data-theme=light] .pw-brand-img.pw-brand-light-only {
+[data-theme="light"] .pw-brand-img.pw-brand-light-only {
   display: block !important;
 }
 
