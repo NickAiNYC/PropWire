@@ -9264,7 +9264,6 @@ html, body {
 }
 
 .pw-brand-img {
-  display: block !important;
   height: 38px !important;
   width: auto !important;
   max-width: 156px !important;
@@ -9273,11 +9272,28 @@ html, body {
   filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.4)) !important;
 }
 
+.pw-brand-img.pw-brand-dark-only {
+  display: block !important;
+}
+
+.pw-brand-img.pw-brand-light-only {
+  display: none !important;
+}
+
+[data-theme="light"] .pw-brand-img.pw-brand-dark-only {
+  display: none !important;
+}
+
+[data-theme="light"] .pw-brand-img.pw-brand-light-only {
+  display: block !important;
+}
+
 @media (min-width: 769px) {
   .pw-brand-img {
     height: 44px !important;
     max-width: 180px !important;
   }
 }
+
 
 
