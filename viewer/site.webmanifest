@@ -1,7 +1,7 @@
 {
   "name": "PropWire",
   "short_name": "PropWire",
-  "description": "Quantitative NFL Receiving Props & Market Terminal",
+  "description": "Quantitative Player Props & Market Terminal · NFL & NBA",
   "start_url": "/?v=v3_mark",
   "display": "standalone",
   "background_color": "#090d16",

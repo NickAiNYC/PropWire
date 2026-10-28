@@ -2,15 +2,14 @@
   "manifest_version": 3,
   "name": "PropWire",
   "version": "1.2.0",
-  "description": "Institutional quantitative receiving props terminal and CLV ledger.",
+  "description": "Institutional quantitative player props terminal and CLV ledger for NFL & NBA.",
   "permissions": [
     "sidePanel",
     "contextMenus",
     "storage"
   ],
   "host_permissions": [
-    "https://propwire.vercel.app/*",
-    "https://receiving-props-agent.vercel.app/*"
+    "https://propwire.vercel.app/*"
   ],
   "background": {
     "service_worker": "background.js"

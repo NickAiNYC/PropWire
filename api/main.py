@@ -58,7 +58,7 @@ allowed_origins = [
     origin.strip()
     for origin in os.environ.get(
         "ALLOWED_ORIGINS",
-        "https://propwire.vercel.app,http://127.0.0.1:4180,http://localhost:4180",
+        "https://propwire.vercel.app,https://propwire-github.vercel.app,http://127.0.0.1:4180,http://localhost:4180",
     ).split(",")
     if origin.strip()
 ]
