@@ -2525,12 +2525,43 @@
 
     if (state.bottomTab === 'watchlist') {
       if ($('#resultCount')) $('#resultCount').textContent = `${rows.length} watched ${rows.length === 1 ? 'player' : 'players'} of ${state.slate.length} modeled`;
-      $('#emptyState').innerHTML = `
-        <div class="anti-tout-empty-wrap">
-          <div class="anti-tout-icon">★</div>
-          <div class="anti-tout-title">Watchlist Empty</div>
-          <div class="anti-tout-desc">Tap the star icon on any player card to track real-time line movement, steam alerts, and closing line value.</div>
-        </div>`;
+      if (rows.length === 0) {
+        const suggestions = (state.slate || []).slice(0, 3);
+        const suggestionHtml = suggestions.map((p) => {
+          const isWatched = (state.watchlist || []).includes(p.player_id);
+          return `
+            <div class="watchlist-suggest-item">
+              <div class="watchlist-suggest-info">
+                <span class="watchlist-suggest-name">${esc(p.player_display_name)}</span>
+                <span class="watchlist-suggest-sub">${esc(p.team)} · ${esc(p.position)} · ${num(p.proj_yards || p.projection || 0).toFixed(1)} proj</span>
+              </div>
+              <button type="button" class="star-btn ${isWatched ? 'starred' : ''}" data-watch-player="${esc(p.player_id)}" aria-label="Watch ${esc(p.player_display_name)}">${isWatched ? '★' : '☆'}</button>
+            </div>`;
+        }).join('');
+
+        $('#emptyState').innerHTML = `
+          <div class="anti-tout-empty-wrap watchlist-empty-wrap">
+            <div class="anti-tout-shield">★</div>
+            <div class="anti-tout-title">No players watched yet</div>
+            <p class="anti-tout-desc">Star modeled projections to track line movements, steam alerts, and closing line value.</p>
+            <div class="watchlist-suggestions-card">
+              <div class="watchlist-suggestions-header">SUGGESTED HIGH-VOLUME MODELS</div>
+              <div class="watchlist-suggestions-list">
+                ${suggestionHtml}
+              </div>
+            </div>
+            <div class="anti-tout-actions" style="margin-top: 14px;">
+              <button type="button" class="tier-cta-btn primary" id="watchlistBrowseBtn" style="max-width:280px; margin:0 auto;">Browse Top Projections &rarr;</button>
+            </div>
+          </div>`;
+
+        const browseBtn = $('#watchlistBrowseBtn');
+        if (browseBtn) {
+          browseBtn.addEventListener('click', () => {
+            switchBottomNav('bottomNavSlate');
+          });
+        }
+      }
     } else if (state.filters.playMode === 'actionable' && rows.length === 0) {
       // Messaging honesty (2026-10-27 owner review): with stale or unverifiable
       // prices the terminal CANNOT claim "the market is efficient" — a
@@ -2644,16 +2675,20 @@
     const totalModeled = state.slate.length;
     const sportName = (SPORT_ID || 'NFL').toUpperCase();
     const slateName = (state.slateKey || 'SLATE').replace(/_/g, ' ').toUpperCase();
+    const showResearchHero = isResearchMode || qualifiedCount === 0;
 
-    if (isResearchMode) {
+    if (showResearchHero) {
       if (cardTag) cardTag.textContent = `RESEARCH UNIVERSE · ${sportName} ${slateName}`;
-      if (statusPill) statusPill.innerHTML = '<span class="hero-status-dot paused"></span><span>QUALIFICATION STANDBY</span>';
+      if (statusPill) {
+        statusPill.className = 'hero-card-status-pill research-pill';
+        statusPill.innerHTML = '<span class="hero-status-dot paused"></span><span>● RESEARCH MODE</span>';
+      }
       metricVal.innerHTML = `${totalModeled} <span class="hero-metric-unit">MODELED</span>`;
       if (metricBadge) {
         metricBadge.className = 'hero-metric-badge research-badge';
-        metricBadge.innerHTML = `<span class="badge-lock">🔒</span> RESEARCH MODE`;
+        metricBadge.innerHTML = `<span class="badge-lock">●</span> TOP PROJECTIONS`;
       }
-      if (metricSub) metricSub.textContent = `Live qualification paused · Showing Top ${displayCount} quantitative model benchmarks`;
+      if (metricSub) metricSub.textContent = `Research Mode · Live qualification paused · Top projections active`;
       if (pods.length >= 3) {
         const pod1Val = pods[0].querySelector('.hero-pod-val');
         const pod1Sub = pods[0].querySelector('.hero-pod-sub');
@@ -2672,7 +2707,10 @@
       const activePolicy = policy();
       const gatePct = activePolicy ? (activePolicy.gate * 100).toFixed(1) + '%' : '10.0%';
       if (cardTag) cardTag.textContent = `SLATE OVERVIEW · ${sportName} ${slateName}`;
-      if (statusPill) statusPill.innerHTML = `<span class="hero-status-dot"></span><span>${gatePct} GATE CALIBRATED</span>`;
+      if (statusPill) {
+        statusPill.className = 'hero-card-status-pill';
+        statusPill.innerHTML = `<span class="hero-status-dot"></span><span>${gatePct} GATE CALIBRATED</span>`;
+      }
       metricVal.innerHTML = `${qualifiedCount} <span class="hero-metric-unit">QUALIFIED</span>`;
       if (metricBadge) {
         metricBadge.className = 'hero-metric-badge';

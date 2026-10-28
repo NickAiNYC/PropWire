@@ -10021,3 +10021,189 @@ input[type="range"]::-webkit-slider-thumb:hover {
   background: #94A3B8 !important;
   box-shadow: 0 0 6px rgba(148, 163, 184, 0.5) !important;
 }
+/* ==========================================================================
+   v163: HIGH-ROI UPGRADES (CONTROLLED BRAND BLUE, QUIET BANNER, WATCHLIST)
+   ========================================================================== */
+
+:root {
+  --brand-blue: #4BA3F5;
+  --brand-blue-muted: rgba(75, 163, 245, 0.12);
+  --brand-blue-border: rgba(75, 163, 245, 0.28);
+}
+
+/* 1. Controlled Brand Blue for Research / Standby Indicators */
+.hero-metric-badge.research-badge {
+  background: var(--brand-blue-muted) !important;
+  border: 1px solid var(--brand-blue-border) !important;
+  color: var(--brand-blue) !important;
+  box-shadow: 0 0 12px rgba(75, 163, 245, 0.16) !important;
+  font-family: var(--mono) !important;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+}
+
+.hero-card-status-pill.research-pill {
+  background: var(--brand-blue-muted) !important;
+  border: 1px solid var(--brand-blue-border) !important;
+  color: var(--brand-blue) !important;
+}
+
+.hero-card-status-pill.research-pill .hero-status-dot.paused {
+  background: var(--brand-blue) !important;
+  box-shadow: 0 0 8px var(--brand-blue) !important;
+}
+
+.anti-tout-research-strip .research-status-pill {
+  background: var(--brand-blue-muted) !important;
+  border: 1px solid var(--brand-blue-border) !important;
+  color: var(--brand-blue) !important;
+}
+
+/* 2. Watchlist Onboarding & Suggestion Cards */
+.watchlist-empty-wrap {
+  max-width: 460px !important;
+  padding: 24px 22px !important;
+}
+
+.watchlist-suggestions-card {
+  width: 100% !important;
+  background: rgba(9, 11, 16, 0.88) !important;
+  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+  border-radius: 16px !important;
+  padding: 14px 16px !important;
+  margin-top: 12px !important;
+  box-shadow: inset 0 1.5px 3px rgba(0, 0, 0, 0.6) !important;
+}
+
+.watchlist-suggestions-header {
+  font-family: var(--mono) !important;
+  font-size: 9px !important;
+  font-weight: 700 !important;
+  color: #64748B !important;
+  letter-spacing: 0.11em !important;
+  text-align: left !important;
+  margin-bottom: 8px !important;
+}
+
+.watchlist-suggestions-list {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 6px !important;
+}
+
+.watchlist-suggest-item {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 6px 0 !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04) !important;
+}
+
+.watchlist-suggest-item:last-child {
+  border-bottom: none !important;
+}
+
+.watchlist-suggest-info {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  text-align: left !important;
+}
+
+.watchlist-suggest-name {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", var(--sans) !important;
+  font-size: 13.5px !important;
+  font-weight: 700 !important;
+  color: #ffffff !important;
+}
+
+.watchlist-suggest-sub {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", var(--sans) !important;
+  font-size: 11px !important;
+  color: #727D91 !important;
+}
+
+/* 3. Quieter, Ultra-Compact Stale Banner */
+.data-quality-banner {
+  background: rgba(14, 17, 24, 0.90) !important;
+  backdrop-filter: blur(24px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-left: none !important;
+  border-radius: 999px !important;
+  padding: 4px 6px 4px 14px !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6) !important;
+  max-width: fit-content !important;
+  min-height: 28px !important;
+  margin: 6px auto 0 auto !important;
+}
+
+.data-quality-banner.warn {
+  border-color: rgba(245, 158, 11, 0.28) !important;
+}
+
+.data-quality-banner .dq-item {
+  font-size: 11px !important;
+  color: #8E95A5 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+}
+
+.data-quality-banner .dq-item strong {
+  color: #fbbf24 !important;
+  font-size: 9.5px !important;
+  letter-spacing: 0.08em !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+}
+
+.data-quality-banner .dq-item strong::before {
+  content: "";
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: #fbbf24;
+  box-shadow: 0 0 6px #fbbf24;
+}
+
+.dq-retry-btn {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border: 1px solid rgba(255, 255, 255, 0.10) !important;
+  border-radius: 999px !important;
+  color: #cbd5e1 !important;
+  font-size: 10.5px !important;
+  font-weight: 700 !important;
+  height: 24px !important;
+  padding: 0 12px !important;
+  cursor: pointer !important;
+  transition: all 0.15s ease !important;
+  margin-left: 6px !important;
+}
+
+.dq-retry-btn:hover {
+  background: rgba(255, 255, 255, 0.12) !important;
+  color: #ffffff !important;
+}
+
+/* 4. Mobile Horizontal Filter Momentum Scrolling */
+@media (max-width: 768px) {
+  .pw-filterbar {
+    padding: 6px 12px 8px 12px !important;
+  }
+  .pw-command-row {
+    overflow-x: auto !important;
+    scrollbar-width: none !important;
+    -webkit-overflow-scrolling: touch !important;
+    flex-wrap: nowrap !important;
+    gap: 6px !important;
+  }
+  .pw-command-row::-webkit-scrollbar {
+    display: none !important;
+  }
+  .chip-segment-group {
+    flex-shrink: 0 !important;
+  }
+}
