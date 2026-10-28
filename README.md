@@ -150,7 +150,7 @@ Railway provides a persistent process and non-ephemeral filesystem required for 
 
 The viewer frontend and pre-computed slate data are deployed to Vercel at global edge:
 
-- **Live Production URL**: [https://receiving-props-agent.vercel.app](https://receiving-props-agent.vercel.app)
+- **Live Production URL**: [https://propwire.vercel.app](https://propwire.vercel.app)
 - **Vercel Project**: [`propwire`](https://vercel.com/nicks-projects-ec56abd4/propwire)
 - **Deployment root**: repository root (`.`). The root [`vercel.json`](vercel.json) publishes `viewer/`; do not deploy from inside `viewer/`.
 - **Configuration**: Service workers are never cached, HTML/data use short edge caching, and versioned static assets use immutable caching.
