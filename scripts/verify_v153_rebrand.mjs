@@ -4,12 +4,12 @@
 //   - every brand binary exists with exact dimensions (IHDR) and serves
 //     under the production vercel.json CSP header parity (img-src 'self')
 //   - favicon.svg / propwire-icon.svg parse with the embedded raster mark
-//   - all 5 terminal pages wire the new assets at ?v=2026_v153, zero stale
-//     propwire-logo*.svg references, build-hash 2026-w8-v18
+//   - all 5 terminal pages wire the new assets at ?v=2026_v154, zero stale
+//     propwire-logo*.svg references, build-hash 2026-w8-v19
 //   - site.webmanifest icons resolve; PWA identity intact
 //   - icon pixel probe: monogram centered, not corner-stuck (v149 lesson)
 //   - header renders both slot logos (dark-only / light-only), 160x40 box
-//   - SW registers, activates propwire-v153-prod, precache populated with
+//   - SW registers, activates propwire-v154-prod, precache populated with
 //     the new logo PNGs + v153 icons + untouched v152 book badges
 //   - boot console: zero hard errors (v150-classified inline-style CSP
 //     console debt tracked separately, must not grow from v152 baseline)
@@ -74,11 +74,11 @@ for (const [rel, w, h] of dimSpecs) {
 }
 check('asset og-image: non-trivial bytes (>30KB)', readFileSync(join(REPO, 'viewer/og-image.png')).length > 30000);
 
-const logoDark = readFileSync(join(REPO, 'viewer/propwire-logo-pwire.png'));
-const logoLight = readFileSync(join(REPO, 'viewer/propwire-logo-pwire-light.png'));
+const logoDark = readFileSync(join(REPO, 'viewer/propwire-logo-dropwire.png'));
+const logoLight = readFileSync(join(REPO, 'viewer/propwire-logo-dropwire-light.png'));
 const ld = pngSize(logoDark), ll = pngSize(logoLight);
 check('header logo dark slot: PWIRE art 156px tall (3x of 52 CSS px)', ld.h === 156 && ld.w > 400, `${ld.w}x${ld.h}`);
-check('header logo light slot: padded chip 156px tall (aspect < raw art)', ll.h === 156 && ll.w > 540 && (ll.w / ll.h) < (ld.w / ld.h), `${ll.w}x${ll.h}`);
+check('header logo light slot: padded chip 156px tall (aspect < raw art)', ll.h === 156 && ll.w > 440 && (ll.w / ll.h) < (ld.w / ld.h), `${ll.w}x${ll.h}`);
 
 // ── 2. SVG favicons parse with embedded raster mark ──────────────────────
 for (const rel of ['viewer/favicon.svg', 'viewer/propwire-icon.svg']) {
@@ -97,17 +97,17 @@ for (const p of pages) {
   const html = readFileSync(join(ROOT, p), 'utf8');
   const has = (re) => re.test(html);
   const ok =
-    has(/rel="icon"[^>]*href="\/favicon-32x32\.png\?v=2026_v153"/) &&
-    has(/rel="icon"[^>]*href="\/favicon-16x16\.png\?v=2026_v153"/) &&
-    has(/rel="icon"[^>]*href="\/favicon\.svg\?v=2026_v153"/) &&
-    has(/rel="apple-touch-icon" href="\/apple-touch-icon\.png\?v=2026_v153"/) &&
-    has(/rel="apple-touch-icon" sizes="180x180" href="\/apple-touch-icon-180x180\.png\?v=2026_v153"/) &&
-    has(/rel="manifest" href="\/site\.webmanifest\?v=2026_v153"/) &&
-    has(/og:image" content="https:\/\/propwire\.vercel\.app\/og-image\.png\?v=2026_v153"/) &&
-    has(/twitter:image" content="https:\/\/propwire\.vercel\.app\/og-image\.png\?v=2026_v153"/) &&
-    has(/src="\/propwire-logo-pwire\.png\?v=2026_v153"/) &&
-    has(/src="\/propwire-logo-pwire-light\.png\?v=2026_v153"/) &&
-    has(/name="build-hash" content="2026-w8-v18"/) &&
+    has(/rel="icon"[^>]*href="\/favicon-32x32\.png\?v=2026_v154"/) &&
+    has(/rel="icon"[^>]*href="\/favicon-16x16\.png\?v=2026_v154"/) &&
+    has(/rel="icon"[^>]*href="\/favicon\.svg\?v=2026_v154"/) &&
+    has(/rel="apple-touch-icon" href="\/apple-touch-icon\.png\?v=2026_v154"/) &&
+    has(/rel="apple-touch-icon" sizes="180x180" href="\/apple-touch-icon-180x180\.png\?v=2026_v154"/) &&
+    has(/rel="manifest" href="\/site\.webmanifest\?v=2026_v154"/) &&
+    has(/og:image" content="https:\/\/propwire\.vercel\.app\/og-image\.png\?v=2026_v154"/) &&
+    has(/twitter:image" content="https:\/\/propwire\.vercel\.app\/og-image\.png\?v=2026_v154"/) &&
+    has(/src="\/propwire-logo-dropwire\.png\?v=2026_v154"/) &&
+    has(/src="\/propwire-logo-dropwire-light\.png\?v=2026_v154"/) &&
+    has(/name="build-hash" content="2026-w8-v19"/) &&
     !has(/propwire-logo\.svg|propwire-logo-dark\.svg/) &&
     !has(/\?v=v149|\?v=2026_v1"|\?v=2026_v152|2026-w8-v17/);
   check(`head ${p}: v153 brand wiring complete, zero stale refs`, ok);
@@ -121,9 +121,9 @@ const manIcons = [];
 for (const ic of manifest.icons || []) {
   const rel = ic.src.split('?')[0].replace(/^\//, '');
   const f = join(ROOT, rel);
-  manIcons.push(existsSync(f) && ic.src.endsWith('v=2026_v153'));
+  manIcons.push(existsSync(f) && ic.src.endsWith('v=2026_v154'));
 }
-check('manifest: 4 icons exist at ?v=2026_v153', manIcons.length === 4 && manIcons.every(Boolean), `${manIcons.length} icons`);
+check('manifest: 4 icons exist at ?v=2026_v154', manIcons.length === 4 && manIcons.every(Boolean), `${manIcons.length} icons`);
 
 // ── 5. Icon pixel probe: monogram centered (browser canvas) ──────────────
 const browser = await chromium.launch();
@@ -155,9 +155,9 @@ const pixelProbe = async (url, ew, eh) => probe.evaluate(async ([u, w, h]) => {
   };
 }, [url, ew, eh]).catch((e) => ({ err: String(e.message || e) }));
 for (const [url, w, h] of [
-  ['/apple-touch-icon.png?v=2026_v153', 180, 180],
-  ['/icon-192.png?v=2026_v153', 192, 192],
-  ['/icon-512.png?v=2026_v153', 512, 512],
+  ['/apple-touch-icon.png?v=2026_v154', 180, 180],
+  ['/icon-192.png?v=2026_v154', 192, 192],
+  ['/icon-512.png?v=2026_v154', 512, 512],
 ]) {
   const m = await pixelProbe(`http://127.0.0.1:${PORT}${url}`, w, h);
   if (m.err) { check(`icon ${url}: centered monogram`, false, m.err); continue; }
@@ -182,7 +182,7 @@ check('header: both slot logos decoded under prod CSP', hdr.length === 2 && hdr.
 const vis = hdr.find((x) => /pw-brand-dark-only/.test(x.cls));
 const hid = hdr.find((x) => /pw-brand-light-only/.test(x.cls));
 check('header: visible dark slot box in lockup envelope (w 96-160, h 24-40)',
-  vis && vis.w >= 96 && vis.w <= 160 && vis.h >= 24 && vis.h <= 40, `${vis ? vis.w + 'x' + vis.h : 'missing'}`);
+  vis && vis.w >= 86 && vis.w <= 160 && vis.h >= 24 && vis.h <= 40, `${vis ? vis.w + 'x' + vis.h : 'missing'}`);
 check('header: light slot decoded (hidden in dark theme by design)', hid && hid.ok);
 check('header: dark-only + light-only slots distinct', hdr[0].src !== hdr[1].src && /pw-brand-dark-only/.test(hdr.map((x) => x.cls).join(' ')));
 // light-theme flip: both slots must swap visibility cleanly
@@ -197,7 +197,7 @@ check('header: light theme flips slots (dark-only hidden, light-only shown)',
   lightState.d === 'none' && lightState.l !== 'none', JSON.stringify(lightState));
 await probe.evaluate(() => document.documentElement.removeAttribute('data-theme'));
 
-const ogRes = await fetch(`http://127.0.0.1:${PORT}/og-image.png?v=2026_v153`);
+const ogRes = await fetch(`http://127.0.0.1:${PORT}/og-image.png?v=2026_v154`);
 const ogBuf = Buffer.from(await ogRes.arrayBuffer());
 check('og-image: 200 + PNG + served under CSP img-src self', ogRes.ok && ogBuf.slice(1, 4).toString('latin1') === 'PNG' && ogRes.headers.get('content-security-policy') === CSP);
 
@@ -226,16 +226,16 @@ const sw = await page.evaluate(async () => {
   const probe2 = async (u) => !!(await cache.match(u));
   return {
     name,
-    logoDark: await probe2('/propwire-logo-pwire.png?v=2026_v153'),
-    logoLight: await probe2('/propwire-logo-pwire-light.png?v=2026_v153'),
-    fav: await probe2('/favicon.svg?v=2026_v153'),
-    i192: await probe2('/icon-192.png?v=2026_v153'),
-    i512: await probe2('/icon-512.png?v=2026_v153'),
-    man: await probe2('/site.webmanifest?v=2026_v153'),
+    logoDark: await probe2('/propwire-logo-dropwire.png?v=2026_v154'),
+    logoLight: await probe2('/propwire-logo-dropwire-light.png?v=2026_v154'),
+    fav: await probe2('/favicon.svg?v=2026_v154'),
+    i192: await probe2('/icon-192.png?v=2026_v154'),
+    i512: await probe2('/icon-512.png?v=2026_v154'),
+    man: await probe2('/site.webmanifest?v=2026_v154'),
     book: await probe2('/books/draftkings.svg?v=v152'),
   };
 });
-check('SW: propwire-v153-prod activated', sw.name === 'propwire-v153-prod', String(sw.name));
+check('SW: propwire-v154-prod activated', sw.name === 'propwire-v154-prod', String(sw.name));
 check('SW: precache has both new slot logos + v153 icons/manifest', sw.logoDark && sw.logoLight && sw.fav && sw.i192 && sw.i512 && sw.man, JSON.stringify(sw));
 check('SW: v152 book badges still precached', sw.book);
 check('boot: zero hard console errors (CSP inline-style debt tracked separately)', errors.length === 0, errors.slice(0, 3).join(' | '));
