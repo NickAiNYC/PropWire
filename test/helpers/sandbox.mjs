@@ -118,6 +118,14 @@ export function buildSandbox({ seedLocalStorage = {} } = {}) {
   const fetchImpl = async (rawPath) => {
     const clean = String(rawPath).split('?')[0];
     const file = path.join(VIEWER, clean.replace(/^\/+/, ''));
+    // The parity/unit suites pin the LEGACY baseline (built-in 2026_w7 slate
+    // registry): the autopilot manifest (feeds/slate-index.json, regenerated
+    // by scripts/autopilot.py as weeks roll over) is deliberately 404 here so
+    // golden snapshots stay pinned to a fixed data context. Manifest-driven
+    // discovery is covered by scripts/verify_v151_autopilot.mjs over real HTTP.
+    if (clean === '/feeds/slate-index.json') {
+      return { ok: false, status: 404, json: async () => { throw new Error('not found'); } };
+    }
     if (clean.startsWith('http') || !fs.existsSync(file)) {
       return { ok: false, status: 404, json: async () => { throw new Error('not found'); } };
     }

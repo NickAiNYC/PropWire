@@ -711,9 +711,71 @@
 
   // ── §9. Boot & control binding — init, deep links, bindControls ───────
 
+  /**
+   * Slate-index discovery (autopilot pipeline, scripts/autopilot.py).
+   *
+   * The daily pipeline commits new weeks/nights as data files plus a small
+   * manifest (feeds/slate-index.json). This boot step merges manifest slates
+   * into the active adapter's registry so a new week appears WITHOUT a code
+   * release, then adopts the manifest's default live slate.
+   *
+   * Fail-closed on purpose: any transport/validation failure (offline, stale
+   * manifest, malformed entry) leaves the built-in slate registry untouched
+   * and the boot default exactly as shipped. The manifest is plain JSON, so
+   * the SW's JSON policy (never cache data) makes it network-only — offline
+   * boots deterministically fall back to the built-in slates.
+   */
+  async function initSlateIndex() {
+    try {
+      const manifest = await fetchJson('feeds/slate-index.json', null);
+      if (!manifest || manifest.schema_version !== 'slate-index.v1' || !manifest.sports) return 0;
+      const entry = manifest.sports[SPORT_ID];
+      if (!entry || !entry.slates || typeof entry.slates !== 'object') return 0;
+      const registry = adapter.slates; // adapter is frozen; the slates map is extensible
+      let merged = 0;
+      for (const [key, cfg] of Object.entries(entry.slates)) {
+        if (!cfg || typeof cfg !== 'object' || !key || (key in registry)) continue;
+        if (typeof cfg.slate !== 'string' || typeof cfg.games !== 'string') continue;
+        registry[key] = {
+          season: Number.isFinite(Number(cfg.season)) ? Number(cfg.season) : null,
+          week: Number.isFinite(Number(cfg.week)) ? Number(cfg.week) : null,
+          date: typeof cfg.date === 'string' ? cfg.date : null,
+          shortLabel: typeof cfg.shortLabel === 'string' ? cfg.shortLabel : key,
+          state: typeof cfg.state === 'string' ? cfg.state : '',
+          slate: cfg.slate,
+          games: cfg.games,
+          picks: typeof cfg.picks === 'string' ? cfg.picks : null,
+          injuries: typeof cfg.injuries === 'string' ? cfg.injuries : null,
+          odds: typeof cfg.odds === 'string' ? cfg.odds : null,
+          snapshots: typeof cfg.snapshots === 'string' ? cfg.snapshots : null,
+          historical: cfg.historical === true,
+          timezone: typeof cfg.timezone === 'string' ? cfg.timezone : undefined,
+          fromManifest: true
+        };
+        merged += 1;
+      }
+      if (merged > 0) {
+        const def = entry.default_slate;
+        if (typeof def === 'string' && registry[def] && !registry[def].historical) {
+          state.slateKey = def;
+        }
+        try {
+          console.info(`[slate-index] merged ${merged} slate(s); boot ${state.slateKey}`);
+        } catch (_) {}
+      }
+      return merged;
+    } catch (_) {
+      return 0; // offline / manifest unavailable — built-in slates only
+    }
+  }
+
   async function init() {
     initTheme();
     initCrestTheming();
+    // Manifest merge BEFORE chrome render: the slate selector is built from
+    // adapter.slates, so autopilot-registered weeks must exist before the
+    // selector (and mobile twin) are populated. Fail-closed — see above.
+    await initSlateIndex();
     renderSportChrome();
     bindControls();
     initInstall();
