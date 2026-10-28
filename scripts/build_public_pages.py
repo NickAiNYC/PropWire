@@ -122,7 +122,8 @@ def page(title, description, canonical_path, breadcrumb, body,
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#0b0e14">
   <title>{esc(title)}</title>
   <meta name="description" content="{esc(description)}">
   <link rel="canonical" href="{BASE_URL}{esc(canonical_path)}">
@@ -132,6 +133,8 @@ def page(title, description, canonical_path, breadcrumb, body,
   <meta name="robots" content="index,follow">
   <link rel="stylesheet" href="/public.css">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="manifest" href="/site.webmanifest?v=v149">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=v149">
   <script type="application/ld+json">{jsonld}</script>
 </head>
 <body>

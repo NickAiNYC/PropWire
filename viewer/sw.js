@@ -1,21 +1,24 @@
 // PropWire Service Worker (offline shell only; market data always fails closed)
-const CACHE_NAME = 'propwire-v148-prod';
+const CACHE_NAME = 'propwire-v149-prod';
 const STATIC_ASSETS = [
   '/index.html',
   '/style.css',
   '/app.js',
-  '/style.css?v=2026_v148',
-  '/app.js?v=2026_v148',
-  '/js/sports/registry.js?v=2026_v148',
-  '/js/sports/nfl.js?v=2026_v148',
-  '/js/sports/nba.js?v=2026_v148',
-  '/propwire-logo.svg?v=2026_v148',
-  '/propwire-logo-dark.svg?v=2026_v148',
-  '/manifest.json',
-  '/favicon.svg',
-  '/icon-192.png',
-  '/icon-512.png',
-  '/apple-touch-icon.png'
+  '/style.css?v=2026_v149',
+  '/app.js?v=2026_v149',
+  '/js/sports/registry.js?v=2026_v149',
+  '/js/sports/nfl.js?v=2026_v149',
+  '/js/sports/nba.js?v=2026_v149',
+  '/propwire-logo.svg?v=2026_v149',
+  '/propwire-logo-dark.svg?v=2026_v149',
+  // v149 fix: this list previously referenced /manifest.json (never existed),
+  // and addAll() is all-or-nothing — one 404 silently precached NOTHING.
+  // Now every entry matches the exact busted URLs the pages request.
+  '/site.webmanifest?v=v149',
+  '/favicon.svg?v=v149',
+  '/icon-192.png?v=v149',
+  '/icon-512.png?v=v149',
+  '/apple-touch-icon.png?v=v149'
 ];
 
 self.addEventListener('install', (event) => {

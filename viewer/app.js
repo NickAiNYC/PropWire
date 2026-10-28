@@ -1531,7 +1531,7 @@
     document.documentElement.dataset.theme = 'dark';
     document.documentElement.classList.add('dark');
     const meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.setAttribute('content', '#0f131a');
+    if (meta) meta.setAttribute('content', '#0b0e14');
     try { localStorage.removeItem(THEME_KEY); } catch (_) {}
   }
 
