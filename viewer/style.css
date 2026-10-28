@@ -5980,6 +5980,18 @@ article[data-focused="true"] {
     min-width: 0 !important;
     gap: 1px !important;
   }
+  .card-grid-col:not(.col-action) {
+    background: rgba(18, 23, 34, 0.75) !important;
+    border: 1px solid rgba(255, 255, 255, 0.05) !important;
+    border-radius: 9px !important;
+    padding: 5px 8px !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
+    transition: all 0.15s ease !important;
+  }
+  .card-grid-col:not(.col-action):hover {
+    background: rgba(26, 33, 48, 0.88) !important;
+    border-color: rgba(77, 141, 255, 0.3) !important;
+  }
   .card-grid-col.col-action {
     flex-direction: row !important;
     align-items: center !important;
@@ -5989,22 +6001,22 @@ article[data-focused="true"] {
     font-family: var(--mono) !important;
     font-size: 8.5px !important;
     font-weight: 700 !important;
-    color: #6e7681 !important;
+    color: #8b9bb4 !important;
     text-transform: uppercase !important;
-    letter-spacing: 0.06em !important;
+    letter-spacing: 0.08em !important;
   }
   .grid-col-val {
     font-family: var(--mono) !important;
     font-size: 14.5px !important;
-    font-weight: 700 !important;
-    color: #f1f5f9 !important;
+    font-weight: 750 !important;
+    color: #ffffff !important;
     font-variant-numeric: tabular-nums !important;
     line-height: 1.2 !important;
   }
   .grid-col-sub {
     font-family: var(--mono) !important;
-    font-size: 10.5px !important;
-    color: #6e7681 !important;
+    font-size: 10px !important;
+    color: #64748b !important;
     line-height: 1.1 !important;
   }
   .grid-col-spark {
@@ -6012,16 +6024,26 @@ article[data-focused="true"] {
     align-items: center !important;
     height: 24px !important;
   }
+  .price-sparkline-svg polyline {
+    stroke: #4D8DFF !important;
+    stroke-width: 1.8px !important;
+    filter: drop-shadow(0 0 4px rgba(77, 141, 255, 0.65)) !important;
+  }
+  .price-sparkline-svg circle {
+    fill: #6EA4FF !important;
+    filter: drop-shadow(0 0 5px #4D8DFF) !important;
+  }
   .card-btn-view {
     display: none !important;
   }
   .card-btn-log {
-    background: rgba(77, 141, 255, 0.08) !important;
-    border: 1px solid rgba(77, 141, 255, 0.3) !important;
+    background: rgba(77, 141, 255, 0.12) !important;
+    border: 1px solid rgba(77, 141, 255, 0.4) !important;
     border-radius: var(--radius) !important;
     color: #4d8dff !important;
     font-size: 16px !important;
     font-weight: 800 !important;
+    box-shadow: 0 0 10px rgba(77, 141, 255, 0.2) !important;
     width: 32px !important;
     height: 32px !important;
     min-width: 32px !important;
