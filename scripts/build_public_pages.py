@@ -133,8 +133,8 @@ def page(title, description, canonical_path, breadcrumb, body,
   <meta name="robots" content="index,follow">
   <link rel="stylesheet" href="/public.css">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-  <link rel="manifest" href="/site.webmanifest?v=v149">
-  <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=v149">
+  <link rel="manifest" href="/site.webmanifest?v=2026_v153">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=2026_v153">
   <script type="application/ld+json">{jsonld}</script>
 </head>
 <body>

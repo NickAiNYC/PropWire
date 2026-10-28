@@ -6,7 +6,7 @@
 //     (canvas pixel probe — the old set had the mark stuck in the corner)
 //   - iOS head metas on all 5 terminal pages (capable / black-translucent /
 //     title / viewport-fit=cover / theme-color #0b0e14 / manifest link)
-//   - service worker: registers, activates propwire-v152-prod, and the
+//   - service worker: registers, activates propwire-v153-prod, and the
 //     precache list actually populated (v148 bug: /manifest.json 404 made
 //     addAll() silently precache NOTHING)
 //   - standalone safe-area layer present in CSSOM (topbar spacer math
@@ -44,7 +44,7 @@ const check = (label, ok, detail = '') => {
 const pngSize = (buf) => ({ w: buf.readUInt32BE(16), h: buf.readUInt32BE(20) });
 
 // ── 1. Manifest: parse + colors + display + icon URLs live ───────────────
-const manifestRes = await fetch(`http://127.0.0.1:${PORT}/site.webmanifest?v=v149`);
+const manifestRes = await fetch(`http://127.0.0.1:${PORT}/site.webmanifest?v=2026_v153`);
 const manifest = JSON.parse(await manifestRes.text());
 check('manifest: fetch 200 + valid JSON', manifestRes.ok && !!manifest.name);
 check('manifest: display standalone', manifest.display === 'standalone');
@@ -96,9 +96,9 @@ const pixelProbe = async (url, expW, expH) => {
   }, [url, expW, expH]).catch((e) => ({ err: String(e.message || e) }));
 };
 for (const [url, w, h, minCenter] of [
-  ['/apple-touch-icon.png?v=v149', 180, 180, 0.06],
-  ['/icon-192.png?v=v149', 192, 192, 0.04],
-  ['/icon-512.png?v=v149', 512, 512, 0.04],
+  ['/apple-touch-icon.png?v=2026_v153', 180, 180, 0.06],
+  ['/icon-192.png?v=2026_v153', 192, 192, 0.04],
+  ['/icon-512.png?v=2026_v153', 512, 512, 0.04],
 ]) {
   const m = await pixelProbe(`http://127.0.0.1:${PORT}${url}`, w, h);
   if (m.err) { check(`icon ${url}: pixel probe`, false, m.err); continue; }
@@ -119,8 +119,8 @@ for (const p of pages) {
     has(/name="apple-mobile-web-app-title" content="PropWire"/) &&
     has(/viewport-fit=cover/) &&
     has(/name="theme-color" content="#0b0e14"/) &&
-    has(/rel="manifest" href="\/site\.webmanifest\?v=v149"/) &&
-    has(/rel="apple-touch-icon" href="\/apple-touch-icon\.png\?v=v149"/);
+    has(/rel="manifest" href="\/site\.webmanifest\?v=2026_v153"/) &&
+    has(/rel="apple-touch-icon" href="\/apple-touch-icon\.png\?v=2026_v153"/);
   check(`head ${p}: full iOS PWA meta set`, ok);
 }
 
@@ -136,21 +136,21 @@ const sw = await page.evaluate(async () => {
   if (!('serviceWorker' in navigator)) return { err: 'no SW support' };
   const reg = await navigator.serviceWorker.ready;
   const keys = await caches.keys();
-  const target = keys.find((k) => k === 'propwire-v152-prod');
+  const target = keys.find((k) => k === 'propwire-v153-prod');
   if (!target) return { err: 'v149 cache missing', keys };
   const cache = await caches.open(target);
   const entries = await cache.keys();
   const urls = entries.map((r) => new URL(r.url).pathname + (new URL(r.url).search || ''));
-  const hasManifest = await cache.match('/site.webmanifest?v=v149');
-  const hasBustedCss = await cache.match('/style.css?v=2026_v152');
+  const hasManifest = await cache.match('/site.webmanifest?v=2026_v153');
+  const hasBustedCss = await cache.match('/style.css?v=2026_v153');
   return { cache: target, count: entries.length, hasManifest: !!hasManifest, hasBustedCss: !!hasBustedCss, urls };
 });
 if (sw.err) check('service worker v149: activated + precached', false, sw.err + ' ' + JSON.stringify(sw.keys || ''));
 else {
-  check('service worker: propwire-v152-prod active', true);
+  check('service worker: propwire-v153-prod active', true);
   check('precache: populated (v148 silent-empty bug fixed)', sw.count >= 10, `${sw.count} entries`);
-  check('precache: /site.webmanifest?v=v149 present', sw.hasManifest);
-  check('precache: /style.css?v=2026_v152 present', sw.hasBustedCss);
+  check('precache: /site.webmanifest?v=2026_v153 present', sw.hasManifest);
+  check('precache: /style.css?v=2026_v153 present', sw.hasBustedCss);
 }
 
 // ── 5. Standalone safe-area layer in CSSOM ───────────────────────────────
@@ -194,7 +194,7 @@ const boot = await page.evaluate(() => {
 check('iphone 390: topbar height = designed mobile 48px', boot.barH !== null && boot.barH >= 45 && boot.barH <= 50, String(boot.barH));
 check('iphone 390: logo unclipped inside topbar', boot.logoOk, `img ${boot.imgH}px / bar ${boot.barH}px`);
 check('iphone 390: bottom nav renders w/ safe-area calc', boot.navH !== null && boot.navH >= 57 && boot.navH <= 60, String(boot.navH));
-check('iphone 390: theme-color #0b0e14 + build-hash 2026-w8-v17', boot.themeColor === '#0b0e14' && boot.buildHash === '2026-w8-v17', `theme=${boot.themeColor} hash=${boot.buildHash}`);
+check('iphone 390: theme-color #0b0e14 + build-hash 2026-w8-v18', boot.themeColor === '#0b0e14' && boot.buildHash === '2026-w8-v18', `theme=${boot.themeColor} hash=${boot.buildHash}`);
 check('iphone 390: zero console/page errors', errors.length === 0, errors.slice(0, 3).join(' | ') || 'clean');
 
 await page.screenshot({ path: join(SHOTS, 'headless_v149_iphone_390.png'), clip: { x: 0, y: 0, width: 390, height: 500 } });

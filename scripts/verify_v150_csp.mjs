@@ -138,22 +138,22 @@ check('non-CSP network failures: informational only', true, otherFailed.length ?
 // 6. SW v151 precache populated.
 const sw = await page.evaluate(async () => {
   const keys = await caches.keys();
-  const target = keys.find((k) => k === 'propwire-v152-prod');
+  const target = keys.find((k) => k === 'propwire-v153-prod');
   if (!target) return { err: 'no v151 cache', keys };
   const cache = await caches.open(target);
   const n = (await cache.keys()).length;
-  const css = await cache.match('/style.css?v=2026_v152');
+  const css = await cache.match('/style.css?v=2026_v153');
   return { n, css: !!css };
 });
 if (sw.err) check('SW v151 precache', false, sw.err + ' ' + JSON.stringify(sw.keys || ''));
-else check('SW propwire-v152-prod precache populated', sw.n >= 10 && sw.css, `${sw.n} entries, busted css: ${sw.css}`);
+else check('SW propwire-v153-prod precache populated', sw.n >= 10 && sw.css, `${sw.n} entries, busted css: ${sw.css}`);
 
 // 7. Version markers.
 const meta = await page.evaluate(() => ({
   hash: document.querySelector('meta[name="build-hash"]')?.content,
   theme: document.querySelector('meta[name="theme-color"]')?.content,
 }));
-check('build-hash 2026-w8-v17 + theme-color #0b0e14', meta.hash === '2026-w8-v17' && meta.theme === '#0b0e14', JSON.stringify(meta));
+check('build-hash 2026-w8-v18 + theme-color #0b0e14', meta.hash === '2026-w8-v18' && meta.theme === '#0b0e14', JSON.stringify(meta));
 
 await page.screenshot({ path: join(SHOTS, 'headless_v150_csp_1280.png'), clip: { x: 0, y: 0, width: 1280, height: 600 } });
 await browser.close();
