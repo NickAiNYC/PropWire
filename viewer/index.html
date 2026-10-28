@@ -48,11 +48,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/style.css?v=2026_v158">
-  <script src="/js/sports/registry.js?v=2026_v158" defer></script>
-  <script src="/js/sports/nfl.js?v=2026_v158" defer></script>
-  <script src="/js/sports/nba.js?v=2026_v158" defer></script>
-  <script src="/app.js?v=2026_v158" defer></script>
+  <link rel="stylesheet" href="/style.css?v=2026_v159">
+  <script src="/js/sports/registry.js?v=2026_v159" defer></script>
+  <script src="/js/sports/nfl.js?v=2026_v159" defer></script>
+  <script src="/js/sports/nba.js?v=2026_v159" defer></script>
+  <script src="/app.js?v=2026_v159" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#slateBoard">Skip to slate</a>
@@ -63,8 +63,8 @@
       <!-- Left: Brand + Live Status Dot -->
       <div class="pw-topbar-left">
         <a href="#slateBoard" class="pw-brand" aria-label="PropWire home">
-          <img src="/propwire-logo.svg?v=2026_v158" alt="PropWire" class="pw-brand-img pw-brand-dark-only" height="52">
-          <img src="/propwire-logo-dark.svg?v=2026_v158" alt="" aria-hidden="true" class="pw-brand-img pw-brand-light-only" height="52">
+          <img src="/propwire-logo.svg?v=2026_v159" alt="PropWire" class="pw-brand-img pw-brand-dark-only" height="52">
+          <img src="/propwire-logo-dark.svg?v=2026_v159" alt="" aria-hidden="true" class="pw-brand-img pw-brand-light-only" height="52">
         </a>
         <div class="pw-telemetry-pod" aria-label="System telemetry">
         <div class="pw-live-status-dot" id="mobileStatusPill" title="Live Odds Feed Active · Tap for Telemetry">
@@ -269,19 +269,29 @@
       <div class="pw-hero-quant-card">
         <div class="hero-card-meta">
           <span class="hero-card-tag">SLATE OVERVIEW · NFL WEEK 7</span>
-          <div class="hero-card-dots" aria-hidden="true">
-            <span class="hero-dot active"></span>
-            <span class="hero-dot"></span>
-            <span class="hero-dot"></span>
+          <div class="hero-card-status-pill">
+            <span class="hero-status-dot"></span>
+            <span>10.0% GATE CALIBRATED</span>
           </div>
         </div>
         <div class="hero-metric-row">
           <div class="hero-metric-val">33 <span class="hero-metric-unit">QUALIFIED</span></div>
           <div class="hero-metric-badge"><span class="badge-arrow">↗</span> +14.8% AVG EDGE</div>
         </div>
-        <div class="hero-metric-sub">Verified player lines clearing 10.0% Poisson-Gamma hurdle · 64 quotes audited</div>
+        <div class="hero-metric-sub">Verified player lines clearing Poisson-Gamma hurdle · 64 quotes audited</div>
 
-        <!-- Inset Dual Telemetry Pods -->
+        <!-- Quantitative Hurdle Distribution Meter -->
+        <div class="hero-hurdle-scale" aria-hidden="true">
+          <div class="hurdle-scale-track">
+            <div class="hurdle-tier"><span class="tier-dot"></span><span class="tier-lbl">&lt;5% Sub</span></div>
+            <div class="hurdle-tier"><span class="tier-dot"></span><span class="tier-lbl">5.0% Base</span></div>
+            <div class="hurdle-tier"><span class="tier-dot"></span><span class="tier-lbl">7.5% Lean</span></div>
+            <div class="hurdle-tier active"><span class="tier-dot active"></span><span class="tier-lbl">10.0% Gate</span></div>
+            <div class="hurdle-tier alpha"><span class="tier-dot"></span><span class="tier-lbl">15%+ Alpha</span></div>
+          </div>
+        </div>
+
+        <!-- Inset Triple Telemetry Pods -->
         <div class="hero-pods-row">
           <div class="hero-pod">
             <span class="hero-pod-lbl">CLV BEAT RATE</span>
@@ -292,6 +302,11 @@
             <span class="hero-pod-lbl">EXECUTION GATE</span>
             <span class="hero-pod-val">10.0%</span>
             <span class="hero-pod-sub">Kelly Cap 3.0% Max</span>
+          </div>
+          <div class="hero-pod">
+            <span class="hero-pod-lbl">MODELED UNIVERSE</span>
+            <span class="hero-pod-val">390</span>
+            <span class="hero-pod-sub">64 Audited Lines</span>
           </div>
         </div>
       </div>

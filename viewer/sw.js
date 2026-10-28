@@ -1,16 +1,16 @@
 // PropWire Service Worker (offline shell only; market data always fails closed)
-const CACHE_NAME = 'propwire-v158-prod';
+const CACHE_NAME = 'propwire-v159-prod';
 const STATIC_ASSETS = [
   '/index.html',
   '/style.css',
   '/app.js',
-  '/style.css?v=2026_v158',
-  '/app.js?v=2026_v158',
-  '/js/sports/registry.js?v=2026_v158',
-  '/js/sports/nfl.js?v=2026_v158',
-  '/js/sports/nba.js?v=2026_v158',
-  '/propwire-logo.svg?v=2026_v158',
-  '/propwire-logo-dark.svg?v=2026_v158',
+  '/style.css?v=2026_v159',
+  '/app.js?v=2026_v159',
+  '/js/sports/registry.js?v=2026_v159',
+  '/js/sports/nfl.js?v=2026_v159',
+  '/js/sports/nba.js?v=2026_v159',
+  '/propwire-logo.svg?v=2026_v159',
+  '/propwire-logo-dark.svg?v=2026_v159',
   // v149 fix: this list previously referenced /manifest.json (never existed),
   // and addAll() is all-or-nothing — one 404 silently precached NOTHING.
   // Now every entry matches the exact busted URLs the pages request.
