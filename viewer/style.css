@@ -8557,3 +8557,37 @@ tr[data-focused="true"] td:first-child {
 /* Bullet projection marker: mint (v146 value — pops on the quiet track,
    brighter than --accent-success which stays on profit text) */
 .bullet-svg .bullet-proj-marker { fill: #3ccf91; }
+
+/* ═══ v149 — iPhone webapp: standalone safe-area + install polish ═══ */
+
+/* Installed (standalone) mode: the status-bar area (notch / Dynamic Island)
+   must carry the chrome background, because black-translucent draws the page
+   full-bleed under it. The spacer lives on the sticky chrome container so the
+   56px topbar and the v148 brand-tile math stay untouched. In Safari browser
+   mode env(safe-area-inset-top) resolves to 0 → visual no-op. */
+@media (display-mode: standalone) {
+  .pw-terminal-chrome { padding-top: env(safe-area-inset-top, 0px); }
+  .pw-topbar {
+    padding-left: max(12px, env(safe-area-inset-left, 0px));
+    padding-right: max(12px, env(safe-area-inset-right, 0px));
+  }
+  .data-quality-banner { top: calc(90px + env(safe-area-inset-top, 0px)); }
+}
+
+/* App-like chrome controls: no double-tap zoom, no long-press callout.
+   Content (table rows, links, dialogs) keeps native iOS text behavior. */
+.pw-topbar button,
+.pw-topbar select,
+.mobile-bottom-nav,
+.bottom-nav-item,
+.chip-pill,
+.tier-pill-btn,
+.pw-seg-btn,
+.sport-switch-btn,
+.pw-btn-nav {
+  touch-action: manipulation;
+  -webkit-touch-callout: none;
+}
+
+/* iOS Safari: block auto text inflation on rotation */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
