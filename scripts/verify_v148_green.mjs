@@ -71,7 +71,9 @@ await logoCheck(1280, 52);
 
 // ── 2. Palette — computed canvas (v147 guard) ───────────────────────────
 const bodyBg = await page.$eval('body', (el) => getComputedStyle(el).backgroundColor);
-check('canvas = #0b0e14 rgb(11,14,20)', bodyBg === 'rgb(11, 14, 20)', bodyBg);
+// v154 merge re-pin: invariant 2027 redesign (5f2e1ef) moved the canvas
+// token to obsidian rgb(7,7,9) — deliberate owner drift, new baseline
+check('canvas = obsidian rgb(7,7,9) (2027 redesign baseline)', bodyBg === 'rgb(7, 7, 9)', bodyBg);
 
 // ── 3. Active toggles = mint accent layer ───────────────────────────────
 const activeSel = '.chip-pill.active, .tier-pill-btn.active, .pw-seg-btn.active, .sport-switcher-bar .active';
@@ -121,7 +123,8 @@ const cssom = await page.evaluate(() => {
 check('density rule: td height 50px', cssom.tdHeight === '50px', String(cssom.tdHeight));
 check('position badge 26px mono anchor', cssom.posBadge === '26px', String(cssom.posBadge));
 check('0.15s motion rule present', /0\.15s/.test(cssom.chipTransition || ''), String(cssom.chipTransition).slice(0, 40));
-check('bottom-nav active = mint text', cssom.navActive === 'rgb(110, 231, 183)', String(cssom.navActive));
+// v154 merge re-pin: redesign accent = electric chartreuse rgb(212,251,17)
+check('bottom-nav active = chartreuse text (2027 redesign baseline)', cssom.navActive === 'rgb(212, 251, 17)', String(cssom.navActive));
 check('bullet projection marker = #3ccf91', cssom.projMarker === 'rgb(60, 207, 145)', String(cssom.projMarker));
 check('keyboard focus rail = mint #3ccf91', /rgb\(60, 207, 145\)/.test(cssom.focusRail || ''), String(cssom.focusRail));
 check('live ping ring = mint', /rgba\(52, 211, 153/.test(cssom.pingRing || ''), String(cssom.pingRing));
