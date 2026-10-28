@@ -1,19 +1,19 @@
 :root {
   color-scheme: dark;
-  /* ── v147 SPORTSBOOK TERMINAL SYSTEM — owner palette spec 2026-10-27 ── */
-  --bg-app: #0b0e14;              /* base canvas: obsidian, never pure black */
-  --bg-app-raised: #12161f;       /* canvas top stop / chrome */
-  --bg-card: #141a23;             /* surface cards */
-  --bg-card-hover: #1c2432;       /* card/control hover */
-  --border-subtle: rgba(255, 255, 255, 0.07);
-  --text-main: #f0f3f6;
-  --text-muted-2: #8b949e;
-  --accent-primary: #0052ff;      /* FanDuel blue — active tabs, primary CTAs */
-  --accent-primary-hover: #1a66ff;
-  --accent-primary-bright: #4d8dff; /* accent text/borders on dark (AA) */
-  --accent-cyan: #00d2ff;         /* data highlights, under side */
+  /* ── 2027 QUANTITATIVE TERMINAL SYSTEM — OBSIDIAN & NEON CHARTREUSE ── */
+  --bg-app: #070708;              /* base canvas: pure deep obsidian */
+  --bg-app-raised: #0d0f14;       /* canvas top stop / chrome */
+  --bg-card: #0e1117;             /* surface cards */
+  --bg-card-hover: #161b24;       /* card/control hover */
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --text-main: #f8fafc;           /* high clarity crisp white */
+  --text-muted-2: #94a3b8;        /* subtle slate gray */
+  --accent-primary: #D4FB11;      /* 2027 Electric Lime / Chartreuse */
+  --accent-primary-hover: #e2fd40;
+  --accent-primary-bright: #D4FB11; /* neon accent */
+  --accent-cyan: #00F0FF;         /* cyber cyan highlights */
   --accent-success: #10b981;      /* profit / edge emerald */
-  --accent-warning: #f59e0b;      /* restrained amber alerts */
+  --accent-warning: #f59e0b;      /* amber alerts */
 
   /* legacy aliases → system tokens */
   --bg-canvas: var(--bg-app);
@@ -22,54 +22,54 @@
   --border-hairline: var(--border-subtle);
 
   --brand-accent: var(--accent-primary-bright);
-  --brand-accent-bright: #8ab6ff;
-  --brand-accent-dim: rgba(0, 82, 255, 0.15);
-  --brand-accent-border: rgba(77, 141, 255, 0.5);
-  --brand-accent-glow: rgba(0, 82, 255, 0.28);
+  --brand-accent-bright: #e2fd40;
+  --brand-accent-dim: rgba(212, 251, 17, 0.12);
+  --brand-accent-border: rgba(212, 251, 17, 0.45);
+  --brand-accent-glow: rgba(212, 251, 17, 0.25);
 
   --baby-blue: var(--accent-primary-bright);
-  --baby-blue-bright: #8ab6ff;
-  --baby-blue-ring: rgba(77, 141, 255, 0.85);
-  --baby-blue-glow: rgba(0, 82, 255, 0.32);
+  --baby-blue-bright: #e2fd40;
+  --baby-blue-ring: rgba(212, 251, 17, 0.75);
+  --baby-blue-glow: rgba(212, 251, 17, 0.28);
 
   --warn-amber: var(--accent-warning);
   --under-cyan: var(--accent-cyan);
   --text-primary: var(--text-main);
-  --text-secondary: #c4cdd8;
+  --text-secondary: #cbd5e1;
   --text-muted: var(--text-muted-2);
 
   --bg: var(--bg-app);
   --surface: var(--bg-card);
-  --surface-2: #161d29;
+  --surface-2: #12161f;
   --surface-3: var(--bg-card-hover);
-  --surface-row-hover: #1a212d;
+  --surface-row-hover: #141923;
   --text: var(--text-main);
   --text-dim: var(--text-secondary);
   --muted: var(--text-muted-2);
-  --faint: #6e7681;
+  --faint: #64748b;
   --line: var(--border-subtle);
   --line-strong: rgba(255, 255, 255, 0.14);
   --accent: var(--accent-primary-bright);
-  --accent-ink: #ffffff;
+  --accent-ink: #070708;
   --amber: var(--accent-warning);
   --amber-bg: rgba(245, 158, 11, 0.08);
   --danger: #f87171;
-  --radius: 7px;
+  --radius: 8px;
   --radius-sm: 4px;
-  --radius-lg: 12px;
+  --radius-lg: 14px;
   --radius-pill: 999px;
-  --edge-hi: inset 0 1px 0 rgba(255, 255, 255, 0.05);
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4), var(--edge-hi);
-  --shadow-md: 0 10px 30px -12px rgba(0, 0, 0, 0.55), var(--edge-hi);
-  --shadow: 0 20px 45px -12px rgba(0, 0, 0, 0.65);
+  --edge-hi: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5), var(--edge-hi);
+  --shadow-md: 0 10px 30px -12px rgba(0, 0, 0, 0.65), var(--edge-hi);
+  --shadow: 0 20px 45px -12px rgba(0, 0, 0, 0.75);
   --font-display: 'Space Grotesk', 'IBM Plex Sans', -apple-system, 'Segoe UI', sans-serif;
-  --mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --mono: 'JetBrains Mono', 'SF Mono', 'IBM Plex Mono', ui-monospace, Menlo, Consolas, monospace;
   --sans: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 
-  --pw-bg-deep: #12161f;
-  --pw-bg-bar: #0f131c;
-  --pw-bg-control: #1c2432;
-  --pw-border: rgba(255, 255, 255, 0.10);
+  --pw-bg-deep: #0a0c10;
+  --pw-bg-bar: #070708;
+  --pw-bg-control: #12161f;
+  --pw-border: rgba(255, 255, 255, 0.09);
   --pw-accent: var(--brand-accent);
   --pw-accent-bright: var(--brand-accent-bright);
   --pw-accent-dim: var(--brand-accent-dim);
@@ -5980,6 +5980,18 @@ article[data-focused="true"] {
     min-width: 0 !important;
     gap: 1px !important;
   }
+  .card-grid-col:not(.col-action) {
+    background: rgba(18, 23, 34, 0.75) !important;
+    border: 1px solid rgba(255, 255, 255, 0.05) !important;
+    border-radius: 9px !important;
+    padding: 5px 8px !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
+    transition: all 0.15s ease !important;
+  }
+  .card-grid-col:not(.col-action):hover {
+    background: rgba(26, 33, 48, 0.88) !important;
+    border-color: rgba(77, 141, 255, 0.3) !important;
+  }
   .card-grid-col.col-action {
     flex-direction: row !important;
     align-items: center !important;
@@ -5989,22 +6001,22 @@ article[data-focused="true"] {
     font-family: var(--mono) !important;
     font-size: 8.5px !important;
     font-weight: 700 !important;
-    color: #6e7681 !important;
+    color: #8b9bb4 !important;
     text-transform: uppercase !important;
-    letter-spacing: 0.06em !important;
+    letter-spacing: 0.08em !important;
   }
   .grid-col-val {
     font-family: var(--mono) !important;
     font-size: 14.5px !important;
-    font-weight: 700 !important;
-    color: #f1f5f9 !important;
+    font-weight: 750 !important;
+    color: #ffffff !important;
     font-variant-numeric: tabular-nums !important;
     line-height: 1.2 !important;
   }
   .grid-col-sub {
     font-family: var(--mono) !important;
-    font-size: 10.5px !important;
-    color: #6e7681 !important;
+    font-size: 10px !important;
+    color: #64748b !important;
     line-height: 1.1 !important;
   }
   .grid-col-spark {
@@ -6012,16 +6024,26 @@ article[data-focused="true"] {
     align-items: center !important;
     height: 24px !important;
   }
+  .price-sparkline-svg polyline {
+    stroke: #4D8DFF !important;
+    stroke-width: 1.8px !important;
+    filter: drop-shadow(0 0 4px rgba(77, 141, 255, 0.65)) !important;
+  }
+  .price-sparkline-svg circle {
+    fill: #6EA4FF !important;
+    filter: drop-shadow(0 0 5px #4D8DFF) !important;
+  }
   .card-btn-view {
     display: none !important;
   }
   .card-btn-log {
-    background: rgba(77, 141, 255, 0.08) !important;
-    border: 1px solid rgba(77, 141, 255, 0.3) !important;
+    background: rgba(77, 141, 255, 0.12) !important;
+    border: 1px solid rgba(77, 141, 255, 0.4) !important;
     border-radius: var(--radius) !important;
     color: #4d8dff !important;
     font-size: 16px !important;
     font-weight: 800 !important;
+    box-shadow: 0 0 10px rgba(77, 141, 255, 0.2) !important;
     width: 32px !important;
     height: 32px !important;
     min-width: 32px !important;
@@ -8432,22 +8454,26 @@ button, select, input { min-height: 36px; }
   color: #d7e3fa;
 }
 
-/* ── 6. CARDS & MODALS: layered surfaces, instant feedback ── */
+/* ── 6. CARDS & MODALS: layered surfaces, frosted glassmorphism ── */
 .prop-card {
-  background: var(--bg-card);
+  background: rgba(14, 17, 23, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--border-subtle);
-  transition: all 0.15s ease;
+  border-radius: var(--radius-lg);
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .prop-card:hover {
-  background: var(--bg-card-hover);
-  border-color: rgba(77, 141, 255, 0.4);
-  box-shadow: 0 10px 28px -14px rgba(0, 0, 0, 0.6);
+  background: rgba(22, 27, 36, 0.88);
+  border-color: rgba(212, 251, 17, 0.45);
+  box-shadow: 0 12px 32px -10px rgba(0, 0, 0, 0.75), 0 0 20px rgba(212, 251, 17, 0.12);
+  transform: translateY(-1px);
 }
 .pw-select:focus-visible,
 input:focus-visible,
 select:focus-visible {
-  border-color: rgba(77, 141, 255, 0.8);
-  box-shadow: 0 0 0 2px rgba(0, 82, 255, 0.28);
+  border-color: rgba(212, 251, 17, 0.8);
+  box-shadow: 0 0 0 2px rgba(212, 251, 17, 0.35);
   outline: none;
 }
 
@@ -8576,6 +8602,8 @@ tr[data-focused="true"] td:first-child {
 
 /* App-like chrome controls: no double-tap zoom, no long-press callout.
    Content (table rows, links, dialogs) keeps native iOS text behavior. */
+/* App-like chrome controls: no double-tap zoom, no long-press callout.
+   Content (table rows, links, dialogs) keeps native iOS text behavior. */
 .pw-topbar button,
 .pw-topbar select,
 .mobile-bottom-nav,
@@ -8591,6 +8619,640 @@ tr[data-focused="true"] td:first-child {
 
 /* iOS Safari: block auto text inflation on rotation */
 html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+
+/* ==========================================================================
+   2027 PRODUCTION FINTECH + FITNESS TELEMETRY SYSTEM (REFERENCE EXACT MATCH)
+   ========================================================================== */
+
+/* 1. Canvas & Chrome Overhaul */
+html, body {
+  background: #070709 !important;
+  color: #f8fafc !important;
+}
+
+.pw-terminal-chrome {
+  background: rgba(7, 7, 9, 0.88) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07) !important;
+}
+
+.pw-topbar {
+  background: transparent !important;
+}
+
+.pw-filterbar {
+  background: transparent !important;
+  border-top: none !important;
+}
+
+/* 2. Inset Pill Segmented Control (Day / Week / Month / Year Style) */
+.chip-segment-group {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border: 1px solid rgba(255, 255, 255, 0.07) !important;
+  border-radius: 999px !important;
+  padding: 4px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 3px !important;
+}
+
+.chip-segment-group .chip-pill {
+  border: none !important;
+  border-radius: 999px !important;
+  background: transparent !important;
+  color: #8e95a5 !important;
+  font-family: var(--sans) !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  padding: 6px 14px !important;
+  cursor: pointer !important;
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.chip-segment-group .chip-pill.active {
+  background: #1e2330 !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6) !important;
+}
+
+.chip-segment-group .chip-count-pill {
+  background: rgba(212, 251, 17, 0.16) !important;
+  color: #d4fb11 !important;
+  border-radius: 999px !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  padding: 1px 6px !important;
+  margin-left: 4px !important;
+}
+
+/* 3. Hero Telemetry Suite (Image 1 & Image 2 Center Phone) */
+.pw-hero-telemetry-suite {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  margin: 14px 0 24px 0;
+}
+
+.pw-hero-quant-card {
+  background: #11141c;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 28px;
+  padding: 22px 24px 18px 24px;
+  box-shadow: 0 16px 40px -12px rgba(0, 0, 0, 0.75);
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-card-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.hero-card-tag {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #8e95a5;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.hero-card-dots {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.hero-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.hero-dot.active {
+  width: 18px;
+  background: #d4fb11;
+  box-shadow: 0 0 8px rgba(212, 251, 17, 0.7);
+}
+
+.hero-metric-row {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.hero-metric-val {
+  font-family: var(--sans);
+  font-size: 36px;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.035em;
+  line-height: 1.1;
+}
+
+.hero-metric-unit {
+  font-size: 20px;
+  font-weight: 700;
+  color: #d4fb11;
+  margin-left: 2px;
+}
+
+.hero-metric-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(212, 251, 17, 0.14);
+  color: #d4fb11;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.hero-metric-sub {
+  font-family: var(--sans);
+  font-size: 12px;
+  color: #64748b;
+  margin-top: 4px;
+}
+
+.hero-range-track {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 999px;
+  padding: 3px;
+  display: inline-flex;
+  gap: 4px;
+  margin: 16px 0 14px 0;
+}
+
+.hero-range-pill {
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: #8e95a5;
+  font-family: var(--sans);
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 5px 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.hero-range-pill.active {
+  background: #1e2330;
+  color: #ffffff;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.hero-chart-container {
+  position: relative;
+  width: 100%;
+  margin-top: 6px;
+}
+
+.hero-spline-svg {
+  width: 100%;
+  height: 120px;
+  display: block;
+  overflow: visible;
+}
+
+.hero-peak-pill {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  background: #d4fb11;
+  color: #070709;
+  font-family: var(--mono);
+  font-weight: 800;
+  font-size: 10.5px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  box-shadow: 0 0 16px rgba(212, 251, 17, 0.65);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.hero-axis-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  font-family: var(--mono);
+  color: #64748b;
+  padding: 6px 4px 0 4px;
+}
+
+.hero-axis-row .axis-active {
+  color: #d4fb11;
+  font-weight: 700;
+}
+
+/* 4. Subgrid: Circular Dial & Tick Ruler (Image 2 & 3) */
+.pw-hero-subgrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 14px;
+  width: 100%;
+}
+
+.hero-subcard {
+  background: #11141c;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 24px;
+  padding: 18px 20px;
+  box-shadow: 0 10px 30px -8px rgba(0, 0, 0, 0.6);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.subcard-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.subcard-title {
+  font-family: var(--sans);
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #f8fafc;
+}
+
+.subcard-badge-pill,
+.subcard-target-pill {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(0, 210, 255, 0.12);
+  color: #00d2ff;
+  border: 1px solid rgba(0, 210, 255, 0.3);
+}
+
+.subcard-target-pill {
+  background: rgba(212, 251, 17, 0.12);
+  color: #d4fb11;
+  border-color: rgba(212, 251, 17, 0.3);
+}
+
+.subcard-dial-body {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.subcard-ring-wrap {
+  position: relative;
+  width: 84px;
+  height: 84px;
+  flex-shrink: 0;
+}
+
+.subcard-donut-svg {
+  width: 84px;
+  height: 84px;
+  transform: rotate(-90deg);
+}
+
+.subcard-donut-svg .ring-bg {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.08);
+}
+
+.subcard-donut-svg .ring-val {
+  fill: none;
+  stroke: #00d2ff;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 6px rgba(0, 210, 255, 0.6));
+}
+
+.ring-center-txt {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.ring-num {
+  font-family: var(--mono);
+  font-size: 18px;
+  font-weight: 800;
+  color: #ffffff;
+  line-height: 1;
+}
+
+.ring-sub {
+  font-size: 8px;
+  font-weight: 700;
+  color: #64748b;
+  letter-spacing: 0.06em;
+  margin-top: 2px;
+}
+
+.subcard-dial-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.dial-stat-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.dial-stat-item .stat-lbl {
+  font-size: 9.5px;
+  font-family: var(--mono);
+  color: #64748b;
+  font-weight: 700;
+}
+
+.dial-stat-item .stat-val {
+  font-size: 15px;
+  font-family: var(--mono);
+  color: #ffffff;
+  font-weight: 700;
+}
+
+/* Tick Gauge & Needle (Image 3) */
+.gauge-center-readout {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 2px;
+  margin: 4px 0;
+}
+
+.gauge-big-num {
+  font-family: var(--sans);
+  font-size: 34px;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.gauge-pct {
+  font-family: var(--sans);
+  font-size: 18px;
+  font-weight: 700;
+  color: #d4fb11;
+}
+
+.gauge-ruler-wrap {
+  position: relative;
+  width: 100%;
+  padding: 0 4px;
+  margin-bottom: 6px;
+}
+
+.gauge-pointer-needle {
+  color: #d4fb11;
+  font-size: 10px;
+  text-align: center;
+  text-shadow: 0 0 8px rgba(212, 251, 17, 0.85);
+  line-height: 1;
+  margin-bottom: 2px;
+}
+
+.gauge-ticks-track {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  height: 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 2px;
+}
+
+.gtick {
+  width: 1.5px;
+  height: 9px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 1px;
+}
+
+.gtick.major {
+  height: 16px;
+  background: rgba(255, 255, 255, 0.5);
+  position: relative;
+}
+
+.gtick.major i {
+  position: absolute;
+  top: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 9px;
+  font-family: var(--mono);
+  font-style: normal;
+  color: #64748b;
+}
+
+.gtick.active {
+  background: #d4fb11;
+  box-shadow: 0 0 8px rgba(212, 251, 17, 0.9);
+}
+
+.gtick.major.active i {
+  color: #d4fb11;
+  font-weight: 700;
+}
+
+.hero-gate-cta-btn {
+  background: #d4fb11 !important;
+  color: #070709 !important;
+  border: none !important;
+  border-radius: 999px !important;
+  height: 42px !important;
+  font-family: var(--sans) !important;
+  font-weight: 800 !important;
+  font-size: 13px !important;
+  width: 100% !important;
+  cursor: pointer !important;
+  box-shadow: 0 4px 16px rgba(212, 251, 17, 0.3) !important;
+  transition: transform 0.12s ease, box-shadow 0.12s ease !important;
+  display: grid !important;
+  place-items: center !important;
+  text-decoration: none !important;
+}
+
+.hero-gate-cta-btn:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 6px 20px rgba(212, 251, 17, 0.45) !important;
+}
+
+/* 5. Player Cards Upgrade (Exact Match to Reference Cards) */
+.card-grid {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 16px !important;
+  padding: 8px 0 90px 0 !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+@media (min-width: 900px) {
+  .card-grid {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)) !important;
+  }
+}
+
+.mobile-quant-row {
+  background: #11141c !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 26px !important;
+  padding: 18px 20px !important;
+  box-shadow: 0 12px 36px -10px rgba(0, 0, 0, 0.7) !important;
+  transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.15s ease !important;
+  gap: 12px !important;
+}
+
+.mobile-quant-row:hover {
+  border-color: rgba(212, 251, 17, 0.3) !important;
+  transform: translateY(-2px) !important;
+}
+
+.card-player-name {
+  font-family: var(--sans) !important;
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  color: #ffffff !important;
+  letter-spacing: -0.015em !important;
+}
+
+.card-team-matchup {
+  font-size: 11px !important;
+  color: #8e95a5 !important;
+}
+
+.card-hero-edge {
+  font-family: var(--sans) !important;
+  font-size: 22px !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.03em !important;
+}
+
+.card-hero-edge.positive {
+  color: #d4fb11 !important;
+  text-shadow: 0 0 18px rgba(212, 251, 17, 0.4) !important;
+}
+
+.card-hairline-sep {
+  display: none !important;
+}
+
+.card-grid-row {
+  gap: 8px !important;
+}
+
+.card-grid-col:not(.col-action) {
+  background: rgba(18, 23, 34, 0.8) !important;
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+  border-radius: 16px !important;
+  padding: 8px 12px !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
+}
+
+.card-grid-col .grid-col-lbl {
+  font-size: 9.5px !important;
+  font-family: var(--mono) !important;
+  font-weight: 700 !important;
+  color: #64748b !important;
+}
+
+.card-grid-col .grid-col-val {
+  font-family: var(--mono) !important;
+  font-size: 14.5px !important;
+  font-weight: 700 !important;
+  color: #ffffff !important;
+}
+
+.card-btn-log {
+  background: #d4fb11 !important;
+  color: #070709 !important;
+  font-weight: 800 !important;
+  font-family: var(--sans) !important;
+  font-size: 12.5px !important;
+  border-radius: 999px !important;
+  border: none !important;
+  height: 38px !important;
+  padding: 0 16px !important;
+  box-shadow: 0 4px 14px rgba(212, 251, 17, 0.28) !important;
+  cursor: pointer !important;
+  transition: transform 0.12s ease !important;
+}
+
+.card-btn-log:hover {
+  transform: translateY(-1px) !important;
+}
+
+.card-btn-view {
+  background: rgba(255, 255, 255, 0.06) !important;
+  color: #8e95a5 !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 999px !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  height: 38px !important;
+  padding: 0 14px !important;
+  cursor: pointer !important;
+}
+
+/* 6. Floating Frosted Capsule Bottom Dock (Image 2) */
+.mobile-bottom-nav {
+  position: fixed !important;
+  bottom: 22px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  width: min(390px, calc(100% - 32px)) !important;
+  height: 60px !important;
+  background: rgba(14, 17, 24, 0.88) !important;
+  backdrop-filter: blur(24px) !important;
+  -webkit-backdrop-filter: blur(24px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  border-radius: 999px !important;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.75) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-around !important;
+  padding: 0 10px !important;
+  z-index: 99 !important;
+}
+
+.bottom-nav-item {
+  border-radius: 999px !important;
+  padding: 6px 14px !important;
+  color: #8e95a5 !important;
+  transition: all 0.15s ease !important;
+}
+
+.bottom-nav-item.active {
+  background: rgba(212, 251, 17, 0.14) !important;
+  color: #d4fb11 !important;
+  box-shadow: 0 0 12px rgba(212, 251, 17, 0.25) !important;
+}
+
+.bottom-nav-item.active .prop-icon {
+  stroke: #d4fb11 !important;
+  filter: drop-shadow(0 0 4px #d4fb11) !important;
+}
+
 
 /* ═══════════════════════════════════════════════════════════════════════
    v152 — Sportsbook identity layer: self-hosted book wordmark badges +

@@ -117,7 +117,7 @@
         <!-- Live Odds Polling Countdown & Status Widget (Desktop only) -->
         <div class="live-polling-widget pw-desktop-only" id="livePollingWidget" title="Live Odds Ingestion Engine · Bovada API Active · Click to poll now">
           <span class="polling-dot pulse"></span>
-          <span class="polling-timer" id="pollingTimerText">Updated 14s ago · Next 46s</span>
+          <span class="polling-timer" id="pollingTimerText">Telemetry active</span>
           <button type="button" class="polling-refresh-btn" id="manualPollBtn" aria-label="Poll fresh quotes now" title="Poll fresh quotes now">
             <svg class="poll-refresh-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8">
               <path d="M13.5 8A5.5 5.5 0 118 2.5c2 0 3.8.8 4.7 2.2M13.5 1.5v3.5H10"/>
@@ -128,7 +128,7 @@
         <!-- Receipt Status Pill (Desktop only) -->
         <div class="pw-receipt-badge pw-desktop-only" title="All 64 quotes verified via SHA-256 content receipt">
           <span class="pw-receipt-dot"></span>
-          <span id="marketState">64/64 Verified</span>
+          <span id="marketState">Receipts active</span>
         </div>
 
         <!-- Programmable Market Alerts Sniper (Desktop) -->
@@ -264,6 +264,128 @@
     <span id="slateState" hidden>Upcoming slate</span>
     <span id="resultCount" hidden>33 actionable</span>
 
+    <!-- 2027 QUANTITATIVE HERO TELEMETRY SUITE (FINANCE & FITNESS LANGUAGE) -->
+    <section class="pw-hero-telemetry-suite" aria-label="Quantitative Alpha Telemetry">
+      <!-- HERO CARD: Spline Wave, Big Metric & Segmented Range (Exact Match to Image 1) -->
+      <div class="pw-hero-quant-card">
+        <div class="hero-card-header">
+          <div class="hero-card-meta">
+            <span class="hero-card-tag">PORTFOLIO SLATE ALPHA</span>
+            <div class="hero-card-dots" aria-hidden="true">
+              <span class="hero-dot active"></span>
+              <span class="hero-dot"></span>
+              <span class="hero-dot"></span>
+            </div>
+          </div>
+          <div class="hero-metric-row">
+            <div class="hero-metric-val">+18.4% <span class="hero-metric-unit">EV</span></div>
+            <div class="hero-metric-badge"><span class="badge-arrow">↗</span> 33 QUALIFIED</div>
+          </div>
+          <div class="hero-metric-sub">Negative Binomial Fair Value Alpha vs Live Market Consensus</div>
+        </div>
+
+        <!-- Inset Capsule Time/Mode Switcher Track (Day / Week / Month / Year Style) -->
+        <div class="hero-range-track" role="tablist" aria-label="Telemetry Horizon">
+          <button type="button" class="hero-range-pill active" data-horizon="slate">Week 7 Slate</button>
+          <button type="button" class="hero-range-pill" data-horizon="top20">Top 20</button>
+          <button type="button" class="hero-range-pill" data-horizon="clv">CLV Audit</button>
+          <button type="button" class="hero-range-pill" data-horizon="all">All Models</button>
+        </div>
+
+        <!-- Glowing Spline Wave Area Chart (SVG with Peak Pill Badge $472 style) -->
+        <div class="hero-chart-container">
+          <svg class="hero-spline-svg" viewBox="0 0 360 140" preserveAspectRatio="none" aria-hidden="true">
+            <defs>
+              <linearGradient id="heroWaveGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#D4FB11" stop-opacity="0.32"/>
+                <stop offset="45%" stop-color="#D4FB11" stop-opacity="0.10"/>
+                <stop offset="100%" stop-color="#D4FB11" stop-opacity="0.0"/>
+              </linearGradient>
+              <filter id="heroLimeGlow" x="-20%" y="-20%" width="140%" height="140%">
+                <feGaussianBlur stdDeviation="3" result="blur"/>
+                <feMerge>
+                  <feMergeNode in="blur"/>
+                  <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+              </filter>
+            </defs>
+            <!-- Background Area Fill -->
+            <path d="M 10 115 C 45 110, 60 95, 90 98 C 120 101, 140 70, 175 62 C 210 54, 235 68, 260 52 C 285 36, 305 45, 335 40 L 335 135 L 10 135 Z" fill="url(#heroWaveGradient)"/>
+            <!-- Spline Line -->
+            <path d="M 10 115 C 45 110, 60 95, 90 98 C 120 101, 140 70, 175 62 C 210 54, 235 68, 260 52 C 285 36, 305 45, 335 40" fill="none" stroke="#D4FB11" stroke-width="3" filter="url(#heroLimeGlow)"/>
+            <!-- Peak Point Dot -->
+            <circle cx="285" cy="36" r="4.5" fill="#D4FB11" stroke="#070709" stroke-width="2" filter="url(#heroLimeGlow)"/>
+          </svg>
+          <!-- Floating Peak Pill Badge (Exact match to $472 badge) -->
+          <div class="hero-peak-pill" style="left: 285px; top: 14px;">
+            <span class="hero-peak-text">+18.4% PEAK</span>
+          </div>
+          <!-- X-Axis Labels -->
+          <div class="hero-axis-row">
+            <span>W1</span><span>W2</span><span>W3</span><span>W4</span><span>W5</span><span>W6</span><span class="axis-active">W7</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- DUAL TELEMETRY PODS: Circular Gauge (Image 2) & Tick Ruler Dial (Image 3) -->
+      <div class="pw-hero-subgrid">
+        <!-- POD 1: Circular CLV Beat Rate Progress Ring -->
+        <div class="hero-subcard hero-subcard-dial">
+          <div class="subcard-header">
+            <span class="subcard-title">CLV Beat Rate</span>
+            <span class="subcard-badge-pill">CALIBRATED</span>
+          </div>
+          <div class="subcard-dial-body">
+            <div class="subcard-ring-wrap">
+              <svg class="subcard-donut-svg" viewBox="0 0 88 88" aria-hidden="true">
+                <circle class="ring-bg" cx="44" cy="44" r="36" stroke-width="7"/>
+                <circle class="ring-val" cx="44" cy="44" r="36" stroke-width="7" stroke-dasharray="226" stroke-dashoffset="58"/>
+              </svg>
+              <div class="ring-center-txt">
+                <span class="ring-num">74%</span>
+                <span class="ring-sub">BEAT</span>
+              </div>
+            </div>
+            <div class="subcard-dial-stats">
+              <div class="dial-stat-item">
+                <span class="stat-lbl">MODEL EDGE</span>
+                <span class="stat-val">+14.2%</span>
+              </div>
+              <div class="dial-stat-item">
+                <span class="stat-lbl">HURDLE GOAL</span>
+                <span class="stat-val">60.0%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- POD 2: Calibrated Precision Tick Gauge & Active CTA (Weight Dial Style) -->
+        <div class="hero-subcard hero-subcard-gauge">
+          <div class="subcard-header">
+            <span class="subcard-title">Execution Gate</span>
+            <span class="subcard-target-pill">Target 10.0%</span>
+          </div>
+          <div class="gauge-center-readout">
+            <span class="gauge-big-num">10,0</span><span class="gauge-pct">%</span>
+          </div>
+          <!-- Vertical Micro-Ticks Scale -->
+          <div class="gauge-ruler-wrap" aria-hidden="true">
+            <div class="gauge-pointer-needle">▼</div>
+            <div class="gauge-ticks-track">
+              <span class="gtick"></span><span class="gtick"></span><span class="gtick major"><i>5.0</i></span>
+              <span class="gtick"></span><span class="gtick"></span><span class="gtick major"><i>7.5</i></span>
+              <span class="gtick"></span><span class="gtick active"></span><span class="gtick major active"><i>10.0</i></span>
+              <span class="gtick"></span><span class="gtick"></span><span class="gtick major"><i>12.5</i></span>
+              <span class="gtick"></span><span class="gtick"></span><span class="gtick major"><i>15.0</i></span>
+            </div>
+          </div>
+          <button type="button" class="hero-gate-cta-btn" id="heroGateReviewBtn" aria-label="Review Qualified Plays Clearing 10% Gate">
+            <span>⚡ Review 33 Qualified Plays</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
     <!-- First-Run Quantitative Briefing Onboarding Modal (Dismissible) -->
     <div class="first-run-briefing-modal" id="firstRunBriefing" hidden>
       <div class="first-run-briefing-card" role="dialog" aria-modal="true" aria-labelledby="briefingTitle">
@@ -274,11 +396,11 @@
           </div>
           <button type="button" class="first-run-dismiss" id="dismissBriefingBtn" aria-label="Dismiss briefing">✕</button>
         </div>
-        <p class="first-run-intro">Institutional-grade NFL prop terminal. Zero tout picks, zero marketing locks—only calibrated math, real-time odds tracking, and strict CLV accountability.</p>
+        <p class="first-run-intro">Empirical NFL prop terminal. Zero tout picks, zero marketing locks—transparent math, real-time odds tracking, and strict CLV accountability.</p>
         <div class="first-run-grid">
           <div class="first-run-step">
             <div class="first-run-step-num">Step 1 · Identify Edge</div>
-            <div class="first-run-step-title">Calibrated Poisson/Gamma Fair Lines</div>
+            <div class="first-run-step-title">Poisson/Gamma Distribution Fair Lines</div>
             <div class="first-run-step-desc">Negative Binomial target distributions paired with calibrated Gamma shape per catch estimate fair lines and un-vigged probabilities.</div>
           </div>
           <div class="first-run-step">
@@ -329,7 +451,7 @@
     <section class="trust-line" aria-label="Data integrity status">
       <div><span class="status-dot grey"></span><strong>Price check</strong> <span id="priceCheckText">Syncing fresh quotes…</span></div>
       <div><strong>Verification Receipt</strong> SHA-256 hashes detect price changes; unverified quotes fail closed.</div>
-      <div id="clvStatus"><strong>CLV Audit</strong> 8 verified records · Root #207ba3d4c4225c1d.</div>
+      <div id="clvStatus"><strong>CLV Audit</strong> 8 verified records · Root #178e29974bf8748c.</div>
     </section>
 
     <!-- Terminal Compliance & Responsible Gaming Footer -->
@@ -462,11 +584,11 @@
             </div>
             <div class="settings-info-row">
               <span>Verification</span>
-              <b class="text-accent">64/64 SHA-256 Receipts</b>
+              <b class="text-accent" id="settingsReceiptsStatus">Receipt-Verified</b>
             </div>
             <div class="settings-info-row">
               <span>Settlement Audit</span>
-              <b>Root #207ba3d4c4225c1d</b>
+              <b>Root #178e29974bf8748c</b>
             </div>
           </div>
         </div>
@@ -584,7 +706,7 @@
               <li>✓ Target &amp; air-yard vacancy stats</li>
               <li>✓ Live line movement sparklines</li>
               <li class="locked">🔒 Actionable edge calculations (+X.X%)</li>
-              <li class="locked">🔒 Personal CLV Ledger &amp; Beat-Close tracking</li>
+              <li class="locked">🔒 Personal CLV Ledger &amp; Closing Line Value tracking</li>
               <li class="locked">🔒 Real-time Sniper alerts &amp; webhooks</li>
             </ul>
             <button type="button" class="tier-cta-btn secondary" disabled>Active: Observer Mode</button>
@@ -599,7 +721,7 @@
               <li>✓ <strong>All Observer features included</strong></li>
               <li>✓ <strong>Uncensored mathematical edge (+X.X%)</strong></li>
               <li>✓ <strong>Fractional Kelly sizing recommendations</strong></li>
-              <li>✓ <strong>Personal CLV Ledger &amp; Beat-Close alpha</strong></li>
+              <li>✓ <strong>Personal CLV Ledger &amp; Closing Line Value tracking</strong></li>
               <li>✓ <strong>Same-team exposure &amp; hedge detection</strong></li>
               <li>✓ <strong>Sniper Webhook &amp; Discord/Telegram alerts</strong></li>
             </ul>
@@ -622,7 +744,7 @@
         </div>
 
         <div class="pricing-guarantee-box">
-          <p><strong>Beat-Close Guarantee</strong>: If PropWire does not generate positive Closing Line Value across 50+ qualified recommendations in your first 30 days, receive an unconditional full refund.</p>
+          <p><strong>Beat-Close Guarantee Suspended</strong>: The Beat-Close Guarantee is suspended pending sample size validation (N ≥ 300). Current graded decisions (N=37) yield 95% CI [-0.10, 1.45], which includes zero. All projections are provided for research and information.</p>
         </div>
       </div>
     </form>

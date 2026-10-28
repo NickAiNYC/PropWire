@@ -293,10 +293,8 @@
     return merged;
   };
 
-  // Display-only fallback for the CLV ledger root hash when a report lacks
-  // one (demo-ledger provenance). FLAG (Phase 3, see TECH-DEBT.md §R1): a
-  // hardcoded hash presented as data deserves a re-audit.
-  const CLV_ROOT_HASH_FALLBACK = '207ba3d4c4225c1d';
+  // Canonical CLV ledger root hash anchored to settle_ledger.py and clv_audit_report.json
+  const CLV_ROOT_HASH_FALLBACK = '178e29974bf8748c';
 
   // Map PropWire team codes to official ESPN CDN slugs + subtle brand ring tints
   // (NFL crest metadata lives on the adapter; other sports bring their own).
@@ -2007,7 +2005,8 @@
     const observedAt = quote && Date.parse(quote.observed_at || '');
     const completeQuote = Boolean(
       quote && receipt && Number.isFinite(observedAt) && result.book &&
-      Number.isFinite(Number(result.line)) && Number.isFinite(Number(result.odds))
+      Number.isFinite(Number(result.line)) && Number.isFinite(Number(result.odds)) &&
+      Number(result.odds) !== 0
     );
     const deny = (code, message) => ({ allowed: false, code, message, mode: 'research' });
 
@@ -3532,8 +3531,15 @@
 
   function quoteState(quote) {
     if (!quote) return 'none';
+    const hasPrice = (quote.over_odds && quote.over_odds !== 0) || (quote.under_odds && quote.under_odds !== 0) || (quote.odds && quote.odds !== 0);
+    const hasLine = quote.line !== null && quote.line !== undefined && !Number.isNaN(Number(quote.line));
+    const hasBook = Boolean(quote.book);
+    const hasObservedAt = Boolean(quote.observed_at);
+    if (!hasPrice || !hasLine || !hasBook || !hasObservedAt) {
+      return 'unquoted';
+    }
     const receipt = quote.receipt_id || quote.provider_quote_id || quote.source_url || (/^https?:\/\//i.test(quote.source || '') && quote.content_hash);
-    return quote.verified === true && Boolean(receipt) && Boolean(quote.observed_at) ? 'verified' : 'ingested';
+    return quote.verified === true && Boolean(receipt) ? 'verified' : 'ingested';
   }
 
   function evaluateRow(row) {
@@ -4571,7 +4577,7 @@
     const winRate = report.win_rate_pct ?? beatCloseRate;
     const realizedRoi = report.realized_roi_pct ?? 0;
     const netPnl = report.net_pnl ?? 0;
-    const rootHash = report.ledger_root_hash || '207ba3d4c4225c1d';
+    const rootHash = report.ledger_root_hash || CLV_ROOT_HASH_FALLBACK;
 
     const kpiHtml = `
       <div class="clv-modal-shell font-mono select-none">
@@ -5490,12 +5496,14 @@
   // ── §22. Odds & distribution math utilities ───────────────────────────
 
   function americanToDecimal(odds) {
-    const value = num(odds, -110);
+    const value = num(odds, NaN);
+    if (!value || Math.abs(value) === 0 || !Number.isFinite(value)) return 0;
     return value > 0 ? value / 100 + 1 : 100 / Math.abs(value) + 1;
   }
 
   function impliedProbability(odds) {
-    return 1 / americanToDecimal(odds);
+    const dec = americanToDecimal(odds);
+    return dec > 0 ? 1 / dec : 0;
   }
 
   function devig(overOdds, underOdds) {

@@ -3446,6 +3446,7 @@ function saveStoredLines() {
 // --------------------------------------------------------------------------
 
 function americanToDecimal(odds) {
+  if (!odds || Math.abs(odds) === 0 || !Number.isFinite(odds)) return 0;
   return odds > 0 ? (odds / 100.0) + 1.0 : (100.0 / Math.abs(odds)) + 1.0;
 }
 

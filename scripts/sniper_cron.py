@@ -42,6 +42,31 @@ def save_cooldowns(data: dict):
         sys.stderr.write(f"[WARN] Failed to save cooldowns: {exc}\n")
 
 
+def dispatch_telegram(bot_token: str, chat_id: str, payload: dict) -> bool:
+    text = (
+        f"⚡ <b>PROPWIRE REAL-TIME ALERT</b>
+"
+        f"<b>Player:</b> {payload.get('player')} ({payload.get('team')} vs {payload.get('opponent')})
+"
+        f"<b>Pick:</b> {payload.get('side')} {payload.get('line')} ({payload.get('odds')})
+"
+        f"<b>Edge:</b> +{payload.get('edge_pct')}% | <b>EV:</b> +{payload.get('expected_return')}%
+"
+        f"<b>Book:</b> {payload.get('book')}
+"
+        f"<a href="{payload.get('review_url')}">Inspect on Terminal</a>"
+    )
+    url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+    body = json.dumps({"chat_id": chat_id, "text": text, "parse_mode": "HTML"}).encode("utf-8")
+    req = urllib.request.Request(url, data=body, headers={"Content-Type": "application/json"})
+    try:
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            return resp.status in (200, 201)
+    except Exception as e:
+        sys.stderr.write(f"[ERROR] Telegram dispatch exception: {e}
+")
+        return False
+
 def dispatch_webhook(webhook_url: str, payload: dict) -> bool:
     data = json.dumps(payload).encode("utf-8")
     req = urllib.request.Request(
@@ -65,6 +90,8 @@ def main():
     parser.add_argument("--min-edge", type=float, default=0.15, help="Minimum probability edge (default 0.15)")
     parser.add_argument("--gate-met-only", action="store_true", default=True, help="Require institutional gate met and EV > 0")
     parser.add_argument("--webhook", type=str, default=os.environ.get("SNIPER_WEBHOOK_URL", ""), help="Webhook URL")
+    parser.add_argument("--telegram-token", type=str, default=os.environ.get("TELEGRAM_BOT_TOKEN", ""), help="Telegram Bot Token")
+    parser.add_argument("--telegram-chat-id", type=str, default=os.environ.get("TELEGRAM_CHAT_ID", ""), help="Telegram Chat ID")
     parser.add_argument("--dry-run", action="store_true", help="Print alerts without dispatching webhooks")
     args = parser.parse_args()
 
@@ -237,8 +264,11 @@ def main():
 
             if args.webhook and not args.dry_run:
                 success = dispatch_webhook(args.webhook, alert_payload)
-                print(f"[DISPATCH] Sent alert for {quote.get('player_name')}: {'OK' if success else 'FAIL'}")
-            else:
+                print(f"[DISPATCH] Sent webhook alert for {quote.get('player_name')}: {'OK' if success else 'FAIL'}")
+            if args.telegram_token and args.telegram_chat_id and not args.dry_run:
+                tg_ok = dispatch_telegram(args.telegram_token, args.telegram_chat_id, alert_payload)
+                print(f"[DISPATCH] Sent Telegram alert for {quote.get('player_name')}: {'OK' if tg_ok else 'FAIL'}")
+            if not args.webhook and not (args.telegram_token and args.telegram_chat_id):
                 print(f"[TRIGGER] {quote.get('player_name')} ({quote.get('team')}) {side} {quote.get('line')} | Edge: +{edge*100:.1f}% | EV: +{expected_return*100:.1f}%")
 
     save_cooldowns(cooldowns)

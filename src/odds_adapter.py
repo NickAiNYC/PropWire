@@ -168,6 +168,9 @@ class MatchedEvaluation:
     actionable_stake: float
     catalyst: str                  # "pricing", "football_news", "both", "none"
     injury_context: Optional[str]
+    proj_volume: float = 0.0
+    mu_rec: float = 0.0
+    mu_ypr: float = 0.0
 
 
 # ---------------------------------------------------------------------------
@@ -950,13 +953,65 @@ class OddsIngestionAdapter:
             catalyst = "pricing"
             injury_ctx = None
 
-        fair_line = fair_rec if quote.market == "receptions" else fair_yds
-
-        # Compute model probabilities at the offered book line
+        # Fair line and projected volume calculation (Phase 1 Invariant)
+        # Receptions must always sit on nearest hook (.5), proj_volume is distribution mean
         if quote.market == "receptions":
-            p_over_model, p_under_model, p_push_model = compute_rec_probs(mu_rec, quote.line)
+            fair_line = int(fair_rec) + 0.5
+            proj_volume = round(mu_rec, 2)
         else:
-            p_over_model, p_under_model, p_push_model = compute_yards_probs(self.model, mu_rec, mu_ypr, quote.line)
+            fair_line = fair_yds
+            proj_volume = round(mu_rec * mu_ypr, 2)
+
+        # Compute model probabilities at the offered book line (if line present)
+        if quote.line is not None:
+            if quote.market == "receptions":
+                p_over_model, p_under_model, p_push_model = compute_rec_probs(mu_rec, quote.line)
+            else:
+                p_over_model, p_under_model, p_push_model = compute_yards_probs(self.model, mu_rec, mu_ypr, quote.line)
+        else:
+            p_over_model, p_under_model, p_push_model = 0.5, 0.5, 0.0
+
+        # Invariant 3: A quote requires book + line + captured price + observed_at.
+        # No price means no EV, no edge, no ledger entry.
+        has_captured_price = (quote.over_odds is not None and quote.over_odds != 0) or (quote.under_odds is not None and quote.under_odds != 0)
+        has_line = quote.line is not None
+        has_book = bool(quote.book)
+        has_observed = bool(quote.observed_at)
+
+        if not (has_captured_price and has_line and has_book and has_observed):
+            return MatchedEvaluation(
+                quote=quote,
+                player_id=p_id,
+                player_name=p_name,
+                team=team,
+                opponent=opp,
+                game_id=game_id,
+                position=pos,
+                market=quote.market,
+                fair_line=round(fair_line, 1),
+                book_line=round(quote.line or 0.0, 1),
+                over_odds=quote.over_odds or 0,
+                under_odds=quote.under_odds,
+                dec_odds_over=0.0,
+                dec_odds_under=0.0,
+                p_over_market_devig=0.0,
+                p_under_market_devig=0.0,
+                p_over_model=round(p_over_model, 4),
+                p_under_model=round(p_under_model, 4),
+                p_push_model=round(p_push_model, 4),
+                prob_edge=0.0,
+                break_even_adv=0.0,
+                expected_return=0.0,
+                best_side="OVER",
+                is_qualified=False,
+                status="PASS",
+                actionable_stake=0.0,
+                catalyst="none",
+                injury_context=injury_ctx,
+                proj_volume=proj_volume,
+                mu_rec=round(mu_rec, 4),
+                mu_ypr=round(mu_ypr, 4)
+            )
 
         # Compute market probabilities and de-vig
         p_over_market_devig, p_under_market_devig = devig_two_way(quote.over_odds, quote.under_odds)
@@ -1050,7 +1105,10 @@ class OddsIngestionAdapter:
             status=status,
             actionable_stake=actionable_stake,
             catalyst=catalyst,
-            injury_context=injury_ctx
+            injury_context=injury_ctx,
+            proj_volume=proj_volume,
+            mu_rec=round(mu_rec, 4),
+            mu_ypr=round(mu_ypr, 4)
         )
 
     def run_ingestion(self, game_id: Optional[str] = None) -> Dict[str, Any]:
@@ -1161,9 +1219,10 @@ class OddsIngestionAdapter:
                     "role": role_info,
                     "projection": {
                         "fair_line": ev.fair_line,
-                        "proj_volume": ev.fair_line,
+                        "proj_volume": ev.proj_volume,
                         "distribution_params": {
-                            "mu_rec": round(ev.p_over_model, 4),
+                            "mu_rec": round(ev.mu_rec, 4),
+                            "mu_ypr": round(ev.mu_ypr, 4),
                             "alpha": MODEL_ALPHA,
                             "k": MODEL_K
                         },

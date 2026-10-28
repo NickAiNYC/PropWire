@@ -615,6 +615,16 @@ def main() -> int:
         print(f"[autopilot] slate_{season}_w{week}.json missing and model skipped "
               f"- manifest will omit this week", file=sys.stderr)
     manifest_path = write_manifest(now)
+    # Generate pre-kickoff zero-fluff board for email & terminal subscribers
+    try:
+        from scripts.pre_kickoff_board import generate_board
+        board_data = generate_board(f'{season}_w{week}')
+        (VIEWER / 'todays_board.html').write_text(board_data['html'], encoding='utf-8')
+        (VIEWER / 'todays_board.txt').write_text(board_data['text'], encoding='utf-8')
+        print(f'[autopilot] wrote viewer/todays_board.html and .txt ({board_data["item_count"]} items)')
+    except Exception as exc:
+        print(f'  [warn] pre-kickoff board generation skipped: {exc}', file=sys.stderr)
+
     bumped = bump_build_hash_week(week)
 
     print(f"[autopilot] wrote: {games_path.name}, {injuries_path.name}, "
