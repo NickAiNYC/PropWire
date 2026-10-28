@@ -41,8 +41,16 @@ function createStaticServer(port = 4173) {
 }
 
 async function main() {
-  console.log('Starting local server on http://127.0.0.1:4173...');
-  const server = await createStaticServer(4173);
+  const isProd = process.argv.includes('--prod');
+  const targetUrl = isProd ? 'https://propwire.vercel.app/' : 'http://127.0.0.1:4173/';
+  let server = null;
+
+  if (!isProd) {
+    console.log('Starting local server on http://127.0.0.1:4173...');
+    server = await createStaticServer(4173);
+  } else {
+    console.log('Verifying LIVE PRODUCTION on https://propwire.vercel.app/ (iPhone 390x844)...');
+  }
 
   console.log('Launching headless Chrome with iPhone 390x844 viewport...');
   const tmpDir = `/tmp/chrome-mobile-v163-${Date.now()}`;
@@ -52,11 +60,11 @@ async function main() {
     '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
     [
       '--headless=new',
-      '--remote-debugging-port=9335',
+      '--remote-debugging-port=9336',
       '--window-size=390,844',
       `--user-data-dir=${tmpDir}`,
       '--disable-gpu',
-      'http://127.0.0.1:4173/'
+      targetUrl
     ],
     { stdio: 'ignore' }
   );
@@ -67,9 +75,9 @@ async function main() {
     for (let i = 0; i < 30; i++) {
       await new Promise((r) => setTimeout(r, 300));
       try {
-        const listRes = await fetch('http://127.0.0.1:9335/json');
+        const listRes = await fetch('http://127.0.0.1:9336/json');
         const tabs = await listRes.json();
-        pageTab = tabs.find((t) => t.type === 'page' && t.url.includes('4173'));
+        pageTab = tabs.find((t) => t.type === 'page' && (t.url.includes('4173') || t.url.includes('propwire.vercel.app')));
         if (pageTab && pageTab.webSocketDebuggerUrl) {
           connected = true;
           break;
@@ -258,7 +266,7 @@ async function main() {
     try {
       fs.rmSync(tmpDir, { recursive: true, force: true });
     } catch (e) {}
-    server.close();
+    if (server) server.close();
   }
 }
 
