@@ -199,9 +199,9 @@
     },
     "projection": {
       "fair_line": 27.0,
-      "proj_volume": 32.08,
+      "proj_volume": 44.91,
       "distribution_params": {
-        "mu_rec": 3.2459,
+        "mu_rec": 4.5443,
         "mu_ypr": 9.8836,
         "alpha": 0.1097,
         "k": 1.555
@@ -276,9 +276,9 @@
     },
     "projection": {
       "fair_line": 2.5,
-      "proj_volume": 3.25,
+      "proj_volume": 4.54,
       "distribution_params": {
-        "mu_rec": 3.2459,
+        "mu_rec": 4.5443,
         "mu_ypr": 9.8836,
         "alpha": 0.1097,
         "k": 1.555
@@ -353,10 +353,10 @@
     },
     "projection": {
       "fair_line": 30.0,
-      "proj_volume": 36.09,
+      "proj_volume": 52.27,
       "distribution_params": {
-        "mu_rec": 2.8819,
-        "mu_ypr": 12.5215,
+        "mu_rec": 4.0923,
+        "mu_ypr": 12.772,
         "alpha": 0.1097,
         "k": 1.555
       },
@@ -430,10 +430,10 @@
     },
     "projection": {
       "fair_line": 2.5,
-      "proj_volume": 2.88,
+      "proj_volume": 4.09,
       "distribution_params": {
-        "mu_rec": 2.8819,
-        "mu_ypr": 12.5215,
+        "mu_rec": 4.0923,
+        "mu_ypr": 12.772,
         "alpha": 0.1097,
         "k": 1.555
       },
@@ -2663,9 +2663,9 @@
     },
     "projection": {
       "fair_line": 24.5,
-      "proj_volume": 30.04,
+      "proj_volume": 49.57,
       "distribution_params": {
-        "mu_rec": 2.4628,
+        "mu_rec": 4.0637,
         "mu_ypr": 12.1972,
         "alpha": 0.1097,
         "k": 1.555
@@ -2740,9 +2740,9 @@
     },
     "projection": {
       "fair_line": 2.5,
-      "proj_volume": 2.46,
+      "proj_volume": 4.06,
       "distribution_params": {
-        "mu_rec": 2.4628,
+        "mu_rec": 4.0637,
         "mu_ypr": 12.1972,
         "alpha": 0.1097,
         "k": 1.555
@@ -6821,9 +6821,9 @@
     },
     "projection": {
       "fair_line": 27.0,
-      "proj_volume": 32.08,
+      "proj_volume": 44.91,
       "distribution_params": {
-        "mu_rec": 3.2459,
+        "mu_rec": 4.5443,
         "mu_ypr": 9.8836,
         "alpha": 0.1097,
         "k": 1.555
@@ -6898,9 +6898,9 @@
     },
     "projection": {
       "fair_line": 2.5,
-      "proj_volume": 3.25,
+      "proj_volume": 4.54,
       "distribution_params": {
-        "mu_rec": 3.2459,
+        "mu_rec": 4.5443,
         "mu_ypr": 9.8836,
         "alpha": 0.1097,
         "k": 1.555
@@ -7437,10 +7437,10 @@
     },
     "projection": {
       "fair_line": 31.0,
-      "proj_volume": 35.33,
+      "proj_volume": 46.13,
       "distribution_params": {
-        "mu_rec": 4.4723,
-        "mu_ypr": 7.9004,
+        "mu_rec": 5.7246,
+        "mu_ypr": 8.0584,
         "alpha": 0.1097,
         "k": 1.555
       },
@@ -7514,10 +7514,10 @@
     },
     "projection": {
       "fair_line": 4.5,
-      "proj_volume": 4.47,
+      "proj_volume": 5.72,
       "distribution_params": {
-        "mu_rec": 4.4723,
-        "mu_ypr": 7.9004,
+        "mu_rec": 5.7246,
+        "mu_ypr": 8.0584,
         "alpha": 0.1097,
         "k": 1.555
       },
@@ -7591,9 +7591,9 @@
     },
     "projection": {
       "fair_line": 42.0,
-      "proj_volume": 48.02,
+      "proj_volume": 67.23,
       "distribution_params": {
-        "mu_rec": 4.289,
+        "mu_rec": 6.0047,
         "mu_ypr": 11.1969,
         "alpha": 0.1097,
         "k": 1.555
@@ -7668,9 +7668,9 @@
     },
     "projection": {
       "fair_line": 3.5,
-      "proj_volume": 4.29,
+      "proj_volume": 6.0,
       "distribution_params": {
-        "mu_rec": 4.289,
+        "mu_rec": 6.0047,
         "mu_ypr": 11.1969,
         "alpha": 0.1097,
         "k": 1.555
@@ -8823,10 +8823,10 @@
     },
     "projection": {
       "fair_line": 30.0,
-      "proj_volume": 36.09,
+      "proj_volume": 52.27,
       "distribution_params": {
-        "mu_rec": 2.8819,
-        "mu_ypr": 12.5215,
+        "mu_rec": 4.0923,
+        "mu_ypr": 12.772,
         "alpha": 0.1097,
         "k": 1.555
       },
@@ -8900,10 +8900,10 @@
     },
     "projection": {
       "fair_line": 2.5,
-      "proj_volume": 2.88,
+      "proj_volume": 4.09,
       "distribution_params": {
-        "mu_rec": 2.8819,
-        "mu_ypr": 12.5215,
+        "mu_rec": 4.0923,
+        "mu_ypr": 12.772,
         "alpha": 0.1097,
         "k": 1.555
       },
@@ -11749,10 +11749,10 @@
     },
     "projection": {
       "fair_line": 22.5,
-      "proj_volume": 27.55,
+      "proj_volume": 41.94,
       "distribution_params": {
-        "mu_rec": 2.5584,
-        "mu_ypr": 10.767,
+        "mu_rec": 3.7097,
+        "mu_ypr": 11.3053,
         "alpha": 0.1097,
         "k": 1.555
       },
@@ -11826,10 +11826,10 @@
     },
     "projection": {
       "fair_line": 2.5,
-      "proj_volume": 2.56,
+      "proj_volume": 3.71,
       "distribution_params": {
-        "mu_rec": 2.5584,
-        "mu_ypr": 10.767,
+        "mu_rec": 3.7097,
+        "mu_ypr": 11.3053,
         "alpha": 0.1097,
         "k": 1.555
       },
@@ -40393,9 +40393,9 @@
     },
     "projection": {
       "fair_line": 24.5,
-      "proj_volume": 30.04,
+      "proj_volume": 49.57,
       "distribution_params": {
-        "mu_rec": 2.4628,
+        "mu_rec": 4.0637,
         "mu_ypr": 12.1972,
         "alpha": 0.1097,
         "k": 1.555
@@ -40470,9 +40470,9 @@
     },
     "projection": {
       "fair_line": 2.5,
-      "proj_volume": 2.46,
+      "proj_volume": 4.06,
       "distribution_params": {
-        "mu_rec": 2.4628,
+        "mu_rec": 4.0637,
         "mu_ypr": 12.1972,
         "alpha": 0.1097,
         "k": 1.555
@@ -64725,9 +64725,9 @@
     },
     "projection": {
       "fair_line": 27.0,
-      "proj_volume": 32.08,
+      "proj_volume": 44.91,
       "distribution_params": {
-        "mu_rec": 3.2459,
+        "mu_rec": 4.5443,
         "mu_ypr": 9.8836,
         "alpha": 0.1097,
         "k": 1.555
@@ -64802,9 +64802,9 @@
     },
     "projection": {
       "fair_line": 2.5,
-      "proj_volume": 3.25,
+      "proj_volume": 4.54,
       "distribution_params": {
-        "mu_rec": 3.2459,
+        "mu_rec": 4.5443,
         "mu_ypr": 9.8836,
         "alpha": 0.1097,
         "k": 1.555
@@ -64879,10 +64879,10 @@
     },
     "projection": {
       "fair_line": 30.0,
-      "proj_volume": 36.09,
+      "proj_volume": 52.27,
       "distribution_params": {
-        "mu_rec": 2.8819,
-        "mu_ypr": 12.5215,
+        "mu_rec": 4.0923,
+        "mu_ypr": 12.772,
         "alpha": 0.1097,
         "k": 1.555
       },
@@ -64956,10 +64956,10 @@
     },
     "projection": {
       "fair_line": 2.5,
-      "proj_volume": 2.88,
+      "proj_volume": 4.09,
       "distribution_params": {
-        "mu_rec": 2.8819,
-        "mu_ypr": 12.5215,
+        "mu_rec": 4.0923,
+        "mu_ypr": 12.772,
         "alpha": 0.1097,
         "k": 1.555
       },
@@ -67189,9 +67189,9 @@
     },
     "projection": {
       "fair_line": 24.5,
-      "proj_volume": 30.04,
+      "proj_volume": 49.57,
       "distribution_params": {
-        "mu_rec": 2.4628,
+        "mu_rec": 4.0637,
         "mu_ypr": 12.1972,
         "alpha": 0.1097,
         "k": 1.555
@@ -67266,9 +67266,9 @@
     },
     "projection": {
       "fair_line": 2.5,
-      "proj_volume": 2.46,
+      "proj_volume": 4.06,
       "distribution_params": {
-        "mu_rec": 2.4628,
+        "mu_rec": 4.0637,
         "mu_ypr": 12.1972,
         "alpha": 0.1097,
         "k": 1.555
@@ -69037,11 +69037,12 @@
     },
     "projection": {
       "fair_line": 43.5,
-      "proj_volume": 43.5,
+      "proj_volume": 49.57,
       "distribution_params": {
-        "mu_rec": 0.6053,
+        "mu_rec": 4.0637,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 12.1972
       },
       "p_over": 0.6053,
       "p_under": 0.3947,
@@ -69060,7 +69061,7 @@
     "quote": {
       "status": "verified",
       "quote_id": "dk_ne_chi_douglas_yds_open",
-      "source": "DraftKings Early Openers (TNF Verified Feed)",
+      "source": "DraftKings Opening Line",
       "book": "DraftKings",
       "line": 34.5,
       "over_odds": -110,
@@ -69127,11 +69128,12 @@
     },
     "projection": {
       "fair_line": 4.5,
-      "proj_volume": 4.5,
+      "proj_volume": 4.06,
       "distribution_params": {
-        "mu_rec": 0.5417,
+        "mu_rec": 4.0637,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 12.1972
       },
       "p_over": 0.5417,
       "p_under": 0.4583,
@@ -69150,7 +69152,7 @@
     "quote": {
       "status": "verified",
       "quote_id": "fd_ne_chi_douglas_rec_open",
-      "source": "FanDuel Early Openers (TNF Verified Feed)",
+      "source": "FanDuel Opening Line",
       "book": "FanDuel",
       "line": 3.5,
       "over_odds": 105,
@@ -69217,11 +69219,12 @@
     },
     "projection": {
       "fair_line": 39.5,
-      "proj_volume": 39.5,
+      "proj_volume": 44.91,
       "distribution_params": {
-        "mu_rec": 0.6129,
+        "mu_rec": 4.5443,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 9.8836
       },
       "p_over": 0.6129,
       "p_under": 0.3871,
@@ -69240,7 +69243,7 @@
     "quote": {
       "status": "verified",
       "quote_id": "mgm_ne_chi_henry_yds_open",
-      "source": "BetMGM Early Openers (TNF Verified Feed)",
+      "source": "BetMGM Opening Line",
       "book": "BetMGM",
       "line": 31.5,
       "over_odds": -115,
@@ -69307,11 +69310,12 @@
     },
     "projection": {
       "fair_line": 4.5,
-      "proj_volume": 4.5,
+      "proj_volume": 4.54,
       "distribution_params": {
-        "mu_rec": 0.6137,
+        "mu_rec": 4.5443,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 9.8836
       },
       "p_over": 0.6137,
       "p_under": 0.3863,
@@ -69330,7 +69334,7 @@
     "quote": {
       "status": "verified",
       "quote_id": "dk_ne_chi_henry_rec_open",
-      "source": "DraftKings Early Openers (TNF Verified Feed)",
+      "source": "DraftKings Opening Line",
       "book": "DraftKings",
       "line": 3.5,
       "over_odds": 110,
@@ -69397,11 +69401,12 @@
     },
     "projection": {
       "fair_line": 45.5,
-      "proj_volume": 45.5,
+      "proj_volume": 52.27,
       "distribution_params": {
-        "mu_rec": 0.6874,
+        "mu_rec": 4.0923,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 12.772
       },
       "p_over": 0.6874,
       "p_under": 0.3126,
@@ -69420,7 +69425,7 @@
     "quote": {
       "status": "verified",
       "quote_id": "pin_ne_chi_hollins_yds_open",
-      "source": "Pinnacle Sharp Early Openers (TNF Verified Feed)",
+      "source": "Pinnacle Opening Line",
       "book": "Pinnacle",
       "line": 29.5,
       "over_odds": -108,
@@ -69487,11 +69492,12 @@
     },
     "projection": {
       "fair_line": 61.0,
-      "proj_volume": 61.0,
+      "proj_volume": 67.23,
       "distribution_params": {
-        "mu_rec": 0.6251,
+        "mu_rec": 6.0047,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 11.1969
       },
       "p_over": 0.6251,
       "p_under": 0.3749,
@@ -69510,7 +69516,7 @@
     "quote": {
       "status": "verified",
       "quote_id": "dk_sf_atl_kittle_yds_open",
-      "source": "DraftKings Early Openers (Week 7 Verified Feed)",
+      "source": "DraftKings Opening Line",
       "book": "DraftKings",
       "line": 48.5,
       "over_odds": -112,
@@ -69577,11 +69583,12 @@
     },
     "projection": {
       "fair_line": 6.5,
-      "proj_volume": 6.5,
+      "proj_volume": 6.0,
       "distribution_params": {
-        "mu_rec": 0.6482,
+        "mu_rec": 6.0047,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 11.1969
       },
       "p_over": 0.6482,
       "p_under": 0.3518,
@@ -69600,7 +69607,7 @@
     "quote": {
       "status": "verified",
       "quote_id": "fd_sf_atl_kittle_rec_open",
-      "source": "FanDuel Early Openers (Week 7 Verified Feed)",
+      "source": "FanDuel Opening Line",
       "book": "FanDuel",
       "line": 4.5,
       "over_odds": -105,
@@ -69667,11 +69674,12 @@
     },
     "projection": {
       "fair_line": 41.5,
-      "proj_volume": 41.5,
+      "proj_volume": 46.13,
       "distribution_params": {
-        "mu_rec": 0.6325,
+        "mu_rec": 5.7246,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 8.0584
       },
       "p_over": 0.6325,
       "p_under": 0.3675,
@@ -69690,7 +69698,7 @@
     "quote": {
       "status": "verified",
       "quote_id": "mgm_sf_atl_cmc_yds_open",
-      "source": "BetMGM Early Openers (Week 7 Verified Feed)",
+      "source": "BetMGM Opening Line",
       "book": "BetMGM",
       "line": 32.5,
       "over_odds": -115,
@@ -69757,11 +69765,12 @@
     },
     "projection": {
       "fair_line": 61.0,
-      "proj_volume": 61.0,
+      "proj_volume": 67.93,
       "distribution_params": {
-        "mu_rec": 0.466,
+        "mu_rec": 5.2319,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 12.9847
       },
       "p_over": 0.466,
       "p_under": 0.534,
@@ -69780,7 +69789,7 @@
     "quote": {
       "status": "verified",
       "quote_id": "dk_ne_chi_ajb_yds_open",
-      "source": "DraftKings Early Openers (TNF Verified Feed)",
+      "source": "DraftKings Opening Line",
       "book": "DraftKings",
       "line": 64.5,
       "over_odds": -115,
@@ -69847,11 +69856,12 @@
     },
     "projection": {
       "fair_line": 113.0,
-      "proj_volume": 113.0,
+      "proj_volume": 121.42,
       "distribution_params": {
-        "mu_rec": 0.5019,
+        "mu_rec": 9.8767,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 12.2931
       },
       "p_over": 0.5019,
       "p_under": 0.4981,
@@ -69870,7 +69880,7 @@
     "quote": {
       "status": "verified",
       "quote_id": "pin_det_gb_amonra_yds_open",
-      "source": "Pinnacle Sharp Early Openers (Week 7 Verified Feed)",
+      "source": "Pinnacle Opening Line",
       "book": "Pinnacle",
       "line": 112.5,
       "over_odds": -110,
@@ -69937,11 +69947,12 @@
     },
     "projection": {
       "fair_line": 43.5,
-      "proj_volume": 43.5,
+      "proj_volume": 49.57,
       "distribution_params": {
-        "mu_rec": 0.6053,
+        "mu_rec": 4.0637,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 12.1972
       },
       "p_over": 0.6053,
       "p_under": 0.3947,
@@ -69960,7 +69971,7 @@
     "quote": {
       "status": "verified",
       "quote_id": "dk_ne_chi_douglas_yds_open",
-      "source": "DraftKings Early Openers (TNF Verified Feed)",
+      "source": "DraftKings Opening Line",
       "book": "DraftKings",
       "line": 34.5,
       "over_odds": -110,
@@ -70027,11 +70038,12 @@
     },
     "projection": {
       "fair_line": 4.5,
-      "proj_volume": 4.5,
+      "proj_volume": 4.06,
       "distribution_params": {
-        "mu_rec": 0.5417,
+        "mu_rec": 4.0637,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 12.1972
       },
       "p_over": 0.5417,
       "p_under": 0.4583,
@@ -70050,7 +70062,7 @@
     "quote": {
       "status": "verified",
       "quote_id": "fd_ne_chi_douglas_rec_open",
-      "source": "FanDuel Early Openers (TNF Verified Feed)",
+      "source": "FanDuel Opening Line",
       "book": "FanDuel",
       "line": 3.5,
       "over_odds": 105,
@@ -70117,11 +70129,12 @@
     },
     "projection": {
       "fair_line": 39.5,
-      "proj_volume": 39.5,
+      "proj_volume": 44.91,
       "distribution_params": {
-        "mu_rec": 0.6129,
+        "mu_rec": 4.5443,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 9.8836
       },
       "p_over": 0.6129,
       "p_under": 0.3871,
@@ -70140,7 +70153,7 @@
     "quote": {
       "status": "verified",
       "quote_id": "mgm_ne_chi_henry_yds_open",
-      "source": "BetMGM Early Openers (TNF Verified Feed)",
+      "source": "BetMGM Opening Line",
       "book": "BetMGM",
       "line": 31.5,
       "over_odds": -115,
@@ -70207,11 +70220,12 @@
     },
     "projection": {
       "fair_line": 4.5,
-      "proj_volume": 4.5,
+      "proj_volume": 4.54,
       "distribution_params": {
-        "mu_rec": 0.6137,
+        "mu_rec": 4.5443,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 9.8836
       },
       "p_over": 0.6137,
       "p_under": 0.3863,
@@ -70230,7 +70244,7 @@
     "quote": {
       "status": "verified",
       "quote_id": "dk_ne_chi_henry_rec_open",
-      "source": "DraftKings Early Openers (TNF Verified Feed)",
+      "source": "DraftKings Opening Line",
       "book": "DraftKings",
       "line": 3.5,
       "over_odds": 110,
@@ -70297,11 +70311,12 @@
     },
     "projection": {
       "fair_line": 45.5,
-      "proj_volume": 45.5,
+      "proj_volume": 52.27,
       "distribution_params": {
-        "mu_rec": 0.6874,
+        "mu_rec": 4.0923,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 12.772
       },
       "p_over": 0.6874,
       "p_under": 0.3126,
@@ -70320,7 +70335,7 @@
     "quote": {
       "status": "verified",
       "quote_id": "pin_ne_chi_hollins_yds_open",
-      "source": "Pinnacle Sharp Early Openers (TNF Verified Feed)",
+      "source": "Pinnacle Opening Line",
       "book": "Pinnacle",
       "line": 29.5,
       "over_odds": -108,
@@ -70387,11 +70402,12 @@
     },
     "projection": {
       "fair_line": 61.0,
-      "proj_volume": 61.0,
+      "proj_volume": 67.23,
       "distribution_params": {
-        "mu_rec": 0.6251,
+        "mu_rec": 6.0047,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 11.1969
       },
       "p_over": 0.6251,
       "p_under": 0.3749,
@@ -70410,7 +70426,7 @@
     "quote": {
       "status": "verified",
       "quote_id": "dk_sf_atl_kittle_yds_open",
-      "source": "DraftKings Early Openers (Week 7 Verified Feed)",
+      "source": "DraftKings Opening Line",
       "book": "DraftKings",
       "line": 48.5,
       "over_odds": -112,
@@ -70477,11 +70493,12 @@
     },
     "projection": {
       "fair_line": 6.5,
-      "proj_volume": 6.5,
+      "proj_volume": 6.0,
       "distribution_params": {
-        "mu_rec": 0.6482,
+        "mu_rec": 6.0047,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 11.1969
       },
       "p_over": 0.6482,
       "p_under": 0.3518,
@@ -70500,7 +70517,7 @@
     "quote": {
       "status": "verified",
       "quote_id": "fd_sf_atl_kittle_rec_open",
-      "source": "FanDuel Early Openers (Week 7 Verified Feed)",
+      "source": "FanDuel Opening Line",
       "book": "FanDuel",
       "line": 4.5,
       "over_odds": -105,
@@ -70567,11 +70584,12 @@
     },
     "projection": {
       "fair_line": 41.5,
-      "proj_volume": 41.5,
+      "proj_volume": 46.13,
       "distribution_params": {
-        "mu_rec": 0.6325,
+        "mu_rec": 5.7246,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 8.0584
       },
       "p_over": 0.6325,
       "p_under": 0.3675,
@@ -70590,7 +70608,7 @@
     "quote": {
       "status": "verified",
       "quote_id": "mgm_sf_atl_cmc_yds_open",
-      "source": "BetMGM Early Openers (Week 7 Verified Feed)",
+      "source": "BetMGM Opening Line",
       "book": "BetMGM",
       "line": 32.5,
       "over_odds": -115,
@@ -70657,11 +70675,12 @@
     },
     "projection": {
       "fair_line": 61.0,
-      "proj_volume": 61.0,
+      "proj_volume": 67.93,
       "distribution_params": {
-        "mu_rec": 0.466,
+        "mu_rec": 5.2319,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 12.9847
       },
       "p_over": 0.466,
       "p_under": 0.534,
@@ -70680,7 +70699,7 @@
     "quote": {
       "status": "verified",
       "quote_id": "dk_ne_chi_ajb_yds_open",
-      "source": "DraftKings Early Openers (TNF Verified Feed)",
+      "source": "DraftKings Opening Line",
       "book": "DraftKings",
       "line": 64.5,
       "over_odds": -115,
@@ -70747,11 +70766,12 @@
     },
     "projection": {
       "fair_line": 113.0,
-      "proj_volume": 113.0,
+      "proj_volume": 121.42,
       "distribution_params": {
-        "mu_rec": 0.5019,
+        "mu_rec": 9.8767,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 12.2931
       },
       "p_over": 0.5019,
       "p_under": 0.4981,
@@ -70770,7 +70790,7 @@
     "quote": {
       "status": "verified",
       "quote_id": "pin_det_gb_amonra_yds_open",
-      "source": "Pinnacle Sharp Early Openers (Week 7 Verified Feed)",
+      "source": "Pinnacle Opening Line",
       "book": "Pinnacle",
       "line": 112.5,
       "over_odds": -110,
@@ -70837,11 +70857,12 @@
     },
     "projection": {
       "fair_line": 43.5,
-      "proj_volume": 43.5,
+      "proj_volume": 49.57,
       "distribution_params": {
-        "mu_rec": 0.6053,
+        "mu_rec": 4.0637,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 12.1972
       },
       "p_over": 0.6053,
       "p_under": 0.3947,
@@ -70860,7 +70881,7 @@
     "quote": {
       "status": "verified",
       "quote_id": "dk_ne_chi_douglas_yds_open",
-      "source": "DraftKings Early Openers (TNF Verified Feed)",
+      "source": "DraftKings Opening Line",
       "book": "DraftKings",
       "line": 34.5,
       "over_odds": -110,
@@ -70927,11 +70948,12 @@
     },
     "projection": {
       "fair_line": 4.5,
-      "proj_volume": 4.5,
+      "proj_volume": 4.06,
       "distribution_params": {
-        "mu_rec": 0.5417,
+        "mu_rec": 4.0637,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 12.1972
       },
       "p_over": 0.5417,
       "p_under": 0.4583,
@@ -70950,7 +70972,7 @@
     "quote": {
       "status": "verified",
       "quote_id": "fd_ne_chi_douglas_rec_open",
-      "source": "FanDuel Early Openers (TNF Verified Feed)",
+      "source": "FanDuel Opening Line",
       "book": "FanDuel",
       "line": 3.5,
       "over_odds": 105,
@@ -71017,11 +71039,12 @@
     },
     "projection": {
       "fair_line": 39.5,
-      "proj_volume": 39.5,
+      "proj_volume": 44.91,
       "distribution_params": {
-        "mu_rec": 0.6129,
+        "mu_rec": 4.5443,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 9.8836
       },
       "p_over": 0.6129,
       "p_under": 0.3871,
@@ -71040,7 +71063,7 @@
     "quote": {
       "status": "verified",
       "quote_id": "mgm_ne_chi_henry_yds_open",
-      "source": "BetMGM Early Openers (TNF Verified Feed)",
+      "source": "BetMGM Opening Line",
       "book": "BetMGM",
       "line": 31.5,
       "over_odds": -115,
@@ -71107,11 +71130,12 @@
     },
     "projection": {
       "fair_line": 4.5,
-      "proj_volume": 4.5,
+      "proj_volume": 4.54,
       "distribution_params": {
-        "mu_rec": 0.6137,
+        "mu_rec": 4.5443,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 9.8836
       },
       "p_over": 0.6137,
       "p_under": 0.3863,
@@ -71130,7 +71154,7 @@
     "quote": {
       "status": "verified",
       "quote_id": "dk_ne_chi_henry_rec_open",
-      "source": "DraftKings Early Openers (TNF Verified Feed)",
+      "source": "DraftKings Opening Line",
       "book": "DraftKings",
       "line": 3.5,
       "over_odds": 110,
@@ -71197,11 +71221,12 @@
     },
     "projection": {
       "fair_line": 45.5,
-      "proj_volume": 45.5,
+      "proj_volume": 52.27,
       "distribution_params": {
-        "mu_rec": 0.6874,
+        "mu_rec": 4.0923,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 12.772
       },
       "p_over": 0.6874,
       "p_under": 0.3126,
@@ -71220,7 +71245,7 @@
     "quote": {
       "status": "verified",
       "quote_id": "pin_ne_chi_hollins_yds_open",
-      "source": "Pinnacle Sharp Early Openers (TNF Verified Feed)",
+      "source": "Pinnacle Opening Line",
       "book": "Pinnacle",
       "line": 29.5,
       "over_odds": -108,
@@ -71287,11 +71312,12 @@
     },
     "projection": {
       "fair_line": 61.0,
-      "proj_volume": 61.0,
+      "proj_volume": 67.93,
       "distribution_params": {
-        "mu_rec": 0.466,
+        "mu_rec": 5.2319,
         "alpha": 0.1097,
-        "k": 1.555
+        "k": 1.555,
+        "mu_ypr": 12.9847
       },
       "p_over": 0.466,
       "p_under": 0.534,
@@ -71310,7 +71336,7 @@
     "quote": {
       "status": "verified",
       "quote_id": "dk_ne_chi_ajb_yds_open",
-      "source": "DraftKings Early Openers (TNF Verified Feed)",
+      "source": "DraftKings Opening Line",
       "book": "DraftKings",
       "line": 64.5,
       "over_odds": -115,
