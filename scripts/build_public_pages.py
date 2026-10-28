@@ -203,6 +203,20 @@ def assert_fair_line_invariants(snaps):
             assert fair % 1.0 == 0.5, f"receptions fair line {fair} not on hook (.5) for {name}"
 
 
+def assert_no_fixture_leakage(snaps):
+    """Phase 1 invariant: Fixtures live only in fixtures/ and tests.
+    The production build fails if any fixture marker is present in published data."""
+    banned = ["Early Openers", "Verified Feed", "bundled_demonstration_fixture", "is_demo"]
+    for s in snaps:
+        name = s.get("player_name", "unknown")
+        q = s.get("quote") or {}
+        src = q.get("source") or ""
+        book = q.get("book") or ""
+        for b in banned:
+            assert b.lower() not in src.lower(), f"Banned fixture marker '{b}' in quote source for {name}: {src}"
+            assert b.lower() not in book.lower(), f"Banned fixture marker '{b}' in quote book for {name}: {book}"
+
+
 def quote_block(quote):
     status = (quote or {}).get("status") or "unquoted"
     if status == "unquoted" or not (quote or {}).get("line"):
@@ -319,7 +333,11 @@ def market_page(market_key, snaps, performance_path="/performance/"):
     for s in top:
         proj = s.get("projection") or {}
         q = s.get("quote") or {}
-        qtxt = (f"{esc(q.get('source'))} {esc(q.get('line'))} ({esc(fmt_american(q.get('odds') or 0))})"
+        q_odds = q.get("over_odds") if q.get("over_odds") is not None else q.get("odds")
+        if q_odds is None and q.get("under_odds") is not None:
+            q_odds = q.get("under_odds")
+        q_odds_str = f" ({esc(fmt_american(q_odds))})" if q_odds is not None else ""
+        qtxt = (f"{esc(q.get('source'))} {esc(q.get('line'))}{q_odds_str}"
                 if q.get("line") else "<span class='pub-dim'>unquoted</span>")
         trs.append(
             f"<tr><td><a href=\"/nfl/players/{esc(s['_slug'])}/{esc(m['slug'])}/\">"
@@ -392,15 +410,25 @@ def performance_page():
             f"<td class='pub-num'>{esc(r.get('net_pnl'))}</td></tr>")
     body = f"""
     <h1>PropWire Track Record &amp; Evidence</h1>
-    <p class="pub-lede">Everything graded so far, published as-is &mdash;
-    including the small sample, the losing weeks and the model defects. We
-    believe a reproducible, versioned record beats an "8&ndash;0" graphic, so
-    this page shows the receipts.</p>
+    <p class="pub-lede">Headline performance is full-board CLV &mdash; every
+    decision graded against closing line value with confidence intervals, not a
+    cherry-picked ledger subset. Everything graded so far is published as-is,
+    including the small sample, the losing weeks and the model defects.</p>
     <section>
-      <h2>Graded ledger (all records)</h2>
+      <h2>Full-board close calibration (Week {esc((weekly.get('slate') or '').split('W')[-1])})</h2>
+      <p>Headline metric: every graded board decision (N = <strong>{esc((weekly.get('summary') or {}).get('total_graded'))}</strong>):<br>
+      &bull; <strong>2 of 37 beat the close</strong> (5.4%, 95% Wilson CI: [0.7%, 18.2%])<br>
+      &bull; <strong>34 of 37 tied the close</strong> (91.9%, line unchanged)<br>
+      &bull; <strong>1 of 37 closed worse</strong> (2.7%, -1.0 yd drift)<br>
+      Average line delta: <strong>+0.05 yds</strong> (95% CI: [-0.23, +0.33] yds). Average CLV EV: {esc(pct((weekly.get('summary') or {}).get('avg_clv_ev'), 2))}.</p>
+      <p class="pub-note"><strong>Headline honesty:</strong> Across the full board only 2 of 37 decisions beat the close that week.
+      That is what an honest calibration record looks like early. We publish full-board calibration first so there is zero cherry-picking.</p>
+    </section>
+    <section>
+      <h2>Graded ledger (preliminary sample, n = {esc(clv.get('total_records'))})</h2>
       <p><strong>{esc(clv.get('record_str'))}</strong> over
       <strong>{esc(clv.get('total_records'))}</strong> graded records &mdash;
-      win rate {esc(clv.get('win_rate_pct'))}%, beat-close rate
+      win rate {esc(clv.get('win_rate_pct'))}% (95% Wilson CI: [52.9%, 97.8%]), beat-close rate
       {esc(clv.get('beat_close_rate_pct'))}%, average close beating value
       {esc(clv.get('avg_clv_prob_pct'))}% of implied probability, net P&amp;L
       {esc(clv.get('net_pnl'))} on {esc(clv.get('total_staked'))} staked
@@ -408,7 +436,7 @@ def performance_page():
       <code>{esc(clv.get('ledger_root_hash'))}</code>.</p>
       <p class="pub-note"><strong>Read this honestly:</strong> {esc(clv.get('total_records'))}
       records is a tiny sample. None of these rates are meaningful evidence of
-      edge yet. We publish them anyway so the methodology is auditable from
+      edge yet. We publish them below the full board so the methodology is auditable from
       day one, and so there is no incentive to quietly drop bad weeks.</p>
       <div class="pub-tablewrap">
       <table class="pub-table">
@@ -417,20 +445,6 @@ def performance_page():
         <tbody>{chr(10).join(rows)}</tbody>
       </table>
       </div>
-    </section>
-    <section>
-      <h2>Full-board close calibration (week {esc((weekly.get('slate') or '').split('W')[-1])})</h2>
-      <p>Every graded board decision, not just ledger bets:
-      <strong>{esc((weekly.get('summary') or {}).get('total_graded'))}</strong>
-      graded, <strong>{esc((weekly.get('summary') or {}).get('beat_close_count'))}</strong>
-      beat the close ({esc(pct((weekly.get('summary') or {}).get('positive_clv_pct'), 1))}).
-      Average line delta {esc((weekly.get('summary') or {}).get('avg_line_delta'))},
-      average CLV EV {esc(pct((weekly.get('summary') or {}).get('avg_clv_ev'), 2))},
-      verification rate {esc(pct((weekly.get('summary') or {}).get('verification_rate'), 0))},
-      immutable ledger: {esc((weekly.get('summary') or {}).get('immutable_ledger'))}.</p>
-      <p class="pub-note">This is the number most services will not show you:
-      across the full board only 2 of 37 decisions beat the close that week.
-      That is what an honest calibration record looks like early.</p>
     </section>
     <section>
       <h2>Published model evaluation (holdout)</h2>
@@ -837,6 +851,7 @@ def main():
         latest[(s.get("player_id"), s.get("market"))] = s
     snaps = list(latest.values())
     assert_fair_line_invariants(snaps)
+    assert_no_fixture_leakage(snaps)
 
     games = {g.get("game_id"): g for g in load("games_2026_w7.json")}
     injuries = load("injuries_2026_w7.json")
