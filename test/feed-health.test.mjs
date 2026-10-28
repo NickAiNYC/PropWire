@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { buildSandbox, loadApp, attachSyntheticQuote, authorizeSyntheticExecution, VIEWER } from './helpers/sandbox.mjs';
+import { buildSandbox, loadApp, attachSyntheticQuote, authorizeSyntheticExecution, VIEWER, FROZEN_MS } from './helpers/sandbox.mjs';
 
 /**
  * FEED HEALTH / FAILURE-MODE UI — Phase 2, commit 5.
@@ -195,7 +195,7 @@ test('ledger trust boundary: fixture entries are blocked; trusted NFL entries pr
 
 const STALE_LIVE_HEALTH = () => ({
   dataKind: 'live', odds: 'ok', news: 'ok',
-  oddsUpdatedAt: new Date(Date.now() - 6 * 864e5).toISOString(),
+  oddsUpdatedAt: new Date(FROZEN_MS - 8 * 3600e3).toISOString(),
   newsLastPolledAt: new Date().toISOString(),
 });
 const FRESH_LIVE_HEALTH = () => ({
