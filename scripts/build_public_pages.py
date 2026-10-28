@@ -466,6 +466,17 @@ def performance_page():
       positive.</p>
     </section>
     <section>
+      <h2>Market-Model Edge Fit &amp; Guarantee Status (Phase 2 &amp; 3)</h2>
+      <p><strong>Model has no edge over market closing lines at this time. All projections should be treated as informational.</strong></p>
+      <p>Chronological regression fitting <code>p = w &middot; p<sub>model</sub> + (1 - w) &middot; p<sub>market</sub></code> on active trigger decisions yields:<br>
+      &bull; <strong>w&#770; = 0.6742</strong> (Standard Error: 0.3957, <strong>95% CI: [-0.1013, +1.4497]</strong>, N = 37)<br>
+      Because the 95% confidence interval spans zero, there is no statistically significant evidence of closing line alpha over the market consensus.</p>
+      <p class="pub-note"><strong>Public actions in effect:</strong><br>
+      &bull; <strong>Beat-Close Guarantee Suspended:</strong> Beating or tying a close on a small sample guarantees nothing about win rate or expected value. The marketing guarantee is publicly withdrawn.<br>
+      &bull; <strong>Paid Signups Frozen &amp; Quant Tier Waitlisted:</strong> Commercial paid upgrades remain suspended until N &ge; 300 graded board decisions achieve positive CLV bounded strictly above zero with 95% confidence.<br>
+      &bull; <strong>Uncensored Research Access:</strong> Projections and live pricing calculations are made available without paywalls in observer research mode.</p>
+    </section>
+    <section>
       <h2>What we publish as the sample grows</h2>
       <p>Calibration by predicted-probability bucket; win rate with sample
       size; ROI with a confidence interval; maximum drawdown; splits by sport,
