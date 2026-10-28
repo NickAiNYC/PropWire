@@ -2427,7 +2427,7 @@
     let rows = state.slate.filter((row) => {
       if (state.bottomTab === 'watchlist' && !state.watchlist.includes(row.player_id)) return false;
       const isHistorical = Boolean(SLATES[state.slateKey]?.historical);
-      if (!isHistorical && playMode === 'actionable' && state.filters.market !== 'anytime_td' && !findQuote(row, state.filters.market)) return false;
+      if (state.bottomTab !== 'watchlist' && !isHistorical && playMode === 'actionable' && state.filters.market !== 'anytime_td' && !findQuote(row, state.filters.market)) return false;
       if (playMode === 'top') {
         if (adapter.topPlays && adapter.topPlays.source === 'ev_ranked') {
           // EV-ranked Top Plays (adapter-driven, e.g. NBA): hide rows without
@@ -2555,10 +2555,20 @@
             </div>
           </div>`;
 
-        const browseBtn = $('#watchlistBrowseBtn');
-        if (browseBtn) {
-          browseBtn.addEventListener('click', () => {
-            switchBottomNav('bottomNavSlate');
+        const emptyEl = $('#emptyState');
+        if (emptyEl) {
+          const browseBtn = emptyEl.querySelector('#watchlistBrowseBtn');
+          if (browseBtn) {
+            browseBtn.addEventListener('click', () => {
+              const bottomNavSlate = $('#bottomNavSlate');
+              if (bottomNavSlate) bottomNavSlate.click();
+            });
+          }
+          emptyEl.querySelectorAll('[data-watch-player]').forEach((btn) => {
+            btn.addEventListener('click', (e) => {
+              e.stopPropagation();
+              toggleWatchlist(btn.dataset.watchPlayer);
+            });
           });
         }
       }
