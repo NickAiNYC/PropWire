@@ -10123,19 +10123,26 @@ input[type="range"]::-webkit-slider-thumb:hover {
   color: #727D91 !important;
 }
 
-/* 3. Quieter, Ultra-Compact Stale Banner */
+/* 3. Quieter, Ultra-Compact Stale Banner Pill */
 .data-quality-banner {
-  background: rgba(14, 17, 24, 0.90) !important;
+  background: rgba(14, 17, 24, 0.92) !important;
   backdrop-filter: blur(24px) saturate(180%) !important;
   -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
   border: 1px solid rgba(255, 255, 255, 0.08) !important;
   border-left: none !important;
   border-radius: 999px !important;
-  padding: 4px 6px 4px 14px !important;
+  padding: 4px 6px 4px 12px !important;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6) !important;
-  max-width: fit-content !important;
+  width: fit-content !important;
+  max-width: min(88%, 320px) !important;
   min-height: 28px !important;
-  margin: 6px auto 0 auto !important;
+  margin: 8px auto 4px auto !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+  white-space: nowrap !important;
 }
 
 .data-quality-banner.warn {
@@ -10145,9 +10152,29 @@ input[type="range"]::-webkit-slider-thumb:hover {
 .data-quality-banner .dq-item {
   font-size: 11px !important;
   color: #8E95A5 !important;
-  display: flex !important;
+  display: inline-flex !important;
   align-items: center !important;
   gap: 6px !important;
+  min-width: 0 !important;
+  flex: 0 1 auto !important;
+  overflow: hidden !important;
+  white-space: nowrap !important;
+  text-overflow: ellipsis !important;
+}
+
+/* Hide secondary items on mobile so pill doesn't stretch */
+.data-quality-banner .dq-item:nth-child(n+2) {
+  display: none !important;
+}
+
+.data-quality-banner .dq-item span {
+  display: inline-block !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  max-width: 140px !important;
+  font-size: 10.5px !important;
+  color: #94A3B8 !important;
 }
 
 .data-quality-banner .dq-item strong {
@@ -10157,6 +10184,7 @@ input[type="range"]::-webkit-slider-thumb:hover {
   display: inline-flex !important;
   align-items: center !important;
   gap: 5px !important;
+  flex-shrink: 0 !important;
 }
 
 .data-quality-banner .dq-item strong::before {
@@ -10174,13 +10202,14 @@ input[type="range"]::-webkit-slider-thumb:hover {
   border: 1px solid rgba(255, 255, 255, 0.10) !important;
   border-radius: 999px !important;
   color: #cbd5e1 !important;
-  font-size: 10.5px !important;
+  font-size: 10px !important;
   font-weight: 700 !important;
-  height: 24px !important;
-  padding: 0 12px !important;
+  height: 22px !important;
+  padding: 0 10px !important;
   cursor: pointer !important;
   transition: all 0.15s ease !important;
   margin-left: 6px !important;
+  flex-shrink: 0 !important;
 }
 
 .dq-retry-btn:hover {
