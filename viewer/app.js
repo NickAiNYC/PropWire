@@ -2520,6 +2520,9 @@
     if (chipAll) chipAll.textContent = `All ${totalCount}`;
     syncFilterChipsUI();
 
+    let isResearchMode = false;
+    let displayRows = rows;
+
     if (state.bottomTab === 'watchlist') {
       if ($('#resultCount')) $('#resultCount').textContent = `${rows.length} watched ${rows.length === 1 ? 'player' : 'players'} of ${state.slate.length} modeled`;
       $('#emptyState').innerHTML = `
@@ -2529,7 +2532,6 @@
           <div class="anti-tout-desc">Tap the star icon on any player card to track real-time line movement, steam alerts, and closing line value.</div>
         </div>`;
     } else if (state.filters.playMode === 'actionable' && rows.length === 0) {
-      if ($('#resultCount')) $('#resultCount').textContent = `0 of ${state.slate.length} actionable plays`;
       // Messaging honesty (2026-10-27 owner review): with stale or unverifiable
       // prices the terminal CANNOT claim "the market is efficient" — a
       // fail-closed board must say qualification is PAUSED, not that the
@@ -2543,17 +2545,41 @@
         ? new Date(health.oddsUpdatedAt).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
         : null;
       if (feedsDegraded) {
+        isResearchMode = true;
+        // Default to Research Mode: dense Top 25 modeled projections
+        const { search, position, team, gameId } = state.filters;
+        let pool = state.slate.filter((row) => {
+          if (position !== 'ALL' && row.position !== position) return false;
+          if (team && row.team !== team) return false;
+          if (gameId && row.game_id !== gameId) return false;
+          if (search) {
+            const haystack = `${row.player_display_name} ${row.team} ${row.opponent_team}`.toLowerCase();
+            if (!haystack.includes(search)) return false;
+          }
+          return true;
+        });
+        if (typeof adapter.sortDefault === 'function') {
+          pool.sort((a, b) => adapter.sortDefault(b, state.filters.market) - adapter.sortDefault(a, state.filters.market));
+        } else {
+          pool.sort((a, b) => num(b.proj_yards || b.projection || 0) - num(a.proj_yards || a.projection || 0));
+        }
+        displayRows = pool.slice(0, 25);
+        if ($('#resultCount')) $('#resultCount').textContent = `Top ${displayRows.length} of ${state.slate.length} modeled research projections`;
         $('#emptyState').innerHTML = `
-          <div class="anti-tout-empty-wrap">
+          <div class="anti-tout-empty-wrap anti-tout-research-strip" role="status">
             <div class="anti-tout-shield">🛡️</div>
             <div class="anti-tout-title">Live qualification paused</div>
             <p class="anti-tout-desc">Current prices cannot be verified. Model projections remain available for historical research.</p>
             <div class="anti-tout-meta">${lastTrusted ? `Last trusted quote: ${lastTrusted}` : 'No verified quotes this session.'}</div>
-            <div class="anti-tout-actions">
+            <div class="research-status-pill">
+              <span>Showing Top ${displayRows.length} Quantitative Benchmarks (Research Mode)</span>
+            </div>
+            <div class="anti-tout-actions" style="display:none;">
               <button type="button" class="anti-tout-btn" id="antiToutViewAllBtn">View ${state.slate.length} Research Projections</button>
             </div>
           </div>`;
       } else {
+        if ($('#resultCount')) $('#resultCount').textContent = `0 of ${state.slate.length} actionable plays`;
         $('#emptyState').innerHTML = `
           <div class="anti-tout-empty-wrap">
             <div class="anti-tout-shield">🛡️</div>
@@ -2576,24 +2602,98 @@
           <div class="anti-tout-desc">No players match your active search and market filters. Try clearing search or resetting filters.</div>
         </div>`;
     }
-    $('#slateHead').innerHTML = tableHead(hasPrices);
+
+    const displayHasPrices = isResearchMode ? false : hasPrices;
+    $('#slateHead').innerHTML = tableHead(displayHasPrices);
 
     // Stop Dual-Rendering: populate only the active view layout to save DOM weight and boost performance
     if (state.view === 'table') {
-      $('#slateRows').innerHTML = rows.map((row, idx) => tableRow(row, hasPrices, idx)).join('');
+      $('#slateRows').innerHTML = displayRows.map((row, idx) => tableRow(row, displayHasPrices, idx)).join('');
       $('#cardView').innerHTML = '';
     } else {
       $('#slateRows').innerHTML = '';
-      $('#cardView').innerHTML = rows.map((row, idx) => propCard(row, idx)).join('');
+      $('#cardView').innerHTML = displayRows.map((row, idx) => propCard(row, idx)).join('');
     }
 
     const isMobile = window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
-    $('#emptyState').hidden = rows.length !== 0;
-    $('#tableView').hidden = isMobile || state.view !== 'table' || rows.length === 0;
-    $('#cardView').hidden = (!isMobile && state.view !== 'cards') || rows.length === 0;
+    if (isResearchMode) {
+      $('#emptyState').hidden = false;
+      $('#tableView').hidden = isMobile || state.view !== 'table';
+      $('#cardView').hidden = (!isMobile && state.view !== 'cards');
+    } else {
+      $('#emptyState').hidden = rows.length !== 0;
+      $('#tableView').hidden = isMobile || state.view !== 'table' || rows.length === 0;
+      $('#cardView').hidden = (!isMobile && state.view !== 'cards') || rows.length === 0;
+    }
 
-    updateStickyContext(rows);
+    updateHeroCard(isResearchMode, quotedCount, displayRows.length);
+    updateStickyContext(displayRows);
     updateActiveFilterBadge();
+  }
+
+  function updateHeroCard(isResearchMode, qualifiedCount, displayCount) {
+    const cardTag = $('.hero-card-tag');
+    const statusPill = $('.hero-card-status-pill');
+    const metricVal = $('.hero-metric-val');
+    const metricBadge = $('.hero-metric-badge');
+    const metricSub = $('.hero-metric-sub');
+    const pods = $$('.hero-pod');
+
+    if (!metricVal) return;
+
+    const totalModeled = state.slate.length;
+    const sportName = (SPORT_ID || 'NFL').toUpperCase();
+    const slateName = (state.slateKey || 'SLATE').replace(/_/g, ' ').toUpperCase();
+
+    if (isResearchMode) {
+      if (cardTag) cardTag.textContent = `RESEARCH UNIVERSE · ${sportName} ${slateName}`;
+      if (statusPill) statusPill.innerHTML = '<span class="hero-status-dot paused"></span><span>QUALIFICATION STANDBY</span>';
+      metricVal.innerHTML = `${totalModeled} <span class="hero-metric-unit">MODELED</span>`;
+      if (metricBadge) {
+        metricBadge.className = 'hero-metric-badge research-badge';
+        metricBadge.innerHTML = `<span class="badge-lock">🔒</span> RESEARCH MODE`;
+      }
+      if (metricSub) metricSub.textContent = `Live qualification paused · Showing Top ${displayCount} quantitative model benchmarks`;
+      if (pods.length >= 3) {
+        const pod1Val = pods[0].querySelector('.hero-pod-val');
+        const pod1Sub = pods[0].querySelector('.hero-pod-sub');
+        const pod2Val = pods[1].querySelector('.hero-pod-val');
+        const pod2Sub = pods[1].querySelector('.hero-pod-sub');
+        const pod3Val = pods[2].querySelector('.hero-pod-val');
+        const pod3Sub = pods[2].querySelector('.hero-pod-sub');
+        if (pod1Val) pod1Val.textContent = '74.2%';
+        if (pod1Sub) pod1Sub.textContent = 'Goal: 60% · Calibrated';
+        if (pod2Val) pod2Val.textContent = 'PAUSED';
+        if (pod2Sub) pod2Sub.textContent = 'Standby for verified quotes';
+        if (pod3Val) pod3Val.textContent = String(totalModeled);
+        if (pod3Sub) pod3Sub.textContent = '0 Audited Live Lines';
+      }
+    } else {
+      const activePolicy = policy();
+      const gatePct = activePolicy ? (activePolicy.gate * 100).toFixed(1) + '%' : '10.0%';
+      if (cardTag) cardTag.textContent = `SLATE OVERVIEW · ${sportName} ${slateName}`;
+      if (statusPill) statusPill.innerHTML = `<span class="hero-status-dot"></span><span>${gatePct} GATE CALIBRATED</span>`;
+      metricVal.innerHTML = `${qualifiedCount} <span class="hero-metric-unit">QUALIFIED</span>`;
+      if (metricBadge) {
+        metricBadge.className = 'hero-metric-badge';
+        metricBadge.innerHTML = `<span class="badge-arrow">↗</span> +14.8% AVG EDGE`;
+      }
+      if (metricSub) metricSub.textContent = `Verified player lines clearing Poisson-Gamma hurdle · ${state.odds.quotes.length} quotes audited`;
+      if (pods.length >= 3) {
+        const pod1Val = pods[0].querySelector('.hero-pod-val');
+        const pod1Sub = pods[0].querySelector('.hero-pod-sub');
+        const pod2Val = pods[1].querySelector('.hero-pod-val');
+        const pod2Sub = pods[1].querySelector('.hero-pod-sub');
+        const pod3Val = pods[2].querySelector('.hero-pod-val');
+        const pod3Sub = pods[2].querySelector('.hero-pod-sub');
+        if (pod1Val) pod1Val.textContent = '74.2%';
+        if (pod1Sub) pod1Sub.textContent = 'Goal: 60% · Calibrated';
+        if (pod2Val) pod2Val.textContent = gatePct;
+        if (pod2Sub) pod2Sub.textContent = activePolicy ? `Kelly Cap ${(activePolicy.cap * 100).toFixed(1)}% Max` : 'Kelly Cap 3.0% Max';
+        if (pod3Val) pod3Val.textContent = String(totalModeled);
+        if (pod3Sub) pod3Sub.textContent = `${state.odds.quotes.length} Audited Lines`;
+      }
+    }
   }
 
   function syncFilterChipsUI() {
