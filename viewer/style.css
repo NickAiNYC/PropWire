@@ -9253,3 +9253,31 @@ html, body {
   filter: drop-shadow(0 0 4px #d4fb11) !important;
 }
 
+/* 7. Seamless Header Brand Lockup (No Boxed Border) */
+.pw-brand {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+.pw-brand-img {
+  display: block !important;
+  height: 38px !important;
+  width: auto !important;
+  max-width: 156px !important;
+  object-fit: contain !important;
+  object-position: left center !important;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.4)) !important;
+}
+
+@media (min-width: 769px) {
+  .pw-brand-img {
+    height: 44px !important;
+    max-width: 180px !important;
+  }
+}
+
+
