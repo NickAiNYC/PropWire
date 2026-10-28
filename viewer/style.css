@@ -361,13 +361,13 @@ select {
   color: #ffffff;
 }
 .pw-btn-ledger {
-  background: rgba(0, 210, 255, 0.08);
-  border-color: rgba(0, 210, 255, 0.3);
-  color: #00d2ff;
+  background: rgba(212, 251, 17, 0.08);
+  border-color: rgba(212, 251, 17, 0.3);
+  color: #d4fb11;
 }
 .pw-btn-ledger:hover {
-  background: rgba(0, 210, 255, 0.18);
-  border-color: rgba(0, 210, 255, 0.5);
+  background: rgba(212, 251, 17, 0.18);
+  border-color: rgba(212, 251, 17, 0.5);
   color: #4d8dff;
 }
 .pw-btn-icon {
@@ -1644,11 +1644,11 @@ select {
   --bg-surface: #141a23;
   --bg-elevated: #131a24;
   --border-hairline: #232c3b;
-  --brand-accent: #00d2ff;
-  --brand-accent-bright: #a5dcfb;
-  --brand-accent-dim: rgba(0, 210, 255, 0.12);
-  --brand-accent-border: rgba(0, 210, 255, 0.42);
-  --brand-accent-glow: rgba(0, 210, 255, 0.14);
+  --brand-accent: #d4fb11;
+  --brand-accent-bright: #e7ff66;
+  --brand-accent-dim: rgba(212, 251, 17, 0.14);
+  --brand-accent-border: rgba(212, 251, 17, 0.35);
+  --brand-accent-glow: rgba(212, 251, 17, 0.25);
   --text-primary: #ffffff;
   --text-secondary: #8b949e;
   --text-muted: #7d8592;
@@ -1714,8 +1714,8 @@ body {
 .sport-switch-btn.active,
 .sport-switch-btn[data-sport="nba"].active {
   color: #07101c;
-  background: #00d2ff;
-  border-color: #00d2ff;
+  background: #d4fb11;
+  border-color: #d4fb11;
   box-shadow: none;
 }
 
@@ -1812,9 +1812,9 @@ body {
 .driver-badge.surge,
 .driver-badge.volume,
 .uncal-tag {
-  color: #00d2ff;
-  border-color: rgba(0, 210, 255, 0.42);
-  background: rgba(0, 210, 255, 0.10);
+  color: #d4fb11;
+  border-color: rgba(212, 251, 17, 0.42);
+  background: rgba(212, 251, 17, 0.10);
   box-shadow: none;
 }
 
@@ -2225,7 +2225,7 @@ body {
   color: #4d8dff;
 }
 .dir-line-pill.dir-under {
-  color: #00d2ff;
+  color: #d4fb11;
 }
 .dir-arrow {
   font-size: 13px;
@@ -2236,7 +2236,7 @@ body {
   color: #4d8dff;
 }
 .dir-line-pill.dir-under .dir-arrow {
-  color: #00d2ff;
+  color: #d4fb11;
 }
 .fixed-odds {
   display: inline-block !important;
@@ -2381,8 +2381,8 @@ body {
   cursor: default;
 }
 .corr-risk-pill.corr-hedge {
-  background: rgba(0, 210, 255, 0.12);
-  border-color: rgba(0, 210, 255, 0.35);
+  background: rgba(212, 251, 17, 0.12);
+  border-color: rgba(212, 251, 17, 0.35);
   color: #4d8dff;
 }
 .corr-risk-pill .corr-icon {
@@ -2410,8 +2410,8 @@ body {
   color: #fbbf24 !important;
 }
 .mq-signal-badge.corr-hedge {
-  background: rgba(0, 210, 255, 0.15) !important;
-  border-color: rgba(0, 210, 255, 0.45) !important;
+  background: rgba(212, 251, 17, 0.15) !important;
+  border-color: rgba(212, 251, 17, 0.45) !important;
   color: #4d8dff !important;
 }
 .portfolio-risk-alert {
@@ -2454,9 +2454,9 @@ body {
   font-weight: 700;
 }
 .badge.corr-hedge-badge {
-  background: rgba(0, 210, 255, 0.2);
+  background: rgba(212, 251, 17, 0.2);
   color: #4d8dff;
-  border: 1px solid rgba(0, 210, 255, 0.4);
+  border: 1px solid rgba(212, 251, 17, 0.4);
   font-size: 9px;
   padding: 2px 5px;
   border-radius: var(--radius-sm);
@@ -2530,8 +2530,8 @@ body {
   letter-spacing: -0.01em;
 }
 .edge-line-top.text-verified {
-  color: #00d2ff;
-  text-shadow: 0 0 10px rgba(0, 210, 255, 0.2);
+  color: #d4fb11;
+  text-shadow: 0 0 10px rgba(212, 251, 17, 0.2);
 }
 .edge-line-top.text-caution {
   color: #fbbf24;
@@ -2616,7 +2616,7 @@ body {
 .row-log-btn:hover {
   background: rgba(14, 165, 233, 0.18);
   border-color: rgba(14, 165, 233, 0.4);
-  color: #00d2ff;
+  color: #d4fb11;
   transform: scale(1.06);
 }
 .row-log-btn.logged {
@@ -2748,7 +2748,7 @@ body {
   /* Baby blue ring with atmospheric smoke outside */
   box-shadow:
     0 0 0 1px rgba(77, 141, 255, 0.4),
-    0 0 16px 2px rgba(0, 210, 255, 0.25),
+    0 0 16px 2px rgba(212, 251, 17, 0.25),
     0 8px 26px 4px rgba(15, 23, 42, 0.85),
     0 18px 48px 12px rgba(0, 0, 0, 0.92);
 }
@@ -2757,7 +2757,7 @@ body {
   position: absolute;
   inset: -5px;
   border-radius: 16px;
-  background: radial-gradient(ellipse at 50% 50%, rgba(0, 210, 255, 0.2) 0%, rgba(15, 23, 42, 0.55) 55%, transparent 100%);
+  background: radial-gradient(ellipse at 50% 50%, rgba(212, 251, 17, 0.2) 0%, rgba(15, 23, 42, 0.55) 55%, transparent 100%);
   filter: blur(10px);
   z-index: -1;
   pointer-events: none;
@@ -2772,7 +2772,7 @@ body {
   border-color: rgba(186, 230, 253, 0.95);
   box-shadow:
     0 0 0 1.5px rgba(186, 230, 253, 0.6),
-    0 0 24px 4px rgba(0, 210, 255, 0.38),
+    0 0 24px 4px rgba(212, 251, 17, 0.38),
     0 10px 32px 6px rgba(15, 23, 42, 0.9),
     0 22px 56px 16px rgba(0, 0, 0, 0.95);
   transform: translateY(-1px);
@@ -2790,7 +2790,7 @@ body {
   background: radial-gradient(circle at 90% 20%, rgba(77, 141, 255, 0.09) 0%, #090d16 70%);
   box-shadow:
     0 0 0 1px rgba(77, 141, 255, 0.5),
-    0 0 20px 3px rgba(0, 210, 255, 0.3),
+    0 0 20px 3px rgba(212, 251, 17, 0.3),
     0 8px 28px 4px rgba(15, 23, 42, 0.85),
     0 18px 50px 14px rgba(0, 0, 0, 0.92);
 }
@@ -2948,7 +2948,7 @@ body {
   white-space: nowrap;
 }
 .mq-side-over { color: #10b981; font-weight: 800; font-size: 9.5px; }
-.mq-side-under { color: #00d2ff; font-weight: 800; font-size: 9.5px; }
+.mq-side-under { color: #d4fb11; font-weight: 800; font-size: 9.5px; }
 .mq-book-line { color: #ffffff; font-weight: 800; font-size: 12.5px; }
 .mq-book-odds { color: #94a3b8; font-size: 10px; }
 
@@ -3326,9 +3326,9 @@ body {
 }
 .detail-stat-badge {
   font: 700 9px/1.2 var(--mono);
-  color: #00d2ff;
-  background: rgba(0, 210, 255, 0.12);
-  border: 1px solid rgba(0, 210, 255, 0.3);
+  color: #d4fb11;
+  background: rgba(212, 251, 17, 0.12);
+  border: 1px solid rgba(212, 251, 17, 0.3);
   padding: 1px 5px;
   border-radius: var(--radius-sm);
   letter-spacing: 0.02em;
@@ -3379,9 +3379,9 @@ body {
   white-space: nowrap;
 }
 .spec-tag.tag-dome {
-  background: rgba(0, 210, 255, 0.14);
-  border: 1px solid rgba(0, 210, 255, 0.35);
-  color: #00d2ff;
+  background: rgba(212, 251, 17, 0.14);
+  border: 1px solid rgba(212, 251, 17, 0.35);
+  color: #d4fb11;
 }
 .spec-tag.tag-wind {
   background: rgba(245, 158, 11, 0.14);
@@ -3389,9 +3389,9 @@ body {
   color: #fbbf24;
 }
 .spec-tag.tag-model {
-  background: rgba(0, 210, 255, 0.12);
-  border: 1px solid rgba(0, 210, 255, 0.32);
-  color: #00d2ff;
+  background: rgba(212, 251, 17, 0.12);
+  border: 1px solid rgba(212, 251, 17, 0.32);
+  color: #d4fb11;
 }
 .spec-meta-list {
   display: flex;
@@ -4583,9 +4583,9 @@ article[data-focused="true"] {
   font: 750 10px/1 var(--mono);
   padding: 2.5px 7px;
   border-radius: var(--radius-sm);
-  background: rgba(0, 210, 255, 0.14);
-  border: 1px solid rgba(0, 210, 255, 0.35);
-  color: #00d2ff;
+  background: rgba(212, 251, 17, 0.14);
+  border: 1px solid rgba(212, 251, 17, 0.35);
+  color: #d4fb11;
   text-transform: uppercase;
 }
 .override-gate-btn {
@@ -4603,9 +4603,9 @@ article[data-focused="true"] {
   border-color: rgba(255, 255, 255, 0.35);
 }
 .override-gate-btn.active {
-  background: rgba(0, 210, 255, 0.15);
-  border-color: rgba(0, 210, 255, 0.4);
-  color: #00d2ff;
+  background: rgba(212, 251, 17, 0.15);
+  border-color: rgba(212, 251, 17, 0.4);
+  color: #d4fb11;
 }
 
 /* ─── MODAL HEADER & HERO SIDE PILLS ─── */
@@ -4617,9 +4617,9 @@ article[data-focused="true"] {
   letter-spacing: 0.04em;
 }
 .detail-side-badge.badge-under {
-  background: rgba(0, 210, 255, 0.15);
-  border: 1px solid rgba(0, 210, 255, 0.35);
-  color: #00d2ff;
+  background: rgba(212, 251, 17, 0.15);
+  border: 1px solid rgba(212, 251, 17, 0.35);
+  color: #d4fb11;
 }
 .detail-side-badge.badge-over {
   background: rgba(16, 185, 129, 0.15);
@@ -4635,8 +4635,8 @@ article[data-focused="true"] {
   vertical-align: middle;
 }
 .hero-side-pill.pill-under {
-  background: rgba(0, 210, 255, 0.2);
-  color: #00d2ff;
+  background: rgba(212, 251, 17, 0.2);
+  color: #d4fb11;
 }
 .hero-side-pill.pill-over {
   background: rgba(16, 185, 129, 0.2);
@@ -4931,7 +4931,7 @@ article[data-focused="true"] {
 }
 .telemetry-bar-fill {
   height: 100%;
-  background: linear-gradient(90deg, rgba(14, 165, 233, 0.45), #00d2ff);
+  background: linear-gradient(90deg, rgba(14, 165, 233, 0.45), #d4fb11);
   border-radius: var(--radius-pill);
   transition: width 0.25s ease;
 }
@@ -5000,10 +5000,10 @@ article[data-focused="true"] {
   color: #0ea5e9;
 }
 .legend-model .val-model {
-  color: #00d2ff;
+  color: #d4fb11;
   font-weight: 800;
   font-size: 11px;
-  text-shadow: 0 0 8px rgba(0, 210, 255, 0.28);
+  text-shadow: 0 0 8px rgba(212, 251, 17, 0.28);
 }
 .bridge-track {
   position: relative;
@@ -5034,7 +5034,7 @@ article[data-focused="true"] {
   top: 0;
   height: 100%;
   background: rgba(14, 165, 233, 0.45);
-  border-right: 2px solid #00d2ff;
+  border-right: 2px solid #d4fb11;
 }
 .bridge-footer {
   display: flex;
@@ -5139,8 +5139,8 @@ article[data-focused="true"] {
   color: #34d399;
 }
 .side-toggle-btn.side-u.active {
-  background: rgba(0, 210, 255, 0.25);
-  color: #00d2ff;
+  background: rgba(212, 251, 17, 0.25);
+  color: #d4fb11;
 }
 .ticket-confirm-btn {
   flex: 1;
@@ -5172,17 +5172,17 @@ article[data-focused="true"] {
   gap: 6px;
   min-height: 34px;
   padding: 0 10px;
-  background: rgba(0, 210, 255, 0.08);
-  border: 1px solid rgba(0, 210, 255, 0.3);
+  background: rgba(212, 251, 17, 0.08);
+  border: 1px solid rgba(212, 251, 17, 0.3);
   border-radius: var(--radius);
-  color: #00d2ff;
+  color: #d4fb11;
   font: 700 11.5px/1 var(--sans);
   cursor: pointer;
   transition: all 0.15s ease;
 }
 .clv-button:hover {
-  background: rgba(0, 210, 255, 0.18);
-  border-color: rgba(0, 210, 255, 0.55);
+  background: rgba(212, 251, 17, 0.18);
+  border-color: rgba(212, 251, 17, 0.55);
 }
 [data-theme="light"] .clv-button {
   background: #f0f9ff;
@@ -5952,7 +5952,7 @@ article[data-focused="true"] {
     letter-spacing: 0.04em !important;
   }
   .card-edge-sub.text-surge {
-    color: #00d2ff !important;
+    color: #d4fb11 !important;
   }
   .card-edge-sub.text-caution {
     color: #fbbf24 !important;
@@ -6688,8 +6688,8 @@ article[data-focused="true"] {
   color: #090d16;
 }
 .sniper-notice-box {
-  background: rgba(0, 210, 255, 0.08);
-  border: 1px solid rgba(0, 210, 255, 0.25);
+  background: rgba(212, 251, 17, 0.08);
+  border: 1px solid rgba(212, 251, 17, 0.25);
   border-radius: var(--radius);
   padding: 8px 10px;
   font-size: 11px;
@@ -7204,7 +7204,7 @@ article[data-focused="true"] {
   border-color: rgba(77, 141, 255, 0.35);
 }
 .pw-btn-ledger:hover {
-  box-shadow: 0 0 12px rgba(0, 210, 255, 0.18);
+  box-shadow: 0 0 12px rgba(212, 251, 17, 0.18);
 }
 
 /* PRO CTA: volt gradient + shine sweep (replaces inline-styled flat text) */
@@ -7492,8 +7492,8 @@ body {
 .sport-switch-btn.active,
 .sport-switch-btn[data-sport="nba"].active {
   color: #07101c;
-  background: #00d2ff;
-  border-color: #00d2ff;
+  background: #d4fb11;
+  border-color: #d4fb11;
   box-shadow: none;
 }
 .data-quality-banner {
@@ -7554,7 +7554,7 @@ body {
 .ci-range,
 .bullet-bk { color: #7d8592; }
 .bullet-svg .bullet-track { fill: #232c3b; }
-.bullet-svg .bullet-fill { fill: #00d2ff; }
+.bullet-svg .bullet-fill { fill: #d4fb11; }
 .chip-pill.active,
 .pw-seg-btn.active { box-shadow: none !important; }
 
@@ -7627,8 +7627,8 @@ body {
   border-color: #3a3f49;
 }
 #pricingBtn.pw-btn-upgrade {
-  background: #00d2ff;
-  border-color: #00d2ff;
+  background: #d4fb11;
+  border-color: #d4fb11;
   box-shadow: none;
 }
 #pricingBtn.pw-btn-upgrade::after { display: none; }
@@ -7659,8 +7659,8 @@ body {
 }
 .chip-pill.active,
 .pw-seg-btn.active {
-  background: rgba(0, 210, 255, .14);
-  border-color: rgba(0, 210, 255, .48);
+  background: rgba(212, 251, 17, .14);
+  border-color: rgba(212, 251, 17, .48);
   color: #c8f77f;
 }
 .pw-view-toggle { flex: 0 0 auto; }
@@ -8139,7 +8139,7 @@ body { background: #0b0e14; color: #ffffff; }
 .execution-note { margin: 9px 2px 0; }
 .execution-actions { position: sticky; bottom: -28px; margin: 24px -24px -28px; padding: 16px 24px calc(18px + env(safe-area-inset-bottom)); border-top: 1px solid #293241; background: rgba(15,19,26,.96); backdrop-filter: blur(14px); }
 .execution-actions p { margin: 0 0 11px; color: #8e9aae; font: 500 11px/1.45 var(--sans); }
-.execution-confirm { width: 100%; min-height: 48px; border: 1px solid #82b52f; border-radius: var(--radius); background: #00d2ff; color: #10150b; font: 700 13px/1 var(--sans); cursor: pointer; transition: filter .16s ease, transform .16s ease; }
+.execution-confirm { width: 100%; min-height: 48px; border: 1px solid #82b52f; border-radius: var(--radius); background: #d4fb11; color: #10150b; font: 700 13px/1 var(--sans); cursor: pointer; transition: filter .16s ease, transform .16s ease; }
 .execution-confirm:hover { filter: brightness(1.06); }
 .execution-confirm:active { transform: translateY(1px); }
 .execution-confirm:disabled { border-color: #303846; background: #202630; color: #778398; cursor: not-allowed; filter: none; }
@@ -8637,16 +8637,232 @@ html, body {
   border-bottom: 1px solid rgba(255, 255, 255, 0.07) !important;
 }
 
+/* 2. Calm Minimal Header Strip */
 .pw-topbar {
   background: transparent !important;
+  height: 54px !important;
+  padding: 0 16px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
 }
 
+.pw-topbar-left {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+}
+
+.pw-topbar-right {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+/* Hide cluttering desktop debug controls from primary topbar */
+.pw-topbar .pw-risk-group,
+.pw-topbar .live-polling-widget,
+.pw-topbar .pw-receipt-badge,
+.pw-topbar #availabilityToggle,
+.pw-topbar .pw-divider,
+.pw-topbar #clvReportBtn,
+.pw-topbar #exportBtn {
+  display: none !important;
+}
+
+/* Subtle Telemetry Indicator */
+.pw-telemetry-pod {
+  display: inline-flex !important;
+  align-items: center !important;
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+}
+
+.pw-live-status-dot {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  padding: 4px 10px !important;
+  border-radius: 999px !important;
+  background: #11141c !important;
+  border: 1px solid rgba(255, 255, 255, 0.07) !important;
+  font-family: var(--mono) !important;
+  font-size: 10px !important;
+  color: #8e95a5 !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.05em !important;
+}
+
+.pw-live-status-dot .polling-dot {
+  width: 6px !important;
+  height: 6px !important;
+  border-radius: 999px !important;
+  background: #d4fb11 !important;
+  box-shadow: 0 0 8px rgba(212, 251, 17, 0.85) !important;
+}
+
+/* Header Action Pills */
+#slateSelector.pw-select {
+  background: #11141c !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 999px !important;
+  color: #f8fafc !important;
+  font-family: var(--sans) !important;
+  font-size: 11.5px !important;
+  font-weight: 600 !important;
+  height: 32px !important;
+  padding: 0 12px !important;
+  cursor: pointer !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4) !important;
+}
+
+#slimInjuryBanner.pw-injury-header-pill {
+  background: #11141c !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 999px !important;
+  color: #8e95a5 !important;
+  font-family: var(--sans) !important;
+  font-size: 11.5px !important;
+  font-weight: 600 !important;
+  height: 32px !important;
+  padding: 0 12px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+}
+
+#slimInjuryBanner .slim-injury-dot {
+  background: #fbbf24 !important;
+  width: 6px !important;
+  height: 6px !important;
+  border-radius: 999px !important;
+}
+
+#pricingBtn.pw-btn-upgrade {
+  background: rgba(212, 251, 17, 0.12) !important;
+  border: 1px solid rgba(212, 251, 17, 0.35) !important;
+  border-radius: 999px !important;
+  color: #d4fb11 !important;
+  font-family: var(--sans) !important;
+  font-size: 11.5px !important;
+  font-weight: 700 !important;
+  height: 32px !important;
+  padding: 0 14px !important;
+  cursor: pointer !important;
+  box-shadow: 0 0 12px rgba(212, 251, 17, 0.15) !important;
+  transition: all 0.15s ease !important;
+}
+
+#pricingBtn.pw-btn-upgrade:hover {
+  background: rgba(212, 251, 17, 0.22) !important;
+  border-color: #d4fb11 !important;
+  transform: translateY(-1px) !important;
+}
+
+#portfolioBtn.pw-btn-ledger {
+  background: #11141c !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 999px !important;
+  color: #8e95a5 !important;
+  font-family: var(--sans) !important;
+  font-size: 11.5px !important;
+  font-weight: 600 !important;
+  height: 32px !important;
+  padding: 0 12px !important;
+  cursor: pointer !important;
+}
+
+#portfolioBtn .portfolio-count-badge {
+  background: #d4fb11 !important;
+  color: #070709 !important;
+  font-weight: 800 !important;
+  font-size: 10px !important;
+  border-radius: 999px !important;
+  padding: 1px 5px !important;
+  margin-left: 4px !important;
+}
+
+#sniperBtn.pw-btn-sniper {
+  background: #11141c !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 999px !important;
+  color: #8e95a5 !important;
+  font-size: 11.5px !important;
+  height: 32px !important;
+  padding: 0 12px !important;
+}
+
+#mobileMenuBtn.pw-mobile-menu-btn {
+  background: #11141c !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 999px !important;
+  color: #8e95a5 !important;
+  width: 32px !important;
+  height: 32px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* 3. Command Bar & Recessed Capsule Filters */
 .pw-filterbar {
   background: transparent !important;
+  padding: 8px 16px 12px 16px !important;
   border-top: none !important;
 }
 
-/* 2. Recessed Capsule Filter Track (Single Unified System) */
+.pw-command-row {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  margin-bottom: 8px !important;
+}
+
+.sport-switcher {
+  background: #11141c !important;
+  border: 1px solid rgba(255, 255, 255, 0.07) !important;
+  border-radius: 999px !important;
+  padding: 3px !important;
+  display: inline-flex !important;
+  gap: 3px !important;
+}
+
+.sport-switch-btn {
+  border: none !important;
+  border-radius: 999px !important;
+  background: transparent !important;
+  color: #8e95a5 !important;
+  font-family: var(--sans) !important;
+  font-size: 11.5px !important;
+  font-weight: 700 !important;
+  padding: 5px 14px !important;
+  cursor: pointer !important;
+  transition: all 0.15s ease !important;
+}
+
+.sport-switch-btn.active {
+  background: #1e2330 !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5) !important;
+}
+
+.command-search-wrap {
+  background: #11141c !important;
+  border: 1px solid rgba(255, 255, 255, 0.07) !important;
+  border-radius: 999px !important;
+  height: 34px !important;
+  padding: 0 12px !important;
+}
+
+.command-search-wrap .pw-search-input {
+  background: transparent !important;
+  border: none !important;
+  color: #ffffff !important;
+  font-size: 12px !important;
+}
+
 .chip-segment-group {
   background: #11141c !important;
   border: 1px solid rgba(255, 255, 255, 0.07) !important;
@@ -8687,7 +8903,29 @@ html, body {
   margin-left: 4px !important;
 }
 
-/* 3. Slate Overview Telemetry Card (Calm Finance Language) */
+.chip-pill.chip-sniper-btn,
+.chip-pill.chip-more-btn {
+  background: #11141c !important;
+  border: 1px solid rgba(255, 255, 255, 0.07) !important;
+  border-radius: 999px !important;
+  color: #8e95a5 !important;
+  font-family: var(--sans) !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  padding: 6px 14px !important;
+}
+
+.mobile-usage-ticker {
+  background: #11141c !important;
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+  border-radius: 999px !important;
+  color: #8e95a5 !important;
+  font-size: 11px !important;
+  padding: 4px 12px !important;
+  margin-top: 8px !important;
+}
+
+/* 4. Slate Overview Telemetry Card (Calm Finance Language) */
 .pw-hero-telemetry-suite {
   display: flex;
   flex-direction: column;
@@ -8823,7 +9061,7 @@ html, body {
   color: #8e95a5;
 }
 
-/* 4. Player Cards (26px Rounded Squircles, Strict Mono-Accent) */
+/* 5. Player Cards (26px Rounded Squircles, Strict Mono-Accent) */
 .card-grid {
   display: flex !important;
   flex-direction: column !important;
@@ -8943,7 +9181,101 @@ html, body {
   cursor: pointer !important;
 }
 
-/* 5. Floating Frosted Capsule Bottom Dock */
+/* 6. Modernized Table View (Dark Finance Row Architecture) */
+.table-wrap {
+  background: #11141c !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 26px !important;
+  overflow: hidden !important;
+  box-shadow: 0 16px 40px -12px rgba(0, 0, 0, 0.75) !important;
+  margin-top: 14px !important;
+}
+
+.pw-table {
+  width: 100% !important;
+  border-collapse: collapse !important;
+  background: transparent !important;
+  font-family: var(--sans) !important;
+}
+
+.pw-table thead th {
+  background: #171a24 !important;
+  color: #5d6678 !important;
+  font-family: var(--mono) !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.06em !important;
+  padding: 14px 18px !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+  border-top: none !important;
+  border-left: none !important;
+  border-right: none !important;
+}
+
+.pw-table tbody tr {
+  background: transparent !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04) !important;
+  transition: background 0.12s ease !important;
+}
+
+.pw-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.03) !important;
+}
+
+.pw-table tbody tr:last-child {
+  border-bottom: none !important;
+}
+
+.pw-table td {
+  padding: 16px 18px !important;
+  vertical-align: middle !important;
+  border: none !important;
+  color: #f8fafc !important;
+}
+
+.pw-table .player-cell-name {
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  color: #ffffff !important;
+  letter-spacing: -0.015em !important;
+}
+
+.pw-table .edge-pill-val {
+  font-size: 18px !important;
+  font-weight: 800 !important;
+  color: #d4fb11 !important;
+  text-shadow: 0 0 14px rgba(212, 251, 17, 0.35) !important;
+}
+
+/* 7. Subdued Notification & Alert Banners (No Shouting Orange) */
+.data-quality-banner,
+.alert-banner,
+.pw-injury-drawer,
+.warning-box,
+.data-quality-banner.warn {
+  background: #11141c !important;
+  border: 1px solid rgba(255, 255, 255, 0.07) !important;
+  border-radius: 20px !important;
+  color: #8e95a5 !important;
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.6) !important;
+}
+
+.data-quality-banner .dq-dot,
+.alert-banner .alert-dot {
+  background: #fbbf24 !important;
+  box-shadow: none !important;
+}
+
+.dq-retry-btn {
+  border-radius: 999px !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  background: rgba(255, 255, 255, 0.04) !important;
+  color: #ffffff !important;
+  font-size: 11px !important;
+}
+
+/* 8. Floating Frosted Capsule Bottom Dock */
 .mobile-bottom-nav {
   position: fixed !important;
   bottom: 20px !important;
@@ -8982,7 +9314,7 @@ html, body {
   filter: drop-shadow(0 0 4px #d4fb11) !important;
 }
 
-/* 6. Seamless Single Header Brand Lockup */
+/* 9. Seamless Single Header Brand Lockup */
 .pw-brand {
   background: transparent !important;
   border: none !important;
@@ -9009,11 +9341,11 @@ html, body {
   display: none !important;
 }
 
-[data-theme="light"] .pw-brand-img.pw-brand-dark-only {
+[data-theme=light] .pw-brand-img.pw-brand-dark-only {
   display: none !important;
 }
 
-[data-theme="light"] .pw-brand-img.pw-brand-light-only {
+[data-theme=light] .pw-brand-img.pw-brand-light-only {
   display: block !important;
 }
 
@@ -9023,7 +9355,3 @@ html, body {
     max-width: 180px !important;
   }
 }
-
-
-
-
