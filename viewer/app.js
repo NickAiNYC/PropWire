@@ -206,10 +206,8 @@
     priceHistory: {},
     openSnapshots: {},
     bottomTab: 'slate',
-    // Entitlements are fail-closed in the static viewer. A paid tier must be
-    // supplied by an authenticated server surface; localStorage is never an
-    // authority for access control.
-    userTier: 'free',
+    // Free open-access mode: full pro quantitative access without paywall.
+    userTier: 'pro',
     slateScrollY: 0
   };
   try {
