@@ -66,6 +66,7 @@ jobs:
         env:
           ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
           BALLDONTLIE_API_KEY: ${{ secrets.BALLDONTLIE_API_KEY }}
+          NBA_ODDS_API_KEY: ${{ secrets.NBA_ODDS_API_KEY }}
         run: python scripts/autopilot.py --run
 
       - name: Commit and push refreshed slate (if changed)
