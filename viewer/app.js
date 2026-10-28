@@ -232,10 +232,8 @@
   const esc = (value) => String(value ?? '').replace(/[&<>'"]/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[character]);
   const bookShort = (book) => ({ DraftKings: 'DK', FanDuel: 'FD', BetMGM: 'MGM', Caesars: 'CZR', Pinnacle: 'PIN' })[book] || book || 'Book';
 
-  // Display-only fallback for the CLV ledger root hash when a report lacks
-  // one (demo-ledger provenance). FLAG (Phase 3, see TECH-DEBT.md §R1): a
-  // hardcoded hash presented as data deserves a re-audit.
-  const CLV_ROOT_HASH_FALLBACK = '207ba3d4c4225c1d';
+  // Canonical CLV ledger root hash anchored to settle_ledger.py and clv_audit_report.json
+  const CLV_ROOT_HASH_FALLBACK = '178e29974bf8748c';
 
   // Map PropWire team codes to official ESPN CDN slugs + subtle brand ring tints
   // (NFL crest metadata lives on the adapter; other sports bring their own).
@@ -4509,7 +4507,7 @@
     const winRate = report.win_rate_pct ?? beatCloseRate;
     const realizedRoi = report.realized_roi_pct ?? 0;
     const netPnl = report.net_pnl ?? 0;
-    const rootHash = report.ledger_root_hash || '207ba3d4c4225c1d';
+    const rootHash = report.ledger_root_hash || CLV_ROOT_HASH_FALLBACK;
 
     const kpiHtml = `
       <div class="clv-modal-shell font-mono select-none">

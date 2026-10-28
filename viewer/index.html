@@ -117,7 +117,7 @@
         <!-- Live Odds Polling Countdown & Status Widget (Desktop only) -->
         <div class="live-polling-widget pw-desktop-only" id="livePollingWidget" title="Live Odds Ingestion Engine · Bovada API Active · Click to poll now">
           <span class="polling-dot pulse"></span>
-          <span class="polling-timer" id="pollingTimerText">Updated 14s ago · Next 46s</span>
+          <span class="polling-timer" id="pollingTimerText">Telemetry active</span>
           <button type="button" class="polling-refresh-btn" id="manualPollBtn" aria-label="Poll fresh quotes now" title="Poll fresh quotes now">
             <svg class="poll-refresh-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8">
               <path d="M13.5 8A5.5 5.5 0 118 2.5c2 0 3.8.8 4.7 2.2M13.5 1.5v3.5H10"/>
@@ -128,7 +128,7 @@
         <!-- Receipt Status Pill (Desktop only) -->
         <div class="pw-receipt-badge pw-desktop-only" title="All 64 quotes verified via SHA-256 content receipt">
           <span class="pw-receipt-dot"></span>
-          <span id="marketState">64/64 Verified</span>
+          <span id="marketState">Receipts active</span>
         </div>
 
         <!-- Programmable Market Alerts Sniper (Desktop) -->
@@ -329,7 +329,7 @@
     <section class="trust-line" aria-label="Data integrity status">
       <div><span class="status-dot grey"></span><strong>Price check</strong> <span id="priceCheckText">Syncing fresh quotes…</span></div>
       <div><strong>Verification Receipt</strong> SHA-256 hashes detect price changes; unverified quotes fail closed.</div>
-      <div id="clvStatus"><strong>CLV Audit</strong> 8 verified records · Root #207ba3d4c4225c1d.</div>
+      <div id="clvStatus"><strong>CLV Audit</strong> 8 verified records · Root #178e29974bf8748c.</div>
     </section>
 
     <!-- Terminal Compliance & Responsible Gaming Footer -->
@@ -462,11 +462,11 @@
             </div>
             <div class="settings-info-row">
               <span>Verification</span>
-              <b class="text-accent">64/64 SHA-256 Receipts</b>
+              <b class="text-accent" id="settingsReceiptsStatus">Receipt-Verified</b>
             </div>
             <div class="settings-info-row">
               <span>Settlement Audit</span>
-              <b>Root #207ba3d4c4225c1d</b>
+              <b>Root #178e29974bf8748c</b>
             </div>
           </div>
         </div>
