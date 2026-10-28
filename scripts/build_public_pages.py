@@ -186,6 +186,23 @@ def fmt_boundaries(b):
     return "; ".join(parts) if parts else "not published for this snapshot."
 
 
+def assert_fair_line_invariants(snaps):
+    """Phase 1 invariant: Fair line = median of the stored distribution, always;
+    receptions use the nearest hook (.5) and show P(over). Assert this at publish time."""
+    for s in snaps:
+        name = s.get("player_name", "unknown")
+        m = s.get("market")
+        proj = s.get("projection") or {}
+        fair = proj.get("fair_line")
+        p_over = proj.get("p_over")
+        assert fair is not None, f"fair_line missing for {name}"
+        assert p_over is not None, f"p_over missing for {name}"
+        assert 0.0 <= p_over <= 1.0, f"p_over out of bounds for {name}: {p_over}"
+
+        if m == "receptions":
+            assert fair % 1.0 == 0.5, f"receptions fair line {fair} not on hook (.5) for {name}"
+
+
 def quote_block(quote):
     status = (quote or {}).get("status") or "unquoted"
     if status == "unquoted" or not (quote or {}).get("line"):
@@ -195,9 +212,13 @@ def quote_block(quote):
     stamp = ""
     if obs:
         stamp = f' <time datetime="{esc(obs)}">observed {esc(obs[:16].replace("T", " "))} UTC</time>'
+    odds_val = quote.get("over_odds") if quote.get("over_odds") is not None else quote.get("odds")
+    if odds_val is None and quote.get("under_odds") is not None:
+        odds_val = quote.get("under_odds")
+    odds_str = f" ({esc(fmt_american(odds_val))})" if odds_val is not None else ""
     return (f"<p class='pub-status pub-status-quoted'>Latest captured quote: "
-            f"<strong>{esc((quote or {}).get('source') or 'book')}</strong> "
-            f"{esc(quote.get('line'))} ({esc(fmt_american(quote.get('odds') or 0))}) "
+            f"<strong>{esc((quote or {}).get('source') or (quote or {}).get('book') or 'book')}</strong> "
+            f"{esc(quote.get('line'))}{odds_str} "
             f"&mdash; status <strong>{esc(status)}</strong>.{stamp} Lines move; "
             f"treat this as historical unless re-verified in the terminal.</p>")
 
@@ -815,6 +836,7 @@ def main():
     for s in snaps:
         latest[(s.get("player_id"), s.get("market"))] = s
     snaps = list(latest.values())
+    assert_fair_line_invariants(snaps)
 
     games = {g.get("game_id"): g for g in load("games_2026_w7.json")}
     injuries = load("injuries_2026_w7.json")

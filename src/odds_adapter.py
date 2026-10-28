@@ -117,6 +117,9 @@ class MatchedEvaluation:
     actionable_stake: float
     catalyst: str                  # "pricing", "football_news", "both", "none"
     injury_context: Optional[str]
+    proj_volume: float = 0.0
+    mu_rec: float = 0.0
+    mu_ypr: float = 0.0
 
 
 # ---------------------------------------------------------------------------
@@ -770,7 +773,14 @@ class OddsIngestionAdapter:
             catalyst = "pricing"
             injury_ctx = None
 
-        fair_line = fair_rec if quote.market == "receptions" else fair_yds
+        # Fair line and projected volume calculation (Phase 1 Invariant)
+        # Receptions must always sit on nearest hook (.5), proj_volume is distribution mean
+        if quote.market == "receptions":
+            fair_line = int(fair_rec) + 0.5
+            proj_volume = round(mu_rec, 2)
+        else:
+            fair_line = fair_yds
+            proj_volume = round(mu_rec * mu_ypr, 2)
 
         # Compute model probabilities at the offered book line
         if quote.market == "receptions":
@@ -870,7 +880,10 @@ class OddsIngestionAdapter:
             status=status,
             actionable_stake=actionable_stake,
             catalyst=catalyst,
-            injury_context=injury_ctx
+            injury_context=injury_ctx,
+            proj_volume=proj_volume,
+            mu_rec=round(mu_rec, 4),
+            mu_ypr=round(mu_ypr, 4)
         )
 
     def run_ingestion(self, game_id: Optional[str] = None) -> Dict[str, Any]:
@@ -981,9 +994,10 @@ class OddsIngestionAdapter:
                     "role": role_info,
                     "projection": {
                         "fair_line": ev.fair_line,
-                        "proj_volume": ev.fair_line,
+                        "proj_volume": ev.proj_volume,
                         "distribution_params": {
-                            "mu_rec": round(ev.p_over_model, 4),
+                            "mu_rec": round(ev.mu_rec, 4),
+                            "mu_ypr": round(ev.mu_ypr, 4),
                             "alpha": MODEL_ALPHA,
                             "k": MODEL_K
                         },

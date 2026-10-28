@@ -189,6 +189,55 @@ class TestOddsAdapter(unittest.TestCase):
         reset_proxy_bytes()
         self.assertEqual(get_proxy_bytes_used(), 0)
 
+    # 7. Fair-line and Volume Invariant Tests (Phase 1)
+    def test_fair_line_and_projected_volume_invariants(self):
+        adapter = OddsIngestionAdapter.__new__(OddsIngestionAdapter)
+        adapter.season = 2026
+        adapter.week = 7
+        adapter.slate_players = self.mock_slate
+        adapter.injury_beneficiaries = {}
+        from freeze_slate import ReceivingModel, MODEL_ALPHA, MODEL_K
+        adapter.model = ReceivingModel(rec_params=None, ypr_params=None, alpha=MODEL_ALPHA, k=MODEL_K, means=None, sds=None, cols=None)
+
+        # Receiving yards quote: fair line is median yards, proj volume is mean yards (mu_rec * mu_ypr)
+        quote_yds = PropQuote(
+            quote_id="test_fair_inv_yds",
+            book="DraftKings",
+            market="receiving_yards",
+            player_raw_name="DeMario Douglas",
+            team="NE",
+            opponent="CHI",
+            line=24.5,
+            over_odds=-110,
+            under_odds=-110,
+            observed_at="2026-10-20T02:00:00Z",
+            source="test"
+        )
+        ev_yds = adapter.evaluate_quote(quote_yds)
+        self.assertIsNotNone(ev_yds)
+        self.assertEqual(ev_yds.fair_line, 24.5)  # median yards
+        self.assertEqual(ev_yds.proj_volume, round(2.46 * 12.2, 2))  # mean volume: 30.01 != 24.5
+        self.assertTrue(ev_yds.proj_volume > ev_yds.fair_line)  # right-skewed distribution property
+
+        # Receptions quote: fair line must sit on nearest half-hook (.5), proj volume is mean rec (mu_rec)
+        quote_rec = PropQuote(
+            quote_id="test_fair_inv_rec",
+            book="DraftKings",
+            market="receptions",
+            player_raw_name="DeMario Douglas",
+            team="NE",
+            opponent="CHI",
+            line=2.5,
+            over_odds=-110,
+            under_odds=-110,
+            observed_at="2026-10-20T02:00:00Z",
+            source="test"
+        )
+        ev_rec = adapter.evaluate_quote(quote_rec)
+        self.assertIsNotNone(ev_rec)
+        self.assertEqual(ev_rec.fair_line % 1.0, 0.5)  # hook alignment
+        self.assertEqual(ev_rec.proj_volume, 2.46)  # mean receptions
+
 
 if __name__ == "__main__":
     unittest.main()
