@@ -1,5 +1,5 @@
-// PropWire Service Worker (offline shell only; market data always fails closed)
-const CACHE_NAME = 'propwire-v173-prod';
+// PropStein Service Worker (offline shell only; market data always fails closed)
+const CACHE_NAME = 'propstein-v173-prod';
 const STATIC_ASSETS = [
   '/index.html',
   '/style.css',
@@ -14,7 +14,13 @@ const STATIC_ASSETS = [
   '/js/sports/registry.js?v=2026_v173',
   '/js/sports/nfl.js?v=2026_v173',
   '/js/sports/nba.js?v=2026_v173',
-  // brand marks: owner-restored authentic PropWire SVG lockup (header)
+  // brand marks: PropStein lighter ice-blue logo suite
+  '/propstein-logo.png',
+  '/propstein-logo.png?v=2026_v173',
+  '/propstein-logo-dark.png',
+  '/propstein-logo-dark.png?v=2026_v173',
+  '/propstein-logo.svg?v=2026_v173',
+  '/propstein-logo-dark.svg?v=2026_v173',
   '/propwire-logo.svg?v=2026_v173',
   '/propwire-logo-dark.svg?v=2026_v173',
   // v152: self-hosted sportsbook wordmark badges (same-origin, CSP 'self')

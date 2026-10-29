@@ -13802,9 +13802,338 @@ dialog.detail-dialog .dialog-sheet-handle {
 .edge-cell-muted { color: #475569; font-size: 15px; font-weight: 500; }
 .th-num-w18 { width: 18%; }
 .sim-plus-dim { opacity: 0.6; }
-/* v173 CSP-clean: card-density inline conversions (owner 370f810, Task 59) */
-.dens-muted-dash { color: #64748b; font-size: 13px; font-weight: 500; }
-.dens-row-8 { display: flex; gap: 8px; align-items: baseline; margin-top: 2px; }
-.dens-row-6 { display: flex; gap: 6px; align-items: baseline; }
-.dens-proj-val { font-size: 11.5px; font-weight: 700; }
-.dens-fair-sub { color: #94a3b8; font-size: 10px; }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   v173 HARDENING & INTERACTIVE LINE SIMULATOR SPECIFICATION
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* 1. High-Contrast Dark Mode Secondary Badges & Micro-Readouts */
+.bullet-ci-wrap {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 3px !important;
+  color: #94a3b8 !important;
+  font-size: 10px !important;
+  font-weight: 600 !important;
+}
+.bullet-ci-tag {
+  color: #f1f5f9 !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  padding: 1px 5px !important;
+  border-radius: var(--radius-sm) !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.2px !important;
+}
+.venue-badge.dome {
+  color: #38bdf8 !important;
+  background: rgba(56, 189, 248, 0.14) !important;
+  border: 1px solid rgba(56, 189, 248, 0.35) !important;
+  font-weight: 600 !important;
+}
+.driver-badge.alpha {
+  color: #a7f3d0 !important;
+  background: rgba(16, 185, 129, 0.16) !important;
+  border: 1px solid rgba(52, 211, 153, 0.45) !important;
+  font-weight: 600 !important;
+}
+.driver-badge.volume {
+  color: #7dd3fc !important;
+  background: rgba(56, 189, 248, 0.16) !important;
+  border: 1px solid rgba(56, 189, 248, 0.45) !important;
+  font-weight: 600 !important;
+}
+.driver-badge.surge {
+  color: #fde68a !important;
+  background: rgba(245, 158, 11, 0.18) !important;
+  border: 1px solid rgba(245, 158, 11, 0.45) !important;
+  font-weight: 700 !important;
+}
+.cell-sub {
+  color: #94a3b8 !important;
+  font-weight: 500 !important;
+}
+.bullet-dim {
+  color: #94a3b8 !important;
+  font-weight: 600 !important;
+}
+
+/* 2. Position Filter Quick Count Badges */
+.pos-count-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1px 5px;
+  margin-left: 4px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  font-family: var(--mono);
+  background: rgba(255, 255, 255, 0.08);
+  color: #94a3b8;
+}
+.chip-pill.active .pos-count-badge {
+  background: rgba(212, 251, 17, 0.22);
+  color: #d4fb11;
+}
+
+/* 3. CLV Calibration Sparkline & Heartbeat Indicator */
+.clv-trend-sparkline-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 6px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-sm);
+  margin-left: 6px;
+}
+.clv-trend-delta {
+  font-size: 10px;
+  font-weight: 700;
+  font-family: var(--mono);
+  color: #d4fb11;
+}
+@keyframes spin360 {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.telemetry-refresh-btn.spinning {
+  animation: spin360 0.8s linear infinite;
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+/* 4. Bookmaker Discrepancy & Arbitrage Badge */
+.discrepancy-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  font-size: 9.5px;
+  font-weight: 700;
+  font-family: var(--mono);
+  background: rgba(168, 85, 247, 0.16);
+  border: 1px solid rgba(168, 85, 247, 0.40);
+  color: #c084fc;
+  margin-top: 2px;
+  white-space: nowrap;
+}
+
+/* 5. Unverified / Awaiting Consensus Micro-State */
+.unverified-state-micro {
+  display: block;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  color: #94a3b8;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+
+/* 6. Interactive Line Simulator Dialog & Controls */
+.simulate-dialog .dialog-shell {
+  max-width: 520px !important;
+  background: #0f141f !important;
+  border: 1px solid rgba(56, 189, 248, 0.3) !important;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.8), 0 0 24px rgba(56, 189, 248, 0.15) !important;
+  border-radius: 12px !important;
+}
+.sim-player-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius);
+  margin-bottom: 14px;
+}
+.sim-player-id {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.sim-player-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: #ffffff;
+}
+.sim-player-sub {
+  font-size: 11.5px;
+  color: #94a3b8;
+}
+.sim-base-metrics {
+  text-align: right;
+  font-family: var(--mono);
+}
+.sim-base-k {
+  font-size: 10px;
+  color: #64748b;
+  text-transform: uppercase;
+}
+.sim-base-v {
+  font-size: 14px;
+  font-weight: 700;
+  color: #38bdf8;
+}
+.sim-control-group {
+  margin-bottom: 14px;
+}
+.sim-control-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #cbd5e1;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+.sim-control-val {
+  font-family: var(--mono);
+  color: #d4fb11;
+}
+.sim-line-stepper-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sim-step-btn {
+  width: 44px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #182232;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius);
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.sim-step-btn:hover {
+  background: #243248;
+  border-color: #38bdf8;
+}
+.sim-number-input {
+  flex: 1;
+  height: 40px;
+  background: #101622;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: var(--radius);
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 700;
+  font-family: var(--mono);
+  text-align: center;
+}
+.sim-range-slider {
+  width: 100%;
+  margin-top: 8px;
+  accent-color: #38bdf8;
+  cursor: pointer;
+}
+.sim-odds-pills {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.sim-odds-chip {
+  flex: 1;
+  min-width: 58px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #141c2a;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: var(--radius-sm);
+  color: #cbd5e1;
+  font-size: 12px;
+  font-family: var(--mono);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.sim-odds-chip.active {
+  background: rgba(56, 189, 248, 0.20);
+  border-color: #38bdf8;
+  color: #38bdf8;
+  font-weight: 700;
+}
+.sim-readout-card {
+  padding: 12px 14px;
+  background: linear-gradient(135deg, rgba(16, 24, 38, 0.95) 0%, rgba(20, 32, 52, 0.95) 100%);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  border-radius: var(--radius);
+  margin-bottom: 14px;
+}
+.sim-readout-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+.sim-readout-item {
+  display: flex;
+  flex-direction: column;
+}
+.sim-readout-k {
+  font-size: 10px;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  margin-bottom: 2px;
+}
+.sim-readout-v {
+  font-family: var(--mono);
+  font-size: 15px;
+  font-weight: 700;
+  color: #ffffff;
+}
+.sim-readout-v.pos {
+  color: #d4fb11;
+  text-shadow: 0 0 10px rgba(212, 251, 17, 0.35);
+}
+.sim-readout-v.neg {
+  color: #f87171;
+}
+.sim-actions-row {
+  display: flex;
+  gap: 10px;
+}
+.sim-btn-apply {
+  flex: 2;
+  height: 42px;
+  background: #38bdf8;
+  color: #060a12;
+  font-size: 13px;
+  font-weight: 700;
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.sim-btn-apply:hover {
+  background: #7dd3fc;
+  box-shadow: 0 0 14px rgba(56, 189, 248, 0.4);
+}
+.sim-btn-reset {
+  flex: 1;
+  height: 42px;
+  background: transparent;
+  color: #94a3b8;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.sim-btn-reset:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #ffffff;
+}
+

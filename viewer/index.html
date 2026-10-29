@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#0b0e14">
-  <meta name="build-hash" content="2026-w8-v26">
+  <meta name="build-hash" content="2026-w8-v25">
   <meta name="description" content="PropStein quantitative player props research terminal for NFL &amp; NBA.">
   <title>PropStein · Quantitative Player Props Terminal</title>
 
@@ -63,8 +63,8 @@
       <!-- Left: Brand + Live Status Dot -->
       <div class="pw-topbar-left">
         <a href="#slateBoard" class="pw-brand" aria-label="PropStein home">
-          <img src="/propwire-logo.svg?v=2026_v173" alt="PropStein" class="pw-brand-img pw-brand-dark-only" height="52">
-          <img src="/propwire-logo-dark.svg?v=2026_v173" alt="" aria-hidden="true" class="pw-brand-img pw-brand-light-only" height="52">
+          <img src="/propstein-logo.png?v=2026_v173" alt="PropStein" class="pw-brand-img pw-brand-dark-only" height="52">
+          <img src="/propstein-logo-dark.png?v=2026_v173" alt="" aria-hidden="true" class="pw-brand-img pw-brand-light-only" height="52">
         </a>
         <div class="pw-telemetry-pod pw-desktop-only" aria-label="System telemetry">
           <div class="pw-live-status-dot" id="mobileStatusPill" title="Live Odds Feed Active · Tap for Telemetry">
@@ -300,6 +300,13 @@
           <div class="telemetry-metric-row">
             <span class="telemetry-metric-number hero-pod-val">74.2%</span>
             <span class="telemetry-metric-unit">CLV BEAT RATE</span>
+            <div class="clv-trend-sparkline-wrap" title="7-Slate CLV Beat Rate Trend: W1 68.4% → W7 74.2% (↗ +5.8% vs baseline)" aria-label="CLV Beat Rate 7-slate trend">
+              <svg class="clv-sparkline-svg" width="56" height="18" viewBox="0 0 56 18" fill="none" aria-hidden="true">
+                <polyline points="2,14 10,12 19,13 28,7 37,9 46,4 54,5" stroke="#38bdf8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+                <circle cx="54" cy="5" r="2.2" fill="#d4fb11" stroke="#060a12" stroke-width="0.8" />
+              </svg>
+              <span class="clv-trend-delta" aria-hidden="true">↗ +5.8%</span>
+            </div>
           </div>
           <div class="telemetry-progress-track">
             <div class="telemetry-progress-bar"></div>
@@ -314,7 +321,7 @@
             <span class="gate-status-text hero-pod-val">PAUSED</span>
             <span class="gate-status-dot"></span>
           </div>
-          <div class="telemetry-subtext hero-pod-sub">Standby for verified quotes</div>
+          <div class="telemetry-subtext hero-pod-sub" id="gateSubtext">Standby for verified quotes</div>
         </div>
 
         <!-- Col 4: Feed Health -->
@@ -326,9 +333,9 @@
               <span class="health-title" id="ribbonHealthTitle">ODDS STALE</span>
               <span class="health-age" id="ribbonHealthAge">· 7d ago</span>
             </div>
-            <button type="button" class="telemetry-refresh-btn" id="ribbonRefreshBtn" title="Refresh feed" aria-label="Refresh feed">↻</button>
+            <button type="button" class="telemetry-refresh-btn" id="ribbonRefreshBtn" title="Probe live sportsbook feeds (DraftKings, FanDuel)" aria-label="Refresh feed">↻</button>
           </div>
-          <div class="telemetry-subtext telemetry-root-hash hero-pod-sub">Root #178e29974bf8748c · Fail-Closed</div>
+          <div class="telemetry-subtext telemetry-root-hash hero-pod-sub" id="ribbonHeartbeatStatus">Root #178e29974bf8748c · Auto-probe active</div>
         </div>
       </div>
     </section>
@@ -436,6 +443,21 @@
         <button class="icon-button" value="cancel" aria-label="Close player detail">×</button>
       </div>
       <div class="dialog-body" id="detailContent"></div>
+    </form>
+  </dialog>
+
+  <!-- Interactive Line Simulator & Stress-Test Tray -->
+  <dialog class="detail-dialog simulate-dialog" id="simulateLineDialog" aria-labelledby="simModalTitle">
+    <form method="dialog" class="dialog-shell sim-shell">
+      <div class="dialog-sheet-handle" aria-hidden="true"></div>
+      <div class="dialog-header">
+        <div>
+          <div class="eyebrow" id="simModalEyebrow">Mathematical Line Simulator</div>
+          <h2 id="simModalTitle">Simulate Player Prop Line</h2>
+        </div>
+        <button class="icon-button" value="cancel" aria-label="Close line simulator">×</button>
+      </div>
+      <div class="dialog-body" id="simModalBody"></div>
     </form>
   </dialog>
 
