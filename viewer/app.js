@@ -196,6 +196,7 @@
     selectedExecutionPlayerId: null,
     focusedIndex: -1,
     scenarioTargetShare: null,
+    inlineSim: null,
     bankroll: 5000,
     clvReport: null,
     portfolio: loadPortfolio(),
@@ -2085,7 +2086,7 @@
     if (switcher) {
       switcher.innerHTML = sportSwitcherItems().map((item) => `
         <button type="button" class="sport-switch-btn${item.active ? ' active' : ''}" role="radio"
-          aria-checked="${item.active}" data-sport="${esc(item.id)}" title="Switch to ${esc(item.label)}">${esc(item.label)}</button>`).join('');
+          aria-checked="${item.active}" data-sport="${esc(item.id)}" title="Switch to ${esc(item.label)}">${leagueBadgeSvg(item.id)}<span class="sport-switch-label">${esc(item.label)}</span></button>`).join('');
       switcher.addEventListener('click', (e) => {
         const btn = e.target && e.target.closest ? e.target.closest('[data-sport]') : null;
         if (btn) switchToSport(btn.dataset.sport);
@@ -3186,8 +3187,8 @@
       $('#slateRows').innerHTML = '';
       $('#cardView').innerHTML = displayRows.map((row, idx) => propCard(row, idx)).join('');
       $('#cardView').classList.toggle('compact-grid', state.view === 'compact-grid');
-      // v171: CSP-clean dynamic progress width (inline style attrs are stripped by prod CSP)
-      document.querySelectorAll('#cardView .card-prog-fill[data-prog]').forEach((el) => { el.style.width = el.dataset.prog + '%'; });
+      // v176: card-prog-track/fill retired with the decision-card redesign —
+      // the distribution strip replaced the pseudo proj/fair progress bar.
     }
 
     const isMobile = window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
@@ -5818,6 +5819,170 @@
     </tr>`;
   }
 
+  // ── v176 decision-card helpers ─────────────────────────────────────────
+  /** Normal-approximation P(win) + half-Kelly (cap 3%) shared by the line
+   *  simulator tray and the card sim readout so both always agree. This is
+   *  the documented approximation, NOT exact compound NegBin/Gamma pricing. */
+  function approxSimMath(adjProj, line, odds, dist) {
+    const decOdds = odds > 0 ? (odds / 100) + 1 : (100 / Math.abs(odds)) + 1;
+    const stdDev = Math.max(1, (dist.high - dist.low) / 2.56);
+    const z = (adjProj - line) / stdDev;
+    const t = 1 / (1 + 0.2316419 * Math.abs(z));
+    const d = 0.3989423 * Math.exp(-z * z / 2);
+    let pWin = 1 - d * t * (0.3193815 + t * (-0.3565638 + t * (1.781478 + t * (-1.821256 + t * 1.330274))));
+    if (z < 0) pWin = 1 - pWin;
+    const isOver = adjProj >= line;
+    if (!isOver) pWin = 1 - pWin;
+    pWin = Math.min(0.95, Math.max(0.05, pWin));
+    const b = decOdds - 1;
+    const rawKelly = Math.max(0, (pWin * b - (1 - pWin)) / b);
+    const cappedKelly = Math.min(rawKelly * 0.5, 0.03);
+    return { pWin, kelly: cappedKelly };
+  }
+
+  /** Compact distribution strip for the v176 card: 80% band + fair/proj
+   *  ticks (+ book/sim tick when a line exists). Pure SVG geometry with
+   *  class-based fills — no inline styles, so it survives prod CSP and
+   *  light/dark theming. Approximate range, same source as the sim tray. */
+  function cardDistStripSvg(dist, opts = {}) {
+    if (dist.isTd) {
+      const probPct = Math.min(100, Math.max(0, dist.prob * 100));
+      return `<svg class="card-dist-svg" viewBox="0 0 100 12" preserveAspectRatio="none" role="img" aria-label="Anytime touchdown probability ${probPct.toFixed(0)} percent"><rect class="cdist-track" x="0" y="4" width="100" height="4" rx="2"></rect><rect class="cdist-band" x="0" y="3" width="${probPct.toFixed(1)}" height="6" rx="2.5"></rect></svg>`;
+    }
+    const maxScale = dist.isRec ? 14 : 190;
+    const toPct = (v) => Math.min(99, Math.max(1, (v / maxScale) * 100));
+    const lo = toPct(dist.low);
+    const hi = Math.max(toPct(dist.high), lo + 2);
+    const tick = (x, cls) => `<rect class="${cls}" x="${(Math.max(1.8, Math.min(98.2, x)) - 0.9).toFixed(2)}" y="1.5" width="1.8" height="9" rx="0.9"></rect>`;
+    const lineTick = (Number.isFinite(opts.bookLine) && opts.bookLine > 0) ? tick(toPct(opts.bookLine), 'cdist-tick-book') : '';
+    const simTick = (Number.isFinite(opts.simLine) && opts.simLine > 0 && !lineTick) ? tick(toPct(opts.simLine), 'cdist-tick-book') : '';
+    return `<svg class="card-dist-svg" viewBox="0 0 100 12" preserveAspectRatio="none" role="img" aria-label="Approximate model range ${dist.low} to ${dist.high}, fair ${dist.fair.toFixed(1)}, projection ${dist.proj.toFixed(1)}"><rect class="cdist-track" x="0" y="4" width="100" height="4" rx="2"></rect><rect class="cdist-band" x="${lo.toFixed(2)}" y="2.5" width="${(hi - lo).toFixed(2)}" height="7" rx="2.5"></rect>${tick(toPct(dist.fair), 'cdist-tick-fair')}${tick(toPct(dist.proj), 'cdist-tick-proj')}${lineTick}${simTick}</svg>`;
+  }
+
+  /** v176 "3D sketched" side arrow: hand-drawn wobbly shaft + arrowhead with
+   *  an offset shadow stroke for depth. OVER points up (chartreuse), UNDER
+   *  points down (sky blue). Pure SVG geometry + class fills/strokes — CSP
+   *  clean, themeable, replaces the plain ↑/↓ glyphs next to book lines. */
+  function sketchSideArrow(dir, size = 15) {
+    const up = dir !== 'UNDER';
+    return `<svg class="sketch-arrow ${up ? 'up' : 'down'}" width="${size}" height="${size}" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path class="sketch-arrow-shadow" d="${up ? 'M4.2 17.2 L15.9 5.1 M15.9 5.1 L10.2 4.6 M15.9 5.1 L16.3 10.9' : 'M4.2 2.8 L15.9 14.9 M15.9 14.9 L10.2 15.4 M15.9 14.9 L16.3 9.1'}" stroke-linecap="round" stroke-linejoin="round"></path><path class="sketch-arrow-ink" d="${up ? 'M3.5 16.5 L15.2 4.4 M15.2 4.4 L9.5 3.9 M15.2 4.4 L15.6 10.2' : 'M3.5 3.5 L15.2 15.6 M15.2 15.6 L9.5 16.1 M15.2 15.6 L15.6 9.8'}" stroke-linecap="round" stroke-linejoin="round"></path></svg>`;
+  }
+
+  /** v176 league badges (NFL / NBA) for the sport switcher — compact inline
+   *  vector marks: NFL shield silhouette, NBA ball-with-panels. CSP-safe. */
+  function leagueBadgeSvg(sportId) {
+    if (sportId === 'nfl') {
+      return `<svg class="league-badge league-badge-nfl" viewBox="0 0 22 26" aria-hidden="true"><path class="lb-nfl-shield" d="M2 2 L11 2 L20 2 L20 15 Q20 21.5 11 24.5 Q2 21.5 2 15 Z"></path><path class="lb-nfl-band" d="M2 2 L11 2 L20 2 L20 6.4 L2 6.4 Z"></path><circle class="lb-nfl-star" cx="5.4" cy="4.2" r="0.85"></circle><circle class="lb-nfl-star" cx="8.2" cy="4.2" r="0.85"></circle><circle class="lb-nfl-star" cx="11" cy="4.2" r="0.85"></circle><circle class="lb-nfl-star" cx="13.8" cy="4.2" r="0.85"></circle><circle class="lb-nfl-star" cx="16.6" cy="4.2" r="0.85"></circle><path class="lb-nfl-star" d="M11 9.4 L11.9 11.2 L13.9 11.5 L12.4 12.9 L12.8 14.9 L11 14 L9.2 14.9 L9.6 12.9 L8.1 11.5 L10.1 11.2 Z"></path><text class="lb-nfl-text" x="11" y="20.4" text-anchor="middle">NFL</text></svg>`;
+    }
+    if (sportId === 'nba') {
+      return `<svg class="league-badge league-badge-nba" viewBox="0 0 22 26" aria-hidden="true"><circle class="lb-nba-ball" cx="11" cy="11" r="8.6"></circle><path class="lb-nba-seam" d="M2.4 11 L19.6 11 M11 2.4 L11 19.6 M4.9 4.9 Q11 8.4 17.1 4.9 M4.9 17.1 Q11 13.6 17.1 17.1"></path><text class="lb-nba-text" x="11" y="24.6" text-anchor="middle">NBA</text></svg>`;
+    }
+    return '';
+  }
+
+  /** v176 inline line simulator — the simulation lives INSIDE the player
+   *  card (replaces the modal tray). Live steppers write straight into
+   *  state.simulatedLines/Odds/Alpha; readout shares approxSimMath with the
+   *  card money row so the two can never disagree. Honesty labels carried
+   *  over verbatim from the retired modal (Approximate / Model Approx. /
+   *  ½·cap 3% / approximation footnote). */
+  function inlineSimPanelHtml(row, dist) {
+    if (!state.inlineSim || state.inlineSim.pid !== row.player_id) return '';
+    const pid = row.player_id;
+    const fairVal = dist.fair;
+    const simLine = (state.simulatedLines && state.simulatedLines[pid] !== undefined) ? state.simulatedLines[pid] : +fairVal.toFixed(1);
+    const simOdds = (state.simulatedOdds && state.simulatedOdds[pid] !== undefined) ? state.simulatedOdds[pid] : -110;
+    const simAlpha = (state.simulatedAlpha && state.simulatedAlpha[pid] !== undefined) ? state.simulatedAlpha[pid] : 0;
+
+    const alphaFactor = 1 + (simAlpha / 100);
+    const adjProj = dist.proj * alphaFactor;
+    const rawEdge = simLine > 0 ? ((adjProj - simLine) / simLine) : 0;
+    const edgePctVal = rawEdge * 100;
+    const isOver = adjProj >= simLine;
+    const { pWin, kelly: cappedKelly } = approxSimMath(adjProj, simLine, simOdds, dist);
+
+    return `
+      <div class="csim-panel" data-csim-player="${esc(pid)}">
+        <div class="csim-head">
+          <span class="csim-eyebrow">Approximate Line Simulator</span>
+          <button type="button" class="csim-close" data-simulate-player="${esc(pid)}" aria-label="Close simulator">×</button>
+        </div>
+        <div class="csim-row">
+          <span class="csim-k">Line</span>
+          <button type="button" class="csim-step" data-sim-step="-0.5" data-sim-player="${esc(pid)}" aria-label="Line down half">−0.5</button>
+          <span class="csim-line-val font-mono">${simLine.toFixed(1)}</span>
+          <button type="button" class="csim-step" data-sim-step="0.5" data-sim-player="${esc(pid)}" aria-label="Line up half">+0.5</button>
+          <span class="csim-odds-chips">
+            ${[-120, -115, -110, -105, 100, 105].map((o) => `<button type="button" class="csim-odds-chip${o === simOdds ? ' active' : ''}" data-sim-odds="${o}" data-sim-player="${esc(pid)}">${o > 0 ? '+' : ''}${o}</button>`).join('')}
+          </span>
+        </div>
+        <div class="csim-row">
+          <span class="csim-k">Role shift</span>
+          <button type="button" class="csim-step" data-sim-alpha-step="-5" data-sim-player="${esc(pid)}" aria-label="Role down 5 percent">−5%</button>
+          <span class="csim-alpha-val font-mono">${simAlpha > 0 ? '+' : ''}${simAlpha}%</span>
+          <button type="button" class="csim-step" data-sim-alpha-step="5" data-sim-player="${esc(pid)}" aria-label="Role up 5 percent">+5%</button>
+          <span class="csim-k-sub">usage / target-share stress (±30%)</span>
+        </div>
+        <div class="csim-readout">
+          <span class="csim-ro"><span class="csim-ro-k">Side</span><span class="csim-ro-v">${sketchSideArrow(isOver ? 'OVER' : 'UNDER', 13)} ${isOver ? 'OVER' : 'UNDER'}</span></span>
+          <span class="csim-ro"><span class="csim-ro-k">Edge</span><span class="csim-ro-v ${edgePctVal > 0 ? 'pos' : 'neg'}">${edgePctVal > 0 ? '+' : ''}${edgePctVal.toFixed(1)}%</span></span>
+          <span class="csim-ro"><span class="csim-ro-k" title="Normal approximation of the model fair distribution (clamped 5–95%). Not a de-vigged market probability.">P(Win) Model Approx.</span><span class="csim-ro-v">${(pWin * 100).toFixed(1)}%</span></span>
+          <span class="csim-ro"><span class="csim-ro-k" title="Half-Kelly, hard-capped at 3% of bankroll.">Kelly (½·cap 3%)</span><span class="csim-ro-v ${cappedKelly > 0 ? 'pos' : ''}">${(cappedKelly * 100).toFixed(1)}%</span></span>
+        </div>
+        <div class="sim-approx-note" role="note">Approximate stress-test: P(Win) uses a normal approximation of the model distribution — not exact compound NegBin/Gamma pricing — and the suggested stake is half-Kelly capped at 3% of bankroll.</div>
+        <div class="csim-actions">
+          <button type="button" class="csim-clear" data-sim-clear="${esc(pid)}">Clear Simulation</button>
+        </div>
+      </div>`;
+  }
+
+  /** One-line signal context under the money row: role driver badge plus
+   *  only materially-relevant matchup chips (soft/tough pass defense, big
+   *  underdog script, outdoor wind). Context, never a betting claim. */
+  function cardSignalRowHtml(row, beneficiary) {
+    const chips = [];
+    try {
+      const driver = keyDriverTag(row, beneficiary);
+      if (driver) chips.push(driver);
+    } catch (err) { /* adapter without driverTag — cards still render */ }
+    const defIdx = num(state.filters.market === 'receptions' ? row.def_rec_idx : row.def_yards_idx, NaN);
+    if (Number.isFinite(defIdx)) {
+      const delta = (defIdx - 1) * 100;
+      if (Math.abs(delta) >= 8) {
+        const soft = delta > 0;
+        chips.push(`<span class="card-context-chip ${soft ? 'pos' : 'neg'}" title="Opponent pass defense allows ${soft ? '+' : ''}${delta.toFixed(0)}% vs league average (allowed index ${defIdx.toFixed(2)}, 1.00 = average).">${soft ? 'SOFT' : 'TOUGH'} MATCHUP</span>`);
+      }
+    }
+    const spread = num(row.team_spread, NaN);
+    if (Number.isFinite(spread) && spread >= 3) {
+      chips.push(`<span class="card-context-chip" title="Team is a ${spread.toFixed(1)}-point underdog; trailing scripts historically lean pass-heavy. Context only — the model already prices game script.">+${spread.toFixed(1)} DOG</span>`);
+    }
+    const wind = num(row.wind, 0);
+    if (wind >= 12 && !row.is_dome) {
+      chips.push(`<span class="card-context-chip" title="Outdoor game, ${wind.toFixed(0)} mph wind — deep-ball efficiency risk.">WIND ${wind.toFixed(0)}</span>`);
+    }
+    if (!chips.length) return '';
+    return `<div class="card-signal-row">${chips.join('')}</div>`;
+  }
+
+  /** Copy-fair action: puts the honest research line (player, market, fair,
+   *  projection, 80% CI) on the clipboard with an approximation disclaimer. */
+  function copyFairLine(playerId) {
+    const row = (state.slate || []).find((r) => r.player_id === playerId);
+    if (!row) return;
+    const dist = distributionRange(row);
+    const mdef = marketDef();
+    const marketLabel = mdef.chipLabel || state.filters.market;
+    const text = `${row.player_display_name} · ${marketLabel} — Model Fair ${dist.fair.toFixed(1)} | Proj ${dist.proj.toFixed(1)}${dist.isTd ? ` | P(TD) ${(dist.prob * 100).toFixed(0)}%` : ` | 80% CI ${dist.low}-${dist.high}`} | PropStein research output (approximate; not a betting recommendation)`;
+    const done = () => toast('Model fair line copied to clipboard');
+    const fail = () => toast('Clipboard unavailable in this context — copy manually');
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done, fail);
+    } else {
+      fail();
+    }
+  }
+
   function propCard(row, index = 0) {
     const evaluation = evaluateRow(row);
     const injury = injuryFor(row);
@@ -5892,7 +6057,9 @@
 
     const edgePctDisplay = evaluation.edge ? Math.abs(evaluation.edge * 100).toFixed(1) : '0.0';
     const hasPositiveEdge = Number(evaluation.edge) > 0;
-    const progRatio = fairVal > 0 ? Math.min(100, Math.max(10, Math.round((dist.proj / (fairVal * 1.25)) * 100))) : 50;
+    // v176: research-mode cards use the decision layout (money row + signal
+    // row + action bar) instead of the quoted-state tabular grid.
+    const isResearchCard = evaluation.state === 'none';
 
     // Row 2 Data Grid Columns
     let gridColsHtml = '';
@@ -5919,44 +6086,62 @@
         </div>
       `;
     } else if (evaluation.state === 'none') {
+      // v176 decision-card: research mode leads with the money row (big
+      // PROJ | FAIR, 80% CI, distribution strip), a signal context line,
+      // and a thumb-zone action bar with SIM as the primary CTA. The old
+      // "AWAITING QUOTE" sportsbook block is demoted to a small honest tag:
+      // quotes stay fail-closed, the simulator lives INSIDE the card.
       const simVal = (state.simulatedLines && state.simulatedLines[row.player_id] !== undefined)
         ? state.simulatedLines[row.player_id]
         : null;
+      const simOpen = state.inlineSim && state.inlineSim.pid === row.player_id;
+      let simKellyHtml = '';
+      if (simVal !== null) {
+        const simOdds = (state.simulatedOdds && state.simulatedOdds[row.player_id] !== undefined) ? state.simulatedOdds[row.player_id] : -110;
+        const simMath = approxSimMath(dist.proj, simVal, simOdds, dist);
+        simKellyHtml = `<span class="card-kelly-chip" title="Half-Kelly stake, hard-capped at 3% of bankroll. Approximate sizing from the simulated line — not betting advice.">½K ${(simMath.kelly * 100).toFixed(1)}%</span>`;
+      }
+      const distTitle = dist.isTd
+        ? `Anytime TD probability ${(dist.prob * 100).toFixed(0)}% (approx. share model)`
+        : `Approximate 80% model range ${dist.low}-${dist.high} · fair ${fairVal.toFixed(1)} (grey tick) · projection ${dist.proj.toFixed(1)} (chartreuse tick)${simVal !== null ? ` · simulated line ${simVal.toFixed(1)} (blue tick)` : ''}`;
       gridColsHtml = `
-        <div class="card-grid-col col-book dens-span2">
-          <span class="grid-col-lbl">SPORTSBOOK</span>
-          <div class="card-quote-standby-wrap">
-            ${simVal !== null
-              ? `<span class="card-sim-line-val font-mono">SIM ${simVal.toFixed(1)}</span>`
-              : `<span class="card-unverified-tag" title="Awaiting 3-book consensus receipt hash">AWAITING QUOTE</span>`}
-            <button type="button" class="card-simulate-trigger-btn" data-simulate-player="${esc(row.player_id)}" title="Simulate custom sportsbook line and stress-test">
-              ${simVal !== null ? 'Edit Sim' : '+ Simulate'}
-            </button>
+        <div class="card-money-row">
+          <div class="card-money-cell">
+            <span class="card-money-lbl">PROJ</span>
+            <span class="card-money-val font-mono">${dist.proj.toFixed(1)}</span>
           </div>
-          <div class="card-proj-fair-row font-mono dens-row-8">
-            <span class="font-mono text-white dens-proj-val">PROJ ${dist.proj.toFixed(1)}</span>
-            <span class="font-mono dens-fair-sub">FAIR ${fairVal.toFixed(1)}</span>
+          <div class="card-money-div" aria-hidden="true"></div>
+          <div class="card-money-cell">
+            <span class="card-money-lbl">FAIR</span>
+            <span class="card-money-val fair font-mono">${fairVal.toFixed(1)}</span>
           </div>
-          <div class="card-prog-track"><div class="card-prog-fill" data-prog="${progRatio}"></div></div>
+          ${simKellyHtml}
+          <div class="card-dist-block" title="${esc(distTitle)}">
+            <span class="card-ci-chip">${dist.isTd ? `P(TD) ${(dist.prob * 100).toFixed(0)}%` : `80% CI ${dist.low}–${dist.high}`}</span>
+            ${cardDistStripSvg(dist, { simLine: simVal })}
+          </div>
         </div>
-        <div class="card-grid-col col-steam">
-          <span class="grid-col-lbl">FAIR</span>
-          <span class="grid-col-val font-mono">${fairVal.toFixed(1)}</span>
-          <span class="grid-col-sub">Model</span>
+        ${cardSignalRowHtml(row, beneficiary)}
+        <div class="card-action-bar">
+          <button type="button" class="card-sim-primary${simVal !== null ? ' has-sim' : ''}${simOpen ? ' open' : ''}" data-simulate-player="${esc(row.player_id)}" title="Open the approximate line simulator inside this card">⚡ ${simOpen ? 'CLOSE SIM' : simVal !== null ? `SIM ${simVal.toFixed(1)} · EDIT` : 'SIM LINE'}</button>
+          <button type="button" class="card-ghost-act" data-copy-fair="${esc(row.player_id)}" title="Copy model fair line + range to clipboard">COPY FAIR</button>
+          <span class="card-research-tag${simVal !== null ? ' sim-active' : ''}">${simVal !== null ? 'SIMULATED · NOT A BOOK QUOTE' : 'NO LIVE QUOTE'}</span>
         </div>
-        <div class="card-grid-col col-action">
-          <button type="button" class="card-btn-view card-btn-view-ghost" data-inspect="${esc(row.player_id)}" aria-label="View Details" title="Open full quantitative model drawer">›</button>
-          <button type="button" class="card-btn-sim-quick" data-simulate-player="${esc(row.player_id)}" aria-label="Simulate Line" title="Quick line stress-test (approx. model)">⚡ Sim</button>
-        </div>
-      `;
+        ${inlineSimPanelHtml(row, dist)}`;
     } else {
       const isFlatJuice = evaluation.odds === -110;
       const juiceLabel = isFlatJuice ? 'Flat -110' : oddsText(evaluation.odds);
       const juiceClass = isFlatJuice ? 'flat-odds' : (evaluation.odds <= -115 ? 'heavy-juice' : 'plus-money');
+      const kellyChipHtml = (execution && execution.allowed && Number(evaluation.stake) > 0 && !dist.isTd)
+        ? `<span class="card-kelly-chip" title="Half-Kelly stake, hard-capped at 3% of bankroll (approximate sizing — not betting advice).">½K ${(evaluation.stake * 100).toFixed(1)}%</span>`
+        : '';
+      const distTitle = dist.isTd
+        ? `Anytime TD probability ${(dist.prob * 100).toFixed(0)}% (approx. share model)`
+        : `Approximate 80% model range ${dist.low}-${dist.high} · fair ${fairVal.toFixed(1)} (grey tick) · projection ${dist.proj.toFixed(1)} (chartreuse tick) · book line ${evaluation.line.toFixed(1)} (blue tick)`;
       gridColsHtml = `
         <div class="card-grid-col col-book">
           <span class="grid-col-lbl">BOOK</span>
-          <span class="grid-col-val font-mono text-white dens-val-700">${evaluation.side === 'OVER' ? '↑' : '↓'} ${evaluation.line.toFixed(1)}</span>
+          <span class="grid-col-val font-mono text-white dens-val-700">${sketchSideArrow(evaluation.side)} ${evaluation.line.toFixed(1)}</span>
           <span class="card-odds-pill ${juiceClass}">${juiceLabel}</span>
         </div>
         <div class="card-grid-col col-model">
@@ -5966,7 +6151,11 @@
             ${hasPositiveEdge ? `<span class="card-edge-badge-lime">+${edgePctDisplay}%</span>` : ''}
             <span class="font-mono dens-fair-sub">FAIR ${fairVal.toFixed(1)}</span>
           </div>
-          <div class="card-prog-track"><div class="card-prog-fill" data-prog="${progRatio}"></div></div>
+          ${kellyChipHtml}
+          <div class="card-dist-block" title="${esc(distTitle)}">
+            <span class="card-ci-chip">${dist.isTd ? `P(TD) ${(dist.prob * 100).toFixed(0)}%` : `80% CI ${dist.low}–${dist.high}`}</span>
+            ${cardDistStripSvg(dist, { bookLine: dist.isTd ? null : evaluation.line })}
+          </div>
         </div>
         <div class="card-grid-col col-steam">
           <span class="grid-col-lbl">STEAM</span>
@@ -5974,11 +6163,12 @@
         </div>
         <div class="card-grid-col col-action">
           <button type="button" class="card-btn-view card-btn-view-ghost" data-inspect="${esc(row.player_id)}" aria-label="View Details" title="Open full quantitative model drawer">›</button>
-          <button type="button" class="card-btn-sim-quick" data-simulate-player="${esc(row.player_id)}" aria-label="Simulate Line" title="Quick line stress-test (approx. model)">⚡ Sim</button>
+          <button type="button" class="card-btn-sim-quick${state.inlineSim && state.inlineSim.pid === row.player_id ? ' open' : ''}" data-simulate-player="${esc(row.player_id)}" aria-label="Simulate Line" title="Quick line stress-test (approx. model)">⚡ Sim</button>
           ${isLogged || execution.allowed
             ? `<button type="button" class="card-btn-log ${isLogged ? 'logged' : ''}" data-log-bet="${esc(row.player_id)}" aria-label="${isLogged ? 'Remove from Ledger' : 'Review verified play'}" title="${isLogged ? 'Remove from Ledger' : 'Review verified play'}">${isLogged ? 'Logged' : 'Review'}</button>`
             : `<button type="button" class="card-btn-log blocked" disabled aria-label="Execution blocked: ${esc(execution.message)}" title="${esc(execution.message)}">${SVG_ICONS.lock}</button>`}
         </div>
+        ${inlineSimPanelHtml(row, dist)}
       `;
     }
 
@@ -6003,8 +6193,8 @@
         <!-- Hairline Divider -->
         <div class="card-hairline-sep"></div>
 
-        <!-- Row 2: 4-Column Clean Tabular Data Grid -->
-        <div class="card-grid-row">
+        <!-- Row 2: decision layout (research) or 4-column tabular grid (quoted) -->
+        <div class="card-grid-row${isResearchCard ? ' v176-research' : ''}">
           ${gridColsHtml}
         </div>
       </article>`;
@@ -6201,200 +6391,6 @@
     return null;
   }
 
-  function openLineSimulatorModal(playerId) {
-    const row = (state.slate || []).find((r) => r.player_id === playerId);
-    if (!row) return;
-
-    const dialog = elById('simulateLineDialog');
-    const body = elById('simModalBody');
-    if (!dialog || !body) return;
-
-    const dist = distributionRange(row);
-    let simLine = (state.simulatedLines && state.simulatedLines[playerId] !== undefined)
-      ? state.simulatedLines[playerId]
-      : +dist.fair.toFixed(1);
-    let simOdds = (state.simulatedOdds && state.simulatedOdds[playerId] !== undefined)
-      ? state.simulatedOdds[playerId]
-      : -110;
-    let simAlpha = (state.simulatedAlpha && state.simulatedAlpha[playerId] !== undefined)
-      ? state.simulatedAlpha[playerId]
-      : 0;
-
-    function renderSimContent() {
-      const alphaFactor = 1 + (simAlpha / 100);
-      const adjProj = dist.proj * alphaFactor;
-      const adjFair = dist.fair * alphaFactor;
-      const rawEdge = simLine > 0 ? ((adjProj - simLine) / simLine) : 0;
-      const edgePctVal = rawEdge * 100;
-      const isOver = adjProj >= simLine;
-      const isPos = edgePctVal > 0;
-
-      const decOdds = simOdds > 0 ? (simOdds / 100) + 1 : (100 / Math.abs(simOdds)) + 1;
-      const stdDev = Math.max(1, (dist.high - dist.low) / 2.56);
-      const z = (adjProj - simLine) / stdDev;
-      const t = 1 / (1 + 0.2316419 * Math.abs(z));
-      const d = 0.3989423 * Math.exp(-z * z / 2);
-      let pWin = 1 - d * t * (0.3193815 + t * (-0.3565638 + t * (1.781478 + t * (-1.821256 + t * 1.330274))));
-      if (z < 0) pWin = 1 - pWin;
-      if (!isOver) pWin = 1 - pWin;
-      pWin = Math.min(0.95, Math.max(0.05, pWin));
-
-      const b = decOdds - 1;
-      const rawKelly = Math.max(0, (pWin * b - (1 - pWin)) / b);
-      const cappedKelly = Math.min(rawKelly * 0.5, 0.03);
-
-      body.innerHTML = `
-        <div class="sim-player-card">
-          <div class="sim-player-id">
-            ${avatarFor(row.player_id, row.player_display_name, row.team)}
-            <div>
-              <div class="sim-player-name">${esc(row.player_display_name)}</div>
-              <div class="sim-player-sub">${esc(row.position)} · ${esc(row.team)} ${row.is_home ? 'vs' : '@'} ${esc(row.opponent_team)}</div>
-            </div>
-          </div>
-          <div class="sim-base-metrics">
-            <div class="sim-base-k">Model Fair | Proj</div>
-            <div class="sim-base-v">${dist.fair.toFixed(1)} | ${dist.proj.toFixed(1)} ${dist.unit || ''}</div>
-          </div>
-        </div>
-
-        <div class="sim-control-group">
-          <div class="sim-control-label">
-            <span>Sportsbook Line (${dist.unit || 'units'})</span>
-            <span class="sim-control-val" id="simLineReadout">${simLine.toFixed(1)}</span>
-          </div>
-          <div class="sim-line-stepper-wrap">
-            <button type="button" class="sim-step-btn" id="simStepMinus">-0.5</button>
-            <input type="number" step="0.5" id="simLineInput" class="sim-number-input" value="${simLine.toFixed(1)}">
-            <button type="button" class="sim-step-btn" id="simStepPlus">+0.5</button>
-          </div>
-          <input type="range" id="simLineSlider" class="sim-range-slider" min="${Math.max(0.5, dist.low - 15)}" max="${dist.high + 25}" step="0.5" value="${simLine.toFixed(1)}">
-        </div>
-
-        <div class="sim-control-group">
-          <div class="sim-control-label">
-            <span>Market Odds / Juice</span>
-            <span class="sim-control-val" id="simOddsReadout">${simOdds > 0 ? `+${simOdds}` : simOdds}</span>
-          </div>
-          <div class="sim-odds-pills">
-            ${[-120, -115, -110, -105, 100, 105].map((o) => `
-              <button type="button" class="sim-odds-chip ${o === simOdds ? 'active' : ''}" data-sim-odds="${o}">${o > 0 ? `+${o}` : o}</button>
-            `).join('')}
-          </div>
-        </div>
-
-        <div class="sim-control-group">
-          <div class="sim-control-label">
-            <span>Usage / Target Share Shift</span>
-            <span class="sim-control-val" id="simAlphaReadout">${simAlpha > 0 ? `+${simAlpha}%` : `${simAlpha}%`}</span>
-          </div>
-          <input type="range" id="simAlphaSlider" class="sim-range-slider" min="-30" max="30" step="1" value="${simAlpha}">
-          <div class="sim-tray-foot">
-            <span>-30% Role Decrease</span>
-            <span>0% Baseline</span>
-            <span>+30% Role Surge</span>
-          </div>
-        </div>
-
-        <div class="sim-readout-card">
-          <div class="sim-readout-grid">
-            <div class="sim-readout-item">
-              <span class="sim-readout-k">Optimal Side</span>
-              <span class="sim-readout-v ${isPos ? 'pos' : ''}">${isOver ? 'OVER' : 'UNDER'}</span>
-            </div>
-            <div class="sim-readout-item">
-              <span class="sim-readout-k">Model Edge</span>
-              <span class="sim-readout-v ${isPos ? 'pos' : 'neg'}">${isPos ? '+' : ''}${edgePctVal.toFixed(1)}%</span>
-            </div>
-            <div class="sim-readout-item">
-              <span class="sim-readout-k">Model Fair</span>
-              <span class="sim-readout-v">${adjFair.toFixed(1)}</span>
-            </div>
-            <div class="sim-readout-item">
-              <span class="sim-readout-k" title="Normal approximation of the model fair distribution (clamped 5–95%). Not a de-vigged market probability.">P(Win) Model Approx.</span>
-              <span class="sim-readout-v">${(pWin * 100).toFixed(1)}%</span>
-            </div>
-            <div class="sim-readout-item">
-              <span class="sim-readout-k" title="Half-Kelly, hard-capped at 3% of bankroll.">Kelly Stake (½·cap 3%)</span>
-              <span class="sim-readout-v ${cappedKelly > 0 ? 'pos' : ''}">${(cappedKelly * 100).toFixed(1)}%</span>
-            </div>
-            <div class="sim-readout-item">
-              <span class="sim-readout-k">Edge Tier</span>
-              <span class="sim-readout-v ${edgePctVal >= 10 ? 'pos' : ''}">${edgePctVal >= 10 ? 'ALPHA' : edgePctVal >= 5 ? 'LEAN' : 'BASE'}</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="sim-approx-note" role="note">Approximate stress-test: P(Win) uses a normal approximation of the model distribution — not exact compound NegBin/Gamma pricing — and the suggested stake is half-Kelly capped at 3% of bankroll.</div>
-
-        <div class="sim-actions-row">
-          <button type="button" class="sim-btn-apply" id="simApplyBtn">Apply Simulation to Slate</button>
-          <button type="button" class="sim-btn-reset" id="simResetBtn">Clear</button>
-        </div>
-      `;
-
-      const lineInput = elById('simLineInput');
-      const lineSlider = elById('simLineSlider');
-      const alphaSlider = elById('simAlphaSlider');
-
-      const onLineChange = (val) => {
-        const numVal = parseFloat(val);
-        if (!isNaN(numVal) && numVal > 0) {
-          simLine = numVal;
-          renderSimContent();
-        }
-      };
-
-      if (lineInput) lineInput.addEventListener('change', (e) => onLineChange(e.target.value));
-      if (lineSlider) lineSlider.addEventListener('input', (e) => onLineChange(e.target.value));
-      if (alphaSlider) alphaSlider.addEventListener('input', (e) => {
-        simAlpha = parseInt(e.target.value, 10) || 0;
-        renderSimContent();
-      });
-
-      const btnMinus = elById('simStepMinus');
-      if (btnMinus) btnMinus.addEventListener('click', () => onLineChange(Math.max(0.5, simLine - 0.5)));
-      const btnPlus = elById('simStepPlus');
-      if (btnPlus) btnPlus.addEventListener('click', () => onLineChange(simLine + 0.5));
-
-      body.querySelectorAll('[data-sim-odds]').forEach((btn) => {
-        btn.addEventListener('click', () => {
-          simOdds = parseInt(btn.dataset.simOdds, 10);
-          renderSimContent();
-        });
-      });
-
-      const applyBtn = elById('simApplyBtn');
-      if (applyBtn) {
-        applyBtn.addEventListener('click', () => {
-          if (!state.simulatedLines) state.simulatedLines = {};
-          if (!state.simulatedOdds) state.simulatedOdds = {};
-          if (!state.simulatedAlpha) state.simulatedAlpha = {};
-          state.simulatedLines[playerId] = simLine;
-          state.simulatedOdds[playerId] = simOdds;
-          state.simulatedAlpha[playerId] = simAlpha;
-          dialog.close();
-          renderBoard();
-          toast(`Simulation applied: ${row.player_display_name} ${simLine.toFixed(1)} line (${edgePctVal > 0 ? '+' : ''}${edgePctVal.toFixed(1)}% Edge)`);
-        });
-      }
-
-      const resetBtn = elById('simResetBtn');
-      if (resetBtn) {
-        resetBtn.addEventListener('click', () => {
-          if (state.simulatedLines) delete state.simulatedLines[playerId];
-          if (state.simulatedOdds) delete state.simulatedOdds[playerId];
-          if (state.simulatedAlpha) delete state.simulatedAlpha[playerId];
-          dialog.close();
-          renderBoard();
-          toast(`Simulation cleared for ${row.player_display_name}`);
-        });
-      }
-    }
-
-    renderSimContent();
-    dialog.showModal();
-  }
 
   function bookCell(evaluation, injury, row = null) {
     if (SLATES[state.slateKey]?.historical && row) {
@@ -6693,7 +6689,72 @@
       event.preventDefault();
       event.stopPropagation();
       const pid = simBtn.dataset.simulatePlayer;
-      openLineSimulatorModal(pid);
+      if (simBtn.closest('#slateRows')) {
+        // Table view keeps its inline cell input flow.
+        state.simulatingId = (state.simulatingId === pid) ? null : pid;
+        renderBoard();
+        return;
+      }
+      // v176: the simulator lives INSIDE the card — the trigger toggles the
+      // inline panel (open state rides in state.inlineSim so it survives
+      // renderBoard re-renders). The retired modal is gone by design.
+      state.inlineSim = (state.inlineSim && state.inlineSim.pid === pid) ? null : { pid };
+      renderBoard();
+      return;
+    }
+    const simStep = event.target.closest('[data-sim-step]');
+    if (simStep) {
+      event.preventDefault();
+      event.stopPropagation();
+      const pid = simStep.dataset.simPlayer;
+      const row = (state.slate || []).find((r) => r.player_id === pid);
+      if (row) {
+        const dist = distributionRange(row);
+        if (!state.simulatedLines) state.simulatedLines = {};
+        const cur = (state.simulatedLines[pid] !== undefined) ? state.simulatedLines[pid] : +dist.fair.toFixed(1);
+        const next = Math.max(0.5, +(cur + parseFloat(simStep.dataset.simStep)).toFixed(1));
+        state.simulatedLines[pid] = next;
+        renderBoard();
+      }
+      return;
+    }
+    const simAlphaStep = event.target.closest('[data-sim-alpha-step]');
+    if (simAlphaStep) {
+      event.preventDefault();
+      event.stopPropagation();
+      const pid = simAlphaStep.dataset.simPlayer;
+      if (!state.simulatedAlpha) state.simulatedAlpha = {};
+      const cur = (state.simulatedAlpha[pid] !== undefined) ? state.simulatedAlpha[pid] : 0;
+      const next = Math.max(-30, Math.min(30, cur + parseInt(simAlphaStep.dataset.simAlphaStep, 10)));
+      state.simulatedAlpha[pid] = next;
+      renderBoard();
+      return;
+    }
+    const simOddsChip = event.target.closest('[data-sim-odds]');
+    if (simOddsChip) {
+      event.preventDefault();
+      event.stopPropagation();
+      if (!state.simulatedOdds) state.simulatedOdds = {};
+      state.simulatedOdds[simOddsChip.dataset.simPlayer] = parseInt(simOddsChip.dataset.simOdds, 10);
+      renderBoard();
+      return;
+    }
+    const simClear = event.target.closest('[data-sim-clear]');
+    if (simClear) {
+      event.preventDefault();
+      event.stopPropagation();
+      const pid = simClear.dataset.simClear;
+      if (state.simulatedLines) delete state.simulatedLines[pid];
+      if (state.simulatedOdds) delete state.simulatedOdds[pid];
+      if (state.simulatedAlpha) delete state.simulatedAlpha[pid];
+      renderBoard();
+      toast('Simulation cleared');
+      return;
+    }
+    const copyFairBtn = event.target.closest('[data-copy-fair]');
+    if (copyFairBtn) {
+      event.stopPropagation();
+      copyFairLine(copyFairBtn.dataset.copyFair);
       return;
     }
     const simClose = event.target.closest('[data-sim-close]');

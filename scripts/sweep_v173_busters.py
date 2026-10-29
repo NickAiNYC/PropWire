@@ -1,19 +1,21 @@
 #!/usr/bin/env python3
 """
-v175 three-piece cache-bust sweep (honesty layer + P2, Task 61).
+v176 three-piece cache-bust sweep (decision cards, Task 63).
 
-The v175 batch (real heartbeat probe, ledger-driven CLV ribbon, simulator
-relabel, checkout auth) changed viewer assets (app.js / index.html /
-style.css) — so the cache trio bumps with it:
-  buster     2026_v174 (and older)    -> 2026_v175
-  SW cache   propstein-v174-prod     -> propstein-v175-prod
-  build-hash 2026-w8-v27 (and older) -> 2026-w8-v28
+The v176 batch (research-mode decision cards: money row + 80% CI +
+distribution strip + signal row + action bar; sim-tray math deduplicated
+behind approxSimMath) changed viewer assets (app.js / style.css) — so the
+cache trio bumps with it:
+  buster     2026_v175 (and older)    -> 2026_v176
+  SW cache   propstein-v175-prod     -> propstein-v176-prod
+  build-hash 2026-w8-v28 (and older) -> 2026-w8-v29
 
 Also re-pins the 4 verification harnesses (verify_v152_books / v153_rebrand /
-v154_dropwire / v155_photos .mjs) to the same v175 values. The visual harness
-(verify_v175_visual.mjs) is intentionally version-agnostic (no pins).
+v154_dropwire / v155_photos .mjs) to the same v176 values. The visual
+harnesses (verify_v175_visual.mjs / verify_v176_cards.mjs) are intentionally
+version-agnostic (no pins).
 
-Verification pass at the end: zero stale v171/v172/v173/v174 markers anywhere
+Verification pass at the end: zero stale v171..v175 markers anywhere
 in the swept viewer assets.
 """
 
@@ -43,31 +45,35 @@ HARNESSES = [
 ]
 
 SWAPS = [
-    # v174 -> v175 (normal bump; owner-official propstein- prefix retained)
-    ("2026_v174", "2026_v175"),
-    ("propwire-v174-prod", "propstein-v175-prod"),
-    ("propstein-v174-prod", "propstein-v175-prod"),
-    ("2026-w8-v27", "2026-w8-v28"),
-    # v173/v172/v171-era -> v175 (defensive repair of any rewound pins)
-    ("2026_v173", "2026_v175"),
-    ("2026_v172", "2026_v175"),
-    ("2026_v171", "2026_v175"),
-    ("propwire-v173-prod", "propstein-v175-prod"),
-    ("propwire-v172-prod", "propstein-v175-prod"),
-    ("propwire-v171-prod", "propstein-v175-prod"),
-    ("propstein-v173-prod", "propstein-v175-prod"),
-    ("propstein-v172-prod", "propstein-v175-prod"),
-    ("propstein-v171-prod", "propstein-v175-prod"),
-    ("2026-w8-v26", "2026-w8-v28"),
-    ("2026-w8-v25", "2026-w8-v28"),
-    ("2026-w8-v24", "2026-w8-v28"),
+    # v175 -> v176 (normal bump; owner-official propstein- prefix retained)
+    ("2026_v175", "2026_v176"),
+    ("propwire-v175-prod", "propstein-v176-prod"),
+    ("propstein-v175-prod", "propstein-v176-prod"),
+    ("2026-w8-v28", "2026-w8-v29"),
+    # v174/v173/v172/v171-era -> v176 (defensive repair of any rewound pins)
+    ("2026_v174", "2026_v176"),
+    ("2026_v173", "2026_v176"),
+    ("2026_v172", "2026_v176"),
+    ("2026_v171", "2026_v176"),
+    ("propwire-v174-prod", "propstein-v176-prod"),
+    ("propwire-v173-prod", "propstein-v176-prod"),
+    ("propwire-v172-prod", "propstein-v176-prod"),
+    ("propwire-v171-prod", "propstein-v176-prod"),
+    ("propstein-v174-prod", "propstein-v176-prod"),
+    ("propstein-v173-prod", "propstein-v176-prod"),
+    ("propstein-v172-prod", "propstein-v176-prod"),
+    ("propstein-v171-prod", "propstein-v176-prod"),
+    ("2026-w8-v27", "2026-w8-v29"),
+    ("2026-w8-v26", "2026-w8-v29"),
+    ("2026-w8-v25", "2026-w8-v29"),
+    ("2026-w8-v24", "2026-w8-v29"),
 ]
 
 STALE_MARKERS = [
-    "2026_v171", "2026_v172", "2026_v173", "2026_v174",
-    "propwire-v171-prod", "propwire-v172-prod", "propwire-v173-prod", "propwire-v174-prod",
-    "propstein-v171-prod", "propstein-v172-prod", "propstein-v173-prod", "propstein-v174-prod",
-    "2026-w8-v24", "2026-w8-v25", "2026-w8-v26", "2026-w8-v27",
+    "2026_v171", "2026_v172", "2026_v173", "2026_v174", "2026_v175",
+    "propwire-v171-prod", "propwire-v172-prod", "propwire-v173-prod", "propwire-v174-prod", "propwire-v175-prod",
+    "propstein-v171-prod", "propstein-v172-prod", "propstein-v173-prod", "propstein-v174-prod", "propstein-v175-prod",
+    "2026-w8-v24", "2026-w8-v25", "2026-w8-v26", "2026-w8-v27", "2026-w8-v28",
 ]
 
 

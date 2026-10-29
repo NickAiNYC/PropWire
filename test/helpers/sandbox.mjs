@@ -8,6 +8,7 @@ import vm from 'node:vm';
 
 const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..', '..');
 export const VIEWER = path.join(ROOT, 'viewer');
+const REPO = ROOT;
 export const FROZEN_MS = Date.parse('2026-10-22T12:00:00Z');
 
 export function canonical(value) {
@@ -125,6 +126,15 @@ export function buildSandbox({ seedLocalStorage = {} } = {}) {
     // discovery is covered by scripts/verify_v151_autopilot.mjs over real HTTP.
     if (clean === '/feeds/slate-index.json') {
       return { ok: false, status: 404, json: async () => { throw new Error('not found'); } };
+    }
+    // Same determinism contract for the odds feed: viewer/live_odds_feed.json
+    // now carries REAL Polymarket quotes (v176, refreshed by the daily
+    // autopilot run), so the suites pin it to the committed w7 fixture —
+    // goldens and staleness scenarios never drift with live data. Live-feed
+    // behavior is covered by scripts/verify_v176_cards.mjs over real HTTP.
+    if (clean === '/live_odds_feed.json' || clean === 'live_odds_feed.json') {
+      const text = fs.readFileSync(path.join(REPO, 'test', 'fixtures', 'live_odds_feed_w7_pinned.json'), 'utf8');
+      return { ok: true, status: 200, json: async () => JSON.parse(text) };
     }
     if (clean.startsWith('http') || !fs.existsSync(file)) {
       return { ok: false, status: 404, json: async () => { throw new Error('not found'); } };

@@ -24,9 +24,19 @@ const prodHeaders = Object.fromEntries(
   vercel.headers.find((h) => h.source === '/(.*)').headers.map((h) => [h.key, h.value]));
 const CSP = prodHeaders['Content-Security-Policy'];
 
+// v176 determinism: viewer/live_odds_feed.json now carries real Polymarket
+// quotes whose freshness varies with wall-clock time. The stale-feed honesty
+// probes below need a FIXED stale context, so the odds route serves the
+// committed w7 demo fixture (timestamps frozen in the past -> always stale).
+const PINNED_ODDS = readFileSync(join(REPO, 'test', 'fixtures', 'live_odds_feed_w7_pinned.json'), 'utf8');
 const server = createServer((req, res) => {
   const clean = decodeURIComponent(req.url.split('?')[0]);
   const rel = clean === '/' ? 'index.html' : clean.replace(/^\/+/, '');
+  if (rel === 'live_odds_feed.json') {
+    res.writeHead(200, { 'Content-Type': 'application/json', ...prodHeaders });
+    res.end(PINNED_ODDS);
+    return;
+  }
   const file = join(ROOT, rel);
   if (!existsSync(file)) { res.writeHead(404, prodHeaders); res.end('nf'); return; }
   res.writeHead(200, { 'Content-Type': MIME[extname(file)] || 'application/octet-stream', ...prodHeaders });
@@ -60,7 +70,8 @@ check('source: fabricated 74.2% CLV rate removed from index.html', !idx.includes
 check('source: fabricated +5.8% trend delta removed from index.html', !idx.includes('+5.8%'));
 check('source: fabricated 7-point sparkline polyline removed', !idx.includes('2,14 10,12 19,13 28,7 37,9 46,4 54,5'));
 check('source: CLV ribbon elements are ledger-driven (ids present)', idx.includes('id="clvBeatRateVal"') && idx.includes('id="clvTrendWrap"'));
-check('source: simulator relabeled as approximate', idx.includes('Approximate Line Simulator'));
+check('source: simulator relabeled as approximate (inline panel)',
+  readFileSync(join(ROOT, 'app.js'), 'utf8').includes('Approximate Line Simulator'));
 
 // ── Desktop 1440x900: compact grid, hover elevation, sticky column ───────
 const browser = await chromium.launch();
@@ -128,21 +139,24 @@ try {
   check('fluid table: header first column is sticky', sticky.th === 'sticky', sticky.th);
   check('fluid table: body first column is sticky', sticky.td === 'sticky', sticky.td);
 
-  // v175 simulator honesty labels (open the tray from a card)
+  // v175/v176 simulator honesty labels — the simulator now lives INSIDE the
+  // card (inline panel; the modal was retired). Same honesty strings.
   await page.click('[data-view="cards"]');
-  await page.waitForSelector('.card-btn-sim-quick');
-  await page.click('.card-btn-sim-quick');
-  await page.waitForSelector('#simModalBody .sim-readout-grid', { timeout: 10000 });
-  const sim = await page.evaluate(() => ({
-    body: document.getElementById('simModalBody')?.textContent || '',
-    eyebrow: document.getElementById('simModalEyebrow')?.textContent?.trim() || '',
-    note: document.querySelector('#simModalBody .sim-approx-note')?.textContent || ''
-  }));
+  await page.waitForSelector('.card-sim-primary');
+  await page.click('.card-sim-primary');
+  await page.waitForSelector('.csim-panel .csim-readout', { timeout: 10000 });
+  const sim = await page.evaluate(() => {
+    const panel = document.querySelector('.csim-panel');
+    return {
+      body: panel ? panel.textContent : '',
+      eyebrow: panel?.querySelector('.csim-eyebrow')?.textContent?.trim() || '',
+      note: panel?.querySelector('.sim-approx-note')?.textContent || ''
+    };
+  });
   check('simulator: P(Win) relabeled as model approximation', sim.body.includes('P(Win) Model Approx.'));
-  check('simulator: Kelly relabeled half-Kelly capped 3%', sim.body.includes('Kelly Stake (½·cap 3%)'));
+  check('simulator: Kelly relabeled half-Kelly capped 3%', sim.body.includes('Kelly (½·cap 3%)'));
   check('simulator: explicit approximation footnote present', /normal approximation/.test(sim.note) && /half-Kelly/.test(sim.note), sim.note.slice(0, 60) + '…');
-  check('simulator: dialog eyebrow says Approximate', sim.eyebrow === 'Approximate Line Simulator', sim.eyebrow);
-  await page.keyboard.press('Escape');
+  check('simulator: panel eyebrow says Approximate', sim.eyebrow === 'Approximate Line Simulator', sim.eyebrow);
   await desktop.close();
 
   // ── Mobile 390x844: wrapping, 4-tab nav, no horizontal overflow ────────
@@ -167,11 +181,14 @@ try {
   const cards = await mpage.evaluate(() => document.querySelectorAll('#cardView .mobile-quant-row').length);
   check('mobile 390: quant cards render (default cards view)', cards >= 5, `${cards} cards`);
 
+  // v176: the research card's old .card-quote-standby-wrap was retired with
+  // the decision-card redesign — the honest wrap contract now lives on the
+  // thumb-zone action bar (SIM primary / COPY FAIR / research tag).
   const wrap = await mpage.evaluate(() => {
-    const el = document.querySelector('.card-quote-standby-wrap');
+    const el = document.querySelector('.card-action-bar');
     return el ? getComputedStyle(el).flexWrap : 'missing';
   });
-  check('mobile 390: standby quote chips wrap (flex-wrap: wrap)', wrap === 'wrap', wrap);
+  check('mobile 390: card action bar wraps (flex-wrap: wrap)', wrap === 'wrap', wrap);
 
   // Compact is a desktop-only density mode: the view switch must keep cards
   // on a 768px-or-below viewport even if the button is tapped.

@@ -192,6 +192,14 @@ async function captureAll() {
     snaps[`renders_table_${market}.json`] = await dumpRender(P, registry, 'table', market);
   }
   snaps['renders_cards_receiving_yards.json'] = await dumpRender(P, registry, 'cards', 'receiving_yards');
+  // v176: research-mode decision card golden — receptions carries no
+  // synthetic quote, so with playMode 'all' this pins the money row /
+  // signal row / action bar layout (the default live state) byte-exact,
+  // not just the quoted state. playMode is restored right after so the
+  // remaining captures keep their original semantics.
+  P.setPlayMode('all');
+  snaps['renders_cards_research_receptions.json'] = await dumpRender(P, registry, 'cards', 'receptions');
+  P.setPlayMode('actionable');
   snaps['evaluations.json'] = dumpEvaluations(P);
   snaps['projections_slate_2026_w7.json'] = dumpProjections(P);
   snaps['detail_modal.json'] = dumpDetailModal(P, registry);
