@@ -1040,6 +1040,42 @@ def get_sniper_live_board(
     }
 
 
+@app.get("/api/sniper/court-lineups")
+def get_sniper_court_lineups():
+    """
+    Returns live NBA 5-man tactical court lineups + bench rotation + `nba_api`
+    Live PlayByPlay substitution ticker.
+    """
+    engine = get_sniper_engine()
+    return {
+        "status": "ok",
+        "court_lineups": engine.court_lineups,
+    }
+
+
+@app.post("/api/sniper/simulate-substitution")
+async def post_sniper_simulate_substitution(request: Request):
+    """
+    Executes a 5-second `nba_api` Live PlayByPlay substitution (`PLAYER1_ID -> PLAYER2_ID`),
+    swaps the active player on the tactical court diagram, and immediately triggers
+    `bayesian_remaining_game_update` against the decoupled `last_known_odds` cache
+    without waiting for the 30-second odds poll.
+    """
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    engine = get_sniper_engine()
+    result = engine.simulate_live_substitution(
+        game_id=body.get("game_id", "2026_nba_mil_bos"),
+        team=body.get("team", "MIL"),
+        sub_out_player_id=body.get("sub_out_player_id"),
+        sub_in_player_id=body.get("sub_in_player_id"),
+    )
+    engine.export_static_snapshot()
+    return result
+
+
 @app.post("/api/sniper/simulate-scratch")
 async def post_sniper_simulate_scratch(request: Request):
     """

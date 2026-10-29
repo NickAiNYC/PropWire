@@ -85,6 +85,44 @@ def _nb_count_prob_over(mu: float, line: float, alpha: float = 0.14) -> float:
     return float(np.clip(stats.nbinom.sf(math.floor(line), r, p), 0.001, 0.999))
 
 
+def bayesian_remaining_game_update(
+    *,
+    prior_rate_per_min: float,
+    observed_stat: float,
+    elapsed_minutes: float,
+    minutes_remaining: float,
+    usage_multiplier: float = 1.0,
+    personal_fouls: int = 0,
+    period: int = 1,
+    prior_strength_minutes: float = 24.0,
+) -> dict[str, float]:
+    """
+    Live Conjugate Gamma-Poisson / Gamma-Normal Bayesian Posterior Update:
+    Combines pre-game prior rate (`prior_rate_per_min` weighted by `prior_strength_minutes`)
+    with observed in-game production (`observed_stat` over `elapsed_minutes`), adjusted for
+    active `usage_multiplier` (from `lineup.substitution` / usage vacuum) and `foul_trouble`
+    expected-minutes penalty.
+    """
+    eff_elapsed = max(0.0, float(elapsed_minutes))
+    obs_stat = max(0.0, float(observed_stat))
+    prior_pseudo_count = max(0.1, prior_rate_per_min * prior_strength_minutes)
+    posterior_rate_per_min = (prior_pseudo_count + obs_stat) / (prior_strength_minutes + eff_elapsed)
+
+    # Apply foul-trouble expected-minutes discount
+    foul_penalty_min = 0.0
+    if (period == 1 and personal_fouls >= 2) or (period == 2 and personal_fouls >= 3) or (period == 3 and personal_fouls >= 4) or (period >= 4 and personal_fouls >= 5):
+        foul_penalty_min = min(float(minutes_remaining) * 0.30, 4.5)
+
+    adj_minutes_remaining = max(0.5, float(minutes_remaining) - foul_penalty_min)
+    posterior_remaining_mu = max(0.2, posterior_rate_per_min * adj_minutes_remaining * usage_multiplier)
+    return {
+        "posterior_rate_per_min": round(posterior_rate_per_min, 4),
+        "adj_minutes_remaining": round(adj_minutes_remaining, 2),
+        "posterior_remaining_mu": round(posterior_remaining_mu, 3),
+        "foul_penalty_minutes": round(foul_penalty_min, 2),
+    }
+
+
 def price_prop(
     player_state: dict[str, Any],
     market_state: dict[str, Any],

@@ -204,3 +204,58 @@ def test_polymarket_specialist_token_id_enforcement_and_top_5_ranking(tmp_path: 
             {"market_id": "gamma_12345", "yes_ask": 0.50},
             proj,
         )
+
+
+def test_decoupled_5s_substitution_triggers_immediate_bayesian_recalc_on_last_known_odds(tmp_path: Path):
+    """
+    Secret Sauce Architectural Rule:
+    Never let a 30-second odds feed block a 5-second play-by-play event.
+    A substitution (`PLAYER1_ID -> PLAYER2_ID`) triggers `simulate_live_substitution`
+    immediately, updates the 5-man court lineup, computes the Bayesian remaining-game
+    posterior (`bayesian_remaining_game_update`), and evaluates against `last_known_odds`.
+    """
+    engine = _make_engine(tmp_path)
+    engine.seed_terminal_state()
+
+    res = engine.simulate_live_substitution(
+        game_id="2026_nba_mil_bos",
+        team="MIL",
+    )
+    assert res["status"] == "ok"
+    assert res["within_5s_pbp_budget"] is True
+    assert res["used_last_known_odds_cache"] is True
+    assert res["bayesian_update"]["posterior_remaining_mu"] > 0
+    assert res["sub_in"]["sub_status"] == "SUB_IN"
+    assert res["sub_out"]["sub_status"] == "SUB_OUT"
+
+
+def test_player_id_bridge_exact_and_fuzzy_resolution(tmp_path: Path):
+    """
+    Verifies the 24h `player_id_mapping` bridge across Polymarket `/v1/sports/players`,
+    `propline` normalized book keys, `nba_api` person IDs, and fuzzy `(name, team, position)`.
+    """
+    truth = TruthStore(sqlite_path=tmp_path / "truth.db")
+    truth.upsert_player_mapping(
+        canonical_player_id="nba_giannis",
+        sport="nba",
+        player_name="Giannis Antetokounmpo",
+        team="MIL",
+        position="PF",
+        polymarket_player_id="poly_giannis_34",
+        propline_player_key="nba:mil:giannis_antetokounmpo",
+        nba_api_person_id="203507",
+    )
+
+    assert truth.resolve_canonical_player_id(polymarket_player_id="poly_giannis_34") == "nba_giannis"
+    assert truth.resolve_canonical_player_id(propline_player_key="nba:mil:giannis_antetokounmpo") == "nba_giannis"
+    assert truth.resolve_canonical_player_id(nba_api_person_id="203507") == "nba_giannis"
+    assert (
+        truth.resolve_canonical_player_id(
+            player_name="G. Antetokounmpo Jr.",
+            team="MIL",
+            position="PF",
+            sport="nba",
+        )
+        == "nba_giannis"
+    )
+

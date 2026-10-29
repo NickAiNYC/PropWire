@@ -217,3 +217,4 @@ def test_gate_5_low_clv_expectation_suppression(tmp_path: Path):
     assert alert is None
     assert log.decision == "SUPPRESSED"
     assert "GATE_5_LOW_CLV_EXPECTATION" in log.reason
+

@@ -11722,5 +11722,436 @@ dialog.detail-dialog .dialog-sheet-handle {
   color: var(--pw-state-verify);
 }
 
+/* ============================================================================
+   10. NBA LIVE LINEUPS & TACTICAL COURT FORMATION VIEW
+   ============================================================================ */
+.sniper-tab-btn.sniper-tab-lineups.is-active,
+.sniper-tab-btn.sniper-tab-lineups.active {
+  background: #A3E635 !important;
+  border-color: #A3E635 !important;
+  color: #090D14 !important;
+  font-weight: 700 !important;
+  border-radius: 999px !important;
+  padding: 8px 16px !important;
+}
+
+.sniper-tab-btn.sniper-tab-lineups.is-active .sniper-kbd {
+  background: rgba(9, 13, 20, 0.18) !important;
+  color: #090D14 !important;
+}
+
+.nba-live-lineup-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.nba-game-switcher {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+}
+
+.nba-game-pill {
+  padding: 6px 12px;
+  min-height: 34px;
+  border-radius: 999px;
+  background: var(--pw-bg-surface);
+  border: 1px solid var(--pw-border-hairline);
+  color: var(--pw-text-secondary);
+  font-family: var(--pw-font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.nba-game-pill.active {
+  background: rgba(125, 211, 252, 0.14);
+  border-color: var(--pw-accent-blue);
+  color: var(--pw-accent-blue);
+}
+
+.nba-match-header-card {
+  background: #0B0F17;
+  border: 1px solid var(--pw-border-hairline);
+  border-radius: 14px;
+  padding: 14px 16px;
+}
+
+.nba-match-league-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.nba-match-league-title {
+  font-family: var(--pw-font-sans);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--pw-text-primary);
+}
+
+.nba-match-date {
+  font-family: var(--pw-font-mono);
+  font-size: 11px;
+  color: var(--pw-text-muted);
+}
+
+.nba-match-scoreboard {
+  display: grid;
+  grid-template-columns: 1fr auto auto auto 1fr;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 12px;
+}
+
+.nba-match-team-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.nba-match-tricode {
+  font-family: var(--pw-font-sans);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: var(--pw-text-primary);
+}
+
+.nba-match-score-num {
+  font-family: var(--pw-font-mono);
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--pw-text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.nba-match-clock-box {
+  padding: 6px 14px;
+  border-radius: 8px;
+  background: rgba(163, 230, 53, 0.08);
+  border: 1px solid rgba(163, 230, 53, 0.45);
+  text-align: center;
+}
+
+.nba-match-clock-text {
+  font-family: var(--pw-font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  color: #A3E635;
+}
+
+.nba-match-events-list {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 10px 0 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.nba-match-event-line {
+  font-family: var(--pw-font-sans);
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--pw-text-secondary);
+}
+
+.nba-event-player {
+  color: var(--pw-text-primary);
+  font-weight: 600;
+  margin-right: 4px;
+}
+
+.nba-event-detail {
+  font-family: var(--pw-font-mono);
+  font-size: 11px;
+  color: var(--pw-text-muted);
+}
+
+.nba-match-quarters {
+  text-align: center;
+  font-family: var(--pw-font-mono);
+  font-size: 11px;
+  color: var(--pw-text-muted);
+  margin-top: 6px;
+}
+
+.nba-tactical-card {
+  background: #111621;
+  border: 1px solid var(--pw-border-subtle);
+  border-radius: 16px;
+  padding: 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+.nba-tactical-top-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.nba-team-selector-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.nba-team-label {
+  font-family: var(--pw-font-sans);
+  font-size: 13px;
+  color: var(--pw-text-secondary);
+}
+
+.nba-team-lime-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 14px;
+  min-height: 36px;
+  border-radius: 999px;
+  background: #A3E635;
+  border: 1px solid #A3E635;
+  color: #090D14;
+  font-family: var(--pw-font-sans);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.nba-sub-sim-btn {
+  padding: 7px 12px;
+  min-height: 36px;
+  border-radius: 8px;
+  background: rgba(125, 211, 252, 0.14);
+  border: 1px solid var(--pw-accent-blue);
+  color: var(--pw-accent-blue);
+  font-family: var(--pw-font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.nba-tactical-telemetry {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.nba-telemetry-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--pw-font-sans);
+  font-size: 12.5px;
+  color: var(--pw-text-secondary);
+}
+
+.nba-telemetry-row strong {
+  color: var(--pw-text-primary);
+  font-family: var(--pw-font-mono);
+  font-size: 12px;
+}
+
+.nba-court-diagram {
+  position: relative;
+  width: 100%;
+  min-height: 380px;
+  background: #141923;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 18px 12px;
+  overflow: hidden;
+}
+
+.nba-court-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.nba-court-formation {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 22px;
+  min-height: 344px;
+}
+
+.nba-court-tier {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  gap: 10px;
+}
+
+.nba-court-player {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  width: 112px;
+}
+
+.nba-court-avatar-wrap {
+  position: relative;
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: #1E2636;
+  border: 2px solid rgba(255, 255, 255, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+  margin-bottom: 6px;
+}
+
+.nba-court-player.is-boosted .nba-court-avatar-wrap {
+  border-color: #A3E635;
+  box-shadow: 0 0 0 3px rgba(163, 230, 53, 0.2);
+}
+
+.nba-court-player.is-foul-risk .nba-court-avatar-wrap {
+  border-color: #F59E0B;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.22);
+}
+
+.nba-court-avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  position: relative;
+  z-index: 2;
+  background: #1E2636;
+}
+
+.nba-court-avatar-fallback {
+  position: absolute;
+  font-family: var(--pw-font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--pw-text-secondary);
+  z-index: 1;
+}
+
+.nba-court-node-badge {
+  position: absolute;
+  bottom: -5px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 3;
+  padding: 1px 6px;
+  border-radius: 999px;
+  font-family: var(--pw-font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  white-space: nowrap;
+  background: #1E293B;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #F8FAFC;
+}
+
+.nba-court-node-badge.is-boosted {
+  background: #A3E635;
+  border-color: #A3E635;
+  color: #090D14;
+}
+
+.nba-court-node-badge.is-foul-risk {
+  background: #F59E0B;
+  border-color: #F59E0B;
+  color: #090D14;
+}
+
+.nba-court-player-name {
+  font-family: var(--pw-font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  color: #F8FAFC;
+  line-height: 1.25;
+  margin-top: 2px;
+}
+
+.nba-court-player-prop {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--pw-font-mono);
+  font-size: 10px;
+  color: var(--pw-text-secondary);
+  margin-top: 2px;
+}
+
+.nba-court-edge {
+  color: #A3E635;
+  font-weight: 700;
+}
+
+.nba-bench-strip {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--pw-border-hairline);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.nba-bench-label {
+  font-family: var(--pw-font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--pw-text-muted);
+}
+
+.nba-bench-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.nba-bench-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: 6px;
+  background: var(--pw-bg-surface);
+  border: 1px solid var(--pw-border-hairline);
+  font-family: var(--pw-font-sans);
+  font-size: 11.5px;
+  color: var(--pw-text-primary);
+}
+
+.nba-bench-pos {
+  font-family: var(--pw-font-mono);
+  font-size: 10px;
+  color: var(--pw-accent-blue);
+  font-weight: 700;
+}
+
+.nba-bench-meta {
+  font-family: var(--pw-font-mono);
+  font-size: 10px;
+  color: var(--pw-text-muted);
+}
+
+
 
 

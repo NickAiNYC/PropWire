@@ -392,6 +392,41 @@ class TruthStore:
                     created_at TEXT NOT NULL,
                     PRIMARY KEY (thread_id, checkpoint_id)
                 );
+
+                CREATE TABLE IF NOT EXISTS player_id_mapping (
+                    canonical_player_id TEXT PRIMARY KEY,
+                    sport TEXT NOT NULL,
+                    player_name TEXT NOT NULL,
+                    normalized_name TEXT NOT NULL,
+                    team TEXT NOT NULL,
+                    position TEXT NOT NULL DEFAULT '',
+                    polymarket_player_id TEXT,
+                    propline_player_key TEXT,
+                    nba_api_person_id TEXT,
+                    espn_athlete_id TEXT,
+                    updated_at_epoch REAL NOT NULL
+                );
+
+                CREATE INDEX IF NOT EXISTS idx_player_map_poly ON player_id_mapping(polymarket_player_id);
+                CREATE INDEX IF NOT EXISTS idx_player_map_propline ON player_id_mapping(propline_player_key);
+                CREATE INDEX IF NOT EXISTS idx_player_map_nba ON player_id_mapping(nba_api_person_id);
+
+                CREATE TABLE IF NOT EXISTS last_known_odds (
+                    prop_id TEXT PRIMARY KEY,
+                    sport TEXT NOT NULL,
+                    game_id TEXT NOT NULL,
+                    player_id TEXT NOT NULL,
+                    market TEXT NOT NULL,
+                    book TEXT NOT NULL,
+                    venue_type TEXT NOT NULL DEFAULT 'sportsbook',
+                    line REAL NOT NULL,
+                    over_odds INTEGER NOT NULL DEFAULT -110,
+                    under_odds INTEGER NOT NULL DEFAULT -110,
+                    implied_prob_over REAL NOT NULL DEFAULT 0.5,
+                    liquidity_score REAL NOT NULL DEFAULT 0.85,
+                    source_hash TEXT NOT NULL,
+                    fetched_at TEXT NOT NULL
+                );
                 """
             )
 
@@ -919,3 +954,166 @@ class TruthStore:
                 "source_hash": row["source_hash"],
                 "created_at": row["created_at"],
             }
+
+    # ------------------------------------------------------------------
+    # Polymarket <-> Sportsbook <-> nba_api Player ID Bridge (24h TTL)
+    # ------------------------------------------------------------------
+    @staticmethod
+    def _normalize_player_name(name: str) -> str:
+        import re
+        cleaned = re.sub(r"\b(jr|sr|ii|iii|iv)\b\.?", "", name.lower())
+        cleaned = re.sub(r"[^a-z0-9]+", " ", cleaned).strip()
+        return cleaned
+
+    def upsert_player_mapping(
+        self,
+        *,
+        canonical_player_id: str,
+        sport: str,
+        player_name: str,
+        team: str,
+        position: str = "",
+        polymarket_player_id: str | None = None,
+        propline_player_key: str | None = None,
+        nba_api_person_id: str | None = None,
+        espn_athlete_id: str | None = None,
+    ) -> None:
+        import time as _time
+        norm_name = self._normalize_player_name(player_name)
+        propline_key = propline_player_key or f"{sport.lower()}:{team.lower()}:{norm_name.replace(' ', '_')}"
+        with self._connect_sqlite() as conn:
+            conn.execute(
+                """
+                INSERT OR REPLACE INTO player_id_mapping (
+                    canonical_player_id, sport, player_name, normalized_name,
+                    team, position, polymarket_player_id, propline_player_key,
+                    nba_api_person_id, espn_athlete_id, updated_at_epoch
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    canonical_player_id,
+                    sport.lower(),
+                    player_name,
+                    norm_name,
+                    team.upper(),
+                    position.upper(),
+                    polymarket_player_id,
+                    propline_key,
+                    nba_api_person_id,
+                    espn_athlete_id,
+                    _time.time(),
+                ),
+            )
+
+    def resolve_canonical_player_id(
+        self,
+        *,
+        polymarket_player_id: str | None = None,
+        propline_player_key: str | None = None,
+        nba_api_person_id: str | None = None,
+        player_name: str | None = None,
+        team: str | None = None,
+        position: str | None = None,
+        sport: str = "nba",
+        ttl_seconds: float = 86400.0,
+    ) -> str | None:
+        """
+        Resolves external provider IDs (Polymarket /v1/sports/players, propline book keys,
+        nba_api PLAYER1_ID/PLAYER2_ID) or fuzzy (name, team, position) to internal canonical_player_id.
+        Honors 24-hour TTL cache (`ttl_seconds=86400.0`).
+        """
+        import difflib
+        import time as _time
+
+        cutoff = _time.time() - ttl_seconds
+        with self._connect_sqlite() as conn:
+            if polymarket_player_id:
+                row = conn.execute(
+                    "SELECT canonical_player_id FROM player_id_mapping WHERE polymarket_player_id = ? AND updated_at_epoch >= ?",
+                    (polymarket_player_id, cutoff),
+                ).fetchone()
+                if row:
+                    return str(row["canonical_player_id"])
+
+            if propline_player_key:
+                row = conn.execute(
+                    "SELECT canonical_player_id FROM player_id_mapping WHERE propline_player_key = ? AND updated_at_epoch >= ?",
+                    (propline_player_key, cutoff),
+                ).fetchone()
+                if row:
+                    return str(row["canonical_player_id"])
+
+            if nba_api_person_id:
+                row = conn.execute(
+                    "SELECT canonical_player_id FROM player_id_mapping WHERE nba_api_person_id = ? AND updated_at_epoch >= ?",
+                    (str(nba_api_person_id), cutoff),
+                ).fetchone()
+                if row:
+                    return str(row["canonical_player_id"])
+
+            if player_name:
+                target_norm = self._normalize_player_name(player_name)
+                rows = conn.execute(
+                    "SELECT * FROM player_id_mapping WHERE sport = ? AND updated_at_epoch >= ?",
+                    (sport.lower(), cutoff),
+                ).fetchall()
+                best_id: str | None = None
+                best_score = 0.0
+                for r in rows:
+                    cand_norm = str(r["normalized_name"])
+                    ratio = difflib.SequenceMatcher(None, target_norm, cand_norm).ratio()
+                    if team and str(r["team"]).upper() == team.upper():
+                        ratio += 0.08
+                    if position and str(r["position"]).upper() == position.upper():
+                        ratio += 0.04
+                    if ratio > best_score:
+                        best_score = ratio
+                        best_id = str(r["canonical_player_id"])
+                if best_score >= 0.82 and best_id:
+                    return best_id
+        return None
+
+    # ------------------------------------------------------------------
+    # Decoupled Last-Known Odds Cache (5s PBP never waits on 30s Odds)
+    # ------------------------------------------------------------------
+    def upsert_last_known_odds(self, odds_row: dict[str, Any]) -> None:
+        fetched_at = odds_row.get("fetched_at")
+        if isinstance(fetched_at, datetime):
+            fetched_iso = fetched_at.isoformat()
+        else:
+            fetched_iso = str(fetched_at or datetime.now(timezone.utc).isoformat())
+        with self._connect_sqlite() as conn:
+            conn.execute(
+                """
+                INSERT OR REPLACE INTO last_known_odds (
+                    prop_id, sport, game_id, player_id, market, book,
+                    venue_type, line, over_odds, under_odds, implied_prob_over,
+                    liquidity_score, source_hash, fetched_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    str(odds_row["prop_id"]),
+                    str(odds_row.get("sport", "nba")),
+                    str(odds_row.get("game_id", "")),
+                    str(odds_row["player_id"]),
+                    str(odds_row.get("market", "points")),
+                    str(odds_row.get("book", "DraftKings")),
+                    str(odds_row.get("venue_type", "sportsbook")),
+                    float(odds_row["line"]),
+                    int(odds_row.get("over_odds", -110)),
+                    int(odds_row.get("under_odds", -110)),
+                    float(odds_row.get("implied_prob_over", 0.5)),
+                    float(odds_row.get("liquidity_score", 0.85)),
+                    str(odds_row.get("source_hash", "")),
+                    fetched_iso,
+                ),
+            )
+
+    def get_last_known_odds(self, prop_id: str) -> dict[str, Any] | None:
+        with self._connect_sqlite() as conn:
+            row = conn.execute(
+                "SELECT * FROM last_known_odds WHERE prop_id = ?",
+                (prop_id,),
+            ).fetchone()
+            return dict(row) if row else None
+

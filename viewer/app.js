@@ -3342,7 +3342,192 @@
     } catch (_) {}
   }
 
-  async function openSniperDialog(initialTab = 'sniper_feed') {
+  function renderNbaCourtLineupView(snap) {
+    const courtGames = (snap && snap.court_lineups) || {};
+    const gameKeys = Object.keys(courtGames);
+    if (gameKeys.length === 0) {
+      return `<div class="sniper-card"><div class="sniper-section-title">Live NBA Court Lineups</div><p style="font-size:12px; color:var(--muted);">Loading nba_api Live PlayByPlay stream...</p></div>`;
+    }
+    const activeGameKey = (state.sniperCourtGameId && courtGames[state.sniperCourtGameId]) ? state.sniperCourtGameId : gameKeys[0];
+    state.sniperCourtGameId = activeGameKey;
+    const game = courtGames[activeGameKey];
+    const teamKeys = Object.keys(game.teams || {});
+    const activeTeamKey = (state.sniperCourtTeam && game.teams[state.sniperCourtTeam]) ? state.sniperCourtTeam : game.away_team;
+    state.sniperCourtTeam = activeTeamKey;
+    const teamObj = game.teams[activeTeamKey] || game.teams[teamKeys[0]];
+    const onCourt = Array.isArray(teamObj.on_court) ? teamObj.on_court : [];
+    const bench = Array.isArray(teamObj.bench) ? teamObj.bench : [];
+
+    // Group on-court 5 players into 3 formation rows (1: Point Guard top of key, 2: Wings SG/SF, 3: Frontcourt PF/C)
+    const row1 = onCourt.filter((p) => Number(p.formation_row) === 1);
+    const row2 = onCourt.filter((p) => Number(p.formation_row) === 2);
+    const row3 = onCourt.filter((p) => Number(p.formation_row) >= 3);
+
+    const renderCourtNode = (p) => {
+      const headshotUrl = p.nba_id
+        ? `https://cdn.nba.com/headshots/nba/latest/260x190/${encodeURIComponent(p.nba_id)}.png`
+        : '';
+      const statusClass = p.sub_status === 'FOUL_RISK'
+        ? 'is-foul-risk'
+        : (p.sub_status === 'SUB_IN' || p.sub_status === 'BOOSTED')
+          ? 'is-boosted'
+          : 'is-starter';
+      const badgeText = p.sub_status === 'FOUL_RISK'
+        ? `${p.personal_fouls} PF`
+        : p.sub_status === 'SUB_IN'
+          ? 'SUB IN'
+          : p.usage_delta_pct > 0
+            ? `+${Number(p.usage_delta_pct).toFixed(1)}% USG`
+            : p.position;
+      const mktShort = String(p.market || 'pts').slice(0, 3).toUpperCase();
+      return `
+        <div class="nba-court-player ${statusClass}" data-court-player="${esc(p.player_id)}" title="${esc(p.name)} · ${esc(p.position)} · Rem ${Number(p.minutes_remaining).toFixed(1)}m">
+          <div class="nba-court-avatar-wrap">
+            ${headshotUrl ? `<img src="${headshotUrl}" alt="${esc(p.name)}" class="nba-court-avatar-img" loading="lazy" onerror="this.style.display='none'">` : ''}
+            <span class="nba-court-avatar-fallback">${esc(initials(p.name))}</span>
+            <span class="nba-court-node-badge ${statusClass}">${esc(badgeText)}</span>
+          </div>
+          <div class="nba-court-player-name">${esc(p.short_name || p.name)}</div>
+          <div class="nba-court-player-prop">
+            <span>${Number(p.fair_line).toFixed(1)} ${esc(mktShort)}</span>
+            <span class="nba-court-edge">+${Number(p.edge_pct).toFixed(1)}%</span>
+          </div>
+        </div>
+      `;
+    };
+
+    const tickerHtml = (Array.isArray(game.event_ticker) ? game.event_ticker : []).map((ev) => `
+      <div class="nba-match-event-line">
+        <strong class="nba-event-player">${esc(ev.player)}</strong>
+        <span class="nba-event-detail">(${esc(ev.detail)})</span>
+      </div>
+    `).join('');
+
+    const benchHtml = bench.map((b) => `
+      <div class="nba-bench-chip">
+        <span class="nba-bench-pos">${esc(b.position)}</span>
+        <strong>${esc(b.short_name || b.name)}</strong>
+        <span class="nba-bench-meta">${esc(b.sub_status === 'SUB_OUT' ? 'SUB OUT' : 'ROTATION')} · Fair ${Number(b.fair_line).toFixed(1)}</span>
+      </div>
+    `).join('');
+
+    return `
+      <div class="nba-live-lineup-shell">
+        <!-- Game Switcher Pills -->
+        <div class="nba-game-switcher">
+          ${gameKeys.map((gk) => {
+            const g = courtGames[gk];
+            return `<button type="button" class="nba-game-pill ${gk === activeGameKey ? 'active' : ''}" data-court-game="${esc(gk)}">${esc(g.away_team)} @ ${esc(g.home_team)} · ${esc(g.status_pill)}</button>`;
+          }).join('')}
+        </div>
+
+        <!-- Match Center Scoreboard Header (Inspired by Live Match Center UI) -->
+        <div class="nba-match-header-card">
+          <div class="nba-match-league-bar">
+            <span class="nba-match-league-title">${esc(game.league || 'NBA Live · Play-by-Play')}</span>
+            <span class="nba-match-date">${esc(game.date_label || '29 Oct, 2026')}</span>
+          </div>
+          <div class="nba-match-scoreboard">
+            <div class="nba-match-team-col">
+              ${teamCrest(game.away_team, 'lg')}
+              <span class="nba-match-tricode">${esc(game.away_team)}</span>
+            </div>
+            <div class="nba-match-score-num">${Number(game.away_score)}</div>
+            <div class="nba-match-clock-box">
+              <span class="nba-match-clock-text">${esc(game.status_pill)}</span>
+            </div>
+            <div class="nba-match-score-num">${Number(game.home_score)}</div>
+            <div class="nba-match-team-col">
+              ${teamCrest(game.home_team, 'lg')}
+              <span class="nba-match-tricode">${esc(game.home_team)}</span>
+            </div>
+          </div>
+          <div class="nba-match-events-list">
+            ${tickerHtml}
+          </div>
+          <div class="nba-match-quarters">${esc(game.quarter_summary || '')}</div>
+        </div>
+
+        <!-- Tactical Team Lineup Card + SVG Half-Court Formation -->
+        <div class="nba-tactical-card">
+          <div class="nba-tactical-top-row">
+            <div class="nba-team-selector-wrap">
+              <span class="nba-team-label">Team:</span>
+              <button type="button" class="nba-team-lime-pill" id="nbaToggleTeamBtn" data-next-team="${activeTeamKey === game.away_team ? esc(game.home_team) : esc(game.away_team)}">
+                <span>${esc(teamObj.team_name)}</span>
+                <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 6l4 4 4-4"/></svg>
+              </button>
+            </div>
+            <div class="nba-sub-sim-controls">
+              <button type="button" class="nba-sub-sim-btn" id="nbaSimulateSubBtn">
+                Simulate Live Sub (5s PBP &rarr; Last-Known Odds)
+              </button>
+            </div>
+          </div>
+
+          <!-- 3-Line Telemetry Strip with SVG Icons -->
+          <div class="nba-tactical-telemetry">
+            <div class="nba-telemetry-row">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M8 2a6 6 0 1 0 6 6H8V2z"/></svg>
+              <span>Active Lineup Usage: <strong>${esc(teamObj.usage_share_active)}</strong></span>
+            </div>
+            <div class="nba-telemetry-row">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="8" r="6"/><circle cx="8" cy="8" r="2.2"/></svg>
+              <span>Pace &amp; Shooting: <strong>${esc(teamObj.pace)} · ${esc(teamObj.ts_pct)}</strong></span>
+            </div>
+            <div class="nba-telemetry-row">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="8" r="6"/><path d="M8 4.5V8l2.5 1.5"/></svg>
+              <span>Play-by-Play Latency: <strong>${Number(game.pbp_latency_sec || 3.8).toFixed(1)}s (nba_api Live)</strong> · Last-Known Odds Cache: <strong>${Number(game.odds_cache_age_sec || 6.4).toFixed(1)}s</strong></span>
+            </div>
+          </div>
+
+          <div id="nbaSubSimBanner" class="sniper-sim-result" hidden></div>
+
+          <!-- Visual NBA Half-Court Diagram with 5 On-Court Starters/Active Players -->
+          <div class="nba-court-diagram">
+            <svg class="nba-court-svg" viewBox="0 0 500 420" preserveAspectRatio="none" aria-hidden="true">
+              <!-- Outer boundary -->
+              <rect x="16" y="12" width="468" height="396" fill="none" stroke="rgba(255,255,255,0.16)" stroke-width="1.6" rx="4"/>
+              <!-- Half-court top center circle -->
+              <path d="M 190 12 A 60 60 0 0 0 310 12" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="1.5"/>
+              <!-- Paint / Key -->
+              <rect x="170" y="220" width="160" height="188" fill="rgba(255,255,255,0.02)" stroke="rgba(255,255,255,0.18)" stroke-width="1.5"/>
+              <!-- Free-throw circle -->
+              <circle cx="250" cy="220" r="60" fill="none" stroke="rgba(255,255,255,0.16)" stroke-width="1.5"/>
+              <!-- 3-Point Arc + Corner 3 lines -->
+              <line x1="48" y1="408" x2="48" y2="270" stroke="rgba(255,255,255,0.16)" stroke-width="1.5"/>
+              <line x1="452" y1="408" x2="452" y2="270" stroke="rgba(255,255,255,0.16)" stroke-width="1.5"/>
+              <path d="M 48 270 A 215 215 0 0 1 452 270" fill="none" stroke="rgba(255,255,255,0.16)" stroke-width="1.5"/>
+              <!-- Restricted area & Hoop -->
+              <path d="M 210 375 A 40 40 0 0 1 290 375" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/>
+              <circle cx="250" cy="375" r="9" fill="none" stroke="rgba(163,230,53,0.45)" stroke-width="1.8"/>
+              <line x1="220" y1="388" x2="280" y2="388" stroke="rgba(255,255,255,0.28)" stroke-width="2"/>
+            </svg>
+
+            <div class="nba-court-formation">
+              <div class="nba-court-tier tier-pg">
+                ${row1.map(renderCourtNode).join('')}
+              </div>
+              <div class="nba-court-tier tier-wings">
+                ${row2.map(renderCourtNode).join('')}
+              </div>
+              <div class="nba-court-tier tier-frontcourt">
+                ${row3.map(renderCourtNode).join('')}
+              </div>
+            </div>
+          </div>
+
+          <!-- Bench Rotation & Recent Sub Strip -->
+          <div class="nba-bench-strip">
+            <span class="nba-bench-label">Bench / Rotation (PLAYER1_ID &rarr; PLAYER2_ID):</span>
+            <div class="nba-bench-chips">${benchHtml}</div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  async function openSniperDialog(initialTab = 'lineups') {
     const dialog = $('#sniperDialog');
     if (!dialog) return;
     if (typeof initialTab === 'string') {
@@ -3351,10 +3536,10 @@
     if (!dialog.open) dialog.showModal();
     await loadSniperTerminalSnapshot();
     connectSniperSseStream();
-    renderSniperModal(state.sniperActiveTab || 'sniper_feed');
+    renderSniperModal(state.sniperActiveTab || 'lineups');
   }
 
-  function renderSniperModal(activeTab = 'sniper_feed') {
+  function renderSniperModal(activeTab = 'lineups') {
     const content = $('#sniperContent');
     if (!content) return;
     state.sniperActiveTab = activeTab;
@@ -3369,35 +3554,41 @@
 
     const agenticTabsHtml = `
       <div class="sniper-terminal-tabs" role="tablist" aria-label="Sniper Terminal Views">
-        <button type="button" class="sniper-tab-btn ${activeTab === 'sniper_feed' ? 'active' : ''}" data-sniper-tab="sniper_feed" role="tab">
+        <button type="button" class="sniper-tab-btn sniper-tab-lineups ${activeTab === 'lineups' ? 'is-active active' : ''}" data-sniper-tab="lineups" role="tab">
+          <span>Lineups</span>
+          <kbd class="sniper-kbd">I</kbd>
+        </button>
+        <button type="button" class="sniper-tab-btn ${activeTab === 'sniper_feed' ? 'is-active active' : ''}" data-sniper-tab="sniper_feed" role="tab">
           <span>Sniper Feed</span>
           <span class="sniper-tab-count">${alerts.length}</span>
           <kbd class="sniper-kbd">S</kbd>
         </button>
-        <button type="button" class="sniper-tab-btn ${activeTab === 'live_board' ? 'active' : ''}" data-sniper-tab="live_board" role="tab">
+        <button type="button" class="sniper-tab-btn ${activeTab === 'live_board' ? 'is-active active' : ''}" data-sniper-tab="live_board" role="tab">
           <span>Live Board</span>
           <span class="sniper-tab-count">${liveBoard.length}</span>
           <kbd class="sniper-kbd">L</kbd>
         </button>
-        <button type="button" class="sniper-tab-btn ${activeTab === 'polymarket' ? 'active' : ''}" data-sniper-tab="polymarket" role="tab">
+        <button type="button" class="sniper-tab-btn ${activeTab === 'polymarket' ? 'is-active active' : ''}" data-sniper-tab="polymarket" role="tab">
           <span>Polymarket CLOB</span>
           <span class="sniper-tab-count">${polyBoard.length}</span>
           <kbd class="sniper-kbd">P</kbd>
         </button>
-        <button type="button" class="sniper-tab-btn ${activeTab === 'clv_config' ? 'active' : ''}" data-sniper-tab="clv_config" role="tab">
+        <button type="button" class="sniper-tab-btn ${activeTab === 'clv_config' ? 'is-active active' : ''}" data-sniper-tab="clv_config" role="tab">
           <span>CLV &amp; Config</span>
           <span class="sniper-tab-count">${clvSummary.total_logged || 0}</span>
         </button>
       </div>
       <div class="sniper-spine-status">
-        <span><strong>Event Spine:</strong> LangGraph StateGraph + Redis Streams</span>
-        <span><strong>Core:</strong> NegBin/Gamma Deterministic (No LLM in Pricing)</span>
-        <span class="sniper-killswitch-pill">Stale Kill Switch: ACTIVE (Odds 20s/60s · Injury 90s/300s)</span>
+        <span class="sniper-spine-dot"></span>
+        <span><strong>3-Layer Stack:</strong> PBP 5s (nba_api Live) &rarr; Recalc on Last-Known Odds &rarr; Odds 10-30s (WS + CLOB)</span>
+        <span class="sniper-killswitch-pill">Stale Kill Switch: ACTIVE (Odds 20s · Injury 90s)</span>
       </div>
     `;
 
     let agenticSectionHtml = '';
-    if (activeTab === 'sniper_feed') {
+    if (activeTab === 'lineups') {
+      agenticSectionHtml = renderNbaCourtLineupView(snap);
+    } else if (activeTab === 'sniper_feed') {
       const alertCards = alerts.slice(0, 8).map((al) => {
         const showExplain = Boolean(state.sniperExplainAll || (state.sniperExpandedIds && state.sniperExpandedIds[al.alert_id]));
         const catalystLabel = al.catalyst_reason === 'injury_vacancy' ? 'INJURY VACANCY'
@@ -3724,6 +3915,87 @@
         renderSniperModal(activeTab);
       };
     });
+
+    content.querySelectorAll('[data-court-game]').forEach((btn) => {
+      btn.onclick = () => {
+        triggerHaptic('light');
+        state.sniperCourtGameId = btn.dataset.courtGame;
+        state.sniperCourtTeam = null;
+        renderSniperModal('lineups');
+      };
+    });
+
+    const toggleTeamBtn = content.querySelector('#nbaToggleTeamBtn');
+    if (toggleTeamBtn) {
+      toggleTeamBtn.onclick = () => {
+        triggerHaptic('light');
+        state.sniperCourtTeam = toggleTeamBtn.dataset.nextTeam;
+        renderSniperModal('lineups');
+      };
+    }
+
+    const subSimBtn = content.querySelector('#nbaSimulateSubBtn');
+    if (subSimBtn) {
+      subSimBtn.onclick = async () => {
+        triggerHaptic('medium');
+        subSimBtn.disabled = true;
+        subSimBtn.textContent = 'Parsing PBP Sub...';
+        const t0 = performance.now();
+        const gameId = state.sniperCourtGameId || '2026_nba_mil_bos';
+        const team = state.sniperCourtTeam || 'MIL';
+        try {
+          const res = await fetch('/api/sniper/simulate-substitution', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ game_id: gameId, team })
+          });
+          if (res.ok) {
+            const payload = await res.json();
+            if (state.sniperTerminalData && state.sniperTerminalData.court_lineups && payload.court_game) {
+              state.sniperTerminalData.court_lineups[gameId] = payload.court_game;
+            }
+            renderSniperModal('lineups');
+            const banner = content.querySelector('#nbaSubSimBanner');
+            if (banner) {
+              banner.hidden = false;
+              banner.innerHTML = `<strong>5s PBP Substitution &rarr; Last-Known Odds Recalc (${Number(payload.elapsed_ms).toFixed(2)}ms):</strong> ${esc(payload.sub_in.name)} SUB IN for ${esc(payload.sub_out.name)} &rarr; Bayesian Remaining Fair <strong>${Number(payload.sub_in.fair_line).toFixed(1)}</strong> (+${Number(payload.sub_in.edge_pct).toFixed(1)}% Edge).`;
+            }
+            return;
+          }
+          throw new Error('Static fallback');
+        } catch (_) {
+          // Client-side deterministic swap when running on static hosting
+          const elapsed = (performance.now() - t0).toFixed(1);
+          const g = state.sniperTerminalData?.court_lineups?.[gameId];
+          const tData = g?.teams?.[team];
+          if (tData && Array.isArray(tData.on_court) && Array.isArray(tData.bench) && tData.bench.length > 0) {
+            const subOut = { ...tData.on_court[0], sub_status: 'SUB_OUT' };
+            const subIn = {
+              ...tData.bench[0],
+              formation_row: tData.on_court[0].formation_row || 1,
+              sub_status: 'SUB_IN',
+              usage_delta_pct: 4.4,
+              fair_line: +(Number(tData.bench[0].fair_line || 18.5) + 1.4).toFixed(1),
+              edge_pct: +(Number(tData.bench[0].edge_pct || 4.0) + 1.6).toFixed(1)
+            };
+            tData.on_court[0] = subIn;
+            tData.bench[0] = subOut;
+            g.event_ticker.unshift({
+              player: subIn.name,
+              detail: `SUB IN for ${subOut.short_name} (${g.status_pill} · PLAYER1_ID:${subOut.nba_id} -> PLAYER2_ID:${subIn.nba_id} · Bayesian Fair ${subIn.fair_line} +${subIn.edge_pct}%)`,
+              type: 'sub'
+            });
+            g.event_ticker = g.event_ticker.slice(0, 5);
+            renderSniperModal('lineups');
+            const banner = content.querySelector('#nbaSubSimBanner');
+            if (banner) {
+              banner.hidden = false;
+              banner.innerHTML = `<strong>5s PBP Substitution &rarr; Last-Known Odds Recalc (${elapsed}ms):</strong> ${esc(subIn.name)} SUB IN for ${esc(subOut.name)} &rarr; Bayesian Remaining Fair <strong>${Number(subIn.fair_line).toFixed(1)}</strong> (+${Number(subIn.edge_pct).toFixed(1)}% Edge).`;
+            }
+          }
+        }
+      };
+    }
 
     const simBtn = content.querySelector('#sniperSimulateScratchBtn');
     if (simBtn) {
