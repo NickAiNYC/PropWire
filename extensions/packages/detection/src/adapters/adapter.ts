@@ -60,7 +60,7 @@ export class AdapterRegistry {
   }
 
   isAdapterEnabled(platform: string): boolean {
-    return (this.flags as Record<string, boolean | undefined>)[platform] === true;
+    return (this.flags as unknown as Record<string, boolean | undefined>)[platform] === true;
   }
 
   /** Resolve the adapter for a URL, honoring feature flags. */

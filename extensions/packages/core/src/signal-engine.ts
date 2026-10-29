@@ -156,7 +156,7 @@ export function evaluateSignal(input: SignalEvaluationInput): SignalSnapshot {
     return snapshot("SUSPENDED", true, "CLOSED", freshness);
   }
 
-  if (match.status === "NO_COVERAGE" || !input.model) {
+  if (match.status === "NO_COVERAGE" || !model) {
     reasons.push(...(match?.reasons ?? []));
     reasons.push("model has no coverage for this market — displayed as NO MODEL COVERAGE");
     return snapshot("MODEL_UNAVAILABLE", false, undefined, freshness);
@@ -273,5 +273,6 @@ export function signalStatusLabel(s: SignalSnapshot): string {
     case "MODEL_MATCHED": return "MODEL MATCHED";
     case "NORMALIZED": return "NORMALIZED";
     case "DETECTED": return "DETECTED";
+    default: return "UNKNOWN";
   }
 }

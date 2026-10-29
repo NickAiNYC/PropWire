@@ -51,7 +51,7 @@ function parseIsoMs(iso: string | undefined): number | undefined {
   return Number.isFinite(t) ? t : undefined;
 }
 
-export function quoteAgeMs(observedAt: string, nowMs: number): number {
+export function quoteAgeMs(observedAt: string | undefined, nowMs: number): number {
   const t = parseIsoMs(observedAt);
   if (t === undefined) return Number.POSITIVE_INFINITY;
   return Math.max(0, nowMs - t);

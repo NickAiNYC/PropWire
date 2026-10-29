@@ -154,16 +154,33 @@ export class DemoBookAdapter implements VisibleMarketAdapter {
     const hooks: DifferHooks = {
       selectCards: (root: Document) =>
         Array.from(root.querySelectorAll(`${PAGE_ROOT_MARKER} ${MARKET_CARD_SELECTOR}`)),
-      parseCard: (el: Element) => this.parseCard(el, this.now().toISOString(), {}),
+      // IMPORTANT: parse card events with the CURRENT board context (event,
+      // teams, drive). The board is located from the card itself so attribute
+      // changes on the board (e.g. a drive transition) are reflected
+      // immediately — an empty context here would strip the event/drive
+      // binding from every mutation-driven market and degrade all signals to
+      // UNVERIFIED (found in live e2e; linkedom integration tests only cover
+      // the initial detectVisibleMarkets pass).
+      parseCard: (el: Element) => {
+        const board = el.closest(PAGE_ROOT_MARKER) ?? el.ownerDocument?.querySelector(PAGE_ROOT_MARKER) ?? null;
+        const boardContext = board
+          ? {
+              eventId: attr(board, "data-ps-event-id"),
+              homeTeam: attr(board, "data-ps-home-team"),
+              awayTeam: attr(board, "data-ps-away-team"),
+              driveId: attr(board, "data-ps-drive-id"),
+              sport: attr(board, "data-ps-sport"),
+              league: attr(board, "data-ps-league"),
+            }
+          : {};
+        return this.parseCard(el, this.now().toISOString(), boardContext);
+      },
     };
-    const observer = new MutationObserver(() => undefined);
-    // The shared differ drives change events; it wires its own observer.
     this.unsubscribeDiff = diffMarkets(hooks, callback, {
       targetSelector: PAGE_ROOT_MARKER,
     });
     return () => {
       this.unsubscribeDiff?.();
-      observer.disconnect();
     };
   }
 }

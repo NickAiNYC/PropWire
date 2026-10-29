@@ -214,7 +214,8 @@ export function diffMarkets(
     attributeFilter: [
       "data-ps-american-odds", "data-ps-odds-text", "data-ps-market-status",
       "data-ps-player-name", "data-ps-market-label", "data-ps-line",
-      "data-ps-drive-id", "class", "style",
+      "data-ps-drive-id", "data-ps-event-id", "data-ps-feed-tick",
+      "class", "style",
     ],
   });
 
