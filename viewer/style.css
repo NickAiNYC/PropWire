@@ -9189,7 +9189,9 @@ html, body {
 }
 
 .telemetry-progress-bar {
-  width: 74.2% !important;
+  /* v175: width driven by updateClvRibbon() from the graded ledger (0% until
+     real data arrives) — never a hardcoded marketing figure. */
+  width: var(--clv-beat-rate, 0%) !important;
   height: 100% !important;
   border-radius: 999px !important;
   background: linear-gradient(90deg, #2563eb, #38bdf8, #22d3ee) !important;
@@ -9312,8 +9314,9 @@ html, body {
 .hero-card-status-pill {
   display: none !important;
 }
-  letter-spacing: 0.05em !important;
-}
+/* v175 repair: removed orphaned `letter-spacing: 0.05em !important; }` debris
+   (stray closing brace knocked the stylesheet's brace balance -1 from here
+   on, first surfacing as dead v174/v175 rules at EOF) */
 
 .hero-status-dot {
   width: 4.5px !important;
@@ -13430,6 +13433,12 @@ dialog.detail-dialog .dialog-sheet-handle {
   font-size: 10.5px;
   white-space: pre-wrap;
   color: #d4d4d8;
+}
+/* v175 repair: the missing `}` above left EVERYTHING from here to EOF
+   nested under .arb-routing-payload-pre (CSS Nesting) — silently killing
+   the card-density utilities, sim-tray styles, owner v174 compact-grid /
+   hover-elevation / sticky-column / chip-wrap rules, and the v175 honesty
+   styles. Found by actually opening the page in a browser (Task 61). */
 /* ── Quant Mobile Card Density & Visual Enhancements ── */
 .card-prog-track {
   width: 100%;
@@ -14149,6 +14158,9 @@ dialog.detail-dialog .dialog-sheet-handle {
 /* v174 race #12 conversions (owner 114d814, Task 60) */
 .dens-span2 { grid-column: span 2; }
 .dens-val-700 { font-weight: 700; }
+/* v175 honesty layer (Task 61) */
+.sim-approx-note { margin-top: 8px; padding: 7px 10px; border: 1px solid rgba(148, 163, 184, 0.25); border-radius: 8px; background: rgba(30, 41, 59, 0.5); color: #94a3b8; font-size: 10.5px; line-height: 1.45; }
+[data-theme="light"] .sim-approx-note { background: rgba(226, 232, 240, 0.6); color: #475569; }
 /* ==========================================================================
    v174: ADVANCED GRID VIEW, COMPACT DENSITY & RESPONSIVE SCALING
    ========================================================================== */
