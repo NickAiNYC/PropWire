@@ -81,14 +81,23 @@ def test_webhook_dispatched_for_5pct_edge_when_gate_is_4pct(tmp_path: Path):
     assert outcomes[0]["status"] == "sent"
     assert len(sent_calls) == 1
 
-    # Verify Discord embed and Telegram Markdown formatting
+    # Verify Discord embed and Telegram Markdown formatting (mission W4 format)
     discord_payload = format_discord_embed(alert_5pct)
-    embed_desc = discord_payload["embeds"][0]["description"]
-    assert "Jalen Brunson | PTS Over 24.5" in embed_desc
-    assert "Fair Prob:** 64%" in embed_desc
-    assert "Polymarket:** 58% ($0.58)" in embed_desc
-    assert "$500 @ $0.58, $1,200 @ $0.59" in embed_desc
-    assert "[🔗 BUY YES ON POLYMARKET]" in embed_desc
+    embed = discord_payload["embeds"][0]
+    assert embed["title"] == "🚨 LIVE SNIPER ALERT: Jalen Brunson"
+    assert "PTS Over 24.5" in embed["description"]
+    assert "Fair **64%** vs Market **58%** ($0.58)" in embed["description"]
+    assert "$500 @ $0.58, $1,200 @ $0.59" in embed["description"]
+    fields = {f["name"]: f["value"] for f in embed["fields"]}
+    assert fields["Edge"] == "+5.0%"
+    assert fields["Proj Line"] == "25.7"
+    assert fields["Market Line"] == "24.5"
+    assert fields["Book"] == "Polymarket"
+    assert embed["color"] == 0xA3E635
+    button = discord_payload["components"][0]["components"][0]
+    assert button["label"] == "🔗 Execute on Polymarket"
+    assert button["style"] == 5
+    assert button["url"] == "https://polymarket.com/event/nba-jalen-brunson-points-over-24-5"
 
     tg_md = format_telegram_markdown(alert_5pct)
     assert "Jalen Brunson | PTS Over 24.5" in tg_md
@@ -253,3 +262,34 @@ def test_ssrf_protection_and_404_auto_deactivation(tmp_path: Path):
     assert len(all_subs) == 1
     assert all_subs[0]["active_status"] is False
 
+
+
+def test_discord_embed_sportsbook_button_and_book_field(tmp_path: Path):
+    """Mission W4: a sportsbook alert (DK/FD) gets a `View on [Book]` button
+    and the Book field carries the book display name."""
+    alert_dk = {
+        "player_id": "nba_giannis",
+        "player_name": "Giannis Antetokounmpo",
+        "team": "MIL",
+        "market": "points",
+        "market_label": "PTS Over 31.5",
+        "line": 31.5,
+        "fair_line": 34.2,
+        "fair_prob": 0.641,
+        "implied_prob": 0.529,
+        "edge_pct": 11.2,
+        "depth_tooltip": "$2,000 available at $1.91",
+        "deep_link": "https://sportsbook.draftkings.com/nba/giannis-pts",
+        "venue_type": "sportsbook",
+        "book": "DraftKings",
+    }
+    payload = format_discord_embed(alert_dk)
+    embed = payload["embeds"][0]
+    assert embed["title"] == "🚨 LIVE SNIPER ALERT: Giannis Antetokounmpo"
+    fields = {f["name"]: f["value"] for f in embed["fields"]}
+    assert fields["Book"] == "DraftKings"
+    assert fields["Proj Line"] == "34.2"
+    assert fields["Edge"] == "+11.2%"
+    button = payload["components"][0]["components"][0]
+    assert button["label"] == "🔗 View on DraftKings"
+    assert button["url"] == "https://sportsbook.draftkings.com/nba/giannis-pts"
