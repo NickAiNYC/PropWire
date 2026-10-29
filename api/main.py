@@ -1483,9 +1483,15 @@ async def stripe_webhook(request: Request):
     sig_header = request.headers.get("Stripe-Signature")
     webhook_secret = os.environ.get("STRIPE_WEBHOOK_SECRET")
 
-    if webhook_secret:
-        if not verify_stripe_webhook_signature(payload_bytes, sig_header, webhook_secret):
-            raise HTTPException(400, "Invalid Stripe webhook signature")
+    if not webhook_secret:
+        # Fail-closed (Trust Engine invariant): without the configured secret we
+        # cannot authenticate the caller. Silently processing unsigned events
+        # would let anyone forge checkout.session.completed and unlock PRO.
+        print("[billing] STRIPE_WEBHOOK_SECRET not configured — rejecting unsigned webhook", flush=True)
+        raise HTTPException(503, "Stripe webhook secret not configured; refusing unsigned events")
+
+    if not verify_stripe_webhook_signature(payload_bytes, sig_header, webhook_secret):
+        raise HTTPException(400, "Invalid Stripe webhook signature")
 
     try:
         event = json.loads(payload_bytes.decode("utf-8"))
