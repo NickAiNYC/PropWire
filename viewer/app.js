@@ -2408,7 +2408,7 @@
       if (boardEl) boardEl.classList.remove('is-feed-stale');
     }
 
-    if (!items.length) {
+    if (!items.length || state.dataQualityBannerDismissed) {
       banner.hidden = true;
       banner.innerHTML = '';
       banner.className = 'data-quality-banner';
@@ -2417,7 +2417,10 @@
     banner.hidden = false;
     banner.className = `data-quality-banner ${tone}`;
     banner.innerHTML = items.map((item) => `<div class="dq-item">${item}</div>`).join('')
-      + '<button type="button" id="dqRetryBtn" class="dq-retry-btn" title="Refresh feed" aria-label="Refresh feed">↻</button>';
+      + '<div class="dq-actions">'
+      + '<button type="button" id="dqRetryBtn" class="dq-retry-btn" title="Refresh feed" aria-label="Refresh feed">↻</button>'
+      + '<button type="button" id="dqDismissBtn" class="dq-dismiss-btn" title="Dismiss banner" aria-label="Dismiss banner">×</button>'
+      + '</div>';
     const retry = document.getElementById('dqRetryBtn');
     if (retry) retry.addEventListener('click', () => window.location.reload());
   }
@@ -3071,12 +3074,15 @@
     $('#slateHead').innerHTML = tableHead(displayHasPrices);
 
     // Stop Dual-Rendering: populate only the active view layout to save DOM weight and boost performance
+    const isCardLayout = state.view === 'cards' || state.view === 'compact-grid';
     if (state.view === 'table') {
       $('#slateRows').innerHTML = displayRows.map((row, idx) => tableRow(row, displayHasPrices, idx)).join('');
       $('#cardView').innerHTML = '';
+      $('#cardView').classList.remove('compact-grid');
     } else {
       $('#slateRows').innerHTML = '';
       $('#cardView').innerHTML = displayRows.map((row, idx) => propCard(row, idx)).join('');
+      $('#cardView').classList.toggle('compact-grid', state.view === 'compact-grid');
       // v171: CSP-clean dynamic progress width (inline style attrs are stripped by prod CSP)
       document.querySelectorAll('#cardView .card-prog-fill[data-prog]').forEach((el) => { el.style.width = el.dataset.prog + '%'; });
     }
@@ -3085,11 +3091,11 @@
     if (isResearchMode) {
       $('#emptyState').hidden = false;
       $('#tableView').hidden = isMobile || state.view !== 'table';
-      $('#cardView').hidden = (!isMobile && state.view !== 'cards');
+      $('#cardView').hidden = (!isMobile && !isCardLayout);
     } else {
       $('#emptyState').hidden = rows.length !== 0;
       $('#tableView').hidden = isMobile || state.view !== 'table' || rows.length === 0;
-      $('#cardView').hidden = (!isMobile && state.view !== 'cards') || rows.length === 0;
+      $('#cardView').hidden = (!isMobile && !isCardLayout) || rows.length === 0;
     }
 
     updateHeroCard(isResearchMode, quotedCount, displayRows.length);
@@ -5681,7 +5687,7 @@
         <div class="player-cell">
           <span class="position-box">${esc(row.position)}</span>
           <div class="player-info">
-            <div class="player-name">${starBtn} ${avatarFor(row.player_id, row.player_display_name, row.team)}<span class="player-name-text">${esc(row.player_display_name)}</span>${injury ? `<span class="injury-tag">${esc(injury.report_status)}</span>` : ''}</div>
+            <div class="player-name">${starBtn} ${avatarFor(row.player_id, row.player_display_name, row.team)}<span class="player-name-text" title="${esc(row.player_display_name)}">${esc(row.player_display_name)}</span>${injury ? `<span class="injury-tag">${esc(injury.report_status)}</span>` : ''}</div>
             <div class="player-meta-line">
               <span class="cell-sub">${esc(row.team)} · ${esc(roleLabel(row))}</span>
               ${keyDriverTag(row, beneficiary)}${sportCalibrationBadge()}
@@ -5744,8 +5750,20 @@
       heroEdgeHtml = '<span class="card-hero-edge closed">CLOSED</span>';
       heroSubHtml = '<span class="card-edge-sub status-no-line">OFF BOARD</span>';
     } else if (evaluation.state === 'none') {
-      heroEdgeHtml = '<span class="card-hero-edge none">—</span>';
-      heroSubHtml = '<span class="card-edge-sub status-no-line">—</span>';
+      const pid = row.player_id;
+      if (state.simulatedLines && state.simulatedLines[pid] !== undefined) {
+        const simVal = state.simulatedLines[pid];
+        const rawEdge = simVal > 0 ? (((dist.proj - simVal) / simVal) * 100) : 0;
+        const isPos = rawEdge > 0;
+        heroEdgeHtml = `<span class="card-hero-edge ${isPos ? 'positive' : 'negative'}">${isPos ? '+' : ''}${rawEdge.toFixed(1)}%</span>`;
+        heroSubHtml = `<span class="card-edge-sub status-active">SIM EDGE</span>`;
+      } else {
+        const rawModelSkew = fairVal > 0 ? (((dist.proj - fairVal) / fairVal) * 100) : 0;
+        const isSkewPos = rawModelSkew >= 0;
+        const skewArrow = isSkewPos ? '↑' : '↓';
+        heroEdgeHtml = `<span class="card-hero-edge model-lean ${isSkewPos ? 'positive' : 'negative'}" title="Model Skew: Proj ${dist.proj.toFixed(1)} vs Fair ${fairVal.toFixed(1)}">${skewArrow} ${isSkewPos ? '+' : ''}${Math.abs(rawModelSkew).toFixed(1)}%</span>`;
+        heroSubHtml = `<span class="card-edge-sub status-lean">MODEL SKEW</span>`;
+      }
     } else if (evaluation.volatilityHalt) {
       heroEdgeHtml = `<span class="card-hero-edge text-shift" title="${esc(evaluation.haltReason)}">SHIFT</span>`;
       heroSubHtml = '<span class="card-edge-sub status-verify">VERIFY</span>';
@@ -5798,10 +5816,20 @@
         </div>
       `;
     } else if (evaluation.state === 'none') {
+      const simVal = (state.simulatedLines && state.simulatedLines[row.player_id] !== undefined)
+        ? state.simulatedLines[row.player_id]
+        : null;
       gridColsHtml = `
-        <div class="card-grid-col col-book" style="grid-column: span 2;">
-          <span class="grid-col-lbl">STATUS</span>
-          <span class="grid-col-val text-muted font-mono dens-muted-dash">—</span>
+        <div class="card-grid-col col-book dens-span2">
+          <span class="grid-col-lbl">SPORTSBOOK</span>
+          <div class="card-quote-standby-wrap">
+            ${simVal !== null
+              ? `<span class="card-sim-line-val font-mono">SIM ${simVal.toFixed(1)}</span>`
+              : `<span class="card-unverified-tag" title="Awaiting 3-book consensus receipt hash">AWAITING QUOTE</span>`}
+            <button type="button" class="card-simulate-trigger-btn" data-simulate-player="${esc(row.player_id)}" title="Simulate custom sportsbook line and stress-test">
+              ${simVal !== null ? 'Edit Sim' : '+ Simulate'}
+            </button>
+          </div>
           <div class="card-proj-fair-row font-mono dens-row-8">
             <span class="font-mono text-white dens-proj-val">PROJ ${dist.proj.toFixed(1)}</span>
             <span class="font-mono dens-fair-sub">FAIR ${fairVal.toFixed(1)}</span>
@@ -5814,15 +5842,19 @@
           <span class="grid-col-sub">Model</span>
         </div>
         <div class="card-grid-col col-action">
-          <button type="button" class="card-btn-view card-btn-view-ghost" data-inspect="${esc(row.player_id)}" aria-label="View Details">›</button>
+          <button type="button" class="card-btn-view card-btn-view-ghost" data-inspect="${esc(row.player_id)}" aria-label="View Details" title="Open full quantitative model drawer">›</button>
+          <button type="button" class="card-btn-sim-quick" data-simulate-player="${esc(row.player_id)}" aria-label="Simulate Line" title="Quick line stress-test & de-vig">⚡ Sim</button>
         </div>
       `;
     } else {
+      const isFlatJuice = evaluation.odds === -110;
+      const juiceLabel = isFlatJuice ? 'Flat -110' : oddsText(evaluation.odds);
+      const juiceClass = isFlatJuice ? 'flat-odds' : (evaluation.odds <= -115 ? 'heavy-juice' : 'plus-money');
       gridColsHtml = `
         <div class="card-grid-col col-book">
           <span class="grid-col-lbl">BOOK</span>
-          <span class="grid-col-val">${evaluation.side === 'OVER' ? '↑' : '↓'} ${evaluation.line.toFixed(1)}</span>
-          <span class="grid-col-sub">${oddsText(evaluation.odds)}</span>
+          <span class="grid-col-val font-mono text-white dens-val-700">${evaluation.side === 'OVER' ? '↑' : '↓'} ${evaluation.line.toFixed(1)}</span>
+          <span class="card-odds-pill ${juiceClass}">${juiceLabel}</span>
         </div>
         <div class="card-grid-col col-model">
           <span class="grid-col-lbl">MODEL</span>
@@ -5838,7 +5870,8 @@
           <div class="grid-col-spark">${sparklineHtml}</div>
         </div>
         <div class="card-grid-col col-action">
-          <button type="button" class="card-btn-view card-btn-view-ghost" data-inspect="${esc(row.player_id)}" aria-label="View Details">›</button>
+          <button type="button" class="card-btn-view card-btn-view-ghost" data-inspect="${esc(row.player_id)}" aria-label="View Details" title="Open full quantitative model drawer">›</button>
+          <button type="button" class="card-btn-sim-quick" data-simulate-player="${esc(row.player_id)}" aria-label="Simulate Line" title="Quick line stress-test & de-vig">⚡ Sim</button>
           ${isLogged || execution.allowed
             ? `<button type="button" class="card-btn-log ${isLogged ? 'logged' : ''}" data-log-bet="${esc(row.player_id)}" aria-label="${isLogged ? 'Remove from Ledger' : 'Review verified play'}" title="${isLogged ? 'Remove from Ledger' : 'Review verified play'}">${isLogged ? 'Logged' : 'Review'}</button>`
             : `<button type="button" class="card-btn-log blocked" disabled aria-label="Execution blocked: ${esc(execution.message)}" title="${esc(execution.message)}">${SVG_ICONS.lock}</button>`}
@@ -5854,7 +5887,7 @@
             <button class="star-btn ${isWatched ? 'starred' : ''}" type="button" data-watch-player="${esc(row.player_id)}" title="${isWatched ? 'Remove from Watchlist' : 'Add to Watchlist'}" aria-label="Watch">${SVG_ICONS.star(isWatched)}</button>
             ${avatarFor(row.player_id, row.player_display_name, row.team)}
             <div class="card-name-group">
-              <span class="card-player-name">${esc(row.player_display_name)}${injury ? ` <span class="injury-tag">${esc(injury.report_status)}</span>` : ''}</span>
+              <span class="card-player-name" title="${esc(row.player_display_name)}">${esc(row.player_display_name)}${injury ? ` <span class="injury-tag">${esc(injury.report_status)}</span>` : ''}</span>
               <span class="card-team-matchup">${esc(row.position)} · ${esc(row.team)} ${row.is_home ? 'vs' : '@'} ${esc(row.opponent_team)}</span>${sportCalibrationBadge()}
             </div>
           </div>
@@ -6508,7 +6541,7 @@
     if (window.matchMedia && window.matchMedia('(max-width: 768px)').matches) {
       state.view = 'cards';
     } else {
-      state.view = view === 'cards' ? 'cards' : 'table';
+      state.view = ['cards', 'compact-grid'].includes(view) ? view : 'table';
     }
     $$('.view-switch button').forEach((button) => button.classList.toggle('active', button.dataset.view === state.view));
     renderBoard();
@@ -6527,6 +6560,15 @@
       event.preventDefault();
       event.stopPropagation();
       dismissCorrelation(dismissBtn.dataset.dismissCorr);
+      return;
+    }
+    const dqDismiss = event.target.closest('.dq-dismiss-btn');
+    if (dqDismiss) {
+      event.preventDefault();
+      event.stopPropagation();
+      state.dataQualityBannerDismissed = true;
+      const b = elById('dataQualityBanner');
+      if (b) b.hidden = true;
       return;
     }
     const watchBtn = event.target.closest('[data-watch-player]');

@@ -1,25 +1,22 @@
 #!/usr/bin/env python3
 """
-v173 three-piece cache-bust sweep (PropStein rebrand discipline repair).
+v174 three-piece cache-bust sweep (race #12 discipline layer, Task 60).
 
-The owner's rebrand batch (c651dad..0e53529) changed viewer assets (logo suite,
-telemetry ribbon, line pulse, card density) and rewrote audit/ledger/verify.html
-head sections — but LEFT THE CACHE BUSTERS BEHIND:
-  - audit.html / verify.html were REWOUND to v171-era pins (?v=2026_v171,
-    build-hash 2026-w8-v24) by scripts/install_propstein_lighter_logo.py
-  - ledger.html / index.html partially kept v172 pins
-  - sw.js cache name stayed propwire-v172-prod (icons changed content!)
+The owner's 114d814 batch (compact grid mode, card hover elevation, fluid
+table) changed viewer assets (app.js / style.css / index.html) but AGAIN
+LEFT THE CACHE BUSTERS BEHIND — and their copy of index.html even carried
+a stale 2026-w8-v25 build-hash against our v26 line.
 
-This sweep bumps EVERYTHING to the v173 trio AND repairs the rewound pins:
-  buster     2026_v172 / 2026_v171 -> 2026_v173
-  SW cache   propwire-v172-prod    -> propwire-v173-prod
-  build-hash 2026-w8-v25 / v24     -> 2026-w8-v26
+This sweep bumps EVERYTHING to the v174 trio AND repairs any rewound pins:
+  buster     2026_v173 / 2026_v172 / 2026_v171 -> 2026_v174
+  SW cache   propstein-v173-prod (and older)    -> propstein-v174-prod
+  build-hash 2026-w8-v26 / v25 / v24            -> 2026-w8-v27
 
 Also re-pins the 4 verification harnesses (verify_v152_books / v153_rebrand /
-v154_dropwire / v155_photos .mjs) to the same v173 values.
+v154_dropwire / v155_photos .mjs) to the same v174 values.
 
-Verification pass at the end: zero stale v171/v172 markers anywhere in the
-swept viewer assets.
+Verification pass at the end: zero stale v171/v172/v173 markers anywhere in
+the swept viewer assets.
 """
 
 from __future__ import annotations
@@ -48,23 +45,27 @@ HARNESSES = [
 ]
 
 SWAPS = [
-    # v172 -> v173 (normal bump; cache target = owner-official propstein- prefix)
-    ("2026_v172", "2026_v173"),
-    ("propwire-v172-prod", "propstein-v173-prod"),
-    ("propstein-v172-prod", "propstein-v173-prod"),
-    ("2026-w8-v25", "2026-w8-v26"),
-    # v171-era -> v173 (repair of the rebrand rewind)
-    ("2026_v171", "2026_v173"),
-    ("propwire-v171-prod", "propstein-v173-prod"),
-    ("propstein-v171-prod", "propstein-v173-prod"),
-    ("2026-w8-v24", "2026-w8-v26"),
+    # v173 -> v174 (normal bump; owner-official propstein- prefix retained)
+    ("2026_v173", "2026_v174"),
+    ("propwire-v173-prod", "propstein-v174-prod"),
+    ("propstein-v173-prod", "propstein-v174-prod"),
+    ("2026-w8-v26", "2026-w8-v27"),
+    # v172/v171-era -> v174 (defensive repair of any rewound pins)
+    ("2026_v172", "2026_v174"),
+    ("2026_v171", "2026_v174"),
+    ("propwire-v172-prod", "propstein-v174-prod"),
+    ("propwire-v171-prod", "propstein-v174-prod"),
+    ("propstein-v172-prod", "propstein-v174-prod"),
+    ("propstein-v171-prod", "propstein-v174-prod"),
+    ("2026-w8-v25", "2026-w8-v27"),
+    ("2026-w8-v24", "2026-w8-v27"),
 ]
 
 STALE_MARKERS = [
-    "2026_v171", "2026_v172",
-    "propwire-v171-prod", "propwire-v172-prod",
-    "propstein-v171-prod", "propstein-v172-prod",
-    "2026-w8-v24", "2026-w8-v25",
+    "2026_v171", "2026_v172", "2026_v173",
+    "propwire-v171-prod", "propwire-v172-prod", "propwire-v173-prod",
+    "propstein-v171-prod", "propstein-v172-prod", "propstein-v173-prod",
+    "2026-w8-v24", "2026-w8-v25", "2026-w8-v26",
 ]
 
 
@@ -95,7 +96,7 @@ def verify() -> int:
         for s in stale:
             print(f"   - {s}")
         return 1
-    print("[sweep] CLEAN: zero stale v171/v172 markers in viewer assets")
+    print("[sweep] CLEAN: zero stale v171/v172/v173 markers in viewer assets")
     return 0
 
 
