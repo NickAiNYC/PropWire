@@ -9,10 +9,7 @@ const STATIC_ASSETS = [
   '/js/sports/registry.js?v=2026_v167',
   '/js/sports/nfl.js?v=2026_v167',
   '/js/sports/nba.js?v=2026_v167',
-  // v154 DROPWIRE brand lockup (user-approved white + baby-blue recolor)
-  '/propwire-logo-dropwire.png?v=2026_v167',
-  '/propwire-logo-dropwire-light.png?v=2026_v167',
-  // main's SVG brand marks (kept for non-DROPWIRE surfaces)
+  // brand marks: owner-restored authentic PropWire SVG lockup (header)
   '/propwire-logo.svg?v=2026_v167',
   '/propwire-logo-dark.svg?v=2026_v167',
   // v152: self-hosted sportsbook wordmark badges (same-origin, CSP 'self')
