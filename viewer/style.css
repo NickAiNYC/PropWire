@@ -11891,6 +11891,344 @@ dialog.detail-dialog .dialog-sheet-handle {
   margin-top: 6px;
 }
 
+.nba-match-back-nav {
+  font-size: 22px;
+  line-height: 1;
+  font-weight: 700;
+  color: var(--pw-text-muted);
+  cursor: pointer;
+  padding-right: 8px;
+  user-select: none;
+  transition: color 0.15s ease;
+}
+
+.nba-match-back-nav:hover {
+  color: #F8FAFC;
+}
+
+.nba-match-clock-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.nba-match-ball-icon {
+  font-size: 13px;
+  line-height: 1;
+  opacity: 0.85;
+}
+
+/* Match Center Sub-Tab Bar (Lineups · Stats · Events · Commentary · Sniper Arbs) */
+.nba-match-center-tabs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 12px 0 16px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  scrollbar-width: none;
+}
+
+.nba-match-center-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.nba-mc-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 18px;
+  min-height: 38px;
+  border-radius: 999px;
+  background: #141A25;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #94A3B8;
+  font-family: var(--pw-font-sans);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.16s ease;
+}
+
+.nba-mc-tab-btn:hover {
+  background: #1A2232;
+  color: #F8FAFC;
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+.nba-mc-tab-btn.active {
+  background: #A3E635;
+  color: #090D14;
+  border-color: #A3E635;
+  font-weight: 700;
+  box-shadow: 0 2px 10px rgba(163, 230, 53, 0.35);
+}
+
+/* Soccer Pitch & Multi-Tier Formations */
+.soccer-pitch-diagram {
+  min-height: 460px !important;
+  background: #0E161C !important;
+  border-color: rgba(163, 230, 53, 0.15) !important;
+}
+
+.soccer-formation {
+  min-height: 420px !important;
+  gap: 16px !important;
+}
+
+.tier-gk, .tier-def, .tier-mid, .tier-fwd {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  width: 100%;
+}
+
+.tier-def .nba-court-player,
+.tier-mid .nba-court-player {
+  width: 90px !important;
+}
+
+.tier-def .nba-court-avatar-wrap,
+.tier-mid .nba-court-avatar-wrap {
+  width: 50px !important;
+  height: 50px !important;
+}
+
+/* Head-to-Head Match Stats View */
+.nba-match-stats-card {
+  background: #111621;
+  border: 1px solid var(--pw-border-subtle);
+  border-radius: 16px;
+  padding: 20px 16px;
+  margin-bottom: 16px;
+}
+
+.nba-stats-header {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  text-align: center;
+}
+
+.nba-stats-team-name {
+  font-family: var(--pw-font-sans);
+  font-size: 14px;
+  font-weight: 700;
+  color: #F8FAFC;
+}
+
+.nba-stats-vs-label {
+  font-family: var(--pw-font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: #A3E635;
+}
+
+.nba-stats-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.nba-stat-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.nba-stat-labels {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  font-size: 12.5px;
+}
+
+.nba-stat-val.away {
+  text-align: left;
+  font-family: var(--pw-font-mono);
+  font-weight: 700;
+  color: #F8FAFC;
+}
+
+.nba-stat-name {
+  text-align: center;
+  font-family: var(--pw-font-sans);
+  color: var(--pw-text-secondary);
+}
+
+.nba-stat-val.home {
+  text-align: right;
+  font-family: var(--pw-font-mono);
+  font-weight: 700;
+  color: #F8FAFC;
+}
+
+.nba-stat-bar-track {
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  display: flex;
+  overflow: hidden;
+  gap: 2px;
+}
+
+.nba-stat-bar-fill.away {
+  background: #A3E635;
+  border-radius: 999px 0 0 999px;
+}
+
+.nba-stat-bar-fill.home {
+  background: #38BDF8;
+  border-radius: 0 999px 999px 0;
+}
+
+/* Chronological Match Events View */
+.nba-match-events-full-card {
+  background: #111621;
+  border: 1px solid var(--pw-border-subtle);
+  border-radius: 16px;
+  padding: 20px 16px;
+  margin-bottom: 16px;
+}
+
+.nba-events-full-header {
+  font-family: var(--pw-font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: #A3E635;
+  margin-bottom: 14px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.nba-events-timeline-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.nba-timeline-event-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.nba-timeline-badge {
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-family: var(--pw-font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+
+.nba-timeline-badge.goal {
+  background: rgba(163, 230, 53, 0.16);
+  color: #A3E635;
+  border: 1px solid rgba(163, 230, 53, 0.4);
+}
+
+.nba-timeline-badge.sub {
+  background: rgba(56, 189, 248, 0.16);
+  color: #38BDF8;
+  border: 1px solid rgba(56, 189, 248, 0.4);
+}
+
+.nba-timeline-badge.foul {
+  background: rgba(245, 158, 11, 0.16);
+  color: #F59E0B;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+}
+
+.nba-timeline-badge.boost {
+  background: rgba(163, 230, 53, 0.16);
+  color: #A3E635;
+  border: 1px solid rgba(163, 230, 53, 0.4);
+}
+
+.nba-timeline-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.nba-timeline-player {
+  font-family: var(--pw-font-sans);
+  font-size: 13px;
+  font-weight: 700;
+  color: #F8FAFC;
+}
+
+.nba-timeline-detail {
+  font-family: var(--pw-font-sans);
+  font-size: 12px;
+  color: var(--pw-text-secondary);
+}
+
+/* Tactical / Quant Commentary View */
+.nba-match-commentary-card {
+  background: #111621;
+  border: 1px solid var(--pw-border-subtle);
+  border-radius: 16px;
+  padding: 20px 16px;
+  margin-bottom: 16px;
+}
+
+.nba-commentary-header {
+  font-family: var(--pw-font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: #A3E635;
+  margin-bottom: 14px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.nba-commentary-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.nba-commentary-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.02);
+  border-left: 3px solid #A3E635;
+}
+
+.nba-commentary-clock {
+  font-family: var(--pw-font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: #A3E635;
+  white-space: nowrap;
+  padding-top: 1px;
+}
+
+.nba-commentary-text {
+  font-family: var(--pw-font-sans);
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--pw-text-secondary);
+}
+
 .nba-tactical-card {
   background: #111621;
   border: 1px solid var(--pw-border-subtle);
