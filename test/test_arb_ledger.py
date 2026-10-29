@@ -97,3 +97,36 @@ def test_arb_ledger_service_grading_and_receipt(tmp_path):
     pub = ledger.get_public_ledger(limit=10)
     assert pub["total_graded_alerts"] >= 1
     assert len(pub["receipts"]) >= 1
+
+
+def test_api_receipt_and_history_endpoints():
+    from fastapi.testclient import TestClient
+    from api.main import app
+
+    client = TestClient(app)
+
+    # 1. Test public arb ledger performance endpoint
+    res_ledger = client.get("/api/ledger?limit=10")
+    assert res_ledger.status_code == 200
+    ledger_data = res_ledger.json()
+    assert "total_graded_alerts" in ledger_data
+    assert "average_clv_beat_pct" in ledger_data
+    assert "receipts" in ledger_data
+
+    # 2. Test paginated sniper history endpoint
+    res_hist = client.get("/api/sniper/history?limit=10")
+    assert res_hist.status_code == 200
+    hist_data = res_hist.json()
+    assert "total_alerts" in hist_data
+    assert "items" in hist_data
+
+    # 3. Test private history requires auth when private_only=True
+    res_unauth = client.get("/api/sniper/history?private_only=true")
+    assert res_unauth.status_code == 401
+
+    # 4. Authorized request passes
+    res_auth = client.get(
+        "/api/sniper/history?private_only=true",
+        headers={"X-PropWire-API-Key": "pw_quant_live_key"},
+    )
+    assert res_auth.status_code == 200
