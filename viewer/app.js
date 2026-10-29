@@ -4406,7 +4406,7 @@
     const sourceHash = String(data.source_hash || 'a1b2c3d4e5f60718293a4b5c6d7e8f901a2b3c4d5e6f708192a3b4c5d6e7f809');
     const receiptHash = String(data.receipt_hash || sourceHash);
     const modelVersion = data.model_version || 'propwire-dist-v2.4';
-    const verifyUrl = `https://propwire.vercel.app/verify/${encodeURIComponent(alertId)}`;
+    const verifyUrl = `https://propstein.vercel.app/verify/${encodeURIComponent(alertId)}`;
 
     const tweetText = encodeURIComponent(
       `⚡ Verified CLV Receipt: ${playerName} (${team}) ${propLabel}\n` +
@@ -4515,7 +4515,7 @@
 
             ctx.fillStyle = '#d4fb11';
             ctx.font = 'bold 16px monospace';
-            ctx.fillText('⚡ PROPWIRE QUANT TERMINAL — VERIFIED RECEIPT', 32, 48);
+            ctx.fillText('⚡ PROPSTEIN QUANT TERMINAL — VERIFIED RECEIPT', 32, 48);
 
             ctx.fillStyle = '#a1a1aa';
             ctx.font = '14px monospace';
@@ -4715,7 +4715,7 @@
                 ${shieldIconTabSvg}
                 <span>Share Receipt</span>
               </button>
-              <a href="${esc(al.deep_link || 'https://propwire.vercel.app')}" target="_blank" rel="noopener noreferrer" class="sniper-deeplink-btn">
+              <a href="${esc(al.deep_link || 'https://propstein.vercel.app')}" target="_blank" rel="noopener noreferrer" class="sniper-deeplink-btn">
                 Open ${esc(al.book)} ↗
               </a>
             </div>
@@ -5084,7 +5084,7 @@
           </div>
 
           <div style="margin-top:10px;" class="sniper-notice-box">
-            <strong>iOS Safari Notice:</strong> Web Push on iPhone requires adding PropWire to your Home Screen (Share → Add to Home Screen) on iOS 16.4+.
+            <strong>iOS Safari Notice:</strong> Web Push on iPhone requires adding PropStein to your Home Screen (Share → Add to Home Screen) on iOS 16.4+.
           </div>
 
           <div style="margin-top:14px;">
@@ -5200,8 +5200,8 @@
             body: JSON.stringify({
               event: 'PROP_WIRE_TEST_PING',
               timestamp: new Date().toISOString(),
-              message: 'PropWire Autonomous Market Sniper Connected!',
-              terminal: 'https://propwire.vercel.app'
+              message: 'PropStein Autonomous Market Sniper Connected!',
+              terminal: 'https://propstein.vercel.app'
             })
           });
           toast('Test payload dispatched to webhook endpoint');
@@ -5712,7 +5712,7 @@
 
     if (state.sniper.browserNotify && typeof Notification !== 'undefined' && Notification.permission === 'granted') {
       try {
-        const notif = new Notification(`PropWire Sniper: ${quote.player_name}`, {
+        const notif = new Notification(`PropStein Sniper: ${quote.player_name}`, {
           body: `${side} ${quote.line} (${oddsText(side === 'UNDER' ? quote.under_odds : quote.over_odds)}) · Edge +${(edge * 100).toFixed(1)}% · Tap to confirm`,
           icon: 'icon-192.png'
         });
@@ -5730,7 +5730,7 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           event: 'PROP_WIRE_SNIPER_ALERT',
-          source: 'PropWire Autonomous Market Telemetry',
+          source: 'PropStein Autonomous Market Telemetry',
           timestamp: new Date().toISOString(),
           player_id: quote.player_id,
           player: quote.player_name,
@@ -6961,7 +6961,7 @@
         ${offers.length < 2 ? '<p class="execution-note">No alternative verified offers are available in this snapshot.</p>' : ''}
       </section>
       <footer class="execution-actions">
-        <p>PropWire does not place wagers. Confirm only after placing this exact wager externally.</p>
+        <p>PropStein does not place wagers. Confirm only after placing this exact wager externally.</p>
         <button type="button" class="execution-confirm" id="executionConfirmBtn" ${decision.allowed ? '' : 'disabled'}>I placed this bet · record snapshot</button>
       </footer>`;
   }
@@ -7054,7 +7054,7 @@
       return;
     }
     const payload = {
-      app: 'PropWire Institutional Terminal',
+      app: 'PropStein Institutional Terminal',
       schema_version: '1.0',
       exported_at: new Date().toISOString(),
       total_bets: portfolio.length,
@@ -7063,7 +7063,7 @@
     const jsonStr = JSON.stringify(payload, null, 2);
     const blob = new Blob([jsonStr], { type: 'application/json' });
     const dateStr = new Date().toISOString().slice(0, 10);
-    const fileName = `propwire_clv_ledger_${dateStr}.json`;
+    const fileName = `propstein_clv_ledger_${dateStr}.json`;
 
     if (typeof navigator !== 'undefined' && navigator.share && navigator.canShare) {
       try {
@@ -7071,8 +7071,8 @@
         if (navigator.canShare({ files: [file] })) {
           navigator.share({
             files: [file],
-            title: 'PropWire CLV Ledger Export',
-            text: `PropWire CLV Ledger (${portfolio.length} bets)`
+            title: 'PropStein CLV Ledger Export',
+            text: `PropStein CLV Ledger (${portfolio.length} bets)`
           }).then(() => toast(`Exported ${portfolio.length} bets`)).catch(() => {});
           return;
         }
@@ -7117,7 +7117,7 @@
       ].join(','));
     });
     const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
-    const fileName = `propwire_slate_${state.slateKey}_${Date.now()}.csv`;
+    const fileName = `propstein_slate_${state.slateKey}_${Date.now()}.csv`;
 
     if (typeof navigator !== 'undefined' && navigator.share && navigator.canShare) {
       try {
@@ -7125,8 +7125,8 @@
         if (navigator.canShare({ files: [file] })) {
           navigator.share({
             files: [file],
-            title: 'PropWire Week 7 Slate Export',
-            text: `Export of ${rows.length} NFL receiving props from PropWire`
+            title: 'PropStein Week 7 Slate Export',
+            text: `Export of ${rows.length} NFL receiving props from PropStein`
           }).then(() => toast(`Exported ${rows.length} props`)).catch(() => {});
           return;
         }
@@ -8489,7 +8489,7 @@
     });
   }
 
-  window.PropWireTest = Object.freeze({
+  window.PropSteinTest = window.PropWireTest = Object.freeze({
     setOddsFeed(feed) {
       state.odds = normalizeFeed(feed);
       renderHeader();

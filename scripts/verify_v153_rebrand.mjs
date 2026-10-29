@@ -4,12 +4,12 @@
 //   - every brand binary exists with exact dimensions (IHDR) and serves
 //     under the production vercel.json CSP header parity (img-src 'self')
 //   - favicon.svg / propwire-icon.svg parse with the embedded raster mark
-//   - all 5 terminal pages wire the new assets at ?v=2026_v176, zero stale
+//   - all 5 terminal pages wire the new assets at ?v=2026_v179, zero stale
 //     propwire-logo*.svg references, build-hash 2026-w8-v19
 //   - site.webmanifest icons resolve; PWA identity intact
 //   - icon pixel probe: monogram centered, not corner-stuck (v149 lesson)
 //   - header renders both slot logos (dark-only / light-only), 160x40 box
-//   - SW registers, activates propstein-v176-prod, precache populated with
+//   - SW registers, activates propstein-v179-prod, precache populated with
 //     the new logo PNGs + v153 icons + untouched v152 book badges
 //   - boot console: zero hard errors (v150-classified inline-style CSP
 //     console debt tracked separately, must not grow from v152 baseline)
@@ -97,17 +97,17 @@ for (const p of pages) {
   const html = readFileSync(join(ROOT, p), 'utf8');
   const has = (re) => re.test(html);
   const ok =
-    has(/rel="icon"[^>]*href="\/favicon-32x32\.png\?v=2026_v176"/) &&
-    has(/rel="icon"[^>]*href="\/favicon-16x16\.png\?v=2026_v176"/) &&
-    has(/rel="icon"[^>]*href="\/favicon\.svg\?v=2026_v176"/) &&
-    has(/rel="apple-touch-icon" href="\/apple-touch-icon\.png\?v=2026_v176"/) &&
-    has(/rel="apple-touch-icon" sizes="180x180" href="\/apple-touch-icon-180x180\.png\?v=2026_v176"/) &&
-    has(/rel="manifest" href="\/site\.webmanifest\?v=2026_v176"/) &&
-    has(/og:image" content="(https:\/\/propwire\.vercel\.app\/og-image\.png|\/propstein-logo\.png)\?v=2026_v176"/) &&
-    has(/twitter:image" content="(https:\/\/propwire\.vercel\.app\/og-image\.png|\/propstein-logo\.png)\?v=2026_v176"/) &&
-    has(/src="\/(propstein|propwire)-logo(-dark)?\.(png|svg)\?v=2026_v176"/) &&
-    has(/src="\/(propstein|propwire)-logo-dark\.(png|svg)\?v=2026_v176"/) &&
-    has(/name="build-hash" content="2026-w8-v29"/) &&
+    has(/rel="icon"[^>]*href="\/favicon-32x32\.png\?v=2026_v179"/) &&
+    has(/rel="icon"[^>]*href="\/favicon-16x16\.png\?v=2026_v179"/) &&
+    has(/rel="icon"[^>]*href="\/favicon\.svg\?v=2026_v179"/) &&
+    has(/rel="apple-touch-icon" href="\/apple-touch-icon\.png\?v=2026_v179"/) &&
+    has(/rel="apple-touch-icon" sizes="180x180" href="\/apple-touch-icon-180x180\.png\?v=2026_v179"/) &&
+    has(/rel="manifest" href="\/site\.webmanifest\?v=2026_v179"/) &&
+    has(/og:image" content="(https:\/\/propwire\.vercel\.app\/og-image\.png|\/propstein-logo\.png)\?v=2026_v179"/) &&
+    has(/twitter:image" content="(https:\/\/propwire\.vercel\.app\/og-image\.png|\/propstein-logo\.png)\?v=2026_v179"/) &&
+    has(/src="\/(propstein|propwire)-logo(-dark)?\.(png|svg)\?v=2026_v179"/) &&
+    has(/src="\/(propstein|propwire)-logo-dark\.(png|svg)\?v=2026_v179"/) &&
+    has(/name="build-hash" content="2026-w8-v30"/) &&
     !has(/propwire-logo-dropwire/) &&
     !has(/\?v=v149|\?v=2026_v1"|\?v=2026_v152|2026-w8-v17/);
   check(`head ${p}: v153 brand wiring complete, zero stale refs`, ok);
@@ -121,9 +121,9 @@ const manIcons = [];
 for (const ic of manifest.icons || []) {
   const rel = ic.src.split('?')[0].replace(/^\//, '');
   const f = join(ROOT, rel);
-  manIcons.push(existsSync(f) && ic.src.endsWith('v=2026_v176'));
+  manIcons.push(existsSync(f) && ic.src.endsWith('v=2026_v179'));
 }
-check('manifest: 4 icons exist at ?v=2026_v176', manIcons.length === 4 && manIcons.every(Boolean), `${manIcons.length} icons`);
+check('manifest: 4 icons exist at ?v=2026_v179', manIcons.length === 4 && manIcons.every(Boolean), `${manIcons.length} icons`);
 
 // ── 5. Icon pixel probe: monogram centered (browser canvas) ──────────────
 const browser = await chromium.launch();
@@ -155,9 +155,9 @@ const pixelProbe = async (url, ew, eh) => probe.evaluate(async ([u, w, h]) => {
   };
 }, [url, ew, eh]).catch((e) => ({ err: String(e.message || e) }));
 for (const [url, w, h] of [
-  ['/apple-touch-icon.png?v=2026_v176', 180, 180],
-  ['/icon-192.png?v=2026_v176', 192, 192],
-  ['/icon-512.png?v=2026_v176', 512, 512],
+  ['/apple-touch-icon.png?v=2026_v179', 180, 180],
+  ['/icon-192.png?v=2026_v179', 192, 192],
+  ['/icon-512.png?v=2026_v179', 512, 512],
 ]) {
   const m = await pixelProbe(`http://127.0.0.1:${PORT}${url}`, w, h);
   if (m.err) { check(`icon ${url}: centered monogram`, false, m.err); continue; }
@@ -197,7 +197,7 @@ check('header: light theme flips slots (dark-only hidden, light-only shown)',
   lightState.d === 'none' && lightState.l !== 'none', JSON.stringify(lightState));
 await probe.evaluate(() => document.documentElement.removeAttribute('data-theme'));
 
-const ogRes = await fetch(`http://127.0.0.1:${PORT}/og-image.png?v=2026_v176`);
+const ogRes = await fetch(`http://127.0.0.1:${PORT}/og-image.png?v=2026_v179`);
 const ogBuf = Buffer.from(await ogRes.arrayBuffer());
 check('og-image: 200 + PNG + served under CSP img-src self', ogRes.ok && ogBuf.slice(1, 4).toString('latin1') === 'PNG' && ogRes.headers.get('content-security-policy') === CSP);
 
@@ -226,16 +226,16 @@ const sw = await page.evaluate(async () => {
   const probe2 = async (u) => !!(await cache.match(u));
   return {
     name,
-    logoDark: await probe2('/propstein-logo.svg?v=2026_v176'),
-    logoLight: await probe2('/propstein-logo-dark.svg?v=2026_v176'),
-    fav: await probe2('/favicon.svg?v=2026_v176'),
-    i192: await probe2('/icon-192.png?v=2026_v176'),
-    i512: await probe2('/icon-512.png?v=2026_v176'),
-    man: await probe2('/site.webmanifest?v=2026_v176'),
+    logoDark: await probe2('/propstein-logo.svg?v=2026_v179'),
+    logoLight: await probe2('/propstein-logo-dark.svg?v=2026_v179'),
+    fav: await probe2('/favicon.svg?v=2026_v179'),
+    i192: await probe2('/icon-192.png?v=2026_v179'),
+    i512: await probe2('/icon-512.png?v=2026_v179'),
+    man: await probe2('/site.webmanifest?v=2026_v179'),
     book: await probe2('/books/draftkings.svg?v=v152'),
   };
 });
-check('SW: propstein-v176-prod activated', sw.name === 'propstein-v176-prod', String(sw.name));
+check('SW: propstein-v179-prod activated', sw.name === 'propstein-v179-prod', String(sw.name));
 check('SW: precache has authentic SVG logos + icons/manifest', sw.logoDark && sw.logoLight && sw.fav && sw.i192 && sw.i512 && sw.man, JSON.stringify(sw));
 check('SW: v152 book badges still precached', sw.book);
 check('boot: zero hard console errors (CSP inline-style debt tracked separately)', errors.length === 0, errors.slice(0, 3).join(' | '));
