@@ -32,6 +32,16 @@ STRIPE_API_BASE = "https://api.stripe.com/v1"
 DEFAULT_PRO_MONTHLY_CENTS = 2900  # $29.00
 DEFAULT_PRO_YEARLY_CENTS = 29000  # $290.00
 
+# Mapping existing frozen plan IDs to clean institutional display names
+PLAN_DISPLAY_NAMES: dict[str, str] = {
+    "sniper_pro_monthly": "Quant PRO (Monthly)",
+    "sniper_pro_yearly": "Quant PRO (Yearly)",
+    "pro_monthly": "Quant PRO (Monthly)",
+    "pro_yearly": "Quant PRO (Yearly)",
+    "quant_api": "Quant API (Institutional)",
+    "free_observer": "Free Observer",
+}
+
 
 def _stripe_request(endpoint: str, data: dict[str, Any], secret_key: str) -> dict[str, Any]:
     url = f"{STRIPE_API_BASE}/{endpoint.lstrip('/')}"
@@ -277,13 +287,14 @@ class BillingService:
           3. Stripe subscription check in `TruthStore` (`user_subscriptions`)
           4. Whop membership check (if bearer_token or Whop key is present)
         """
-        expected_key = os.environ.get("PROPWIRE_API_KEY", "pw_quant_live_key")
+        expected_key = os.environ.get("PROPSTEIN_API_KEY") or os.environ.get("PROPWIRE_API_KEY", "pw_quant_live_key")
         if api_key and (api_key == expected_key or api_key == "pw_quant_live_key"):
             return {
                 "is_pro": True,
                 "tier": "pro",
                 "provider": "api_key",
                 "plan": "quant_api",
+                "display_name": PLAN_DISPLAY_NAMES.get("quant_api", "Quant PRO"),
                 "user_id": user_id or "quant_api_user",
             }
 
@@ -295,6 +306,7 @@ class BillingService:
                 "tier": "pro",
                 "provider": "dev_bypass",
                 "plan": "pro_monthly",
+                "display_name": PLAN_DISPLAY_NAMES.get("pro_monthly", "Quant PRO"),
                 "user_id": user_id or "dev_user",
             }
 
@@ -302,11 +314,13 @@ class BillingService:
         if user_id:
             sub = self.truth.get_user_subscription(user_id)
             if sub and sub.get("status") in ("active", "trialing"):
+                plan_name = sub.get("plan", "pro_monthly")
                 return {
                     "is_pro": True,
                     "tier": "pro",
                     "provider": sub.get("provider", "stripe"),
-                    "plan": sub.get("plan", "pro_monthly"),
+                    "plan": plan_name,
+                    "display_name": PLAN_DISPLAY_NAMES.get(plan_name, "Quant PRO"),
                     "customer_id": sub.get("customer_id"),
                     "current_period_end": sub.get("current_period_end"),
                     "user_id": user_id,
@@ -330,6 +344,7 @@ class BillingService:
                             "tier": "pro",
                             "provider": "whop",
                             "plan": "pro_monthly",
+                            "display_name": PLAN_DISPLAY_NAMES.get("pro_monthly", "Quant PRO"),
                             "user_id": user_id or bearer_token,
                         }
             except Exception as e:
@@ -341,5 +356,6 @@ class BillingService:
             "tier": "free",
             "provider": None,
             "plan": "free_observer",
+            "display_name": PLAN_DISPLAY_NAMES.get("free_observer", "Free Observer"),
             "user_id": user_id,
         }

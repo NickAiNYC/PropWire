@@ -13,8 +13,10 @@ and the API serves them. Model fitting NEVER happens inside a request.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
+import re
 import secrets
 import subprocess
 import sys
@@ -39,7 +41,7 @@ from agent import clv_report, record_closing  # noqa: E402
 
 def resolve_file(path_env: str, default_filename: str) -> str:
     env_val = os.environ.get(path_env)
-    if env_val and os.path.exists(env_val):
+    if env_val:
         return env_val
     for cand in [
         os.path.join("/data", default_filename),
@@ -237,13 +239,42 @@ def get_clv_log():
 
 
 @app.post("/api/clv/log")
-async def append_clv_log(request: Request):
-    """Manually append a pick to the CLV audit log."""
-    log_path = resolve_file("PICKS_LOG", "picks_log.jsonl")
-    body = await request.json()
+async def append_clv_log(
+    request: Request,
+    authorization: Optional[str] = Header(None, alias="Authorization"),
+    x_propstein_key: Optional[str] = Header(None, alias="X-PropStein-API-Key"),
+    x_propscale_key: Optional[str] = Header(None, alias="X-PropScale-API-Key"),
+    x_propwire_key: Optional[str] = Header(None, alias="X-PropWire-API-Key"),
+):
+    """
+    Append a pick to the user-scoped CLV audit log.
+    Requires user token; anonymous append is rejected with 401.
+    Writes strictly to picks_log_{user_id}.jsonl.
+    """
+    bearer = (authorization or "").replace("Bearer ", "").strip()
+    auth_token = (x_propstein_key or x_propscale_key or x_propwire_key or bearer).strip()
+    if not auth_token:
+        raise HTTPException(401, "Authentication required to append to CLV audit log")
+
+    try:
+        body = await request.json()
+    except Exception:
+        raise HTTPException(400, "Invalid JSON body")
+
+    # Scope user_id safely (prevent path traversal)
+    raw_user_id = str(body.get("user_id") or "").strip()
+    if not raw_user_id:
+        raw_user_id = auth_token if len(auth_token) < 48 else hashlib.sha256(auth_token.encode()).hexdigest()[:16]
+    safe_user_id = re.sub(r"[^a-zA-Z0-9_\-]", "_", raw_user_id)
+    if not safe_user_id:
+        safe_user_id = "user_default"
+
+    base_log_dir = os.path.dirname(resolve_file("PICKS_LOG", "picks_log.jsonl")) or "."
+    user_log_path = os.path.join(base_log_dir, f"picks_log_{safe_user_id}.jsonl")
     
     entry = {
         "logged_at": datetime.now(timezone.utc).isoformat(),
+        "user_id": safe_user_id,
         "player": body.get("player"),
         "market": body.get("market"),
         "side": body.get("side", "over"),
@@ -265,10 +296,10 @@ async def append_clv_log(request: Request):
         entry["clv"] = (c_prob - entry_mkt) if entry["side"] == "over" \
             else (entry_mkt - c_prob)
     
-    with open(log_path, "a", encoding="utf-8") as f:
+    with open(user_log_path, "a", encoding="utf-8") as f:
         f.write(json.dumps(entry) + "\n")
         
-    return {"status": "ok", "entry": entry, "report": clv_report(log_path)}
+    return {"status": "ok", "user_id": safe_user_id, "entry": entry, "report": clv_report(user_log_path)}
 
 
 @app.post("/api/clv/record-closing")
@@ -445,8 +476,8 @@ def get_holdout_eval(
 @app.get("/api/run-week/stream")
 async def run_week_stream(
     request: Request,
-    season: int = Query(2026, description="NFL Season"),
-    week: int = Query(1, description="Week Number"),
+    season: Any = Query(2026, description="NFL Season"),
+    week: Any = Query(1, description="Week Number"),
     odds: bool = Query(False, description="Pull live odds via The Odds API"),
     all_games: bool = Query(True, description="Include all games regardless of kickoff"),
     x_admin_key: Optional[str] = Header(None, alias="X-Admin-Key", description="Admin token HTTP header"),
@@ -454,7 +485,30 @@ async def run_week_stream(
     """
     Executes src/week1.py in a separate process, streaming stdout line-by-line
     via Server-Sent Events (SSE). Strictly gated behind ADMIN_TOKEN in production.
+    Validates season and week as strict integers; rejects non-int with 400.
     """
+    # Strict integer validation before any subprocess execution
+    raw_season = request.query_params.get("season", season)
+    raw_week = request.query_params.get("week", week)
+
+    if raw_season is not None:
+        if not re.match(r"^\d+$", str(raw_season).strip()):
+            raise HTTPException(400, "season must be a strict integer")
+    if raw_week is not None:
+        if not re.match(r"^\d+$", str(raw_week).strip()):
+            raise HTTPException(400, "week must be a strict integer")
+
+    try:
+        season_int = int(str(raw_season).strip())
+        week_int = int(str(raw_week).strip())
+    except (ValueError, TypeError):
+        raise HTTPException(400, "season and week must be strict integers")
+
+    if not (2000 <= season_int <= 2050):
+        raise HTTPException(400, f"season {season_int} out of valid range (2000-2050)")
+    if not (1 <= week_int <= 25):
+        raise HTTPException(400, f"week {week_int} out of valid range (1-25)")
+
     admin_secret = os.environ.get("ADMIN_TOKEN")
     provided_key = x_admin_key
     client_host = request.client.host if request.client else ""
@@ -468,8 +522,8 @@ async def run_week_stream(
     cmd = [
         sys.executable,
         os.path.join(SRC_DIR, "week1.py"),
-        "--season", str(season),
-        "--week", str(week),
+        "--season", str(season_int),
+        "--week", str(week_int),
     ]
     if all_games:
         cmd.append("--all-games")
@@ -532,8 +586,9 @@ async def run_week_stream(
 
 
 @app.post("/webhooks/stripe")
-async def stripe_webhook(request_body: dict):
-    return {"received": True}
+async def legacy_stripe_webhook(request: Request):
+    """Legacy Stripe webhook route forwarding to fail-closed webhook handler."""
+    return await stripe_webhook(request)
 
 
 # ---------------------------------------------------------------------------
@@ -1365,6 +1420,7 @@ def get_sniper_history(
     private_only: bool = Query(False, description="Require auth for private user ledger"),
     limit: int = Query(50, ge=1, le=200),
     offset: int = Query(0, ge=0),
+    x_propstein_api_key: Optional[str] = Header(None, alias="X-PropStein-API-Key"),
     x_propwire_api_key: Optional[str] = Header(None, alias="X-PropWire-API-Key"),
     authorization: Optional[str] = Header(None, alias="Authorization"),
 ):
@@ -1374,9 +1430,9 @@ def get_sniper_history(
     (`private_only=True` or `user_id` specified) requires a valid API key or Bearer token.
     """
     if private_only or user_id:
-        expected_key = os.environ.get("PROPWIRE_API_KEY", "pw_quant_live_key")
+        expected_key = os.environ.get("PROPSTEIN_API_KEY") or os.environ.get("PROPWIRE_API_KEY", "pw_quant_live_key")
         bearer = (authorization or "").replace("Bearer ", "").strip()
-        provided = (x_propwire_api_key or bearer).strip()
+        provided = (x_propstein_api_key or x_propwire_api_key or bearer).strip()
         if not provided or (os.environ.get("PROPWIRE_API_KEY") and provided != expected_key):
             raise HTTPException(401, "Unauthorized: Private Arb History ledger requires authentication")
 
@@ -1484,14 +1540,15 @@ async def stripe_webhook(request: Request):
     webhook_secret = os.environ.get("STRIPE_WEBHOOK_SECRET")
 
     if not webhook_secret:
+    if not webhook_secret:
         # Fail-closed (Trust Engine invariant): without the configured secret we
         # cannot authenticate the caller. Silently processing unsigned events
         # would let anyone forge checkout.session.completed and unlock PRO.
         print("[billing] STRIPE_WEBHOOK_SECRET not configured — rejecting unsigned webhook", flush=True)
-        raise HTTPException(503, "Stripe webhook secret not configured; refusing unsigned events")
+        raise HTTPException(503, "Stripe webhook secret is not configured")
 
     if not verify_stripe_webhook_signature(payload_bytes, sig_header, webhook_secret):
-        raise HTTPException(400, "Invalid Stripe webhook signature")
+        raise HTTPException(503, "Invalid Stripe webhook signature")
 
     try:
         event = json.loads(payload_bytes.decode("utf-8"))
@@ -1507,6 +1564,7 @@ async def stripe_webhook(request: Request):
 def get_billing_status(
     user_id: Optional[str] = Query(None),
     authorization: Optional[str] = Header(None, alias="Authorization"),
+    x_propstein_key: Optional[str] = Header(None, alias="X-PropStein-API-Key"),
     x_propwire_key: Optional[str] = Header(None, alias="X-PropWire-API-Key"),
 ):
     """
@@ -1518,10 +1576,11 @@ def get_billing_status(
     engine = get_sniper_engine()
     billing = BillingService(truth_store=engine.truth)
     bearer = (authorization or "").replace("Bearer ", "").strip() or None
+    api_key = x_propstein_key or x_propwire_key
     return billing.check_user_entitlement(
         user_id=user_id,
         bearer_token=bearer,
-        api_key=x_propwire_key,
+        api_key=api_key,
     )
 
 
