@@ -1052,25 +1052,34 @@ class TruthStore:
                     return str(row["canonical_player_id"])
 
             if player_name:
+                # THE TWIN PROBLEM GUARD:
+                # Fuzzy name matching MUST strictly enforce (Team, Position) match.
+                # If team or position is missing, or if two candidates tie within 0.03,
+                # fail closed (return None) so we never misprice Marcus vs Markieff Morris
+                # or Jalen vs Jaylin Williams.
+                if not team or not position:
+                    return None
                 target_norm = self._normalize_player_name(player_name)
                 rows = conn.execute(
-                    "SELECT * FROM player_id_mapping WHERE sport = ? AND updated_at_epoch >= ?",
-                    (sport.lower(), cutoff),
+                    """
+                    SELECT * FROM player_id_mapping
+                    WHERE sport = ? AND UPPER(team) = ? AND UPPER(position) = ? AND updated_at_epoch >= ?
+                    """,
+                    (sport.lower(), team.upper(), position.upper(), cutoff),
                 ).fetchall()
-                best_id: str | None = None
-                best_score = 0.0
+                scored_candidates: list[tuple[float, str]] = []
                 for r in rows:
                     cand_norm = str(r["normalized_name"])
                     ratio = difflib.SequenceMatcher(None, target_norm, cand_norm).ratio()
-                    if team and str(r["team"]).upper() == team.upper():
-                        ratio += 0.08
-                    if position and str(r["position"]).upper() == position.upper():
-                        ratio += 0.04
-                    if ratio > best_score:
-                        best_score = ratio
-                        best_id = str(r["canonical_player_id"])
-                if best_score >= 0.82 and best_id:
-                    return best_id
+                    if ratio >= 0.78:
+                        scored_candidates.append((ratio, str(r["canonical_player_id"])))
+                if not scored_candidates:
+                    return None
+                scored_candidates.sort(key=lambda item: item[0], reverse=True)
+                if len(scored_candidates) >= 2 and abs(scored_candidates[0][0] - scored_candidates[1][0]) <= 0.03:
+                    # Ambiguous twin / near-identical name tie -> FAIL CLOSED
+                    return None
+                return scored_candidates[0][1]
         return None
 
     # ------------------------------------------------------------------

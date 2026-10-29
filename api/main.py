@@ -1076,6 +1076,27 @@ async def post_sniper_simulate_substitution(request: Request):
     return result
 
 
+@app.post("/api/sniper/feed-stale")
+async def post_sniper_feed_stale(request: Request):
+    """
+    Endpoint called by `scripts/live_nba_sniper_worker.py` when the live PBP
+    feed fails for >= 3 consecutive polls, tripping the Stale Kill Switch and
+    greying out the frontend court lineups.
+    """
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    engine = get_sniper_engine()
+    res = engine.mark_court_feed_stale(
+        game_id=body.get("game_id", "2026_nba_mil_bos"),
+        consecutive_failures=int(body.get("consecutive_failures", 3)),
+        reason=body.get("reason", "nba_api Live PBP feed unreachable for 3 consecutive polls"),
+    )
+    engine.export_static_snapshot()
+    return res
+
+
 @app.post("/api/sniper/simulate-scratch")
 async def post_sniper_simulate_scratch(request: Request):
     """

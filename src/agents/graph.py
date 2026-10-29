@@ -1172,6 +1172,7 @@ class SniperTerminalEngine:
         )
 
         # Prepend to game event ticker
+        trigger_summary = f"{sub_out['name']} subbed out ({'Foul Trouble' if sub_out.get('personal_fouls', 0) >= 3 else 'Rotation Sub'})"
         game["event_ticker"].insert(
             0,
             {
@@ -1186,6 +1187,50 @@ class SniperTerminalEngine:
         )
         game["event_ticker"] = game["event_ticker"][:5]
 
+        # Emit a live SniperAlert connecting the spatial court swap to an actionable edge card
+        opp_team = game["home_team"] if team_key == game["away_team"] else game["away_team"]
+        edge_pct = float(sub_in["edge_pct"])
+        fair_p = round(min(0.72, 0.5238 + edge_pct / 100.0), 4)
+        live_alert = SniperAlert(
+            alert_id=f"alert_sub_{sub_in['player_id']}_{int(now_dt.timestamp())}",
+            prop_id=f"{sub_in['player_id']}_{sub_in.get('market', 'points')}",
+            sport="nba",
+            game_id=game["game_id"],
+            player_id=sub_in["player_id"],
+            player_name=sub_in["name"],
+            team=team_key,
+            opponent=opp_team,
+            market=str(sub_in.get("market", "points")),
+            side="OVER",
+            venue_type="sportsbook",
+            book="DraftKings",
+            line=float(sub_in.get("line", 24.5)),
+            odds_american=-110,
+            fair_line=float(sub_in["fair_line"]),
+            fair_prob=fair_p,
+            implied_prob=0.5238,
+            edge_pct=edge_pct,
+            mispricing_bps=round(edge_pct * 100.0, 1),
+            ev_per_unit=round(edge_pct / 100.0 * 1.909, 4),
+            kelly_stake=0.015,
+            confidence_score=0.86,
+            liquidity_score=0.92,
+            clv_expectation=0.028,
+            feed_age_seconds=1.8,
+            is_stale=False,
+            deep_link="https://sportsbook.draftkings.com/leagues/basketball/nba",
+            catalyst_reason="foul_trouble" if sub_out.get("personal_fouls", 0) >= 3 else "usage_surge",
+            reasoning_chain=(
+                f"Trigger: {trigger_summary}. {sub_in['name']} absorbs +{sub_in['usage_delta_pct']}% "
+                f"on-court usage with {sub_in['minutes_remaining']}m remaining; Bayesian posterior "
+                f"projects {sub_in['fair_line']} vs {sub_in.get('line', 24.5)} line (+{edge_pct}% edge)."
+            ),
+            source_hash=pbp_res["source_hash"],
+            model_version=MODEL_VERSION,
+            created_at=now_dt,
+        )
+        self.truth.save_sniper_alert(live_alert)
+
         elapsed_ms = round((time.perf_counter() - t0) * 1000.0, 2)
         return {
             "status": "ok",
@@ -1196,8 +1241,53 @@ class SniperTerminalEngine:
             "source_hash": pbp_res["source_hash"],
             "sub_out": sub_out,
             "sub_in": sub_in,
+            "trigger_summary": trigger_summary,
+            "sniper_alert": live_alert.model_dump(mode="json"),
             "bayesian_update": bayes,
             "court_game": game,
+        }
+
+    def mark_court_feed_stale(
+        self,
+        *,
+        game_id: str = "2026_nba_mil_bos",
+        consecutive_failures: int = 3,
+        reason: str = "nba_api Live PBP feed unreachable for 3 consecutive polls",
+        now: datetime | None = None,
+    ) -> dict[str, Any]:
+        """
+        Trips the Stale Kill Switch on the live NBA court lineup when the PBP worker
+        suffers >= 3 consecutive poll failures, greying out the court UI and halting
+        SniperAgent firing.
+        """
+        now_dt = now or datetime.now(timezone.utc)
+        game = self.court_lineups.get(game_id) or next(iter(self.court_lineups.values()))
+        game["is_stale"] = True
+        game["stale_reason"] = reason
+        game["pbp_latency_sec"] = 95.0
+        source_hash = compute_source_hash({"game_id": game_id, "stale": True, "failures": consecutive_failures})
+        self.truth.record_event(
+            event_type="lineup.feed_stale",
+            prop_id=f"{game_id}::court_lineup",
+            game_id=game_id,
+            player_id="nba_court_lineup",
+            payload={"consecutive_failures": consecutive_failures, "reason": reason},
+            source_hash=source_hash,
+            fetched_at=now_dt,
+            feed_age_seconds=95.0,
+            is_stale=True,
+            decision="HALTED_STALE",
+            reason=reason,
+            agent_name="LiveNbaSniperWorker",
+            sport="nba",
+        )
+        return {
+            "status": "feed_stale",
+            "game_id": game_id,
+            "is_stale": True,
+            "consecutive_failures": consecutive_failures,
+            "reason": reason,
+            "source_hash": source_hash,
         }
 
     def export_static_snapshot(self, output_path: str | Path | None = None) -> Path:

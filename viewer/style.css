@@ -12152,6 +12152,192 @@ dialog.detail-dialog .dialog-sheet-handle {
   color: var(--pw-text-muted);
 }
 
+/* Side-by-Side Split Command Grid: Court on Left, Live Sniper Feed on Right */
+@media (min-width: 1024px) {
+  dialog.sniper-dialog .dialog-shell {
+    width: 960px !important;
+    max-width: 960px !important;
+  }
+}
+
+.nba-command-split-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+  align-items: start;
+}
+
+@media (min-width: 840px) {
+  .nba-command-split-grid {
+    grid-template-columns: 1.08fr 0.92fr;
+  }
+}
+
+.nba-side-sniper-panel {
+  background: #111621;
+  border: 1px solid var(--pw-border-subtle);
+  border-radius: 16px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.nba-side-sniper-hdr {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--pw-border-hairline);
+}
+
+.nba-side-sniper-title {
+  font-family: var(--pw-font-sans);
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--pw-text-primary);
+}
+
+.nba-side-sniper-sub {
+  font-family: var(--pw-font-mono);
+  font-size: 10.5px;
+  color: var(--pw-text-muted);
+  margin-top: 2px;
+}
+
+.sniper-live-pulse-badge {
+  font-family: var(--pw-font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(163, 230, 53, 0.14);
+  border: 1px solid rgba(163, 230, 53, 0.45);
+  color: #A3E635;
+  white-space: nowrap;
+}
+
+.nba-side-sniper-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sniper-sub-edge-card {
+  background: #0B0F17;
+  border: 1px solid var(--pw-border-hairline);
+  border-radius: 10px;
+  padding: 12px 14px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.sniper-sub-edge-card.is-lime-highlight {
+  border: 1.5px solid #A3E635;
+  background: rgba(163, 230, 53, 0.06);
+  box-shadow: 0 0 18px rgba(163, 230, 53, 0.12);
+  animation: pwSniperSlideIn 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes pwSniperSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.sniper-sub-edge-headline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--pw-font-mono);
+  font-size: 12px;
+  margin-bottom: 6px;
+}
+
+.sniper-sub-player {
+  font-family: var(--pw-font-sans);
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--pw-text-primary);
+}
+
+.sniper-sub-pipe {
+  color: var(--pw-text-muted);
+}
+
+.sniper-sub-mkt {
+  color: var(--pw-accent-blue);
+  font-weight: 600;
+}
+
+.sniper-sub-edge-val {
+  color: #A3E635;
+  font-weight: 700;
+}
+
+.sniper-sub-trigger-line {
+  font-family: var(--pw-font-sans);
+  font-size: 12px;
+  color: var(--pw-text-secondary);
+  line-height: 1.4;
+  margin-bottom: 6px;
+}
+
+.sniper-sub-trigger-line strong {
+  color: var(--pw-text-primary);
+}
+
+.sniper-sub-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--pw-font-mono);
+  font-size: 10.5px;
+  color: var(--pw-text-muted);
+}
+
+.nba-stale-toggle-btn {
+  padding: 5px 10px;
+  min-height: 30px;
+  border-radius: 6px;
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  color: #F59E0B;
+  font-family: var(--pw-font-mono);
+  font-size: 10.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.nba-stale-toggle-btn.is-active {
+  background: rgba(163, 230, 53, 0.14);
+  border-color: #A3E635;
+  color: #A3E635;
+}
+
+.nba-stale-kill-banner {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.45);
+  color: #FCA5A5;
+  font-family: var(--pw-font-mono);
+  font-size: 11px;
+}
+
+.is-greyed-stale {
+  opacity: 0.42 !important;
+  filter: grayscale(0.85) !important;
+  pointer-events: none;
+}
+
+
 
 
 
