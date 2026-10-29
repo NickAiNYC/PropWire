@@ -10472,12 +10472,7 @@ body {
   z-index: 100 !important;
 }
 
-.pw-brand-img {
-  height: 26px !important;
-  width: auto !important;
-  max-width: 140px !important;
-  object-fit: contain !important;
-}
+
 
 .pw-topbar-center {
   display: flex;
