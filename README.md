@@ -1,4 +1,4 @@
-# PropWire
+# Propstein
 
 Weekly NFL receptions and receiving-yards prop model with a distributional
 core, walk-forward validation, and CLV logging.
