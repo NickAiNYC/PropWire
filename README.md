@@ -1,8 +1,10 @@
+# PropStein
+
 <img src="viewer/propstein-logo.svg" alt="PropStein logo" width="420" />
 
-PropStein is a distributional prop model and operational terminal for NFL receiving markets. It prices outcomes with a compound negative-binomial / gamma framework, runs weekly slate logic, and logs closing-line-value performance with a hard-risk gate.
+PropStein is a distributional prop model and operational terminal for NFL receiving markets. It prices outcomes with a compound negative-binomial / gamma framework, runs weekly slate logic, and logs closing-line value with a disciplined risk gate.
 
-Built for edge detection, not hype: the model is probabilistic, walk-forward calibrated, and intentionally conservative. No LLM sits in the decision path; the language model reasons after the numbers are fixed.
+Built for edge detection, not hype: the model is probabilistic, walk-forward validated, and intentionally conservative. No LLM sits in the decision path; the language model reasons after the numbers are fixed.
 
 ## Why PropStein
 
@@ -10,7 +12,7 @@ Built for edge detection, not hype: the model is probabilistic, walk-forward cal
 - Real-time weekly slate generation and live line comparison
 - Risk-gated picks with EV and Kelly guidance
 - CLV logging and audit workflow for model accountability
-- Built for clean deployment on a global edge stack
+- Clean deployment on a high-performance edge stack
 
 ## 3. Weekly Operational Cadence
 
