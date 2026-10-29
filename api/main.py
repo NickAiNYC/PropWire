@@ -20,6 +20,7 @@ import re
 import secrets
 import subprocess
 import sys
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import AsyncGenerator, Optional
@@ -1481,39 +1482,140 @@ def get_public_verification_page(alert_id: Optional[str] = None):
 # Monetization Engine: Stripe & Whop Subscription Endpoints
 # ---------------------------------------------------------------------------
 
+# P2 hardening (v175): billing endpoints require an authenticated principal
+# BEFORE any Stripe API call, derive the billing user_id SERVER-SIDE from the
+# presented session token (request-body user_id is ignored — a caller cannot
+# mint checkout sessions against another user's ledger), clamp redirect URLs
+# to the configured app origin, and apply a 3-requests-per-minute
+# sliding-window rate limit per principal+IP. The limiter is process-local by
+# design: the abuse class it guards against (checkout-session spam that
+# exhausts Stripe API quota and trips fraud review) is per-instance.
+_BILLING_RATE_WINDOW_S = 60.0
+_BILLING_RATE_LIMIT = 3
+_billing_rate_buckets: dict[str, list[float]] = {}
+
+
+def _billing_rate_limited(bucket_key: str) -> bool:
+    now = time.monotonic()
+    bucket = _billing_rate_buckets.setdefault(bucket_key, [])
+    while bucket and now - bucket[0] > _BILLING_RATE_WINDOW_S:
+        bucket.pop(0)
+    if len(bucket) >= _BILLING_RATE_LIMIT:
+        return True
+    bucket.append(now)
+    # Opportunistic cleanup so a long-lived process cannot grow unbounded.
+    if len(_billing_rate_buckets) > 4096:
+        stale = [k for k, v in _billing_rate_buckets.items() if not v or now - v[-1] > _BILLING_RATE_WINDOW_S]
+        for k in stale:
+            _billing_rate_buckets.pop(k, None)
+    return False
+
+
+def _billing_principal(
+    request: Request,
+    authorization: Optional[str],
+    x_propstein_key: Optional[str],
+    x_propwire_key: Optional[str],
+) -> str:
+    """Authenticate a billing caller and derive its server-side user_id.
+
+    Accepts the same session-token surface as /api/clv/log (Authorization:
+    Bearer, X-PropStein-API-Key, X-PropWire-API-Key). When a server key is
+    configured (PROPSTEIN_API_KEY / PROPWIRE_API_KEY) the presented token
+    must match it — 401 otherwise, fail-closed. The principal id is a
+    sanitized stable derivation of the token itself, mirroring the
+    /api/clv/log scoping rules; body-supplied user_ids are never trusted.
+    """
+    bearer = (authorization or "").replace("Bearer ", "").strip()
+    token = (x_propstein_key or x_propwire_key or bearer).strip()
+    if not token:
+        raise HTTPException(401, "Authentication required to create a billing session")
+    expected = os.environ.get("PROPSTEIN_API_KEY") or os.environ.get("PROPWIRE_API_KEY")
+    if expected and token != expected:
+        raise HTTPException(401, "Invalid session token")
+    raw = token if len(token) < 48 else hashlib.sha256(token.encode()).hexdigest()[:16]
+    safe = re.sub(r"[^a-zA-Z0-9_\-]", "_", raw)
+    return safe or "user_default"
+
+
+def _billing_safe_redirect(url: object) -> Optional[str]:
+    """Clamp a client-supplied success/cancel/return URL to the app origin.
+
+    Foreign-origin redirect targets are a phishing vector on payment flows:
+    Stripe-hosted pages bounce the user to whatever absolute URL was stored
+    on the session. Relative paths resolve against APP_URL; anything else
+    outside the configured origin is discarded (the caller falls back to the
+    BillingService default), never stored and never honored.
+    """
+    if not isinstance(url, str) or not url.strip():
+        return None
+    candidate = url.strip()
+    base_origin = os.environ.get("APP_URL", "https://propwire.vercel.app").rstrip("/")
+    if candidate.startswith("/"):
+        return base_origin + candidate
+    if candidate == base_origin or candidate.startswith(base_origin + "/"):
+        return candidate
+    return None
+
+
 @app.post("/api/billing/create-checkout-session")
-async def create_checkout_session(request: Request):
+async def create_checkout_session(
+    request: Request,
+    authorization: Optional[str] = Header(None, alias="Authorization"),
+    x_propstein_key: Optional[str] = Header(None, alias="X-PropStein-API-Key"),
+    x_propwire_key: Optional[str] = Header(None, alias="X-PropWire-API-Key"),
+):
     """
     Create a $29/mo (or $290/yr) Stripe Checkout Session for Sniper PRO.
+
+    P2 hardening (v175): authenticated callers only — 401 BEFORE any Stripe
+    API call. user_id is derived server-side from the session token (payload
+    user_id is ignored), redirect URLs are clamped to the app origin, and the
+    endpoint is rate-limited to 3 requests/min per principal+IP.
     """
+    principal = _billing_principal(request, authorization, x_propstein_key, x_propwire_key)
+    client_ip = (request.client.host if request.client else "unknown") or "unknown"
+    if _billing_rate_limited(f"{principal}:{client_ip}"):
+        raise HTTPException(429, "Rate limit exceeded: max 3 checkout sessions per minute")
+
     from src.services.billing import BillingService
 
     try:
         body = await request.json()
     except Exception:
         body = {}
-    user_id = str(body.get("user_id") or secrets.token_hex(6))
     email = body.get("email")
     plan = str(body.get("plan") or "pro_monthly")
-    success_url = body.get("success_url")
-    cancel_url = body.get("cancel_url")
 
     engine = get_sniper_engine()
     billing = BillingService(truth_store=engine.truth)
     return billing.create_checkout_session(
-        user_id=user_id,
+        user_id=principal,
         email=email,
         plan=plan,
-        success_url=success_url,
-        cancel_url=cancel_url,
+        success_url=_billing_safe_redirect(body.get("success_url")),
+        cancel_url=_billing_safe_redirect(body.get("cancel_url")),
     )
 
 
 @app.post("/api/billing/create-portal-session")
-async def create_portal_session(request: Request):
+async def create_portal_session(
+    request: Request,
+    authorization: Optional[str] = Header(None, alias="Authorization"),
+    x_propstein_key: Optional[str] = Header(None, alias="X-PropStein-API-Key"),
+    x_propwire_key: Optional[str] = Header(None, alias="X-PropWire-API-Key"),
+):
     """
     Create a Stripe Customer Billing Portal session for self-serve management/cancellation.
+
+    P2 hardening (v175): same guard class as checkout — authenticated callers
+    only, rate-limited 3/min per principal+IP, return_url clamped to origin.
     """
+    principal = _billing_principal(request, authorization, x_propstein_key, x_propwire_key)
+    client_ip = (request.client.host if request.client else "unknown") or "unknown"
+    if _billing_rate_limited(f"portal:{principal}:{client_ip}"):
+        raise HTTPException(429, "Rate limit exceeded: max 3 portal sessions per minute")
+
     from src.services.billing import BillingService
 
     body = await request.json()
@@ -1524,7 +1626,7 @@ async def create_portal_session(request: Request):
 
     engine = get_sniper_engine()
     billing = BillingService(truth_store=engine.truth)
-    return billing.create_portal_session(customer_id=customer_id, return_url=return_url)
+    return billing.create_portal_session(customer_id=customer_id, return_url=_billing_safe_redirect(return_url))
 
 
 @app.post("/api/billing/webhook")
