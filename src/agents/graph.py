@@ -363,6 +363,8 @@ class SniperTerminalEngine:
         self.polymarket_agent = PolymarketSpecialistAgent(self.bus, self.truth, self.kill_switch)
         self.polymarket_arb_agent = PolymarketArbAgent(self.bus, self.truth, self.kill_switch)
         self.sniper_agent = SniperAgent(self.bus, self.truth, self.kill_switch)
+        from src.services.arb_ledger import ArbLedgerService
+        self.arb_ledger = ArbLedgerService(truth_store=self.truth)
 
         self.catalog: dict[str, dict[str, Any]] = _default_player_catalog()
         self.markets_by_prop_id: dict[str, MarketMovePayload] = {}
@@ -1049,6 +1051,20 @@ class SniperTerminalEngine:
                 closing_line=close_line,
                 closing_implied_prob=close_prob,
             )
+            # Also auto-grade in arb_history with decimal closing odds so CLV = (Entry_Odds - Closing_Odds) / Closing_Odds
+            existing_arb = self.truth.get_arb_history(al["alert_id"])
+            if existing_arb:
+                entry_book = float(existing_arb.get("entry_odds_book") or 1.909091)
+                close_book = round(entry_book / (1.0 + shift), 6)
+                entry_poly = existing_arb.get("entry_odds_poly")
+                close_poly = round(float(entry_poly) / (1.0 + shift), 6) if entry_poly else None
+                self.arb_ledger.grade_alert(
+                    al["alert_id"],
+                    closing_line=close_line,
+                    closing_odds_poly=close_poly,
+                    closing_odds_book=close_book,
+                    result="win" if shift > 0 else "loss",
+                )
 
         return self.get_terminal_snapshot()
 
@@ -1060,6 +1076,7 @@ class SniperTerminalEngine:
         alerts = self.truth.get_recent_alerts(limit=25)
         suppressions = self.truth.get_recent_suppressions(limit=15)
         clv = self.truth.get_clv_summary()
+        arb_ledger = self.arb_ledger.get_public_ledger(limit=50)
 
         return {
             "generated_at": datetime.now(timezone.utc).isoformat(),
@@ -1092,6 +1109,7 @@ class SniperTerminalEngine:
             "court_lineups": self.court_lineups,
             "suppressions": suppressions,
             "clv_summary": clv,
+            "arb_ledger": arb_ledger,
         }
 
     def simulate_live_substitution(

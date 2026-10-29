@@ -252,3 +252,4 @@ def test_ssrf_protection_and_404_auto_deactivation(tmp_path: Path):
     all_subs = truth.list_webhook_subscriptions(user_id="user_404", active_only=False)
     assert len(all_subs) == 1
     assert all_subs[0]["active_status"] is False
+

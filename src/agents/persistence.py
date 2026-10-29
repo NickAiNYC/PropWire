@@ -446,6 +446,57 @@ class TruthStore:
                     lock_key TEXT PRIMARY KEY,
                     expires_at_epoch REAL NOT NULL
                 );
+
+                CREATE TABLE IF NOT EXISTS arb_history (
+                    alert_id TEXT PRIMARY KEY,
+                    user_id TEXT,
+                    prop_id TEXT NOT NULL,
+                    player_id TEXT NOT NULL,
+                    player_name TEXT NOT NULL,
+                    team TEXT NOT NULL DEFAULT '',
+                    sport TEXT NOT NULL DEFAULT 'nba',
+                    game_id TEXT NOT NULL DEFAULT '',
+                    prop_type TEXT NOT NULL,
+                    market TEXT NOT NULL DEFAULT 'Polymarket',
+                    side TEXT NOT NULL DEFAULT 'OVER',
+                    line REAL NOT NULL,
+                    entry_line REAL NOT NULL,
+                    entry_price REAL NOT NULL DEFAULT 0.58,
+                    entry_odds_poly REAL,
+                    entry_odds_book REAL,
+                    entry_odds_american INTEGER NOT NULL DEFAULT -110,
+                    fair_line REAL NOT NULL DEFAULT 0.0,
+                    fair_prob REAL NOT NULL,
+                    implied_prob REAL NOT NULL DEFAULT 0.58,
+                    edge_pct REAL NOT NULL DEFAULT 0.0,
+                    stake REAL NOT NULL DEFAULT 0.02,
+                    liquidity_at_entry REAL NOT NULL DEFAULT 1500.0,
+                    is_polymarket_arb INTEGER NOT NULL DEFAULT 0,
+                    feed_age_seconds REAL NOT NULL DEFAULT 2.5,
+                    quarter_clock TEXT NOT NULL DEFAULT 'Q2 4:12',
+                    source_hash TEXT NOT NULL,
+                    model_version TEXT NOT NULL,
+                    reasoning_chain TEXT NOT NULL DEFAULT '',
+                    timestamp TEXT NOT NULL,
+                    entry_timestamp TEXT NOT NULL,
+                    status TEXT NOT NULL DEFAULT 'PENDING',
+                    result TEXT NOT NULL DEFAULT 'pending',
+                    closing_line REAL,
+                    closing_price REAL,
+                    closing_odds_poly REAL,
+                    closing_odds_book REAL,
+                    closing_odds_american INTEGER,
+                    clv_points REAL,
+                    clv_pct REAL,
+                    clv_ev_pct REAL,
+                    actual_stat REAL,
+                    entry_receipt_hash TEXT NOT NULL,
+                    receipt_hash TEXT NOT NULL,
+                    graded_at TEXT
+                );
+
+                CREATE INDEX IF NOT EXISTS idx_arb_history_status ON arb_history(status, entry_timestamp DESC);
+                CREATE INDEX IF NOT EXISTS idx_arb_history_user ON arb_history(user_id, entry_timestamp DESC);
                 """
             )
 
@@ -681,8 +732,9 @@ class TruthStore:
                     alert.created_at.isoformat(),
                 ),
             )
-        # Automatically record verified entry into clv_ledger
+        # Automatically record verified entry into clv_ledger and arb_history
         self.record_clv_entry_from_alert(alert)
+        self.record_arb_history_from_alert(alert)
 
     def list_sniper_alerts(self, sport: str | None = None, limit: int = 50) -> list[SniperAlert]:
         query = "SELECT * FROM sniper_alerts WHERE 1=1"
@@ -1228,5 +1280,221 @@ class TruthStore:
                 "UPDATE webhook_subscriptions SET active_status = 0, updated_at = ? WHERE subscription_id = ?",
                 (now_iso, subscription_id),
             )
+
+    # ------------------------------------------------------------------
+    # Auto-Graded Arb History Ledger & Shareable Sniper Receipts
+    # ------------------------------------------------------------------
+    def record_arb_history_from_alert(self, alert: SniperAlert) -> str:
+        """
+        Automatically lock an alert-time SHA-256 receipt in `arb_history`
+        the millisecond a `SniperAlert` fires.
+        """
+        from src.services.arb_ledger import (
+            american_to_decimal,
+            compute_entry_receipt_hash,
+            compute_receipt_hash,
+        )
+
+        created_iso = alert.created_at.isoformat() if isinstance(alert.created_at, datetime) else str(alert.created_at)
+        is_poly = str(alert.venue_type or "").lower() == "polymarket"
+        poly_val = round(float(alert.implied_prob), 6) if is_poly else None
+        book_val = american_to_decimal(alert.odds_american)
+
+        row_dict: dict[str, Any] = {
+            "alert_id": alert.alert_id,
+            "user_id": None,
+            "prop_id": alert.prop_id,
+            "player_id": alert.player_id,
+            "player_name": alert.player_name,
+            "team": alert.team,
+            "sport": alert.sport,
+            "game_id": alert.game_id,
+            "prop_type": alert.market,
+            "market": alert.book,
+            "side": alert.side,
+            "line": float(alert.line),
+            "entry_line": float(alert.line),
+            "entry_price": float(alert.implied_prob),
+            "entry_odds_poly": poly_val,
+            "entry_odds_book": book_val,
+            "entry_odds_american": int(alert.odds_american),
+            "fair_line": float(alert.fair_line),
+            "fair_prob": float(alert.fair_prob),
+            "implied_prob": float(alert.implied_prob),
+            "edge_pct": float(alert.edge_pct),
+            "stake": float(alert.kelly_stake),
+            "liquidity_at_entry": round(float(alert.liquidity_score) * 2500.0, 2),
+            "is_polymarket_arb": 1 if is_poly else 0,
+            "feed_age_seconds": float(alert.feed_age_seconds),
+            "quarter_clock": "Q2 4:12",
+            "source_hash": alert.source_hash,
+            "model_version": alert.model_version,
+            "reasoning_chain": alert.reasoning_chain,
+            "timestamp": created_iso,
+            "entry_timestamp": created_iso,
+            "status": "PENDING",
+            "result": "pending",
+            "closing_line": None,
+            "closing_price": None,
+            "closing_odds_poly": None,
+            "closing_odds_book": None,
+            "closing_odds_american": None,
+            "clv_points": None,
+            "clv_pct": None,
+            "clv_ev_pct": None,
+            "actual_stat": None,
+            "graded_at": None,
+        }
+        row_dict["entry_receipt_hash"] = compute_entry_receipt_hash(row_dict)
+        row_dict["receipt_hash"] = compute_receipt_hash(row_dict)
+        self.upsert_arb_history(row_dict, overwrite=False)
+        return alert.alert_id
+
+    def upsert_arb_history(self, row: dict[str, Any], *, overwrite: bool = True) -> None:
+        conflict_clause = (
+            """
+            ON CONFLICT(alert_id) DO UPDATE SET
+                user_id = COALESCE(excluded.user_id, arb_history.user_id),
+                status = excluded.status,
+                result = excluded.result,
+                closing_line = excluded.closing_line,
+                closing_price = excluded.closing_price,
+                closing_odds_poly = excluded.closing_odds_poly,
+                closing_odds_book = excluded.closing_odds_book,
+                closing_odds_american = excluded.closing_odds_american,
+                clv_points = excluded.clv_points,
+                clv_pct = excluded.clv_pct,
+                clv_ev_pct = excluded.clv_ev_pct,
+                actual_stat = excluded.actual_stat,
+                receipt_hash = excluded.receipt_hash,
+                graded_at = excluded.graded_at
+            """
+            if overwrite
+            else "ON CONFLICT(alert_id) DO NOTHING"
+        )
+        with self._connect_sqlite() as conn:
+            conn.execute(
+                f"""
+                INSERT INTO arb_history (
+                    alert_id, user_id, prop_id, player_id, player_name, team,
+                    sport, game_id, prop_type, market, side, line, entry_line,
+                    entry_price, entry_odds_poly, entry_odds_book, entry_odds_american,
+                    fair_line, fair_prob, implied_prob, edge_pct, stake,
+                    liquidity_at_entry, is_polymarket_arb, feed_age_seconds,
+                    quarter_clock, source_hash, model_version, reasoning_chain,
+                    timestamp, entry_timestamp, status, result, closing_line,
+                    closing_price, closing_odds_poly, closing_odds_book,
+                    closing_odds_american, clv_points, clv_pct, clv_ev_pct,
+                    actual_stat, entry_receipt_hash, receipt_hash, graded_at
+                ) VALUES (
+                    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+                    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+                    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+                )
+                {conflict_clause}
+                """,
+                (
+                    str(row["alert_id"]),
+                    row.get("user_id"),
+                    str(row.get("prop_id") or ""),
+                    str(row.get("player_id") or ""),
+                    str(row.get("player_name") or ""),
+                    str(row.get("team") or ""),
+                    str(row.get("sport") or "nba"),
+                    str(row.get("game_id") or ""),
+                    str(row.get("prop_type") or "points"),
+                    str(row.get("market") or "Polymarket"),
+                    str(row.get("side") or "OVER"),
+                    float(row.get("line", row.get("entry_line", 24.5))),
+                    float(row.get("entry_line", row.get("line", 24.5))),
+                    float(row.get("entry_price", row.get("implied_prob", 0.58))),
+                    row.get("entry_odds_poly"),
+                    row.get("entry_odds_book"),
+                    int(row.get("entry_odds_american") or -110),
+                    float(row.get("fair_line") or 0.0),
+                    float(row.get("fair_prob") or 0.64),
+                    float(row.get("implied_prob") or 0.58),
+                    float(row.get("edge_pct") or 0.0),
+                    float(row.get("stake") or 0.025),
+                    float(row.get("liquidity_at_entry") or 1500.0),
+                    1 if row.get("is_polymarket_arb") else 0,
+                    float(row.get("feed_age_seconds") or 2.4),
+                    str(row.get("quarter_clock") or "Q2 4:12"),
+                    str(row.get("source_hash") or ""),
+                    str(row.get("model_version") or MODEL_VERSION),
+                    str(row.get("reasoning_chain") or ""),
+                    str(row.get("timestamp") or row.get("entry_timestamp") or ""),
+                    str(row.get("entry_timestamp") or row.get("timestamp") or ""),
+                    str(row.get("status") or "PENDING").upper(),
+                    str(row.get("result") or "pending").lower(),
+                    row.get("closing_line"),
+                    row.get("closing_price"),
+                    row.get("closing_odds_poly"),
+                    row.get("closing_odds_book"),
+                    row.get("closing_odds_american"),
+                    row.get("clv_points"),
+                    row.get("clv_pct"),
+                    row.get("clv_ev_pct"),
+                    row.get("actual_stat"),
+                    str(row.get("entry_receipt_hash") or ""),
+                    str(row.get("receipt_hash") or ""),
+                    row.get("graded_at"),
+                ),
+            )
+
+    def get_arb_history(self, alert_id: str) -> dict[str, Any] | None:
+        with self._connect_sqlite() as conn:
+            row = conn.execute(
+                "SELECT * FROM arb_history WHERE alert_id = ?",
+                (alert_id,),
+            ).fetchone()
+            if not row:
+                return None
+            d = dict(row)
+            d["is_polymarket_arb"] = bool(d.get("is_polymarket_arb"))
+            return d
+
+    def list_arb_history(
+        self,
+        *,
+        user_id: str | None = None,
+        market: str | None = None,
+        prop_type: str | None = None,
+        status: str | None = None,
+        clv_positive: bool = False,
+        is_polymarket_arb: bool | None = None,
+        limit: int = 50,
+        offset: int = 0,
+    ) -> list[dict[str, Any]]:
+        query = "SELECT * FROM arb_history WHERE 1=1"
+        params: list[Any] = []
+        if user_id:
+            query += " AND user_id = ?"
+            params.append(user_id)
+        if market:
+            query += " AND LOWER(market) = LOWER(?)"
+            params.append(market)
+        if prop_type:
+            query += " AND LOWER(prop_type) = LOWER(?)"
+            params.append(prop_type)
+        if status:
+            query += " AND UPPER(status) = UPPER(?)"
+            params.append(status)
+        if clv_positive:
+            query += " AND clv_pct IS NOT NULL AND clv_pct > 0"
+        if is_polymarket_arb is not None:
+            query += " AND is_polymarket_arb = ?"
+            params.append(1 if is_polymarket_arb else 0)
+        query += " ORDER BY entry_timestamp DESC LIMIT ? OFFSET ?"
+        params.extend([limit, offset])
+        with self._connect_sqlite() as conn:
+            rows = conn.execute(query, params).fetchall()
+            out = []
+            for r in rows:
+                d = dict(r)
+                d["is_polymarket_arb"] = bool(d.get("is_polymarket_arb"))
+                out.append(d)
+            return out
+
 
 

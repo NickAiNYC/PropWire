@@ -8165,15 +8165,17 @@ body { background: #0b0e14; color: #ffffff; }
   .pw-filterbar .pw-search-input { padding-left: 30px !important; }
   .model-only-help { min-width: 44px; min-height: 32px; justify-content: center; }
   .model-only-popover {
-    position: fixed;
-    left: 12px;
-    right: 12px;
-    bottom: calc(72px + env(safe-area-inset-bottom));
-    top: auto;
-    width: auto;
-    padding: 12px 14px;
+    position: absolute;
+    left: auto;
+    right: 0;
+    top: calc(100% + 4px);
+    bottom: auto;
+    width: min(240px, 80vw);
+    padding: 8px 10px;
     border-radius: var(--radius);
-    font-size: 13px;
+    font-size: 11px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    z-index: 50;
   }
 }
 
@@ -10640,9 +10642,11 @@ body {
 }
 
 #marketChipGroup .chip-pill.active {
-  background: var(--pw-accent-blue) !important;
-  color: #0b0e14 !important;
+  background: #27272a !important; /* Sleek Dark Quant Theme (Zinc-800) */
+  border: 1px solid rgba(255, 255, 255, 0.75) !important;
+  color: #ffffff !important;
   font-weight: 700 !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
 }
 
 .chip-more-btn {
@@ -12690,6 +12694,214 @@ dialog.detail-dialog .dialog-sheet-handle {
   font-size: 10.5px;
   white-space: pre-wrap;
   color: #d4d4d8;
+/* ── Quant Mobile Card Density & Visual Enhancements ── */
+.card-prog-track {
+  width: 100%;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 2px;
+  margin-top: 4px;
+  overflow: hidden;
+}
+.card-prog-fill {
+  height: 100%;
+  background: #d4fb11;
+  border-radius: 2px;
+}
+.card-proj-fair-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px;
+  width: 100%;
+}
+.card-proj-fair-row .font-large {
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffffff;
+}
+.card-proj-fair-row .font-small {
+  font-size: 10px;
+  color: #71717a;
+}
+.card-edge-badge-lime {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: rgba(212, 251, 17, 0.16);
+  border: 1px solid rgba(212, 251, 17, 0.4);
+  color: #d4fb11;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+}
+.card-btn-view-ghost {
+  background: transparent !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  color: #94a3b8 !important;
+  font-size: 16px !important;
+  line-height: 1 !important;
+  padding: 4px 10px !important;
+  border-radius: 6px !important;
+  cursor: pointer !important;
+}
+.card-btn-view-ghost:hover {
+  border-color: rgba(255, 255, 255, 0.35) !important;
+  color: #ffffff !important;
+}
+
+@media (max-width: 768px) {
+  .card-id-block .pw-avatar {
+    width: 38px !important;
+    height: 38px !important;
+    min-width: 38px !important;
+    min-height: 38px !important;
+    border-radius: 50% !important;
+  }
+  .card-id-block .pw-avatar-team-badge {
+    display: none !important;
+  }
+}
+
+/* ── Verified Sniper Receipt Modal Styling ── */
+.receipt-dialog {
+  max-width: 580px !important;
+  width: 95vw !important;
+  border: 1px solid rgba(212, 251, 17, 0.45) !important;
+  border-radius: 16px !important;
+  background: #090d16 !important;
+  box-shadow: 0 0 32px rgba(212, 251, 17, 0.18), 0 24px 64px rgba(0, 0, 0, 0.95) !important;
+  color: #f4f4f5 !important;
+}
+.receipt-card-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
+  background: #0d121f;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  font-family: var(--pw-font-mono, monospace);
+}
+.receipt-header-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: rgba(212, 251, 17, 0.12);
+  border: 1px solid rgba(212, 251, 17, 0.35);
+  color: #d4fb11;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+.receipt-player-hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+.receipt-player-name {
+  font-size: 18px;
+  font-weight: 800;
+  color: #ffffff;
+}
+.receipt-prop-title {
+  font-size: 13px;
+  color: #a1a1aa;
+  margin-top: 2px;
+}
+.receipt-edge-pill {
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: #d4fb11;
+  color: #000000;
+  font-size: 13px;
+  font-weight: 800;
+}
+.receipt-quant-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.35);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+.receipt-quant-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.receipt-cell-lbl {
+  font-size: 9.5px;
+  color: #71717a;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.receipt-cell-val {
+  font-size: 13px;
+  font-weight: 700;
+  color: #f4f4f5;
+}
+.receipt-cell-val.is-lime {
+  color: #d4fb11;
+}
+.receipt-hash-box {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: #05080e;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 10px;
+  color: #71717a;
+}
+.receipt-hash-box strong {
+  color: #a1a1aa;
+}
+.receipt-actions-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+.receipt-action-btn {
+  flex: 1;
+  min-width: 140px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 14px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-decoration: none;
+}
+.receipt-action-btn.is-copy {
+  background: #27272a;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+}
+.receipt-action-btn.is-share-x {
+  background: #000000;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  color: #ffffff;
+}
+.receipt-action-btn.is-lime {
+  background: #d4fb11;
+  border: 1px solid #d4fb11;
+  color: #000000;
+}
+.receipt-action-btn:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.1);
 }
 
 
@@ -12698,3 +12910,63 @@ dialog.detail-dialog .dialog-sheet-handle {
 
 
 
+
+/* v171b — CSP-clean equivalents for the owner's arb-ledger / receipt UI (7fe252f).
+   Same rationale: prod style-src 'self' strips inline style="" attributes. */
+.sniper-sub-tools {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.arb-ledger-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.arb-ledger-title {
+  margin-bottom: 2px;
+}
+
+.arb-ledger-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.arb-ledger-kpi-cell {
+  padding: 8px 10px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.arb-ledger-kpi-label {
+  font-size: 10px;
+  color: var(--muted);
+}
+
+.arb-ledger-kpi-val {
+  font-size: 16px;
+  font-weight: 800;
+  color: #fff;
+}
+
+.arb-ledger-kpi-val.is-lime {
+  color: #d4fb11;
+}
+
+.receipt-toast-msg {
+  text-align: center;
+  font-size: 11px;
+}
+
+.arb-muted-note {
+  font-size: 10.5px;
+  color: var(--muted);
+}
