@@ -12627,6 +12627,73 @@ dialog.detail-dialog .dialog-sheet-handle {
   gap: 8px;
 }
 
+/* v171 — CSP-clean equivalents for Alert Routing inline styles.
+   Prod CSP is style-src 'self' (no unsafe-inline): inline style="" attributes
+   are silently stripped, so the Alert Routing pane must be class-driven. */
+.arb-head-tools {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.arb-routing-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.arb-routing-title {
+  margin-bottom: 2px;
+}
+
+.arb-routing-subnote {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.arb-routing-telegram-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.arb-routing-telegram-row .sniper-deeplink-btn {
+  white-space: nowrap;
+}
+
+.arb-routing-block {
+  margin-top: 12px;
+}
+
+.arb-routing-label-tight {
+  margin-bottom: 6px;
+}
+
+.arb-routing-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+
+.arb-routing-save {
+  width: auto;
+  padding: 8px 16px;
+}
+
+.arb-routing-result {
+  margin-top: 10px;
+}
+
+.arb-routing-payload-pre {
+  margin: 6px 0 0;
+  font-size: 10.5px;
+  white-space: pre-wrap;
+  color: #d4d4d8;
 /* ── Quant Mobile Card Density & Visual Enhancements ── */
 .card-prog-track {
   width: 100%;
@@ -12896,3 +12963,63 @@ dialog.detail-dialog .dialog-sheet-handle {
 
 
 
+
+/* v171b — CSP-clean equivalents for the owner's arb-ledger / receipt UI (7fe252f).
+   Same rationale: prod style-src 'self' strips inline style="" attributes. */
+.sniper-sub-tools {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.arb-ledger-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.arb-ledger-title {
+  margin-bottom: 2px;
+}
+
+.arb-ledger-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.arb-ledger-kpi-cell {
+  padding: 8px 10px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.arb-ledger-kpi-label {
+  font-size: 10px;
+  color: var(--muted);
+}
+
+.arb-ledger-kpi-val {
+  font-size: 16px;
+  font-weight: 800;
+  color: #fff;
+}
+
+.arb-ledger-kpi-val.is-lime {
+  color: #d4fb11;
+}
+
+.receipt-toast-msg {
+  text-align: center;
+  font-size: 11px;
+}
+
+.arb-muted-note {
+  font-size: 10.5px;
+  color: var(--muted);
+}

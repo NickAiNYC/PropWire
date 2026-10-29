@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="build-hash" content="2026-w8-v24">
   <title>Verified Sniper Receipt · PropWire Quant Terminal</title>
   <meta name="description" content="Public cryptographic CLV attestation with SHA-256 hash lock. No LLM in decision path — pure distributional Bayesian prop pricing.">
   <link rel="canonical" href="https://propwire.vercel.app/verify">
@@ -12,381 +13,24 @@
   <meta name="twitter:site" content="@PropWireApp">
   <meta name="twitter:title" id="ogMetaTitle" content="⚡ Verified CLV Sniper Receipt | PropWire Quant Terminal">
   <meta name="twitter:description" id="ogMetaDesc" content="No LLM in Decision Path · Cryptographically Verified SHA-256 Receipt · Model ECE < 1.2%">
-  <meta name="twitter:image" content="https://propwire.vercel.app/propwire-logo.svg">
+  <meta name="twitter:image" content="https://propwire.vercel.app/og-image.png?v=2026_v171">
   <meta property="og:title" content="⚡ Verified CLV Sniper Receipt | PropWire Quant Terminal">
   <meta property="og:description" content="No LLM in Decision Path · Cryptographically Verified SHA-256 Receipt · Model ECE < 1.2%">
-  <meta property="og:image" content="https://propwire.vercel.app/propwire-logo.svg">
+  <meta property="og:image" content="https://propwire.vercel.app/og-image.png?v=2026_v171">
   <meta property="og:url" content="https://propwire.vercel.app/verify">
 
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-  <link rel="stylesheet" href="/style.css">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=2026_v171">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=2026_v171">
+  <link rel="shortcut icon" href="/favicon-32x32.png?v=2026_v171">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=2026_v171">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=2026_v171">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon-180x180.png?v=2026_v171">
+  <link rel="apple-touch-icon-precomposed" href="/apple-touch-icon-precomposed.png?v=2026_v171">
+  <link rel="apple-touch-icon-precomposed" sizes="180x180" href="/apple-touch-icon-180x180-precomposed.png?v=2026_v171">
+  <link rel="manifest" href="/site.webmanifest?v=2026_v171">
+  <link rel="stylesheet" href="/style.css?v=2026_v171">
   
-  <style>
-    :root {
-      --verify-bg: #070a10;
-      --verify-card-bg: #0c111c;
-      --verify-border: rgba(255, 255, 255, 0.08);
-      --verify-lime: #d4fb11;
-      --verify-lime-glow: rgba(212, 251, 17, 0.22);
-      --verify-zinc-400: #a1a1aa;
-      --verify-zinc-500: #71717a;
-    }
-    body {
-      background: var(--verify-bg);
-      color: #f4f4f5;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      margin: 0;
-      padding: 0;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
-    .verify-page-shell {
-      max-width: 860px;
-      margin: 0 auto;
-      padding: 20px 16px 140px 16px;
-      width: 100%;
-      box-sizing: border-box;
-    }
-    .verify-top-nav {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding-bottom: 20px;
-      border-bottom: 1px solid var(--verify-border);
-      margin-bottom: 24px;
-    }
-    .verify-brand-group {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      text-decoration: none;
-      color: inherit;
-    }
-    .verify-logo-img {
-      width: 28px;
-      height: 28px;
-    }
-    .verify-brand-title {
-      font-size: 17px;
-      font-weight: 800;
-      letter-spacing: -0.3px;
-    }
-    .verify-status-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      padding: 3px 8px;
-      border-radius: 999px;
-      background: rgba(212, 251, 17, 0.12);
-      border: 1px solid rgba(212, 251, 17, 0.35);
-      color: var(--verify-lime);
-      font-family: monospace;
-      font-size: 10.5px;
-      font-weight: 700;
-    }
-    .verify-nav-cta {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 6px 14px;
-      border-radius: 8px;
-      background: #27272a;
-      border: 1px solid rgba(255, 255, 255, 0.18);
-      color: #ffffff;
-      font-size: 12px;
-      font-weight: 700;
-      text-decoration: none;
-      transition: all 0.15s ease;
-    }
-    .verify-nav-cta:hover {
-      background: #3f3f46;
-    }
-
-    /* Hero Receipt Box */
-    .verify-hero-card {
-      background: var(--verify-card-bg);
-      border: 1.5px solid rgba(212, 251, 17, 0.5);
-      border-radius: 16px;
-      padding: 24px;
-      box-shadow: 0 0 32px var(--verify-lime-glow), 0 20px 48px rgba(0, 0, 0, 0.7);
-      margin-bottom: 28px;
-      position: relative;
-    }
-    .verify-claim-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 6px 12px;
-      border-radius: 8px;
-      background: rgba(212, 251, 17, 0.14);
-      border: 1px solid rgba(212, 251, 17, 0.4);
-      color: var(--verify-lime);
-      font-family: monospace;
-      font-size: 12px;
-      font-weight: 800;
-      letter-spacing: 0.3px;
-      margin-bottom: 16px;
-    }
-    .verify-player-title-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 16px;
-      flex-wrap: wrap;
-      margin-bottom: 18px;
-    }
-    .verify-player-name {
-      font-size: 26px;
-      font-weight: 800;
-      color: #ffffff;
-      letter-spacing: -0.5px;
-    }
-    .verify-prop-detail {
-      font-size: 15px;
-      color: var(--verify-zinc-400);
-      margin-top: 4px;
-      font-family: monospace;
-    }
-    .verify-clv-hero-badge {
-      padding: 8px 16px;
-      border-radius: 10px;
-      background: var(--verify-lime);
-      color: #000000;
-      font-size: 16px;
-      font-weight: 900;
-      font-family: monospace;
-      box-shadow: 0 0 20px var(--verify-lime-glow);
-    }
-
-    /* Quant Metrics Grid */
-    .verify-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-      gap: 10px;
-      padding: 16px;
-      background: rgba(0, 0, 0, 0.45);
-      border-radius: 12px;
-      border: 1px solid var(--verify-border);
-      margin-bottom: 18px;
-      font-family: monospace;
-    }
-    .verify-grid-cell {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-    .verify-grid-lbl {
-      font-size: 10px;
-      color: var(--verify-zinc-500);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-    .verify-grid-val {
-      font-size: 16px;
-      font-weight: 800;
-      color: #f4f4f5;
-    }
-    .verify-grid-val.is-lime {
-      color: var(--verify-lime);
-    }
-
-    /* Hash Attestation Box */
-    .verify-hash-box {
-      padding: 12px 14px;
-      border-radius: 8px;
-      background: #060910;
-      border: 1px solid var(--verify-border);
-      font-family: monospace;
-      font-size: 11px;
-      color: var(--verify-zinc-400);
-      line-height: 1.6;
-      word-break: break-all;
-    }
-    .verify-hash-box strong {
-      color: #ffffff;
-    }
-
-    /* 3 Pillars Section */
-    .verify-section-hdr {
-      font-size: 18px;
-      font-weight: 800;
-      color: #ffffff;
-      margin: 32px 0 14px 0;
-      letter-spacing: -0.3px;
-    }
-    .verify-pillars-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 12px;
-      margin-bottom: 28px;
-    }
-    .verify-pillar-card {
-      padding: 16px;
-      border-radius: 12px;
-      background: var(--verify-card-bg);
-      border: 1px solid var(--verify-border);
-    }
-    .verify-pillar-icon {
-      font-size: 20px;
-      margin-bottom: 8px;
-    }
-    .verify-pillar-title {
-      font-size: 14px;
-      font-weight: 700;
-      color: #ffffff;
-      margin-bottom: 6px;
-    }
-    .verify-pillar-desc {
-      font-size: 12px;
-      color: var(--verify-zinc-400);
-      line-height: 1.5;
-    }
-
-    /* Scoreboard */
-    .verify-social-proof {
-      padding: 16px;
-      border-radius: 12px;
-      background: rgba(212, 251, 17, 0.05);
-      border: 1px solid rgba(212, 251, 17, 0.2);
-      display: flex;
-      justify-content: space-around;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 16px;
-      margin-bottom: 32px;
-      text-align: center;
-    }
-    .verify-stat-num {
-      font-size: 22px;
-      font-weight: 900;
-      color: var(--verify-lime);
-      font-family: monospace;
-    }
-    .verify-stat-lbl {
-      font-size: 11px;
-      color: var(--verify-zinc-400);
-      margin-top: 2px;
-    }
-
-    /* Blurred Live Teaser */
-    .verify-teaser-wrap {
-      border: 1px solid var(--verify-border);
-      border-radius: 12px;
-      background: #090e18;
-      overflow: hidden;
-      margin-bottom: 40px;
-      position: relative;
-    }
-    .verify-teaser-hdr {
-      padding: 12px 16px;
-      background: rgba(0, 0, 0, 0.4);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid var(--verify-border);
-      font-size: 12px;
-      font-weight: 700;
-    }
-    .verify-teaser-list {
-      padding: 12px 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      filter: blur(4.5px);
-      user-select: none;
-      pointer-events: none;
-    }
-    .verify-teaser-item {
-      display: flex;
-      justify-content: space-between;
-      padding: 10px 14px;
-      background: #111827;
-      border-radius: 8px;
-      font-size: 13px;
-      font-family: monospace;
-    }
-    .verify-lock-overlay {
-      position: absolute;
-      inset: 42px 0 0 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      background: rgba(7, 10, 16, 0.65);
-      backdrop-filter: blur(2px);
-      gap: 10px;
-      padding: 20px;
-      text-align: center;
-    }
-    .verify-lock-btn {
-      padding: 10px 20px;
-      border-radius: 8px;
-      background: var(--verify-lime);
-      color: #000;
-      font-weight: 800;
-      font-size: 13px;
-      text-decoration: none;
-      box-shadow: 0 0 16px var(--verify-lime-glow);
-    }
-
-    /* Sticky Bottom Bar */
-    .verify-sticky-cta {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: rgba(12, 17, 28, 0.95);
-      backdrop-filter: blur(12px);
-      border-top: 1px solid var(--verify-border);
-      padding: 14px 20px calc(14px + env(safe-area-inset-bottom)) 20px;
-      z-index: 100;
-    }
-    .verify-cta-inner {
-      max-width: 860px;
-      margin: 0 auto;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 16px;
-      flex-wrap: wrap;
-    }
-    .verify-cta-text strong {
-      color: #ffffff;
-      font-size: 14px;
-    }
-    .verify-cta-text p {
-      margin: 2px 0 0 0;
-      font-size: 11.5px;
-      color: var(--verify-zinc-400);
-    }
-    .verify-cta-actions {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-    }
-    .verify-btn-free {
-      padding: 9px 16px;
-      border-radius: 8px;
-      background: #27272a;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      color: #ffffff;
-      font-size: 13px;
-      font-weight: 700;
-      text-decoration: none;
-    }
-    .verify-btn-pro {
-      padding: 10px 20px;
-      border-radius: 8px;
-      background: var(--verify-lime);
-      border: 1px solid var(--verify-lime);
-      color: #000000;
-      font-size: 13px;
-      font-weight: 800;
-      text-decoration: none;
-      box-shadow: 0 0 16px var(--verify-lime-glow);
-    }
-  </style>
+  <link rel="stylesheet" href="/verify-landing.css?v=2026_v171">
 </head>
 <body>
 
@@ -394,10 +38,8 @@
     <!-- Top Nav -->
     <header class="verify-top-nav">
       <a href="/" class="verify-brand-group">
-        <svg class="verify-logo-img" viewBox="0 0 28 28" fill="none">
-          <circle cx="14" cy="14" r="13" stroke="#d4fb11" stroke-width="2"/>
-          <path d="M8 14l4 4 8-8" stroke="#d4fb11" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
+        <img src="/propwire-logo.svg?v=2026_v171" alt="PropWire" class="verify-logo-img pw-brand-dark-only" height="26">
+        <img src="/propwire-logo-dark.svg?v=2026_v171" alt="" aria-hidden="true" class="verify-logo-img pw-brand-light-only" height="26">
         <span class="verify-brand-title">PropWire</span>
         <span class="verify-status-badge">● PUBLIC ATTESTATION</span>
       </a>
@@ -460,7 +102,7 @@
         <div><strong>Receipt Hash:</strong> <code id="receiptHash">sha256:d8a4f1082c47a98e102f6b8910e52701b2a3c4d5e6f708192a3b4c5d6e7f809</code></div>
         <div><strong>Source Hash:</strong> <code id="sourceHash">sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855</code></div>
         <div><strong>Engine:</strong> <code id="modelVersion">propwire-dist-v2.4</code> (Compound Negative Binomial / Gamma)</div>
-        <div style="margin-top:6px; color:#10b981; font-weight:700;">✓ Cryptographically verified against historical ledger snapshot.</div>
+        <div class="verify-verif-stamp">✓ Cryptographically verified against historical ledger snapshot.</div>
       </div>
     </main>
 
@@ -509,7 +151,7 @@
     <div class="verify-teaser-wrap">
       <div class="verify-teaser-hdr">
         <span>PROPWIRE SNIPER FEED · LIVE</span>
-        <span style="color:#d4fb11;">● 3 ACTIVE ARBS</span>
+        <span class="verify-live-pill">● 3 ACTIVE ARBS</span>
       </div>
       <div class="verify-teaser-list">
         <div class="verify-teaser-item">
@@ -526,8 +168,8 @@
         </div>
       </div>
       <div class="verify-lock-overlay">
-        <div style="font-size:16px; font-weight:800; color:#fff;">Live Terminal Gated</div>
-        <div style="font-size:12px; color:#a1a1aa; max-width:360px;">Unlock real-time live substitution alerts, spatial court tracking, and Polymarket orderbook arbitrage.</div>
+        <div class="verify-gate-title">Live Terminal Gated</div>
+        <div class="verify-gate-sub">Unlock real-time live substitution alerts, spatial court tracking, and Polymarket orderbook arbitrage.</div>
         <a href="/?checkout=pro" class="verify-lock-btn">Unlock Live Sniper PRO ($29/mo)</a>
       </div>
     </div>
@@ -547,57 +189,6 @@
     </div>
   </div>
 
-  <script>
-    (async function initPublicReceipt() {
-      // 1. Resolve alert_id from URL path or query param
-      const pathParts = window.location.pathname.split('/').filter(Boolean);
-      const urlParams = new URLSearchParams(window.location.search);
-      let alertId = urlParams.get('id') || urlParams.get('alert_id');
-      if (!alertId && pathParts.length >= 2 && pathParts[0] === 'verify') {
-        alertId = pathParts[1];
-      }
-
-      if (alertId) {
-        try {
-          const res = await fetch('/api/sniper/receipt/' + encodeURIComponent(alertId));
-          if (res.ok) {
-            const data = await res.json();
-            document.getElementById('receiptPlayer').textContent = `${data.player_name || 'NBA Player'} (${data.team || 'NBA'})`;
-            document.getElementById('receiptPropDetail').textContent = `${(data.prop_type || 'PTS').toUpperCase()} OVER ${Number(data.line || 24.5).toFixed(1)} · ${data.quarter_clock || 'Live Q2'} (${data.date_label || '29 Oct, 2026'})`;
-            const clv = Number(data.clv_pct || 5.8).toFixed(1);
-            document.getElementById('receiptClvBadge').textContent = `+${clv}% CLV BEAT`;
-            document.getElementById('receiptEntryLine').textContent = `${Number(data.line || 24.5).toFixed(1)} (${data.market || 'DK'})`;
-            document.getElementById('receiptCloseLine').textContent = data.closing_line ? `${Number(data.closing_line).toFixed(1)}` : '—';
-            document.getElementById('receiptClvVal').textContent = `+${clv}%`;
-            document.getElementById('receiptFairLine').textContent = `${Number(data.fair_line || data.line).toFixed(1)} pts`;
-            document.getElementById('receiptEdgeVal').textContent = `+${Number(data.edge_pct || 5.0).toFixed(1)}%`;
-            document.getElementById('receiptProbs').textContent = `${Math.round(Number(data.fair_prob || 0.62) * 100)}% / ${Math.round(Number(data.implied_prob || 0.54) * 100)}%`;
-            document.getElementById('receiptKelly').textContent = `${(Number(data.stake || 0.025) * 100).toFixed(1)}% Bankroll`;
-            document.getElementById('receiptStatus').textContent = `${data.status || 'GRADED'} · ${String(data.result || 'WON').toUpperCase()}`;
-            if (data.receipt_hash) document.getElementById('receiptHash').textContent = `sha256:${data.receipt_hash}`;
-            if (data.source_hash) document.getElementById('sourceHash').textContent = `sha256:${data.source_hash}`;
-            if (data.model_version) document.getElementById('modelVersion').textContent = data.model_version;
-            document.title = `Verified CLV: ${data.player_name} (+${clv}% CLV) | PropWire`;
-          }
-        } catch (e) {
-          console.warn('Receipt fetch fallback to golden view:', e);
-        }
-      }
-
-      // Fetch public ledger stats
-      try {
-        const ledRes = await fetch('/api/ledger?limit=10');
-        if (ledRes.ok) {
-          const lData = await ledRes.json();
-          if (lData.total_graded_alerts) document.getElementById('statGraded').textContent = lData.total_graded_alerts;
-          if (lData.clv_beat_rate_pct) document.getElementById('statBeatRate').textContent = `${lData.clv_beat_rate_pct.toFixed(1)}%`;
-          if (lData.average_clv_beat_pct) document.getElementById('statAvgClv').textContent = `+${lData.average_clv_beat_pct.toFixed(1)}%`;
-          if (lData.roi_pct) document.getElementById('statRoi').textContent = `+${lData.roi_pct.toFixed(1)}%`;
-        }
-      } catch (err) {
-        // Keep pre-rendered defaults
-      }
-    })();
-  </script>
+  <script src="/verify-landing.js?v=2026_v171" defer></script>
 </body>
 </html>

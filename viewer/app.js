@@ -2998,6 +2998,8 @@
     } else {
       $('#slateRows').innerHTML = '';
       $('#cardView').innerHTML = displayRows.map((row, idx) => propCard(row, idx)).join('');
+      // v171: CSP-clean dynamic progress width (inline style attrs are stripped by prod CSP)
+      document.querySelectorAll('#cardView .card-prog-fill[data-prog]').forEach((el) => { el.style.width = el.dataset.prog + '%'; });
     }
 
     const isMobile = window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
@@ -3585,7 +3587,7 @@
         </div>
         <div class="sniper-sub-meta-row">
           <span>Fair <strong>${Number(item.fair_line).toFixed(1)}</strong> · ${esc(item.book)} (${item.odds > 0 ? '+' + item.odds : item.odds})</span>
-          <div style="display:flex; align-items:center; gap:6px;">
+          <div class="sniper-sub-tools">
             <span class="sniper-sub-age">${isStaleCourt ? 'STALE (95.0s · HALTED)' : `Feed Age: ${Number(item.feed_age_s || 2.4).toFixed(1)}s`}</span>
             <button type="button" class="sniper-share-receipt-btn" data-share-receipt="${esc(payloadJson)}" title="Share Verified SHA-256 Sniper Receipt">
               ${shieldIconSvg}
@@ -3897,7 +3899,7 @@
                 <div class="nba-side-sniper-title">Cross-Venue Arb Board</div>
                 <div class="nba-side-sniper-sub">Bayesian Fair vs Sportsbook vs Polymarket CLOB (Fee-Adj VWAP)</div>
               </div>
-              <div style="display:flex; align-items:center; gap:6px;">
+              <div class="arb-head-tools">
                 <span class="arb-status-pill ${isPolyWsDisconnected ? 'is-stale' : 'is-live'}" id="nbaArbStatusPill">
                   ${isPolyWsDisconnected ? 'STALE' : 'CLOB LIVE'}
                 </span>
@@ -4018,7 +4020,7 @@
             <span>Share to 𝕏</span>
           </a>
         </div>
-        <div id="receiptToastMsg" class="sniper-sim-result" style="text-align:center; font-size:11px;" hidden></div>
+        <div id="receiptToastMsg" class="sniper-sim-result receipt-toast-msg" hidden></div>
       </div>
     `;
 
@@ -4320,7 +4322,7 @@
           <td><strong>#${idx + 1}</strong></td>
           <td>
             <div><strong>${esc(opp.player_name)}</strong> <span class="sniper-team-tag">${esc(opp.team)}</span></div>
-            <div style="font-size:10.5px; color:var(--muted);">${esc(String(opp.sport).toUpperCase())} · ${esc(opp.market)} ${Number(opp.line).toFixed(1)} · token <code>${esc(String(opp.token_id).slice(0, 10))}…</code></div>
+            <div class="arb-muted-note">${esc(String(opp.sport).toUpperCase())} · ${esc(opp.market)} ${Number(opp.line).toFixed(1)} · token <code>${esc(String(opp.token_id).slice(0, 10))}…</code></div>
           </td>
           <td><span class="sniper-side-pill ${opp.suggested_side === 'YES' ? 'yes' : 'no'}">${esc(opp.suggested_side)}</span></td>
           <td class="td-num">${(Number(opp.suggested_side === 'YES' ? opp.yes_price : opp.no_price) * 100).toFixed(1)}¢</td>
@@ -4447,7 +4449,7 @@
             <td><strong>#${i + 1}</strong></td>
             <td>
               <div><strong>${esc(r.player_name)}</strong> <span class="sniper-team-tag">${esc(r.team)}</span></div>
-              <div style="font-size:10.5px; color:var(--muted);">${esc(r.prop_type)} Over ${Number(r.entry_line || r.line).toFixed(1)} @ ${esc(r.market)}</div>
+              <div class="arb-muted-note">${esc(r.prop_type)} Over ${Number(r.entry_line || r.line).toFixed(1)} @ ${esc(r.market)}</div>
             </td>
             <td class="td-num">${Number(r.entry_line || r.line).toFixed(1)}</td>
             <td class="td-num">${r.closing_line ? Number(r.closing_line).toFixed(1) : '—'}</td>
@@ -4466,34 +4468,34 @@
 
       agenticSectionHtml = `
         <div class="sniper-card">
-          <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px; flex-wrap:wrap; margin-bottom:12px;">
+          <div class="arb-ledger-head">
             <div>
-              <div class="sniper-section-title" style="margin-bottom:2px;">Arb History &amp; PnL Ledger (Auto-Graded CLV)</div>
-              <div style="font-size:11px; color:var(--muted);">Cryptographically signed SHA-256 historical performance ledger (<code>clv = (Entry_Odds - Closing_Odds) / Closing_Odds</code>)</div>
+              <div class="sniper-section-title arb-ledger-title">Arb History &amp; PnL Ledger (Auto-Graded CLV)</div>
+              <div class="arb-routing-subnote">Cryptographically signed SHA-256 historical performance ledger (<code>clv = (Entry_Odds - Closing_Odds) / Closing_Odds</code>)</div>
             </div>
             <a href="/api/sniper/history?limit=100" target="_blank" rel="noopener noreferrer" class="sniper-deeplink-btn">Export Ledger JSON ↗</a>
           </div>
 
-          <div class="sniper-kpi-grid" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(110px, 1fr)); gap:8px; margin-bottom:12px;">
-            <div class="sniper-kpi-cell" style="padding:8px 10px; background:rgba(0,0,0,0.3); border-radius:6px; border:1px solid rgba(255,255,255,0.06);">
-              <div style="font-size:10px; color:var(--muted);">GRADED ALERTS</div>
-              <div style="font-size:16px; font-weight:800; color:#fff;">${arbLedger.total_graded_alerts || 8}</div>
+          <div class="sniper-kpi-grid arb-ledger-kpi-grid">
+            <div class="sniper-kpi-cell arb-ledger-kpi-cell">
+              <div class="arb-ledger-kpi-label">GRADED ALERTS</div>
+              <div class="arb-ledger-kpi-val">${arbLedger.total_graded_alerts || 8}</div>
             </div>
-            <div class="sniper-kpi-cell" style="padding:8px 10px; background:rgba(0,0,0,0.3); border-radius:6px; border:1px solid rgba(255,255,255,0.06);">
-              <div style="font-size:10px; color:var(--muted);">AVG CLV BEAT</div>
-              <div style="font-size:16px; font-weight:800; color:#d4fb11;">+${Number(arbLedger.average_clv_beat_pct || 5.8).toFixed(1)}%</div>
+            <div class="sniper-kpi-cell arb-ledger-kpi-cell">
+              <div class="arb-ledger-kpi-label">AVG CLV BEAT</div>
+              <div class="arb-ledger-kpi-val is-lime">+${Number(arbLedger.average_clv_beat_pct || 5.8).toFixed(1)}%</div>
             </div>
-            <div class="sniper-kpi-cell" style="padding:8px 10px; background:rgba(0,0,0,0.3); border-radius:6px; border:1px solid rgba(255,255,255,0.06);">
-              <div style="font-size:10px; color:var(--muted);">CLV BEAT RATE</div>
-              <div style="font-size:16px; font-weight:800; color:#fff;">${Number(arbLedger.clv_beat_rate_pct || 87.5).toFixed(1)}%</div>
+            <div class="sniper-kpi-cell arb-ledger-kpi-cell">
+              <div class="arb-ledger-kpi-label">CLV BEAT RATE</div>
+              <div class="arb-ledger-kpi-val">${Number(arbLedger.clv_beat_rate_pct || 87.5).toFixed(1)}%</div>
             </div>
-            <div class="sniper-kpi-cell" style="padding:8px 10px; background:rgba(0,0,0,0.3); border-radius:6px; border:1px solid rgba(255,255,255,0.06);">
-              <div style="font-size:10px; color:var(--muted);">WIN RATE</div>
-              <div style="font-size:16px; font-weight:800; color:#fff;">${Number(arbLedger.win_rate_pct || 75.0).toFixed(1)}%</div>
+            <div class="sniper-kpi-cell arb-ledger-kpi-cell">
+              <div class="arb-ledger-kpi-label">WIN RATE</div>
+              <div class="arb-ledger-kpi-val">${Number(arbLedger.win_rate_pct || 75.0).toFixed(1)}%</div>
             </div>
-            <div class="sniper-kpi-cell" style="padding:8px 10px; background:rgba(0,0,0,0.3); border-radius:6px; border:1px solid rgba(255,255,255,0.06);">
-              <div style="font-size:10px; color:var(--muted);">EST. ROI</div>
-              <div style="font-size:16px; font-weight:800; color:#d4fb11;">+${Number(arbLedger.roi_pct || 6.7).toFixed(1)}%</div>
+            <div class="sniper-kpi-cell arb-ledger-kpi-cell">
+              <div class="arb-ledger-kpi-label">EST. ROI</div>
+              <div class="arb-ledger-kpi-val is-lime">+${Number(arbLedger.roi_pct || 6.7).toFixed(1)}%</div>
             </div>
           </div>
 
@@ -4517,10 +4519,10 @@
       state.sniperRouting = routing;
       agenticSectionHtml = `
         <div class="sniper-card arb-routing-card">
-          <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px; flex-wrap:wrap; margin-bottom:10px;">
+          <div class="arb-routing-head">
             <div>
-              <div class="sniper-section-title" style="margin-bottom:2px;">Alert Routing — Rate-Limited Discord &amp; Telegram Dispatch</div>
-              <div style="font-size:11px; color:var(--muted);">5-Minute Redis Deduplication Lock (<code>webhook_lock:{user}:{player}:{prop}</code> · TTL 300s) + SSRF Host Validation</div>
+              <div class="sniper-section-title arb-routing-title">Alert Routing — Rate-Limited Discord &amp; Telegram Dispatch</div>
+              <div class="arb-routing-subnote">5-Minute Redis Deduplication Lock (<code>webhook_lock:{user}:{player}:{prop}</code> · TTL 300s) + SSRF Host Validation</div>
             </div>
             <span class="arb-status-pill is-live">300s DEDUP LOCK ACTIVE</span>
           </div>
@@ -4534,16 +4536,16 @@
 
             <div class="arb-routing-field">
               <label class="arb-routing-label" for="routingTelegramInput">Connect Telegram (Chat ID or Bot Webhook)</label>
-              <div style="display:flex; gap:8px; align-items:center;">
+              <div class="arb-routing-telegram-row">
                 <input type="text" id="routingTelegramInput" class="sniper-webhook-input" placeholder="-100192837465 or @propwire_channel" value="${esc(routing.telegramChatId || '')}">
-                <a href="https://t.me/PropWireSniperBot" target="_blank" rel="noopener noreferrer" class="sniper-deeplink-btn" style="white-space:nowrap;">Open Bot ↗</a>
+                <a href="https://t.me/PropWireSniperBot" target="_blank" rel="noopener noreferrer" class="sniper-deeplink-btn">Open Bot ↗</a>
               </div>
               <span class="arb-routing-hint">Delivers Markdown alerts with Top-3 CLOB VWAP depth &amp; 1-tap Polymarket deep-link.</span>
             </div>
           </div>
 
-          <div style="margin-top:12px;">
-            <div class="arb-routing-label" style="margin-bottom:6px;">Alert Scope Filter</div>
+          <div class="arb-routing-block">
+            <div class="arb-routing-label arb-routing-label-tight">Alert Scope Filter</div>
             <div class="arb-routing-mode-group" id="routingScopeGroup">
               <button type="button" class="sniper-edge-btn ${routing.polymarketOnly ? 'active' : ''}" data-routing-scope="polymarket_only">
                 Only alert me for Polymarket Arbs
@@ -4554,8 +4556,8 @@
             </div>
           </div>
 
-          <div style="margin-top:12px;">
-            <div class="arb-routing-label" style="margin-bottom:6px;">Minimum Edge Gate for Push Dispatch</div>
+          <div class="arb-routing-block">
+            <div class="arb-routing-label arb-routing-label-tight">Minimum Edge Gate for Push Dispatch</div>
             <div class="sniper-stepper-row" id="routingGateGroup">
               <button type="button" class="sniper-edge-btn ${Number(routing.minEdgeGate) === 3.0 ? 'active' : ''}" data-routing-gate="3.0">+3.0% Gate</button>
               <button type="button" class="sniper-edge-btn ${Number(routing.minEdgeGate) === 4.0 ? 'active' : ''}" data-routing-gate="4.0">+4.0% Gate</button>
@@ -4564,8 +4566,8 @@
             </div>
           </div>
 
-          <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:14px;">
-            <button type="button" class="arb-action-btn is-lime-cta" id="routingSaveBtn" style="width:auto; padding:8px 16px;">
+          <div class="arb-routing-actions">
+            <button type="button" class="arb-action-btn is-lime-cta arb-routing-save" id="routingSaveBtn">
               Save Alert Routing
             </button>
             <button type="button" class="sniper-test-btn" id="routingTestWebhookBtn">
@@ -4573,7 +4575,7 @@
             </button>
           </div>
 
-          <div id="routingTestResultBox" class="sniper-sim-result" style="margin-top:10px;" hidden></div>
+          <div id="routingTestResultBox" class="sniper-sim-result arb-routing-result" hidden></div>
         </div>
       `;
     }
@@ -4868,7 +4870,7 @@
             const data = await res.json();
             if (box) {
               box.hidden = false;
-              box.innerHTML = `<strong>Webhook Test Payload Dispatched:</strong><pre style="margin:6px 0 0; font-size:10.5px; white-space:pre-wrap; color:#d4d4d8;">${esc(data.telegram_markdown || '')}</pre>`;
+              box.innerHTML = `<strong>Webhook Test Payload Dispatched:</strong><pre class="arb-routing-payload-pre">${esc(data.telegram_markdown || '')}</pre>`;
             }
             return;
           }
@@ -4880,7 +4882,7 @@
         } catch (_) {
           if (box) {
             box.hidden = false;
-            box.innerHTML = `<strong>Webhook Test Payload (Preview):</strong><pre style="margin:6px 0 0; font-size:10.5px; white-space:pre-wrap; color:#d4d4d8;">🟢 *Giannis Antetokounmpo | PTS Over 31.5*\nFair Prob: 64%\nPolymarket: 58% ($0.58)\nEdge: +6.0%\nTop-3 Depth: $500 @ $0.58, $1,200 @ $0.59\n[🔗 BUY YES ON POLYMARKET](https://polymarket.com/event/nba-giannis-antetokounmpo-points-over-31-5)</pre>`;
+            box.innerHTML = `<strong>Webhook Test Payload (Preview):</strong><pre class="arb-routing-payload-pre">🟢 *Giannis Antetokounmpo | PTS Over 31.5*\nFair Prob: 64%\nPolymarket: 58% ($0.58)\nEdge: +6.0%\nTop-3 Depth: $500 @ $0.58, $1,200 @ $0.59\n[🔗 BUY YES ON POLYMARKET](https://polymarket.com/event/nba-giannis-antetokounmpo-points-over-31-5)</pre>`;
           }
         }
       };
@@ -5451,7 +5453,7 @@
             <span class="grid-col-val font-large">PROJ ${dist.proj.toFixed(1)}</span>
             <span class="grid-col-sub font-small">FAIR ${fairVal.toFixed(1)}</span>
           </div>
-          <div class="card-prog-track"><div class="card-prog-fill" style="width:${progRatio}%;"></div></div>
+          <div class="card-prog-track"><div class="card-prog-fill" data-prog="${progRatio}"></div></div>
         </div>
         <div class="card-grid-col col-steam">
           <span class="grid-col-lbl">FAIR</span>
@@ -5476,7 +5478,7 @@
             ${hasPositiveEdge ? `<span class="card-edge-badge-lime">+${edgePctDisplay}%</span>` : ''}
             <span class="grid-col-sub font-small">FAIR ${fairVal.toFixed(1)}</span>
           </div>
-          <div class="card-prog-track"><div class="card-prog-fill" style="width:${progRatio}%;"></div></div>
+          <div class="card-prog-track"><div class="card-prog-fill" data-prog="${progRatio}"></div></div>
         </div>
         <div class="card-grid-col col-steam">
           <span class="grid-col-lbl">STEAM</span>
