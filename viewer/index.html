@@ -238,6 +238,7 @@
 
         <!-- More Filters Bottom Sheet Trigger (Signal & Matchups) -->
         <button type="button" class="chip-pill chip-more-btn" id="moreFiltersBtn" aria-label="More Filters">
+          <svg class="prop-icon filter-funnel-icon" width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="1.5 2 14.5 2 9.5 8.5 9.5 13.5 6.5 15 6.5 8.5 1.5 2"/></svg>
           <span id="moreFiltersLabel">FILTERS</span>
           <span class="chip-chevron">▾</span>
         </button>
@@ -622,6 +623,21 @@
         <button class="icon-button" value="cancel" aria-label="Close sniper dialog">&times;</button>
       </div>
       <div class="dialog-body" id="sniperContent"></div>
+    </form>
+  </dialog>
+
+  <!-- Shareable Verified Sniper Receipt Modal (SHA-256 Attestation) -->
+  <dialog class="detail-dialog receipt-dialog" id="sniperReceiptDialog" aria-labelledby="receiptModalTitle">
+    <form method="dialog" class="dialog-shell">
+      <div class="dialog-sheet-handle" aria-hidden="true"></div>
+      <div class="dialog-header">
+        <div>
+          <div class="eyebrow">Cryptographic Attestation · SHA-256</div>
+          <h2 id="receiptModalTitle">Verified Sniper Receipt</h2>
+        </div>
+        <button class="icon-button" value="cancel" aria-label="Close receipt modal">&times;</button>
+      </div>
+      <div class="dialog-body" id="sniperReceiptContent"></div>
     </form>
   </dialog>
 

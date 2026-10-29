@@ -1337,6 +1337,73 @@ async def get_sniper_stream(request: Request):
     )
 
 
+@app.get("/api/sniper/receipt/{alert_id}")
+def get_sniper_receipt(alert_id: str):
+    """
+    Public (no auth required) endpoint returning a self-contained,
+    cryptographically hash-verifiable Sniper Receipt (`SHA-256`) with
+    `claim = "No LLM in Decision Path — Verified SHA-256 Receipt"`,
+    original `source_hash`, `model_version`, entry vs. closing line/odds,
+    and CLV metrics.
+    """
+    engine = get_sniper_engine()
+    receipt = engine.arb_ledger.get_receipt(alert_id)
+    if not receipt:
+        raise HTTPException(404, f"Receipt '{alert_id}' not found in arb_history")
+    return receipt
+
+
+@app.get("/api/sniper/history")
+def get_sniper_history(
+    request: Request,
+    user_id: Optional[str] = Query(None, description="Optional user ID filter"),
+    market: Optional[str] = Query(None, description="Optional market/book filter"),
+    prop_type: Optional[str] = Query(None, description="Optional prop_type filter"),
+    status: Optional[str] = Query(None, description="Optional status filter (PENDING or GRADED)"),
+    clv_positive: bool = Query(False, description="Only return entries with CLV > 0"),
+    is_polymarket_arb: Optional[bool] = Query(None, description="Filter by Polymarket arb status"),
+    private_only: bool = Query(False, description="Require auth for private user ledger"),
+    limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+    x_propwire_api_key: Optional[str] = Header(None, alias="X-PropWire-API-Key"),
+    authorization: Optional[str] = Header(None, alias="Authorization"),
+):
+    """
+    Paginated, filterable Arb History & PnL endpoint.
+    Public summary/history is viewable without auth; private user-scoped history
+    (`private_only=True` or `user_id` specified) requires a valid API key or Bearer token.
+    """
+    if private_only or user_id:
+        expected_key = os.environ.get("PROPWIRE_API_KEY", "pw_quant_live_key")
+        bearer = (authorization or "").replace("Bearer ", "").strip()
+        provided = (x_propwire_api_key or bearer).strip()
+        if not provided or (os.environ.get("PROPWIRE_API_KEY") and provided != expected_key):
+            raise HTTPException(401, "Unauthorized: Private Arb History ledger requires authentication")
+
+    engine = get_sniper_engine()
+    return engine.arb_ledger.get_history(
+        user_id=user_id,
+        market=market,
+        prop_type=prop_type,
+        status=status,
+        clv_positive=clv_positive,
+        is_polymarket_arb=is_polymarket_arb,
+        limit=limit,
+        offset=offset,
+    )
+
+
+@app.get("/api/ledger")
+def get_public_arb_ledger(limit: int = Query(50, ge=1, le=200)):
+    """
+    Public Arb Engine Performance & Last 50 Graded Receipts endpoint for `/verify`.
+    Returns `total_graded_alerts`, `average_clv_beat_pct`, `win_rate_pct`,
+    `clv_beat_rate_pct`, `roi_pct`, and the last 50 verifiable SHA-256 receipts.
+    """
+    engine = get_sniper_engine()
+    return engine.arb_ledger.get_public_ledger(limit=limit)
+
+
 # ---------------------------------------------------------------------------
 # Serve static frontend web application directly from FastAPI on Railway
 # ---------------------------------------------------------------------------
