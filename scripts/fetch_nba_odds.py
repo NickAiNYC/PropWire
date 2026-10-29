@@ -155,9 +155,30 @@ def api_get(path, params, key):
 
 
 def write_json(name, payload):
-    with open(os.path.join(VIEWER_DIR, name), "w", encoding="utf-8") as fh:
+    target = os.path.join(VIEWER_DIR, name)
+    if name.startswith("nba_odds_"):
+        try:
+            from src.contracts.odds import LiveOddsFeed
+            from src.contracts.gate import validate_and_publish
+            ok, manifest = validate_and_publish(
+                schema_cls=LiveOddsFeed,
+                raw_data=payload,
+                target_path=target,
+                source_feed="the_odds_api_nba",
+            )
+            if not ok:
+                print(f"[fetch_nba_odds] FAIL-CLOSED: payload failed contract validation. Target {name} preserved.", file=sys.stderr)
+            return ok
+        except Exception as exc:
+            print(f"[fetch_nba_odds] Contract error: {exc}", file=sys.stderr)
+            return False
+
+    temp_path = target + ".tmp"
+    with open(temp_path, "w", encoding="utf-8") as fh:
         json.dump(payload, fh, indent=1, ensure_ascii=False)
         fh.write("\n")
+    os.replace(temp_path, target)
+    return True
 
 
 def run(dates, max_credits, key):

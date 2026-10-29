@@ -403,8 +403,22 @@ def freeze_slate(
     existing_ids = {s["snapshot_id"] for s in existing_viewer}
     combined_viewer = existing_viewer + [s for s in snapshots if s["snapshot_id"] not in existing_ids]
 
-    with open(viewer_json_path, "w", encoding="utf-8") as f:
-        json.dump(combined_viewer, f, indent=2)
+    try:
+        from src.contracts.slate import SlateRow
+        from src.contracts.gate import validate_and_publish
+        ok, manifest = validate_and_publish(
+            schema_cls=SlateRow,
+            raw_data=combined_viewer,
+            target_path=viewer_json_path,
+            source_feed=f"freeze_slate_{slate_tag}",
+        )
+        if not ok:
+            print(f"[freeze_slate] FAIL-CLOSED: Snapshot failed contract validation. Production file preserved.", file=sys.stderr)
+    except Exception as exc:
+        temp_path = viewer_json_path.with_suffix(".tmp")
+        with open(temp_path, "w", encoding="utf-8") as f:
+            json.dump(combined_viewer, f, indent=2)
+        os.replace(temp_path, viewer_json_path)
 
     return snapshots, jsonl_path, viewer_json_path
 
