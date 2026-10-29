@@ -6157,6 +6157,7 @@
           <span class="grid-col-lbl">BOOK</span>
           <span class="grid-col-val font-mono text-white dens-val-700">${sketchSideArrow(evaluation.side)} ${evaluation.line.toFixed(1)}</span>
           <span class="card-odds-pill ${juiceClass}">${juiceLabel}</span>
+          ${listedSideBoxes(quote)}
         </div>
         <div class="card-grid-col col-model">
           <span class="grid-col-lbl">MODEL</span>
@@ -6415,6 +6416,16 @@
   }
 
 
+  function listedSideBoxes(quote) {
+    if (!quote || !Number.isFinite(Number(quote.line)) ||
+        !Number.isFinite(Number(quote.over_odds)) || !Number.isFinite(Number(quote.under_odds))) return '';
+    const line = Number(quote.line).toFixed(1);
+    return `<div class="ou-mini-pair" aria-label="Listed Over and Under prices">
+      <span class="ou-mini-box ou-over"><span class="ou-mini-arrow" aria-hidden="true">↑</span><span>OVER ${line}</span><small>${oddsText(quote.over_odds)}</small></span>
+      <span class="ou-mini-box ou-under"><span class="ou-mini-arrow" aria-hidden="true">↓</span><span>UNDER ${line}</span><small>${oddsText(quote.under_odds)}</small></span>
+    </div>`;
+  }
+
   function bookCell(evaluation, injury, row = null) {
     if (SLATES[state.slateKey]?.historical && row) {
       const settled = evaluateSettledRow(row);
@@ -6478,6 +6489,7 @@
         <small class="odds-val fixed-odds">${oddsText(evaluation.odds)}</small>
         ${glyph}
       </span>
+      ${listedSideBoxes(quote)}
       ${implied > 0 ? `<span class="book-implied" title="Raw implied probability from listed ${esc(evaluation.side)} odds; includes bookmaker margin">Implied ${(implied * 100).toFixed(1)}%</span>` : ''}
       ${sparklineHtml}
       <div class="book-meta">

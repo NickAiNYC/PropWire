@@ -146,8 +146,8 @@
     const lean = projection > Number(quote.line) ? 'over' : projection < Number(quote.line) ? 'under' : '';
     const observed = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', hour: 'numeric', minute: '2-digit' }).format(new Date(quote.observed_at));
     return `<div class="today-line-boxes" aria-label="Last listed Over and Under prices">
-      <span class="today-line-box over${lean === 'over' ? ' model-lean' : ''}"><b>↑ OVER ${line}</b><small>${escapeHtml(odds(quote.over_odds))}</small></span>
-      <span class="today-line-box under${lean === 'under' ? ' model-lean' : ''}"><b>↓ UNDER ${line}</b><small>${escapeHtml(odds(quote.under_odds))}</small></span>
+      <span class="today-line-box over${lean === 'over' ? ' model-lean' : ''}"><b><span class="today-line-arrow" aria-hidden="true">↑</span> OVER ${line}</b><small>${escapeHtml(odds(quote.over_odds))}</small></span>
+      <span class="today-line-box under${lean === 'under' ? ' model-lean' : ''}"><b><span class="today-line-arrow" aria-hidden="true">↓</span> UNDER ${line}</b><small>${escapeHtml(odds(quote.under_odds))}</small></span>
     </div><p class="today-line-source">${escapeHtml(quote.book)} · last seen ${escapeHtml(observed)} ET · ${quote.verified === true ? 'receipt verified' : 'unverified line'}</p>`;
   }
 

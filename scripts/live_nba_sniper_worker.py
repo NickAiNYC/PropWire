@@ -230,12 +230,15 @@ class LiveNbaSniperWorker:
             raise PollHttpError(exc.code, str(exc.reason), retry_after=retry_val) from exc
 
     def _default_http_poster(self, endpoint_path: str, payload: dict[str, Any]) -> dict[str, Any]:
+        api_key = os.environ.get("PROPSTEIN_API_KEY") or os.environ.get("PROPWIRE_API_KEY")
+        if not api_key:
+            raise RuntimeError("Internal sniper API key is not configured")
         url = f"{self.internal_api_base}{endpoint_path}"
         data = json.dumps(payload, default=str).encode("utf-8")
         req = urllib.request.Request(
             url,
             data=data,
-            headers={"Content-Type": "application/json"},
+            headers={"Content-Type": "application/json", "X-PropStein-API-Key": api_key},
             method="POST",
         )
         with urllib.request.urlopen(req, timeout=4.0) as resp:

@@ -287,8 +287,8 @@ class BillingService:
           3. Stripe subscription check in `TruthStore` (`user_subscriptions`)
           4. Whop membership check (if bearer_token or Whop key is present)
         """
-        expected_key = os.environ.get("PROPSTEIN_API_KEY") or os.environ.get("PROPWIRE_API_KEY", "pw_quant_live_key")
-        if api_key and (api_key == expected_key or api_key == "pw_quant_live_key"):
+        expected_key = os.environ.get("PROPSTEIN_API_KEY") or os.environ.get("PROPWIRE_API_KEY")
+        if expected_key and api_key and hmac.compare_digest(api_key, expected_key):
             return {
                 "is_pro": True,
                 "tier": "pro",

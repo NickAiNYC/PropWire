@@ -341,5 +341,5 @@
     correlationKey: (row, market) => `${row.team}::${market}`
   };
 
-  (window.PropSteinSports || window.PropWireSports).register(NFL_ADAPTER);
+  window.PropWireSports.register(NFL_ADAPTER);
 })();

@@ -25,7 +25,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import AsyncGenerator, Optional
 
-from fastapi import FastAPI, Header, HTTPException, Query, Request
+from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
@@ -71,7 +71,7 @@ app.add_middleware(
     allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["GET", "POST", "OPTIONS"],
-    allow_headers=["Authorization", "Content-Type", "X-Admin-Key", "X-Admin-Token"],
+    allow_headers=["Authorization", "Content-Type", "X-Admin-Key", "X-Admin-Token", "X-PropStein-API-Key", "X-PropWire-API-Key"],
 )
 
 
@@ -1127,8 +1127,19 @@ def get_sniper_arb_board():
     }
 
 
+def require_internal_api_key(request: Request) -> None:
+    """Protect private ledger and state-changing sniper routes with a configured key."""
+    expected = os.environ.get("PROPSTEIN_API_KEY") or os.environ.get("PROPWIRE_API_KEY")
+    authorization = request.headers.get("Authorization", "")
+    bearer = authorization[7:].strip() if authorization.startswith("Bearer ") else ""
+    provided = (request.headers.get("X-PropStein-API-Key")
+                or request.headers.get("X-PropWire-API-Key") or bearer or "").strip()
+    if not expected or not provided or not secrets.compare_digest(provided, expected):
+        raise HTTPException(401, "Unauthorized: configured internal API key required")
+
+
 @app.post("/api/sniper/polymarket-ws-state")
-async def post_sniper_polymarket_ws_state(request: Request):
+async def post_sniper_polymarket_ws_state(request: Request, _: None = Depends(require_internal_api_key)):
     """
     Toggles or sets the Polymarket CLOB WebSocket connection state for testing
     the Stale Orderbook Guard (greying out prices and suppressing alerts).
@@ -1151,7 +1162,7 @@ async def post_sniper_polymarket_ws_state(request: Request):
 
 
 @app.get("/api/sniper/webhooks")
-def get_sniper_webhooks(user_id: str = Query("default_user")):
+def get_sniper_webhooks(user_id: str = Query("default_user"), _: None = Depends(require_internal_api_key)):
     """
     Returns configured Discord and Telegram webhook subscriptions for Alert Routing.
     """
@@ -1165,7 +1176,7 @@ def get_sniper_webhooks(user_id: str = Query("default_user")):
 
 
 @app.post("/api/sniper/webhooks")
-async def post_sniper_webhooks(request: Request):
+async def post_sniper_webhooks(request: Request, _: None = Depends(require_internal_api_key)):
     """
     Registers or updates Discord and/or Telegram webhook routing subscriptions
     with strict SSRF protection (`discord.com/api/webhooks/...` or Telegram `chat_id`).
@@ -1199,7 +1210,7 @@ async def post_sniper_webhooks(request: Request):
 
 
 @app.post("/api/sniper/webhooks/test")
-async def post_sniper_webhooks_test(request: Request):
+async def post_sniper_webhooks_test(request: Request, _: None = Depends(require_internal_api_key)):
     """
     Dispatches a formatted dummy Cross-Venue Polymarket Arbitrage alert to verify
     Discord/Telegram connection and returns the formatted payloads.
@@ -1265,7 +1276,7 @@ async def post_sniper_webhooks_test(request: Request):
 
 
 @app.post("/api/sniper/simulate-substitution")
-async def post_sniper_simulate_substitution(request: Request):
+async def post_sniper_simulate_substitution(request: Request, _: None = Depends(require_internal_api_key)):
     """
     Executes a 5-second `nba_api` Live PlayByPlay substitution (`PLAYER1_ID -> PLAYER2_ID`),
     swaps the active player on the tactical court diagram, and immediately triggers
@@ -1288,7 +1299,7 @@ async def post_sniper_simulate_substitution(request: Request):
 
 
 @app.post("/api/sniper/feed-stale")
-async def post_sniper_feed_stale(request: Request):
+async def post_sniper_feed_stale(request: Request, _: None = Depends(require_internal_api_key)):
     """
     Endpoint called by `scripts/live_nba_sniper_worker.py` when the live PBP
     feed fails for >= 3 consecutive polls, tripping the Stale Kill Switch and
@@ -1309,7 +1320,7 @@ async def post_sniper_feed_stale(request: Request):
 
 
 @app.post("/api/sniper/simulate-scratch")
-async def post_sniper_simulate_scratch(request: Request):
+async def post_sniper_simulate_scratch(request: Request, _: None = Depends(require_internal_api_key)):
     """
     Triggers an end-to-end simulated late injury scratch through
     InjuryEventAgent -> Redis Stream -> LangGraph StateGraph ->
@@ -1333,7 +1344,7 @@ async def post_sniper_simulate_scratch(request: Request):
 
 
 @app.post("/api/sniper/explain")
-async def post_sniper_explain(request: Request):
+async def post_sniper_explain(request: Request, _: None = Depends(require_internal_api_key)):
     """
     Read-only post-decision narrator endpoint.
     Returns the locked `reasoning_chain` for an alert or prop without ever
@@ -1431,11 +1442,7 @@ def get_sniper_history(
     (`private_only=True` or `user_id` specified) requires a valid API key or Bearer token.
     """
     if private_only or user_id:
-        expected_key = os.environ.get("PROPSTEIN_API_KEY") or os.environ.get("PROPWIRE_API_KEY", "pw_quant_live_key")
-        bearer = (authorization or "").replace("Bearer ", "").strip()
-        provided = (x_propstein_api_key or x_propwire_api_key or bearer).strip()
-        if not provided or (os.environ.get("PROPWIRE_API_KEY") and provided != expected_key):
-            raise HTTPException(401, "Unauthorized: Private Arb History ledger requires authentication")
+        require_internal_api_key(request)
 
     engine = get_sniper_engine()
     return engine.arb_ledger.get_history(

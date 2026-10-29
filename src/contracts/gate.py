@@ -85,11 +85,11 @@ def validate_and_publish(
         if isinstance(raw_data, list) and not issubclass(schema_cls, list):
             # If schema expects a container or we're validating list of items
             validated_obj = [schema_cls.model_validate(item) for item in raw_data]
-            serialized_json = json.dumps([item.model_dump() for item in validated_obj], indent=2, ensure_ascii=False)
+            serialized_json = json.dumps([item.model_dump(mode="json", by_alias=True) for item in validated_obj], indent=2, ensure_ascii=False)
             rows_valid = len(validated_obj)
         else:
             validated_obj = schema_cls.model_validate(raw_data)
-            serialized_json = validated_obj.model_dump_json(indent=2)
+            serialized_json = validated_obj.model_dump_json(indent=2, by_alias=True)
             rows_valid = rows_seen
 
         rows_rejected = 0

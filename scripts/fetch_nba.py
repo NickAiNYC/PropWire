@@ -182,8 +182,8 @@ def fetch_day(date_str, api_key, sleep_between=REQUEST_SPACING_SECONDS):
                 tier_block = {
                     "exit": 3,
                     "message": "Box scores (/v1/stats) need a paid balldontlie tier "
-                               "(ALL-STAR $9.99/mo or higher per the Phase 0.5 gate). Games feed "
-                               "was still written with _fixture:false provenance.",
+                               "(ALL-STAR tier or higher per the Phase 0.5 gate). "
+                               "No live feed was published.",
                 }
                 break
             return None, {"exit": 5, "message": f"network error fetching stats for {bdl_id}: {err}"}
@@ -211,17 +211,33 @@ def fetch_day(date_str, api_key, sleep_between=REQUEST_SPACING_SECONDS):
 
 
 def write_feeds(feeds):
-    os.makedirs(VIEWER_DIR, exist_ok=True)
+    # Import only at publish time; --selftest and the no-key gate stay stdlib-only.
+    from pathlib import Path
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+    from src.contracts.gate import validate_and_publish
+    from src.contracts.nba import NbaBoxscoreFeed, NbaGame
+
+    # Validate the entire pair before either target is replaced.
+    game_rows = feeds["games"]["games"]
+    box_feed = feeds["boxscore"]
+    for row in game_rows:
+        NbaGame.model_validate(row)
+    NbaBoxscoreFeed.model_validate(box_feed)
+    game_ids = {row["game_id"] for row in game_rows}
+    if any(row["game_id"] not in game_ids for row in box_feed["rows"]):
+        raise ValueError("boxscore references a game outside the published slate")
+
     slate_key = feeds["games"]["slate_key"]
     games_path = os.path.join(VIEWER_DIR, f"nba_games_{slate_key}.json")
     box_path = os.path.join(VIEWER_DIR, f"nba_boxscore_{slate_key}.json")
-    # Viewer schema: games stays a BARE array (parity guard).
-    with open(games_path, "w", encoding="utf-8") as handle:
-        json.dump(feeds["games"]["games"], handle, indent=1, ensure_ascii=False)
-        handle.write("\n")
-    with open(box_path, "w", encoding="utf-8") as handle:
-        json.dump(feeds["boxscore"], handle, indent=1, ensure_ascii=False)
-        handle.write("\n")
+    ok_games, _ = validate_and_publish(NbaGame, game_rows, games_path,
+                                       source_feed="balldontlie_games", min_rows=0)
+    if not ok_games:
+        raise ValueError("NBA games contract rejected payload")
+    ok_box, _ = validate_and_publish(NbaBoxscoreFeed, box_feed, box_path,
+                                     source_feed="balldontlie_stats", min_rows=0)
+    if not ok_box:
+        raise ValueError("NBA boxscore contract rejected payload")
     return games_path, box_path
 
 
@@ -300,12 +316,16 @@ def main():
         return error["exit"]
 
     feeds, tier_block = result
-    games_path, box_path = write_feeds(feeds)
-    print(f"wrote {games_path} ({len(feeds['games']['games'])} games, _fixture:false, source:balldontlie)")
-    print(f"wrote {box_path} ({len(feeds['boxscore']['rows'])} box-score rows, _fixture:false, source:balldontlie)")
     if tier_block is not None:
         print(tier_block["message"])
         return tier_block["exit"]
+    try:
+        games_path, box_path = write_feeds(feeds)
+    except Exception as exc:
+        print(f"NBA contract/publish failure: {exc}")
+        return 5
+    print(f"wrote {games_path} ({len(feeds['games']['games'])} games, _fixture:false, source:balldontlie)")
+    print(f"wrote {box_path} ({len(feeds['boxscore']['rows'])} box-score rows, _fixture:false, source:balldontlie)")
     print("NEXT: box scores are raw evidence — a modeling pass must produce projections and "
           f"retire the committed fixture slate ({FIXTURE_DATE}) before the viewer renders this date as live.")
     return 0
