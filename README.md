@@ -1,5 +1,3 @@
-# PropStein
-
 <img src="viewer/propstein-logo.svg" alt="PropStein logo" width="420" />
 
 PropStein is a distributional prop model and operational terminal for NFL receiving markets. It prices outcomes with a compound negative-binomial / gamma framework, runs weekly slate logic, and logs closing-line value with a disciplined risk gate.
