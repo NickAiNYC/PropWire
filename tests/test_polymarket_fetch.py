@@ -142,17 +142,13 @@ def test_selftest_entrypoint_passes():
 def test_network_failure_leaves_feed_untouched(tmp_path, monkeypatch):
     feed_path = tmp_path / "live_odds_feed.json"
     feed_path.write_text('{"quotes": []}')
+    monkeypatch.setattr(pm, "FEED_PATH", feed_path)
 
     def boom(**kwargs):
         raise OSError("network down")
 
     monkeypatch.setattr(pm, "fetch_events", boom)
-    # main() catches transport errors and exits 0 without writing.
-    import subprocess
-    out = subprocess.run(
-        [sys.executable, str(ROOT / "scripts" / "fetch_polymarket_props.py")],
-        capture_output=True, text=True, timeout=60, cwd=str(ROOT),
-        env={**__import__("os").environ, "PW_TEST_NET": "1"})
-    assert out.returncode == 0
-    # (The live-path network test is intentionally not simulated here; the
-    # selftest + merge tests cover the deterministic contract.)
+    monkeypatch.setattr(sys, "argv", ["fetch_polymarket_props.py"])
+    before = feed_path.read_bytes()
+    assert pm.main() == 0
+    assert feed_path.read_bytes() == before
