@@ -31,7 +31,10 @@ import pandas as pd
 import statsmodels.api as sm
 from scipy import stats
 
-from features import FEATURES
+try:
+    from src.features import FEATURES
+except ImportError:
+    from features import FEATURES
 
 
 # ----------------------------------------------------------------------------

@@ -16,4 +16,7 @@ dist/
 node_modules/
 /*.png
 data/sniper_cooldowns.json
+data/*.db
+data/*.db-*
+.pytest_cache/
 artifacts/

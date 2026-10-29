@@ -11186,4 +11186,511 @@ dialog.detail-dialog .dialog-sheet-handle {
   to { transform: translateX(0); }
 }
 
+/* ============================================================================
+   9. LIVE AGENTIC SNIPER TERMINAL (NFL + NBA + POLYMARKET CLOB)
+   ============================================================================ */
+@media (min-width: 1024px) {
+  dialog.sniper-dialog {
+    align-items: stretch !important;
+    justify-content: flex-end !important;
+  }
+  dialog.sniper-dialog .dialog-shell {
+    width: 720px !important;
+    max-width: 720px !important;
+    max-height: 100vh !important;
+    height: 100vh !important;
+    border-radius: 0 !important;
+    border-left: 1px solid var(--pw-border-subtle) !important;
+    border-top: none !important;
+    animation: pwDrawerSlideLeft 0.24s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+  }
+}
+
+.sniper-terminal-tabs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 10px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid var(--pw-border-hairline);
+}
+
+.sniper-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  min-height: 36px;
+  background: var(--pw-bg-surface);
+  border: 1px solid var(--pw-border-hairline);
+  border-radius: 6px;
+  color: var(--pw-text-secondary);
+  font-family: var(--pw-font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.14s ease;
+}
+
+.sniper-tab-btn:hover {
+  color: var(--pw-text-primary);
+  border-color: var(--pw-border-subtle);
+}
+
+.sniper-tab-btn.is-active {
+  background: rgba(125, 211, 252, 0.12);
+  border-color: var(--pw-accent-blue);
+  color: var(--pw-accent-blue);
+}
+
+.sniper-tab-count {
+  font-family: var(--pw-font-mono);
+  font-size: 10px;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--pw-text-secondary);
+}
+
+.sniper-spine-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  margin-bottom: 10px;
+  background: rgba(15, 20, 28, 0.85);
+  border: 1px solid var(--pw-border-hairline);
+  border-radius: 6px;
+  font-family: var(--pw-font-mono);
+  font-size: 10px;
+  color: var(--pw-text-muted);
+}
+
+.sniper-spine-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--pw-accent-lime);
+  box-shadow: 0 0 6px rgba(163, 230, 53, 0.55);
+}
+
+.sniper-sim-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  background: var(--pw-bg-elevated);
+  border: 1px solid var(--pw-border-subtle);
+  border-radius: 6px;
+}
+
+.sniper-sim-btn {
+  padding: 7px 12px;
+  min-height: 34px;
+  background: rgba(125, 211, 252, 0.14);
+  border: 1px solid var(--pw-accent-blue);
+  border-radius: 5px;
+  color: var(--pw-accent-blue);
+  font-family: var(--pw-font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.sniper-sim-btn:hover {
+  background: rgba(125, 211, 252, 0.22);
+}
+
+.sniper-sim-meta {
+  font-family: var(--pw-font-mono);
+  font-size: 11px;
+  color: var(--pw-text-secondary);
+}
+
+.sniper-alert-list,
+.sniper-live-board {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sniper-alert-card {
+  background: var(--pw-bg-surface);
+  border: 1px solid var(--pw-border-hairline);
+  border-radius: 8px;
+  padding: 12px 14px;
+  transition: border-color 0.14s ease;
+}
+
+.sniper-alert-card.is-selected {
+  border-color: var(--pw-accent-blue);
+  background: rgba(17, 23, 34, 0.96);
+}
+
+.sniper-alert-card.is-stale-alert {
+  border-color: rgba(245, 158, 11, 0.45);
+}
+
+.sniper-alert-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.sniper-alert-ident {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.sniper-sport-tag {
+  font-family: var(--pw-font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(125, 211, 252, 0.12);
+  color: var(--pw-accent-blue);
+}
+
+.sniper-player-name {
+  font-family: var(--pw-font-sans);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--pw-text-primary);
+}
+
+.sniper-team-tag {
+  font-family: var(--pw-font-mono);
+  font-size: 11px;
+  color: var(--pw-text-muted);
+}
+
+.sniper-book-pill {
+  font-family: var(--pw-font-mono);
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--pw-text-secondary);
+}
+
+.sniper-alert-badges {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sniper-edge-pill {
+  font-family: var(--pw-font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+
+.sniper-edge-pill.edge-high {
+  background: rgba(163, 230, 53, 0.14);
+  border: 1px solid rgba(163, 230, 53, 0.45);
+  color: var(--pw-accent-lime);
+}
+
+.sniper-edge-pill.edge-mid {
+  background: rgba(125, 211, 252, 0.14);
+  border: 1px solid rgba(125, 211, 252, 0.4);
+  color: var(--pw-accent-blue);
+}
+
+.sniper-stale-pill {
+  font-family: var(--pw-font-mono);
+  font-size: 10px;
+  padding: 3px 6px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--pw-text-secondary);
+}
+
+.sniper-stale-pill.stale-warn {
+  background: rgba(245, 158, 11, 0.16);
+  border: 1px solid rgba(245, 158, 11, 0.45);
+  color: var(--pw-state-verify);
+}
+
+.sniper-metrics-strip {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+  padding: 8px 10px;
+  background: var(--pw-bg-canvas);
+  border: 1px solid var(--pw-border-hairline);
+  border-radius: 6px;
+  margin-bottom: 8px;
+}
+
+@media (max-width: 600px) {
+  .sniper-metrics-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.sniper-metric-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sniper-metric-lbl {
+  font-family: var(--pw-font-sans);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--pw-text-muted);
+}
+
+.sniper-metric-val {
+  font-family: var(--pw-font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--pw-text-primary);
+}
+
+.sniper-poly-Arb-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  margin-bottom: 8px;
+  background: rgba(125, 211, 252, 0.07);
+  border: 1px solid rgba(125, 211, 252, 0.25);
+  border-radius: 5px;
+  font-family: var(--pw-font-mono);
+  font-size: 11px;
+  color: var(--pw-text-secondary);
+}
+
+.sniper-poly-tag {
+  font-weight: 700;
+  color: var(--pw-accent-blue);
+}
+
+.sniper-alert-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-family: var(--pw-font-mono);
+  font-size: 10px;
+  color: var(--pw-text-muted);
+}
+
+.sniper-explain-btn {
+  padding: 4px 10px;
+  min-height: 28px;
+  background: var(--pw-bg-elevated);
+  border: 1px solid var(--pw-border-subtle);
+  border-radius: 4px;
+  color: var(--pw-text-primary);
+  font-family: var(--pw-font-mono);
+  font-size: 10px;
+  cursor: pointer;
+}
+
+.sniper-reasoning-drawer {
+  margin-top: 8px;
+  padding: 10px 12px;
+  background: rgba(9, 13, 20, 0.92);
+  border-left: 2px solid var(--pw-accent-blue);
+  border-radius: 4px;
+  font-family: var(--pw-font-sans);
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--pw-text-secondary);
+}
+
+.sniper-reasoning-hdr {
+  font-family: var(--pw-font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--pw-accent-blue);
+  margin-bottom: 4px;
+}
+
+.sniper-live-hdr,
+.sniper-poly-hdr {
+  font-family: var(--pw-font-mono);
+  font-size: 11px;
+  color: var(--pw-text-secondary);
+  margin-bottom: 10px;
+}
+
+.sniper-live-row {
+  background: var(--pw-bg-surface);
+  border: 1px solid var(--pw-border-hairline);
+  border-radius: 8px;
+  padding: 12px 14px;
+}
+
+.sniper-live-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.sniper-live-sub {
+  font-family: var(--pw-font-mono);
+  font-size: 11px;
+  color: var(--pw-text-muted);
+}
+
+.sniper-live-clock {
+  font-family: var(--pw-font-mono);
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: rgba(125, 211, 252, 0.12);
+  color: var(--pw-accent-blue);
+}
+
+.sniper-live-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+  padding: 8px 10px;
+  background: var(--pw-bg-canvas);
+  border-radius: 6px;
+  font-family: var(--pw-font-mono);
+  font-size: 11px;
+  color: var(--pw-text-secondary);
+}
+
+@media (max-width: 600px) {
+  .sniper-live-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.sniper-foul-flag {
+  margin-top: 8px;
+  padding: 4px 8px;
+  background: rgba(245, 158, 11, 0.14);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  border-radius: 4px;
+  font-family: var(--pw-font-mono);
+  font-size: 10px;
+  color: var(--pw-state-verify);
+}
+
+.sniper-poly-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--pw-font-mono);
+  font-size: 11px;
+}
+
+.sniper-poly-table th {
+  text-align: left;
+  padding: 8px 6px;
+  border-bottom: 1px solid var(--pw-border-subtle);
+  color: var(--pw-text-muted);
+  font-size: 10px;
+  text-transform: uppercase;
+}
+
+.sniper-poly-table td {
+  padding: 9px 6px;
+  border-bottom: 1px solid var(--pw-border-hairline);
+  color: var(--pw-text-primary);
+}
+
+.sniper-token-cell {
+  color: var(--pw-accent-blue) !important;
+  font-size: 10px;
+}
+
+.sniper-clv-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sniper-clv-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+@media (max-width: 600px) {
+  .sniper-clv-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.sniper-kpi-box {
+  padding: 10px 12px;
+  background: var(--pw-bg-surface);
+  border: 1px solid var(--pw-border-hairline);
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sniper-kpi-lbl {
+  font-family: var(--pw-font-sans);
+  font-size: 10px;
+  text-transform: uppercase;
+  color: var(--pw-text-muted);
+}
+
+.sniper-kpi-val {
+  font-family: var(--pw-font-mono);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--pw-text-primary);
+}
+
+.sniper-suppression-hdr {
+  font-family: var(--pw-font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--pw-state-verify);
+  margin-top: 6px;
+}
+
+.sniper-suppression-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  border-radius: 6px;
+  font-family: var(--pw-font-mono);
+  font-size: 11px;
+  color: var(--pw-text-secondary);
+}
+
+.sniper-halt-tag {
+  font-weight: 700;
+  color: var(--pw-state-verify);
+}
+
+
 

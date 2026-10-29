@@ -31,6 +31,7 @@ BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 SRC_DIR = os.path.join(BASE_DIR, "src")
 VIEWER_DIR = os.path.join(BASE_DIR, "viewer")
 
+sys.path.insert(0, BASE_DIR)
 sys.path.insert(0, SRC_DIR)
 
 from agent import clv_report, record_closing  # noqa: E402
@@ -964,6 +965,164 @@ async def post_settle_slate(
         }
     except Exception as e:
         raise HTTPException(500, f"Settlement engine error: {str(e)}")
+
+
+# ---------------------------------------------------------------------------
+# Live Agentic Sniper Terminal (LangGraph + Redis Streams + Postgres Truth)
+# ---------------------------------------------------------------------------
+
+_SNIPER_ENGINE = None
+
+
+def get_sniper_engine():
+    global _SNIPER_ENGINE
+    if _SNIPER_ENGINE is None:
+        from src.agents.graph import SniperTerminalEngine
+        _SNIPER_ENGINE = SniperTerminalEngine()
+        _SNIPER_ENGINE.seed_terminal_state()
+    return _SNIPER_ENGINE
+
+
+@app.get("/api/sniper/feed")
+def get_sniper_feed(
+    sport: str | None = Query(None, description="Optional sport filter: nfl or nba"),
+):
+    """
+    Returns live SniperAlerts, Polymarket CLOB opportunities, Live Board
+    remaining-game projections, suppression logs, and CLV ledger summary.
+    """
+    engine = get_sniper_engine()
+    snapshot = engine.get_terminal_snapshot()
+    if sport in ("nfl", "nba"):
+        snapshot["sniper_alerts"] = [a for a in snapshot["sniper_alerts"] if a.get("sport") == sport]
+        snapshot["polymarket_board"] = [p for p in snapshot["polymarket_board"] if p.get("sport") == sport]
+        snapshot["live_board"] = [l for l in snapshot["live_board"] if l.get("sport") == sport]
+    return snapshot
+
+
+@app.get("/api/sniper/polymarket")
+def get_sniper_polymarket(
+    sport: str | None = Query(None, description="Optional sport filter: nfl or nba"),
+    top_n: int = Query(5, ge=1, le=20),
+):
+    """
+    Returns top Polymarket CLOB player-prop mispricings ranked by
+    `mispricing_bps * liquidity_score`.
+    """
+    engine = get_sniper_engine()
+    items = [opp.model_dump(mode="json") for opp in engine.polymarket_opportunities]
+    if sport in ("nfl", "nba"):
+        items = [i for i in items if i.get("sport") == sport]
+    return {
+        "status": "ok",
+        "count": len(items[:top_n]),
+        "ranking_formula": "mispricing_bps * liquidity_score",
+        "opportunities": items[:top_n],
+    }
+
+
+@app.get("/api/sniper/live-board")
+def get_sniper_live_board(
+    sport: str | None = Query(None, description="Optional sport filter: nfl or nba"),
+):
+    """
+    Returns remaining-game live projections with `minutes_remaining`,
+    `usage_surge` badge, and `injury_vacancy` badge.
+    """
+    engine = get_sniper_engine()
+    items = list(engine.live_board_items)
+    if sport in ("nfl", "nba"):
+        items = [i for i in items if i.get("sport") == sport]
+    return {
+        "status": "ok",
+        "count": len(items),
+        "live_board": items,
+    }
+
+
+@app.post("/api/sniper/simulate-scratch")
+async def post_sniper_simulate_scratch(request: Request):
+    """
+    Triggers an end-to-end simulated late injury scratch through
+    InjuryEventAgent -> Redis Stream -> LangGraph StateGraph ->
+    ProjectionRecalcAgent -> SniperAgent.
+    """
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    engine = get_sniper_engine()
+    result = engine.simulate_late_scratch(
+        scratched_player_name=body.get("scratched_player_name", "Joel Embiid"),
+        scratched_player_id=body.get("scratched_player_id", "nba_joel_embiid"),
+        team=body.get("team", "PHI"),
+        opponent=body.get("opponent", "DET"),
+        beneficiary_player_id=body.get("beneficiary_player_id", "nba_tyrese_maxey"),
+        beneficiary_player_name=body.get("beneficiary_player_name", "Tyrese Maxey"),
+    )
+    engine.export_static_snapshot()
+    return result
+
+
+@app.post("/api/sniper/explain")
+async def post_sniper_explain(request: Request):
+    """
+    Read-only post-decision narrator endpoint.
+    Returns the locked `reasoning_chain` for an alert or prop without ever
+    modifying `fair_prob` or `edge_pct`.
+    """
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    alert_id = body.get("alert_id")
+    prop_id = body.get("prop_id")
+    engine = get_sniper_engine()
+    alerts = engine.truth.get_recent_alerts(limit=50)
+    for al in alerts:
+        if (alert_id and al.get("alert_id") == alert_id) or (prop_id and al.get("prop_id") == prop_id):
+            return {
+                "status": "ok",
+                "alert_id": al["alert_id"],
+                "prop_id": al["prop_id"],
+                "fair_prob_locked": al["fair_prob"],
+                "edge_pct_locked": al["edge_pct"],
+                "reasoning_chain": al["reasoning_chain"],
+                "source_hash": al["source_hash"],
+                "model_version": al["model_version"],
+            }
+    raise HTTPException(404, "Alert not found in truth store")
+
+
+@app.get("/api/sniper/stream")
+async def get_sniper_stream(request: Request):
+    """
+    Server-Sent Events (SSE) stream pushing real-time SniperAlert events,
+    live projection updates, and Stale Kill Switch status to the frontend terminal.
+    """
+    import asyncio
+
+    engine = get_sniper_engine()
+
+    async def sse_generator() -> AsyncGenerator[str, None]:
+        snapshot = engine.get_terminal_snapshot()
+        yield f"event: snapshot\ndata: {json.dumps(snapshot, default=str)}\n\n"
+        for alert in snapshot.get("sniper_alerts", [])[:5]:
+            if await request.is_disconnected():
+                break
+            yield f"event: sniper_alert\ndata: {json.dumps(alert, default=str)}\n\n"
+            await asyncio.sleep(0.15)
+        yield f"event: heartbeat\ndata: {json.dumps({'status': 'LIVE_SPINE_HEALTHY', 'ts': datetime.now(timezone.utc).isoformat()})}\n\n"
+
+    return StreamingResponse(
+        sse_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
+    )
 
 
 # ---------------------------------------------------------------------------
