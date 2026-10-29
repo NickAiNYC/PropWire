@@ -1540,7 +1540,6 @@ async def stripe_webhook(request: Request):
     webhook_secret = os.environ.get("STRIPE_WEBHOOK_SECRET")
 
     if not webhook_secret:
-    if not webhook_secret:
         # Fail-closed (Trust Engine invariant): without the configured secret we
         # cannot authenticate the caller. Silently processing unsigned events
         # would let anyone forge checkout.session.completed and unlock PRO.
