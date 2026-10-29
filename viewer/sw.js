@@ -1,11 +1,16 @@
 // PropStein Service Worker (offline shell only; market data always fails closed)
-const CACHE_NAME = 'propstein-v176-prod';
+const CACHE_NAME = 'propstein-v177-prod';
 const STATIC_ASSETS = [
   '/index.html',
   '/style.css',
   '/app.js',
-  '/style.css?v=2026_v176',
-  '/app.js?v=2026_v176',
+  '/style.css?v=2026_v177',
+  '/app.js?v=2026_v177',
+  '/js/today-schedule.js?v=2026_v177',
+  '/league-logos/nba.png',
+  '/league-logos/nfl.png',
+  '/league-logos/ufc.svg',
+  '/league-logos/nhl.png',
   // v171: public verify landing assets (externalized from a336e2f inline blocks)
   '/verify-landing.css',
   '/verify-landing.js',
@@ -13,7 +18,7 @@ const STATIC_ASSETS = [
   '/verify-landing.js?v=2026_v176',
   '/js/sports/registry.js?v=2026_v176',
   '/js/sports/nfl.js?v=2026_v176',
-  '/js/sports/nba.js?v=2026_v176',
+  '/js/sports/nba.js?v=2026_v177',
   // brand marks: PropStein lighter ice-blue logo suite
   '/propstein-logo.png',
   '/propstein-logo.png?v=2026_v176',

@@ -14975,3 +14975,62 @@ dialog.detail-dialog .dialog-sheet-handle {
   .csim-close { width: 44px; height: 44px; }
   .csim-odds-chip { min-height: 36px; }
 }
+
+/* v177: league schedule within the existing PropStein chrome. */
+#sportSwitcher .sport-switch-btn { padding: 4px 8px !important; }
+#sportSwitcher .league-badge { width: 17px; height: 20px; object-fit: contain; }
+#sportSwitcher .league-badge-ufc { width: 25px; }
+.desktop-league-nav { padding: 5px 16px; border-bottom: 1px solid rgba(255,255,255,.06); background: rgba(10,13,19,.95); }
+.desktop-league-nav .sport-switcher-bar { position: static; width: fit-content; padding: 0; border: 0; background: transparent !important; box-shadow: none; }
+.desktop-league-nav .sport-switcher { width: fit-content; }
+.mobile-league-nav { display: none; }
+.today-schedule { margin: 16px 0 22px; }
+.today-schedule-heading { display: flex; align-items: end; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.today-schedule-eyebrow { margin: 0 0 5px; color: var(--pw-accent-blue); font: 700 10px/1.2 var(--pw-font-mono, monospace); letter-spacing: .14em; }
+.today-schedule-heading h2 { margin: 0; color: #f8fafc; font: 700 clamp(19px, 2.4vw, 24px)/1.2 var(--pw-font-sans, sans-serif); }
+.today-schedule-heading p:last-child { margin: 5px 0 0; color: #8e9aab; font: 500 11px/1.3 var(--pw-font-sans, sans-serif); }
+.today-schedule-refresh, .coming-soon-page button { min-height: 32px; padding: 6px 12px; border: 1px solid rgba(56,189,248,.28); border-radius: 8px; background: var(--pw-bg-card); color: #a7dfff; font: 600 11px/1 var(--pw-font-sans, sans-serif); cursor: pointer; }
+.today-schedule-refresh:hover, .coming-soon-page button:hover { border-color: var(--pw-accent-blue); color: #fff; }
+.today-schedule-games { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 290px), 1fr)); gap: 10px; }
+.today-game-card { min-height: 132px; padding: 12px 14px; border: 1px solid var(--pw-border-subtle, rgba(255,255,255,.08)); border-radius: 12px; background: radial-gradient(ellipse at 50% 125%, rgba(56,189,248,.11), transparent 68%), var(--pw-bg-card); }
+.today-game-top { display: flex; justify-content: space-between; gap: 8px; color: #cbd5e1; font: 600 11px/1.3 var(--pw-font-sans, sans-serif); }
+.today-game-status { color: #8c9bad; text-align: right; }
+.today-game-status.is-live { color: var(--pw-accent-blue); }
+.today-game-matchup { display: grid; grid-template-columns: minmax(0,1fr) auto minmax(0,1fr); align-items: center; gap: 8px; margin-top: 18px; }
+.today-team { display: flex; flex-direction: column; align-items: center; gap: 5px; min-width: 0; text-align: center; }
+.today-team strong { max-width: 100%; overflow: hidden; color: #f1f5f9; font: 650 12px/1.2 var(--pw-font-sans, sans-serif); text-overflow: ellipsis; white-space: nowrap; }
+.today-team-logo { display: grid; place-items: center; width: 42px; height: 42px; border: 1px solid rgba(148,163,184,.2); border-radius: 50%; background: #1b2430; color: #a7dfff; font: 700 12px/1 var(--pw-font-mono, monospace); }
+.today-team-logo img { width: 34px; height: 34px; object-fit: contain; }
+.today-game-center { min-width: 55px; color: #a8bdcf; text-align: center; }
+.today-versus { font: 700 13px/1 var(--pw-font-mono, monospace); }
+.today-score { color: #f8fafc; font: 700 18px/1 var(--pw-font-mono, monospace); white-space: nowrap; }
+.today-score span { color: var(--pw-accent-blue); }
+.today-schedule-message { grid-column: 1/-1; margin: 0; padding: 20px; border: 1px solid rgba(255,255,255,.08); border-radius: 10px; background: var(--pw-bg-card); color: #a8b6c8; font: 500 12px/1.5 var(--pw-font-sans, sans-serif); }
+.today-schedule-source { margin: 8px 2px 0; color: #748395; font: 500 10px/1.3 var(--pw-font-sans, sans-serif); }
+
+body.coming-soon-active #slateBoard > :not(#comingSoonPage), body.coming-soon-active .pw-filterbar > :not(.pw-command-row):not(.mobile-league-nav) { display: none !important; }
+body.coming-soon-active .pw-command-row .pw-search-wrap { display: none !important; }
+.coming-soon-page[hidden] { display: none !important; }
+.coming-soon-page { display: flex; flex-direction: column; align-items: center; max-width: 520px; min-height: 330px; margin: 38px auto; padding: 35px 24px; border: 1px solid rgba(56,189,248,.18); border-radius: 14px; background: var(--pw-bg-card); text-align: center; }
+.coming-soon-logo { width: 72px; height: 72px; margin: 0 0 18px; object-fit: contain; }
+.coming-soon-logo[src$="ufc.svg"] { width: 100px; }
+.coming-soon-page h1 { margin: 2px 0 8px; color: #f8fafc; font: 700 clamp(24px,4vw,32px)/1.2 var(--pw-font-sans, sans-serif); }
+.coming-soon-page > p:not(.today-schedule-eyebrow) { max-width: 350px; color: #94a3b8; font: 500 13px/1.5 var(--pw-font-sans, sans-serif); }
+.coming-soon-page button { margin-top: 10px; }
+
+@media (max-width: 768px) {
+  .desktop-league-nav { display: none !important; }
+  .pw-filterbar { height: auto !important; min-height: 0 !important; overflow: visible !important; }
+  .mobile-league-nav { display: block !important; width: 100%; padding: 4px 6px 8px; overflow-x: auto; scrollbar-width: none; }
+  .mobile-league-nav::-webkit-scrollbar { display: none; }
+  .mobile-league-list { display: flex; justify-content: space-around; gap: 8px; min-width: 290px; }
+  .mobile-league-list .sport-switch-btn, .mobile-league-list .sport-switch-btn.active { display: flex !important; flex-direction: column; align-items: center; gap: 4px !important; min-width: 58px; min-height: 68px; padding: 0 !important; border: 0 !important; background: transparent !important; box-shadow: none !important; color: #94a3b8 !important; font: 700 10px/1.2 var(--pw-font-sans, sans-serif) !important; }
+  .mobile-league-list .sport-switch-btn::before { display: none !important; }
+  .mobile-league-list .sport-switch-btn.active { color: #d8efff !important; }
+  .mobile-league-list .league-badge { width: 43px; height: 43px; padding: 9px; border: 1px solid rgba(148,163,184,.18); border-radius: 50%; background: #161d29; object-fit: contain; }
+  .mobile-league-list .league-badge-ufc { padding: 12px 5px; }
+  .mobile-league-list .sport-switch-btn.active .league-badge { border-color: rgba(56,189,248,.8); box-shadow: 0 0 0 2px rgba(56,189,248,.13); }
+  .today-schedule { margin: 10px 0 18px; }
+  .today-schedule-games { grid-template-columns: 1fr; }
+  .coming-soon-page { margin-top: 10px; }
+}

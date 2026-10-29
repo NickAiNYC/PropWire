@@ -2082,16 +2082,20 @@
   }
 
   function renderSportChrome() {
-    const switcher = elById('sportSwitcher');
-    if (switcher) {
-      switcher.innerHTML = sportSwitcherItems().map((item) => `
+    const switchers = [elById('sportSwitcher'), elById('mobileSportSwitcher')].filter(Boolean);
+    const registered = sportSwitcherItems();
+    const items = ['nba', 'nfl'].map((id) => registered.find((item) => item.id === id)).filter(Boolean)
+      .concat([{ id: 'ufc', label: 'UFC', active: false }, { id: 'nhl', label: 'NHL', active: false }]);
+    switchers.forEach((switcher) => {
+      switcher.innerHTML = items.map((item) => `
         <button type="button" class="sport-switch-btn${item.active ? ' active' : ''}" role="radio"
-          aria-checked="${item.active}" data-sport="${esc(item.id)}" title="Switch to ${esc(item.label)}">${leagueBadgeSvg(item.id)}<span class="sport-switch-label">${esc(item.label)}</span></button>`).join('');
+          aria-checked="${item.active}" data-sport="${esc(item.id)}" title="${item.id === 'ufc' || item.id === 'nhl' ? `${esc(item.label)} coming soon` : `Switch to ${esc(item.label)}`}">
+          <img class="league-badge league-badge-${esc(item.id)}" src="/league-logos/${esc(item.id)}.${item.id === 'ufc' ? 'svg' : 'png'}" alt="" aria-hidden="true"><span class="sport-switch-label">${esc(item.label)}</span></button>`).join('');
       switcher.addEventListener('click', (e) => {
         const btn = e.target && e.target.closest ? e.target.closest('[data-sport]') : null;
         if (btn) switchToSport(btn.dataset.sport);
       });
-    }
+    });
     const marketGroup = elById('marketChipGroup');
     if (marketGroup) {
       marketGroup.innerHTML = adapter.marketOrder.map((id) => {
@@ -5866,18 +5870,6 @@
   function sketchSideArrow(dir, size = 15) {
     const up = dir !== 'UNDER';
     return `<svg class="sketch-arrow ${up ? 'up' : 'down'}" width="${size}" height="${size}" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path class="sketch-arrow-shadow" d="${up ? 'M4.2 17.2 L15.9 5.1 M15.9 5.1 L10.2 4.6 M15.9 5.1 L16.3 10.9' : 'M4.2 2.8 L15.9 14.9 M15.9 14.9 L10.2 15.4 M15.9 14.9 L16.3 9.1'}" stroke-linecap="round" stroke-linejoin="round"></path><path class="sketch-arrow-ink" d="${up ? 'M3.5 16.5 L15.2 4.4 M15.2 4.4 L9.5 3.9 M15.2 4.4 L15.6 10.2' : 'M3.5 3.5 L15.2 15.6 M15.2 15.6 L9.5 16.1 M15.2 15.6 L15.6 9.8'}" stroke-linecap="round" stroke-linejoin="round"></path></svg>`;
-  }
-
-  /** v176 league badges (NFL / NBA) for the sport switcher — compact inline
-   *  vector marks: NFL shield silhouette, NBA ball-with-panels. CSP-safe. */
-  function leagueBadgeSvg(sportId) {
-    if (sportId === 'nfl') {
-      return `<svg class="league-badge league-badge-nfl" viewBox="0 0 22 26" aria-hidden="true"><path class="lb-nfl-shield" d="M2 2 L11 2 L20 2 L20 15 Q20 21.5 11 24.5 Q2 21.5 2 15 Z"></path><path class="lb-nfl-band" d="M2 2 L11 2 L20 2 L20 6.4 L2 6.4 Z"></path><circle class="lb-nfl-star" cx="5.4" cy="4.2" r="0.85"></circle><circle class="lb-nfl-star" cx="8.2" cy="4.2" r="0.85"></circle><circle class="lb-nfl-star" cx="11" cy="4.2" r="0.85"></circle><circle class="lb-nfl-star" cx="13.8" cy="4.2" r="0.85"></circle><circle class="lb-nfl-star" cx="16.6" cy="4.2" r="0.85"></circle><path class="lb-nfl-star" d="M11 9.4 L11.9 11.2 L13.9 11.5 L12.4 12.9 L12.8 14.9 L11 14 L9.2 14.9 L9.6 12.9 L8.1 11.5 L10.1 11.2 Z"></path><text class="lb-nfl-text" x="11" y="20.4" text-anchor="middle">NFL</text></svg>`;
-    }
-    if (sportId === 'nba') {
-      return `<svg class="league-badge league-badge-nba" viewBox="0 0 22 26" aria-hidden="true"><circle class="lb-nba-ball" cx="11" cy="11" r="8.6"></circle><path class="lb-nba-seam" d="M2.4 11 L19.6 11 M11 2.4 L11 19.6 M4.9 4.9 Q11 8.4 17.1 4.9 M4.9 17.1 Q11 13.6 17.1 17.1"></path><text class="lb-nba-text" x="11" y="24.6" text-anchor="middle">NBA</text></svg>`;
-    }
-    return '';
   }
 
   /** v176 inline line simulator — the simulation lives INSIDE the player
