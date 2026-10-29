@@ -6,6 +6,11 @@ const STATIC_ASSETS = [
   '/app.js',
   '/style.css?v=2026_v171',
   '/app.js?v=2026_v171',
+  // v171: public verify landing assets (externalized from a336e2f inline blocks)
+  '/verify-landing.css',
+  '/verify-landing.js',
+  '/verify-landing.css?v=2026_v171',
+  '/verify-landing.js?v=2026_v171',
   '/js/sports/registry.js?v=2026_v171',
   '/js/sports/nfl.js?v=2026_v171',
   '/js/sports/nba.js?v=2026_v171',

@@ -207,8 +207,21 @@
     priceHistory: {},
     openSnapshots: {},
     bottomTab: 'slate',
-    // Free open-access mode: full pro quantitative access without paywall.
-    userTier: 'pro',
+    userTier: (function() {
+      try {
+        if (typeof window !== 'undefined' && window.location) {
+          const p = new URLSearchParams(window.location.search).get('tier');
+          if (p === 'free' || p === 'pro') return p;
+        }
+        if (typeof localStorage !== 'undefined') {
+          const stored = localStorage.getItem('propwire-user-tier');
+          if (stored === 'free' || stored === 'pro') return stored;
+        }
+        return 'pro';
+      } catch (_) {
+        return 'pro';
+      }
+    })(),
     slateScrollY: 0
   };
   try {
@@ -968,6 +981,18 @@
   function checkDeepLinks() {
     try {
       const url = new URL(window.location.href);
+      const checkoutParam = url.searchParams.get('checkout');
+      const sessionId = url.searchParams.get('session_id');
+      if (checkoutParam === 'success' || (sessionId && sessionId.startsWith('cs_'))) {
+        try {
+          if (typeof localStorage !== 'undefined') localStorage.setItem('propwire-user-tier', 'pro');
+          state.userTier = 'pro';
+          setTimeout(() => {
+            toast('✓ Sniper PRO Active! Live Terminal & Webhooks Unlocked ($29/mo).');
+          }, 350);
+        } catch (_) {}
+      }
+
       const rootParam = (url.searchParams.get('root') || url.searchParams.get('r') || '').trim();
       const receiptParam = (url.searchParams.get('receipt') || url.searchParams.get('ticket') || url.searchParams.get('id') || '').trim();
       const path = (window.location.pathname || '').toLowerCase();
@@ -1254,7 +1279,34 @@
       if (checkoutBtn) {
         e.preventDefault();
         triggerHaptic('light');
-        toast('Sign in to manage membership. Access is verified by the server.');
+        const planTier = checkoutBtn.getAttribute('data-checkout-tier') || 'sharp';
+        const plan = planTier === 'quant' ? 'pro_yearly' : 'pro_monthly';
+        toast('Redirecting to secure Stripe checkout ($29/mo)...');
+        (async () => {
+          try {
+            const uid = (typeof localStorage !== 'undefined' && localStorage.getItem('propwire-user-id')) || ('usr_' + Math.random().toString(36).slice(2, 9));
+            const email = (typeof localStorage !== 'undefined' && localStorage.getItem('propwire-user-email')) || undefined;
+            const res = await fetch('/api/billing/create-checkout-session', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                plan: plan,
+                user_id: uid,
+                email: email
+              })
+            });
+            if (res.ok) {
+              const data = await res.json();
+              if (data.checkout_url) {
+                window.location.href = data.checkout_url;
+                return;
+              }
+            }
+          } catch (err) {
+            console.warn('Checkout redirection failed:', err);
+          }
+          toast('Sign in to manage membership. Access is verified by the server.');
+        })();
       }
     });
 
@@ -2179,7 +2231,10 @@
     const thresholds = feedThresholds();
     const now = Date.now();
     const ageSeconds = (iso) => {
-      const t = iso ? Date.parse(iso) : NaN;
+      if (!iso) return null;
+      const str = String(iso).trim();
+      const safeIso = (!str.endsWith('Z') && !/[+-]\d{2}(:\d{2})?$/.test(str)) ? str + 'Z' : str;
+      const t = Date.parse(safeIso);
       return Number.isFinite(t) ? Math.max(0, (now - t) / 1000) : null;
     };
     const oddsAge = health.odds === 'ok' ? ageSeconds(health.oddsUpdatedAt) : null;
@@ -3450,6 +3505,7 @@
     `).join('');
 
     const isStaleCourt = Boolean(game.is_stale || state.sniperCourtStale);
+    const isFreeTier = state.userTier === 'free';
     const liveSubAlerts = Array.isArray(state.sniperLiveSubAlerts) && state.sniperLiveSubAlerts.length > 0
       ? state.sniperLiveSubAlerts
       : [
@@ -3817,21 +3873,27 @@
           </div>
 
           <!-- Center Column: Live Substitution Sniper Feed (Spatial Court -> Actionable Bet) -->
-          <div class="nba-side-sniper-panel">
+          <div class="nba-side-sniper-panel ${isFreeTier ? 'is-tier-locked' : ''}">
             <div class="nba-side-sniper-hdr">
               <div>
                 <div class="nba-side-sniper-title">Live Substitution Sniper Feed</div>
                 <div class="nba-side-sniper-sub">Spatial court triggers &rarr; Bayesian recalc on last-known odds</div>
               </div>
-              <span class="sniper-live-pulse-badge">${isStaleCourt ? 'HALTED' : 'LIVE 5s PBP'}</span>
+              <span class="sniper-live-pulse-badge">${isStaleCourt ? 'HALTED' : isFreeTier ? 'PRO ONLY' : 'LIVE 5s PBP'}</span>
             </div>
-            <div class="nba-side-sniper-list" id="nbaSideSniperList">
+            <div class="nba-side-sniper-list ${isFreeTier ? 'pro-blur-target' : ''}" id="nbaSideSniperList">
               ${sideBySideAlertsHtml}
             </div>
+            ${isFreeTier ? `
+              <div class="pro-lock-gate-overlay">
+                <button type="button" class="pro-lock-badge" data-open-pricing>🔒 Unlock Live Sniper PRO ($29/mo)</button>
+                <span class="pro-lock-subtext">Instant live substitution &amp; vacancy alerts. One arb pays for the month.</span>
+              </div>
+            ` : ''}
           </div>
 
           <!-- Right Column (3rd Pane): Cross-Venue Arb Board (Bayesian Fair vs Sportsbook vs Polymarket CLOB) -->
-          <div class="nba-arb-board-panel ${isPolyWsDisconnected ? 'is-arb-board-stale' : ''}" id="nbaCrossVenueArbBoard">
+          <div class="nba-arb-board-panel ${isPolyWsDisconnected ? 'is-arb-board-stale' : ''} ${isFreeTier ? 'is-tier-locked' : ''}" id="nbaCrossVenueArbBoard">
             <div class="nba-arb-board-hdr">
               <div>
                 <div class="nba-side-sniper-title">Cross-Venue Arb Board</div>
@@ -3851,9 +3913,15 @@
                 <strong>STALE ORDERBOOK GUARD:</strong> Polymarket CLOB WebSocket disconnected. Prices greyed out and Polymarket SniperAlerts suppressed.
               </div>
             ` : ''}
-            <div class="nba-arb-cards-list" id="nbaArbCardsList">
+            <div class="nba-arb-cards-list ${isFreeTier ? 'pro-blur-target' : ''}" id="nbaArbCardsList">
               ${arbBoardHtml}
             </div>
+            ${isFreeTier ? `
+              <div class="pro-lock-gate-overlay">
+                <button type="button" class="pro-lock-badge" data-open-pricing>🔒 Unlock Cross-Venue Arbs ($29/mo)</button>
+                <span class="pro-lock-subtext">Polymarket CLOB vs Sportsbook mispricing arbitrage.</span>
+              </div>
+            ` : ''}
           </div>
         </div>
       </div>

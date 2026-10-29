@@ -130,3 +130,82 @@ def test_api_receipt_and_history_endpoints():
         headers={"X-PropWire-API-Key": "pw_quant_live_key"},
     )
     assert res_auth.status_code == 200
+
+
+def test_public_verify_landing_page():
+    from fastapi.testclient import TestClient
+    from api.main import app
+
+    client = TestClient(app)
+    # Fully public, zero-auth landing page works for anyone in incognito
+    res = client.get("/verify/sub_alert_1")
+    assert res.status_code == 200
+    assert "text/html" in res.headers.get("content-type", "")
+    assert "Verified Sniper Receipt" in res.text
+    assert "No LLM in Decision Path" in res.text
+
+    # Route at /verify without param also serves the landing page
+    res_base = client.get("/verify")
+    assert res_base.status_code == 200
+
+
+def test_stripe_billing_checkout_and_webhook():
+    import secrets
+    from fastapi.testclient import TestClient
+    from api.main import app
+    from src.services.billing import verify_stripe_webhook_signature
+
+    client = TestClient(app)
+    uid = f"usr_test_{secrets.token_hex(4)}"
+
+    # 1. Create checkout session for $29/mo
+    res_checkout = client.post(
+        "/api/billing/create-checkout-session",
+        json={"plan": "pro_monthly", "user_id": uid, "email": "sharp@example.com"},
+    )
+    assert res_checkout.status_code == 200
+    ch_data = res_checkout.json()
+    assert "checkout_url" in ch_data
+    assert ch_data["plan"] == "pro_monthly"
+
+    # 2. Check billing status defaults to free observer before payment
+    res_status = client.get(f"/api/billing/status?user_id={uid}")
+    assert res_status.status_code == 200
+    status_data = res_status.json()
+    assert status_data["is_pro"] is False
+    assert status_data["tier"] == "free"
+
+    # 3. Simulate idempotent Stripe webhook for checkout.session.completed
+    webhook_payload = {
+        "id": "evt_test_001",
+        "type": "checkout.session.completed",
+        "data": {
+            "object": {
+                "id": f"cs_test_{uid}",
+                "client_reference_id": uid,
+                "customer": f"cus_{uid}",
+                "subscription": f"sub_{uid}",
+                "metadata": {"user_id": uid, "plan": "pro_monthly"},
+            }
+        },
+    }
+    res_webhook = client.post("/api/billing/webhook", json=webhook_payload)
+    assert res_webhook.status_code == 200
+    wh_result = res_webhook.json()
+    assert wh_result["processed"] is True
+
+    # 4. Now user status must be PRO
+    res_status_pro = client.get(f"/api/billing/status?user_id={uid}")
+    assert res_status_pro.status_code == 200
+    pro_data = res_status_pro.json()
+    assert pro_data["is_pro"] is True
+    assert pro_data["tier"] == "pro"
+    assert pro_data["plan"] == "pro_monthly"
+
+    # 5. Customer portal creation
+    res_portal = client.post(
+        "/api/billing/create-portal-session",
+        json={"customer_id": f"cus_{uid}"},
+    )
+    assert res_portal.status_code == 200
+    assert "portal_url" in res_portal.json()

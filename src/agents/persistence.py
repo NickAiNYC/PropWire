@@ -497,6 +497,22 @@ class TruthStore:
 
                 CREATE INDEX IF NOT EXISTS idx_arb_history_status ON arb_history(status, entry_timestamp DESC);
                 CREATE INDEX IF NOT EXISTS idx_arb_history_user ON arb_history(user_id, entry_timestamp DESC);
+
+                CREATE TABLE IF NOT EXISTS user_subscriptions (
+                    subscription_id TEXT PRIMARY KEY,
+                    user_id TEXT NOT NULL,
+                    customer_id TEXT NOT NULL,
+                    provider TEXT NOT NULL DEFAULT 'stripe',
+                    plan TEXT NOT NULL DEFAULT 'pro_monthly',
+                    status TEXT NOT NULL DEFAULT 'active',
+                    current_period_end TEXT,
+                    cancel_at_period_end INTEGER NOT NULL DEFAULT 0,
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL
+                );
+
+                CREATE INDEX IF NOT EXISTS idx_user_subs_user ON user_subscriptions(user_id, status);
+                CREATE INDEX IF NOT EXISTS idx_user_subs_customer ON user_subscriptions(customer_id);
                 """
             )
 
@@ -1495,6 +1511,56 @@ class TruthStore:
                 d["is_polymarket_arb"] = bool(d.get("is_polymarket_arb"))
                 out.append(d)
             return out
+
+    def upsert_user_subscription(self, data: dict[str, Any]) -> None:
+        now_iso = datetime.now(timezone.utc).isoformat()
+        with self._connect_sqlite() as conn:
+            conn.execute(
+                """
+                INSERT INTO user_subscriptions (
+                    subscription_id, user_id, customer_id, provider,
+                    plan, status, current_period_end, cancel_at_period_end,
+                    created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(subscription_id) DO UPDATE SET
+                    user_id = excluded.user_id,
+                    customer_id = excluded.customer_id,
+                    provider = excluded.provider,
+                    plan = excluded.plan,
+                    status = excluded.status,
+                    current_period_end = excluded.current_period_end,
+                    cancel_at_period_end = excluded.cancel_at_period_end,
+                    updated_at = excluded.updated_at
+                """,
+                (
+                    str(data.get("subscription_id") or ""),
+                    str(data.get("user_id") or ""),
+                    str(data.get("customer_id") or ""),
+                    str(data.get("provider") or "stripe"),
+                    str(data.get("plan") or "pro_monthly"),
+                    str(data.get("status") or "active"),
+                    str(data.get("current_period_end") or ""),
+                    1 if data.get("cancel_at_period_end") else 0,
+                    str(data.get("created_at") or now_iso),
+                    str(data.get("updated_at") or now_iso),
+                ),
+            )
+
+    def get_user_subscription(self, user_id: str) -> dict[str, Any] | None:
+        with self._connect_sqlite() as conn:
+            row = conn.execute(
+                "SELECT * FROM user_subscriptions WHERE user_id = ? AND status IN ('active', 'trialing') ORDER BY updated_at DESC LIMIT 1",
+                (user_id,),
+            ).fetchone()
+            return dict(row) if row else None
+
+    def get_subscription_by_customer_id(self, customer_id: str) -> dict[str, Any] | None:
+        with self._connect_sqlite() as conn:
+            row = conn.execute(
+                "SELECT * FROM user_subscriptions WHERE customer_id = ? ORDER BY updated_at DESC LIMIT 1",
+                (customer_id,),
+            ).fetchone()
+            return dict(row) if row else None
 
 
 

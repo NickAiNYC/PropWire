@@ -24,7 +24,7 @@ from typing import AsyncGenerator, Optional
 
 from fastapi import FastAPI, Header, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -1402,6 +1402,121 @@ def get_public_arb_ledger(limit: int = Query(50, ge=1, le=200)):
     """
     engine = get_sniper_engine()
     return engine.arb_ledger.get_public_ledger(limit=limit)
+
+
+# ---------------------------------------------------------------------------
+# Public Verification Landing Page (`/verify/{alert_id}`)
+# ---------------------------------------------------------------------------
+
+@app.get("/verify")
+@app.get("/verify/{alert_id}")
+def get_public_verification_page(alert_id: Optional[str] = None):
+    """
+    Fully public, zero-auth landing page for shared Sniper Receipts.
+    Returns `viewer/verify.html` for both human browser visitors and social scrapers.
+    """
+    verify_html = os.path.join(VIEWER_DIR, "verify.html")
+    if not os.path.exists(verify_html):
+        verify_html = os.path.join(VIEWER_DIR, "index.html")
+    return FileResponse(verify_html, media_type="text/html")
+
+
+# ---------------------------------------------------------------------------
+# Monetization Engine: Stripe & Whop Subscription Endpoints
+# ---------------------------------------------------------------------------
+
+@app.post("/api/billing/create-checkout-session")
+async def create_checkout_session(request: Request):
+    """
+    Create a $29/mo (or $290/yr) Stripe Checkout Session for Sniper PRO.
+    """
+    from src.services.billing import BillingService
+
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    user_id = str(body.get("user_id") or secrets.token_hex(6))
+    email = body.get("email")
+    plan = str(body.get("plan") or "pro_monthly")
+    success_url = body.get("success_url")
+    cancel_url = body.get("cancel_url")
+
+    engine = get_sniper_engine()
+    billing = BillingService(truth_store=engine.truth)
+    return billing.create_checkout_session(
+        user_id=user_id,
+        email=email,
+        plan=plan,
+        success_url=success_url,
+        cancel_url=cancel_url,
+    )
+
+
+@app.post("/api/billing/create-portal-session")
+async def create_portal_session(request: Request):
+    """
+    Create a Stripe Customer Billing Portal session for self-serve management/cancellation.
+    """
+    from src.services.billing import BillingService
+
+    body = await request.json()
+    customer_id = body.get("customer_id")
+    return_url = body.get("return_url")
+    if not customer_id:
+        raise HTTPException(400, "customer_id is required")
+
+    engine = get_sniper_engine()
+    billing = BillingService(truth_store=engine.truth)
+    return billing.create_portal_session(customer_id=customer_id, return_url=return_url)
+
+
+@app.post("/api/billing/webhook")
+async def stripe_webhook(request: Request):
+    """
+    Idempotent Stripe webhook receiver verifying HMAC-SHA256 signatures.
+    Handles checkout.session.completed, customer.subscription.updated/deleted, invoice.payment_failed.
+    """
+    from src.services.billing import BillingService, verify_stripe_webhook_signature
+
+    payload_bytes = await request.body()
+    sig_header = request.headers.get("Stripe-Signature")
+    webhook_secret = os.environ.get("STRIPE_WEBHOOK_SECRET")
+
+    if webhook_secret:
+        if not verify_stripe_webhook_signature(payload_bytes, sig_header, webhook_secret):
+            raise HTTPException(400, "Invalid Stripe webhook signature")
+
+    try:
+        event = json.loads(payload_bytes.decode("utf-8"))
+    except Exception:
+        raise HTTPException(400, "Invalid JSON body")
+
+    engine = get_sniper_engine()
+    billing = BillingService(truth_store=engine.truth)
+    return billing.process_webhook_event(event)
+
+
+@app.get("/api/billing/status")
+def get_billing_status(
+    user_id: Optional[str] = Query(None),
+    authorization: Optional[str] = Header(None, alias="Authorization"),
+    x_propwire_key: Optional[str] = Header(None, alias="X-PropWire-API-Key"),
+):
+    """
+    Query active tier status (Free Observer vs. Sniper PRO).
+    Integrates Stripe subscription records and Whop entitlement fallback.
+    """
+    from src.services.billing import BillingService
+
+    engine = get_sniper_engine()
+    billing = BillingService(truth_store=engine.truth)
+    bearer = (authorization or "").replace("Bearer ", "").strip() or None
+    return billing.check_user_entitlement(
+        user_id=user_id,
+        bearer_token=bearer,
+        api_key=x_propwire_key,
+    )
 
 
 # ---------------------------------------------------------------------------

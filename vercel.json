@@ -5,13 +5,14 @@
   "rewrites": [
     { "source": "/ledger", "destination": "/index.html" },
     { "source": "/audit", "destination": "/index.html" },
-    { "source": "/verify", "destination": "/index.html" }
+    { "source": "/verify/:path*", "destination": "/verify.html" },
+    { "source": "/verify", "destination": "/verify.html" }
   ],
   "headers": [
     {
       "source": "/(.*)",
       "headers": [
-        { "key": "Content-Security-Policy", "value": "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https://a.espncdn.com; connect-src 'self' https:; manifest-src 'self'; worker-src 'self'; upgrade-insecure-requests" },
+        { "key": "Content-Security-Policy", "value": "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self' https://checkout.stripe.com; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https://a.espncdn.com; connect-src 'self' https:; manifest-src 'self'; worker-src 'self'; upgrade-insecure-requests" },
         { "key": "Cross-Origin-Opener-Policy", "value": "same-origin" },
         { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=(), payment=(), usb=()" },
         { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
