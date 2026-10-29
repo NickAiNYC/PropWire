@@ -1054,6 +1054,46 @@ def get_sniper_court_lineups():
     }
 
 
+@app.get("/api/sniper/arb-board")
+def get_sniper_arb_board():
+    """
+    Returns live Cross-Venue Mispricing & Arbitrage Board comparing Bayesian Fair
+    Probability against Sportsbook lines (DK/FD) and Polymarket CLOB orderbook.
+    """
+    engine = get_sniper_engine()
+    cards = engine.polymarket_arb_agent.get_arb_board_snapshot()
+    return {
+        "status": "ok",
+        "ws_connected": engine.polymarket_arb_agent.ws_connected,
+        "is_stale": not engine.polymarket_arb_agent.ws_connected,
+        "count": len(cards),
+        "arb_board": cards,
+    }
+
+
+@app.post("/api/sniper/polymarket-ws-state")
+async def post_sniper_polymarket_ws_state(request: Request):
+    """
+    Toggles or sets the Polymarket CLOB WebSocket connection state for testing
+    the Stale Orderbook Guard (greying out prices and suppressing alerts).
+    """
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    engine = get_sniper_engine()
+    connected = bool(body.get("connected", True))
+    reason = str(body.get("reason", "Polymarket CLOB WebSocket disconnected"))
+    engine.polymarket_arb_agent.set_ws_connection_state(connected, reason=reason)
+    engine.export_static_snapshot()
+    return {
+        "status": "ok",
+        "ws_connected": engine.polymarket_arb_agent.ws_connected,
+        "is_stale": not engine.polymarket_arb_agent.ws_connected,
+        "arb_board": engine.polymarket_arb_agent.get_arb_board_snapshot(),
+    }
+
+
 @app.post("/api/sniper/simulate-substitution")
 async def post_sniper_simulate_substitution(request: Request):
     """

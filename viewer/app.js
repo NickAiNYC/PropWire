@@ -3475,6 +3475,129 @@
       </div>
     `).join('');
 
+    const isPolyWsDisconnected = Boolean(
+      state.sniperPolyWsStale || (snap && snap.polymarket_ws_connected === false) || isStaleCourt
+    );
+    const defaultArbCards = [
+      {
+        token_id: '0xpoly_giannis_pts_31_5',
+        player_name: 'Giannis Antetokounmpo',
+        team: 'MIL',
+        market_label: 'PTS Over 31.5',
+        fair_prob_pct: 64,
+        implied_prob_pct: 58,
+        poly_ask_price: 0.58,
+        poly_edge_pct: 6.0,
+        sportsbook_book: 'DraftKings',
+        sportsbook_implied_prob_pct: 62,
+        sportsbook_odds: -110,
+        sportsbook_edge_pct: 2.0,
+        cross_venue_spread_pct: 4.0,
+        liquidity_usd: 2550,
+        depth_tooltip: '$500 available at $0.58, $1,200 at $0.59, $850 at $0.60',
+        best_venue: 'Polymarket',
+        action_label: 'BUY YES on Polymarket',
+        action_url: 'https://polymarket.com/event/nba-giannis-antetokounmpo-points-over-31-5',
+        is_actionable_lime: true
+      },
+      {
+        token_id: '0x91a4f8b20c71e84d3a109c77f62b10e489a31c01',
+        player_name: 'Tyrese Maxey',
+        team: 'PHI',
+        market_label: 'PTS Over 26.5',
+        fair_prob_pct: 63,
+        implied_prob_pct: 56,
+        poly_ask_price: 0.55,
+        poly_edge_pct: 7.0,
+        sportsbook_book: 'DraftKings',
+        sportsbook_implied_prob_pct: 60,
+        sportsbook_odds: -115,
+        sportsbook_edge_pct: 3.0,
+        cross_venue_spread_pct: 4.0,
+        liquidity_usd: 3000,
+        depth_tooltip: '$620 available at $0.55, $1,400 at $0.56, $980 at $0.57',
+        best_venue: 'Polymarket',
+        action_label: 'BUY YES on Polymarket',
+        action_url: 'https://polymarket.com/event/nba-tyrese-maxey-points-over-26-5',
+        is_actionable_lime: true
+      },
+      {
+        token_id: '0xpoly_tatum_pts_28_5',
+        player_name: 'Jayson Tatum',
+        team: 'BOS',
+        market_label: 'PTS Over 28.5',
+        fair_prob_pct: 61,
+        implied_prob_pct: 60,
+        poly_ask_price: 0.59,
+        poly_edge_pct: 1.0,
+        sportsbook_book: 'FanDuel',
+        sportsbook_implied_prob_pct: 54,
+        sportsbook_odds: -108,
+        sportsbook_edge_pct: 7.0,
+        cross_venue_spread_pct: -6.0,
+        liquidity_usd: 2500,
+        depth_tooltip: '$450 available at $0.59, $950 at $0.60, $1,100 at $0.61',
+        best_venue: 'FanDuel',
+        action_label: 'BET OVER on FanDuel',
+        action_url: 'https://sportsbook.fanduel.com/navigation/nba',
+        is_actionable_lime: false
+      }
+    ];
+    const arbCardsSource = (Array.isArray(state.sniperLiveArbCards) && state.sniperLiveArbCards.length > 0)
+      ? state.sniperLiveArbCards
+      : (Array.isArray(snap?.cross_venue_arb_board) && snap.cross_venue_arb_board.length > 0)
+        ? snap.cross_venue_arb_board
+        : defaultArbCards;
+
+    const arbBoardHtml = arbCardsSource.slice(0, 4).map((card) => {
+      const polyEdge = Number(card.poly_edge_pct ?? ((Number(card.fair_prob_pct) - Number(card.implied_prob_pct)) || 0));
+      const sbEdge = Number(card.sportsbook_edge_pct ?? ((Number(card.fair_prob_pct) - Number(card.sportsbook_implied_prob_pct)) || 0));
+      const polyIsBest = (card.best_venue === 'Polymarket') || (polyEdge >= sbEdge);
+      const polyIsLime = !isPolyWsDisconnected && polyEdge > 3.0 && polyIsBest;
+      const sbIsLime = !isPolyWsDisconnected && !polyIsBest && sbEdge > 3.0;
+      const sbOddsNum = Number(card.sportsbook_odds || -110);
+      const sbOddsStr = sbOddsNum > 0 ? `+${sbOddsNum}` : `${sbOddsNum}`;
+      const polyPriceDollars = Number(card.poly_ask_price || (Number(card.implied_prob_pct || 58) / 100)).toFixed(2);
+      const depthTooltip = card.depth_tooltip || '$500 available at $0.58, $1,200 at $0.59';
+      const actionUrl = card.action_url || card.deep_link || 'https://polymarket.com';
+      const actionText = isPolyWsDisconnected
+        ? 'ORDERBOOK STALE — ALERTS SUPPRESSED'
+        : polyIsBest
+          ? `Action: BUY YES on Polymarket`
+          : `Action: BET OVER on ${card.sportsbook_book || 'DraftKings'}`;
+
+      return `
+        <div class="arb-venue-card ${polyIsLime ? 'is-arb-lime' : ''} ${isPolyWsDisconnected ? 'is-greyed-stale' : ''}">
+          <div class="arb-card-header">
+            <strong class="arb-player-title">${esc(card.player_name)} | ${esc(card.market_label || 'PTS Over 24.5')}</strong>
+            <span class="arb-spread-tag">${isPolyWsDisconnected ? 'STALE' : `Spread ${polyEdge >= 0 ? '+' : ''}${polyEdge.toFixed(1)}%`}</span>
+          </div>
+          <div class="arb-pricing-rows">
+            <div class="arb-price-row is-zinc">
+              <span class="arb-venue-label">Fair Prob:</span>
+              <span class="arb-venue-val">${Math.round(Number(card.fair_prob_pct || 64))}%</span>
+            </div>
+            <div class="arb-price-row arb-poly-tooltip-trigger ${polyIsLime ? 'is-venue-lime' : 'is-zinc'}" tabindex="0" title="${esc(depthTooltip)}" data-depth-tooltip="${esc(depthTooltip)}">
+              <span class="arb-venue-label">Polymarket:</span>
+              <span class="arb-venue-val">${Math.round(Number(card.implied_prob_pct || 58))}% ($${esc(polyPriceDollars)})</span>
+              <div class="arb-depth-popover" role="tooltip">
+                <div class="arb-depth-popover-title">CLOB Top-3 VWAP Depth ($${Number(card.liquidity_usd || 1700).toLocaleString()} Liq)</div>
+                <div class="arb-depth-popover-body">${esc(depthTooltip)}</div>
+              </div>
+            </div>
+            <div class="arb-price-row ${sbIsLime ? 'is-venue-lime' : 'is-zinc'}">
+              <span class="arb-venue-label ${sbIsLime ? 'is-venue-lime' : ''}">${esc(card.sportsbook_book || 'DraftKings')}:</span>
+              <span class="arb-venue-val">${Math.round(Number(card.sportsbook_implied_prob_pct || 62))}% (${esc(sbOddsStr)})</span>
+            </div>
+          </div>
+          <a href="${esc(actionUrl)}" target="_blank" rel="noopener noreferrer" class="arb-action-btn ${polyIsLime ? 'is-lime-cta' : 'is-zinc-cta'} ${isPolyWsDisconnected ? 'is-disabled' : ''}">
+            <span>${esc(actionText)}</span>
+            <span aria-hidden="true">↗</span>
+          </a>
+        </div>
+      `;
+    }).join('');
+
     return `
       <div class="nba-live-lineup-shell ${isStaleCourt ? 'is-feed-stale' : ''}">
         <!-- Game Switcher Pills + Stale Outage Test -->
@@ -3595,7 +3718,7 @@
             </div>
           </div>
 
-          <!-- Right Column: Live Substitution Sniper Feed (Spatial Court -> Actionable Bet) -->
+          <!-- Center Column: Live Substitution Sniper Feed (Spatial Court -> Actionable Bet) -->
           <div class="nba-side-sniper-panel">
             <div class="nba-side-sniper-hdr">
               <div>
@@ -3606,6 +3729,32 @@
             </div>
             <div class="nba-side-sniper-list" id="nbaSideSniperList">
               ${sideBySideAlertsHtml}
+            </div>
+          </div>
+
+          <!-- Right Column (3rd Pane): Cross-Venue Arb Board (Bayesian Fair vs Sportsbook vs Polymarket CLOB) -->
+          <div class="nba-arb-board-panel ${isPolyWsDisconnected ? 'is-arb-board-stale' : ''}" id="nbaCrossVenueArbBoard">
+            <div class="nba-arb-board-hdr">
+              <div>
+                <div class="nba-side-sniper-title">Cross-Venue Arb Board</div>
+                <div class="nba-side-sniper-sub">Bayesian Fair vs Sportsbook vs Polymarket CLOB (Fee-Adj VWAP)</div>
+              </div>
+              <div style="display:flex; align-items:center; gap:6px;">
+                <span class="arb-status-pill ${isPolyWsDisconnected ? 'is-stale' : 'is-live'}" id="nbaArbStatusPill">
+                  ${isPolyWsDisconnected ? 'STALE' : 'CLOB LIVE'}
+                </span>
+                <button type="button" class="arb-ws-toggle-btn" id="nbaTogglePolyWsBtn" title="Simulate Polymarket CLOB WebSocket Disconnect (Stale Orderbook Guard)">
+                  ${isPolyWsDisconnected ? 'Reconnect WS' : 'Test WS Drop'}
+                </button>
+              </div>
+            </div>
+            ${isPolyWsDisconnected ? `
+              <div class="arb-stale-guard-banner">
+                <strong>STALE ORDERBOOK GUARD:</strong> Polymarket CLOB WebSocket disconnected. Prices greyed out and Polymarket SniperAlerts suppressed.
+              </div>
+            ` : ''}
+            <div class="nba-arb-cards-list" id="nbaArbCardsList">
+              ${arbBoardHtml}
             </div>
           </div>
         </div>
@@ -4042,7 +4191,29 @@
       };
     }
 
-    const pushLiveSubCard = (subIn, subOut, teamCode) => {
+    const polyWsBtn = content.querySelector('#nbaTogglePolyWsBtn');
+    if (polyWsBtn) {
+      polyWsBtn.onclick = async () => {
+        triggerHaptic('medium');
+        state.sniperPolyWsStale = !state.sniperPolyWsStale;
+        if (state.sniperTerminalData) {
+          state.sniperTerminalData.polymarket_ws_connected = !state.sniperPolyWsStale;
+        }
+        try {
+          await fetch('/api/sniper/polymarket-ws-state', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              connected: !state.sniperPolyWsStale,
+              reason: 'Polymarket CLOB WebSocket disconnected'
+            })
+          });
+        } catch (_) {}
+        renderSniperModal('lineups');
+      };
+    }
+
+    const pushLiveSubCard = (subIn, subOut, teamCode, polyArbCard = null) => {
       if (!Array.isArray(state.sniperLiveSubAlerts)) {
         state.sniperLiveSubAlerts = [
           {
@@ -4095,6 +4266,38 @@
         trigger: `${subOut.name} subbed out (${triggerReason})`,
         feed_age_s: 1.4
       });
+
+      // Immediately update the 3rd Pane (Cross-Venue Arb Board) on 5s PBP substitution
+      if (!Array.isArray(state.sniperLiveArbCards)) {
+        state.sniperLiveArbCards = Array.isArray(state.sniperTerminalData?.cross_venue_arb_board)
+          ? [...state.sniperTerminalData.cross_venue_arb_board]
+          : [];
+      }
+      const newArbCard = polyArbCard || {
+        token_id: '0xpoly_' + (subIn.player_id || 'sub'),
+        player_name: subIn.name,
+        team: teamCode,
+        market_label: `${mktShort} Over ${Number(subIn.line || 24.5).toFixed(1)}`,
+        fair_prob_pct: 64,
+        implied_prob_pct: 58,
+        poly_ask_price: 0.58,
+        poly_edge_pct: 6.0,
+        sportsbook_book: 'DraftKings',
+        sportsbook_implied_prob_pct: 62,
+        sportsbook_odds: -110,
+        sportsbook_edge_pct: 2.0,
+        cross_venue_spread_pct: 4.0,
+        liquidity_usd: 2650,
+        depth_tooltip: '$550 available at $0.58, $1,200 at $0.59, $900 at $0.60',
+        best_venue: 'Polymarket',
+        action_label: 'BUY YES on Polymarket',
+        action_url: `https://polymarket.com/event/nba-${String(subIn.player_id || subIn.name).toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
+        is_actionable_lime: true
+      };
+      state.sniperLiveArbCards = [
+        newArbCard,
+        ...state.sniperLiveArbCards.filter((c) => c.player_name !== newArbCard.player_name)
+      ].slice(0, 4);
     };
 
     const subSimBtn = content.querySelector('#nbaSimulateSubBtn');
@@ -4117,7 +4320,7 @@
             if (state.sniperTerminalData && state.sniperTerminalData.court_lineups && payload.court_game) {
               state.sniperTerminalData.court_lineups[gameId] = payload.court_game;
             }
-            pushLiveSubCard(payload.sub_in, payload.sub_out, team);
+            pushLiveSubCard(payload.sub_in, payload.sub_out, team, payload.polymarket_arb_card || null);
             renderSniperModal('lineups');
             const banner = content.querySelector('#nbaSubSimBanner');
             if (banner) {

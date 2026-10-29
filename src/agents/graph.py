@@ -29,6 +29,7 @@ from src.agents.persistence import (
     TruthStore,
 )
 from src.agents.polymarket_agent import PolymarketSpecialistAgent
+from src.agents.polymarket_arb_agent import PolymarketArbAgent
 from src.agents.recalc_agent import ProjectionRecalcAgent
 from src.agents.schemas import (
     MODEL_VERSION,
@@ -360,6 +361,7 @@ class SniperTerminalEngine:
         self.recalc_agent = ProjectionRecalcAgent(self.bus, self.truth, self.kill_switch)
         self.market_agent = MarketIngestAgent(self.bus, self.truth, self.kill_switch)
         self.polymarket_agent = PolymarketSpecialistAgent(self.bus, self.truth, self.kill_switch)
+        self.polymarket_arb_agent = PolymarketArbAgent(self.bus, self.truth, self.kill_switch)
         self.sniper_agent = SniperAgent(self.bus, self.truth, self.kill_switch)
 
         self.catalog: dict[str, dict[str, Any]] = _default_player_catalog()
@@ -529,6 +531,11 @@ class SniperTerminalEngine:
                 proj.is_stale = True
             updated_projections[prop_id] = proj
             self.projections_by_prop_id[prop_id] = proj
+            # Immediately re-evaluate cached Polymarket CLOB orderbook on 5s PBP/injury recalc
+            self.polymarket_arb_agent.on_projection_recalc_5s_update(
+                proj,
+                user_gate=self.gate_config.effective_edge_gate_pct() / 100.0,
+            )
 
         return {"projections": updated_projections}
 
@@ -1079,6 +1086,8 @@ class SniperTerminalEngine:
             },
             "sniper_alerts": alerts,
             "polymarket_board": [opp.model_dump(mode="json") for opp in self.polymarket_opportunities],
+            "cross_venue_arb_board": self.polymarket_arb_agent.get_arb_board_snapshot(),
+            "polymarket_ws_connected": self.polymarket_arb_agent.ws_connected,
             "live_board": self.live_board_items,
             "court_lineups": self.court_lineups,
             "suppressions": suppressions,
@@ -1231,6 +1240,54 @@ class SniperTerminalEngine:
         )
         self.truth.save_sniper_alert(live_alert)
 
+        # Immediately re-evaluate cached Polymarket CLOB orderbook for the subbed-in player
+        sub_token_id = f"0xpoly_{sub_in['player_id']}_{sub_in.get('market', 'points')}"
+        if sub_token_id not in self.polymarket_arb_agent.token_registry:
+            self.polymarket_arb_agent.register_token_mapping(
+                token_id=sub_token_id,
+                polymarket_player_id=f"poly_{sub_in['player_id']}",
+                canonical_player_id=sub_in["player_id"],
+                player_name=sub_in["name"],
+                team=team_key,
+                opponent=opp_team,
+                position=sub_in.get("position", "G"),
+                sport="nba",
+                game_id=game["game_id"],
+                prop_id=f"{sub_in['player_id']}_{sub_in.get('market', 'points')}",
+                market=str(sub_in.get("market", "points")),
+                line=float(sub_in.get("line", 24.5)),
+                sportsbook_book="DraftKings",
+                sportsbook_odds=-110,
+                sportsbook_implied_prob=0.62,
+                fair_prob=max(0.64, fair_p),
+                deep_link=f"https://polymarket.com/event/nba-{sub_in['player_id'].replace('_', '-')}",
+            )
+            self.polymarket_arb_agent.cache_orderbook(
+                token_id=sub_token_id,
+                asks=[
+                    {"price": 0.56, "size_usd": 550.0},
+                    {"price": 0.57, "size_usd": 1200.0},
+                    {"price": 0.58, "size_usd": 900.0},
+                ],
+                bids=[
+                    {"price": 0.54, "size_usd": 600.0},
+                    {"price": 0.53, "size_usd": 950.0},
+                    {"price": 0.52, "size_usd": 1100.0},
+                ],
+                fetched_at=now_dt,
+            )
+        poly_arb_card, poly_arb_alert = self.polymarket_arb_agent.evaluate_token_arb(
+            sub_token_id,
+            fair_prob=max(0.64, fair_p),
+            sportsbook_implied_prob=0.62,
+            sportsbook_odds=-110,
+            sportsbook_book="DraftKings",
+            user_gate=0.03,
+            catalyst_reason=live_alert.catalyst_reason,
+            trigger_detail=trigger_summary,
+            now=now_dt,
+        )
+
         elapsed_ms = round((time.perf_counter() - t0) * 1000.0, 2)
         return {
             "status": "ok",
@@ -1243,6 +1300,8 @@ class SniperTerminalEngine:
             "sub_in": sub_in,
             "trigger_summary": trigger_summary,
             "sniper_alert": live_alert.model_dump(mode="json"),
+            "polymarket_arb_card": poly_arb_card,
+            "polymarket_arb_alert": poly_arb_alert.model_dump(mode="json") if poly_arb_alert else None,
             "bayesian_update": bayes,
             "court_game": game,
         }

@@ -12152,11 +12152,11 @@ dialog.detail-dialog .dialog-sheet-handle {
   color: var(--pw-text-muted);
 }
 
-/* Side-by-Side Split Command Grid: Court on Left, Live Sniper Feed on Right */
+/* 3-Pane Command Grid: Court Diagram (Left) | Sniper Feed (Center) | Cross-Venue Arb Board (Right) */
 @media (min-width: 1024px) {
   dialog.sniper-dialog .dialog-shell {
-    width: 960px !important;
-    max-width: 960px !important;
+    width: min(1320px, 95vw) !important;
+    max-width: min(1320px, 95vw) !important;
   }
 }
 
@@ -12167,9 +12167,18 @@ dialog.detail-dialog .dialog-sheet-handle {
   align-items: start;
 }
 
-@media (min-width: 840px) {
+@media (min-width: 840px) and (max-width: 1159px) {
   .nba-command-split-grid {
-    grid-template-columns: 1.08fr 0.92fr;
+    grid-template-columns: 1.05fr 0.95fr;
+  }
+  .nba-arb-board-panel {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (min-width: 1160px) {
+  .nba-command-split-grid {
+    grid-template-columns: 1.08fr 0.96fr 0.96fr;
   }
 }
 
@@ -12336,6 +12345,236 @@ dialog.detail-dialog .dialog-sheet-handle {
   filter: grayscale(0.85) !important;
   pointer-events: none;
 }
+
+/* 3rd Pane: Cross-Venue Arb Board (Strict Zinc-950 / Zinc-900 / Actionable Lime) */
+.nba-arb-board-panel {
+  background: #18181b; /* Zinc-900 panel */
+  border: 1px solid #27272a;
+  border-radius: 16px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.nba-arb-board-hdr {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #27272a;
+}
+
+.arb-status-pill {
+  font-family: var(--pw-font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.arb-status-pill.is-live {
+  background: rgba(163, 230, 53, 0.14);
+  border: 1px solid rgba(163, 230, 53, 0.45);
+  color: #a3e635;
+}
+
+.arb-status-pill.is-stale {
+  background: rgba(113, 113, 122, 0.22);
+  border: 1px solid #52525b;
+  color: #a1a1aa;
+}
+
+.arb-ws-toggle-btn {
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: #09090b;
+  border: 1px solid #3f3f46;
+  color: #a1a1aa;
+  font-family: var(--pw-font-mono);
+  font-size: 9.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.arb-ws-toggle-btn:hover {
+  border-color: #71717a;
+  color: #f4f4f5;
+}
+
+.arb-stale-guard-banner {
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(113, 113, 122, 0.16);
+  border: 1px solid #52525b;
+  color: #d4d4d8;
+  font-family: var(--pw-font-mono);
+  font-size: 10.5px;
+  line-height: 1.35;
+}
+
+.nba-arb-cards-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.arb-venue-card {
+  background: #09090b; /* Zinc-950 card canvas */
+  border: 1px solid #27272a;
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: border-color 0.18s ease;
+}
+
+.arb-venue-card.is-arb-lime {
+  border-color: rgba(163, 230, 53, 0.65);
+}
+
+.arb-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #18181b;
+}
+
+.arb-player-title {
+  font-family: var(--pw-font-sans);
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #f4f4f5;
+}
+
+.arb-spread-tag {
+  font-family: var(--pw-font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  color: #a1a1aa;
+}
+
+.arb-pricing-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-family: var(--pw-font-mono);
+  font-size: 11.5px;
+  font-variant-numeric: tabular-nums;
+}
+
+.arb-price-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 6px;
+  border-radius: 5px;
+  background: #18181b;
+  color: #a1a1aa; /* Zinc default */
+  position: relative;
+}
+
+.arb-price-row.is-zinc .arb-venue-val {
+  color: #d4d4d8;
+  font-weight: 600;
+}
+
+.arb-price-row.is-venue-lime {
+  background: rgba(163, 230, 53, 0.10);
+  border: 1px solid rgba(163, 230, 53, 0.35);
+  color: #a3e635;
+}
+
+.arb-price-row.is-venue-lime .arb-venue-label,
+.arb-price-row.is-venue-lime .arb-venue-val,
+.arb-venue-label.is-venue-lime {
+  color: #a3e635;
+  font-weight: 700;
+}
+
+/* Orderbook Depth Hover Tooltip */
+.arb-poly-tooltip-trigger {
+  cursor: help;
+}
+
+.arb-depth-popover {
+  display: none;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(100% + 6px);
+  z-index: 30;
+  background: #09090b;
+  border: 1px solid #3f3f46;
+  border-radius: 8px;
+  padding: 8px 10px;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.75);
+  pointer-events: none;
+}
+
+.arb-poly-tooltip-trigger:hover .arb-depth-popover,
+.arb-poly-tooltip-trigger:focus .arb-depth-popover {
+  display: block;
+}
+
+.arb-depth-popover-title {
+  font-family: var(--pw-font-mono);
+  font-size: 9.5px;
+  font-weight: 700;
+  color: #a1a1aa;
+  text-transform: uppercase;
+  margin-bottom: 3px;
+}
+
+.arb-depth-popover-body {
+  font-family: var(--pw-font-mono);
+  font-size: 10.5px;
+  color: #f4f4f5;
+  line-height: 1.35;
+}
+
+.arb-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 8px 11px;
+  border-radius: 7px;
+  font-family: var(--pw-font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: transform 0.12s ease, opacity 0.12s ease;
+}
+
+.arb-action-btn.is-lime-cta {
+  background: #a3e635;
+  color: #09090b;
+  border: 1px solid #a3e635;
+}
+
+.arb-action-btn.is-lime-cta:hover {
+  background: #bef264;
+}
+
+.arb-action-btn.is-zinc-cta {
+  background: #18181b;
+  color: #d4d4d8;
+  border: 1px solid #3f3f46;
+}
+
+.arb-action-btn.is-disabled {
+  background: #18181b !important;
+  color: #71717a !important;
+  border-color: #27272a !important;
+  pointer-events: none;
+}
+
 
 
 

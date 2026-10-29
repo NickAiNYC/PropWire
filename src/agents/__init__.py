@@ -12,6 +12,12 @@ from src.agents.lineup_agent import LineupAndSubstitutionAgent
 from src.agents.market_agent import MarketIngestAgent
 from src.agents.persistence import DurableRedisStreamBus, TruthStore
 from src.agents.polymarket_agent import PolymarketSpecialistAgent, compute_clob_liquidity_score
+from src.agents.polymarket_arb_agent import (
+    PolymarketArbAgent,
+    compute_cross_venue_arb,
+    compute_fee_adjusted_yes_prices,
+    compute_top3_orderbook_vwap,
+)
 from src.agents.recalc_agent import ProjectionRecalcAgent, price_prop
 from src.agents.schemas import (
     MODEL_VERSION,
