@@ -23,7 +23,9 @@ orig = html
 
 # 1. extract inline <style> -> verify-landing.css
 m = re.search(r"[ \t]*<style>\n(.*?)\n[ \t]*</style>\n", html, re.S)
-assert m, "style block not found"
+if not m:
+    print("verify.html already externalized to verify-landing.css/js")
+    sys.exit(0)
 css = m.group(1).rstrip() + "\n"
 html = html.replace(m.group(0), '  <link rel="stylesheet" href="/verify-landing.css?v=2026_v171">\n')
 
