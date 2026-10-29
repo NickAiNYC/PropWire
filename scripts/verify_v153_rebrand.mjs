@@ -4,12 +4,12 @@
 //   - every brand binary exists with exact dimensions (IHDR) and serves
 //     under the production vercel.json CSP header parity (img-src 'self')
 //   - favicon.svg / propwire-icon.svg parse with the embedded raster mark
-//   - all 5 terminal pages wire the new assets at ?v=2026_v171, zero stale
+//   - all 5 terminal pages wire the new assets at ?v=2026_v172, zero stale
 //     propwire-logo*.svg references, build-hash 2026-w8-v19
 //   - site.webmanifest icons resolve; PWA identity intact
 //   - icon pixel probe: monogram centered, not corner-stuck (v149 lesson)
 //   - header renders both slot logos (dark-only / light-only), 160x40 box
-//   - SW registers, activates propwire-v171-prod, precache populated with
+//   - SW registers, activates propwire-v172-prod, precache populated with
 //     the new logo PNGs + v153 icons + untouched v152 book badges
 //   - boot console: zero hard errors (v150-classified inline-style CSP
 //     console debt tracked separately, must not grow from v152 baseline)
@@ -97,17 +97,17 @@ for (const p of pages) {
   const html = readFileSync(join(ROOT, p), 'utf8');
   const has = (re) => re.test(html);
   const ok =
-    has(/rel="icon"[^>]*href="\/favicon-32x32\.png\?v=2026_v171"/) &&
-    has(/rel="icon"[^>]*href="\/favicon-16x16\.png\?v=2026_v171"/) &&
-    has(/rel="icon"[^>]*href="\/favicon\.svg\?v=2026_v171"/) &&
-    has(/rel="apple-touch-icon" href="\/apple-touch-icon\.png\?v=2026_v171"/) &&
-    has(/rel="apple-touch-icon" sizes="180x180" href="\/apple-touch-icon-180x180\.png\?v=2026_v171"/) &&
-    has(/rel="manifest" href="\/site\.webmanifest\?v=2026_v171"/) &&
-    has(/og:image" content="https:\/\/propwire\.vercel\.app\/og-image\.png\?v=2026_v171"/) &&
-    has(/twitter:image" content="https:\/\/propwire\.vercel\.app\/og-image\.png\?v=2026_v171"/) &&
-    has(/src="\/propwire-logo\.svg\?v=2026_v171"/) &&
-    has(/src="\/propwire-logo-dark\.svg\?v=2026_v171"/) &&
-    has(/name="build-hash" content="2026-w8-v24"/) &&
+    has(/rel="icon"[^>]*href="\/favicon-32x32\.png\?v=2026_v172"/) &&
+    has(/rel="icon"[^>]*href="\/favicon-16x16\.png\?v=2026_v172"/) &&
+    has(/rel="icon"[^>]*href="\/favicon\.svg\?v=2026_v172"/) &&
+    has(/rel="apple-touch-icon" href="\/apple-touch-icon\.png\?v=2026_v172"/) &&
+    has(/rel="apple-touch-icon" sizes="180x180" href="\/apple-touch-icon-180x180\.png\?v=2026_v172"/) &&
+    has(/rel="manifest" href="\/site\.webmanifest\?v=2026_v172"/) &&
+    has(/og:image" content="https:\/\/propwire\.vercel\.app\/og-image\.png\?v=2026_v172"/) &&
+    has(/twitter:image" content="https:\/\/propwire\.vercel\.app\/og-image\.png\?v=2026_v172"/) &&
+    has(/src="\/propwire-logo\.svg\?v=2026_v172"/) &&
+    has(/src="\/propwire-logo-dark\.svg\?v=2026_v172"/) &&
+    has(/name="build-hash" content="2026-w8-v25"/) &&
     !has(/propwire-logo-dropwire/) &&
     !has(/\?v=v149|\?v=2026_v1"|\?v=2026_v152|2026-w8-v17/);
   check(`head ${p}: v153 brand wiring complete, zero stale refs`, ok);
@@ -121,9 +121,9 @@ const manIcons = [];
 for (const ic of manifest.icons || []) {
   const rel = ic.src.split('?')[0].replace(/^\//, '');
   const f = join(ROOT, rel);
-  manIcons.push(existsSync(f) && ic.src.endsWith('v=2026_v171'));
+  manIcons.push(existsSync(f) && ic.src.endsWith('v=2026_v172'));
 }
-check('manifest: 4 icons exist at ?v=2026_v171', manIcons.length === 4 && manIcons.every(Boolean), `${manIcons.length} icons`);
+check('manifest: 4 icons exist at ?v=2026_v172', manIcons.length === 4 && manIcons.every(Boolean), `${manIcons.length} icons`);
 
 // ── 5. Icon pixel probe: monogram centered (browser canvas) ──────────────
 const browser = await chromium.launch();
@@ -155,9 +155,9 @@ const pixelProbe = async (url, ew, eh) => probe.evaluate(async ([u, w, h]) => {
   };
 }, [url, ew, eh]).catch((e) => ({ err: String(e.message || e) }));
 for (const [url, w, h] of [
-  ['/apple-touch-icon.png?v=2026_v171', 180, 180],
-  ['/icon-192.png?v=2026_v171', 192, 192],
-  ['/icon-512.png?v=2026_v171', 512, 512],
+  ['/apple-touch-icon.png?v=2026_v172', 180, 180],
+  ['/icon-192.png?v=2026_v172', 192, 192],
+  ['/icon-512.png?v=2026_v172', 512, 512],
 ]) {
   const m = await pixelProbe(`http://127.0.0.1:${PORT}${url}`, w, h);
   if (m.err) { check(`icon ${url}: centered monogram`, false, m.err); continue; }
@@ -197,7 +197,7 @@ check('header: light theme flips slots (dark-only hidden, light-only shown)',
   lightState.d === 'none' && lightState.l !== 'none', JSON.stringify(lightState));
 await probe.evaluate(() => document.documentElement.removeAttribute('data-theme'));
 
-const ogRes = await fetch(`http://127.0.0.1:${PORT}/og-image.png?v=2026_v171`);
+const ogRes = await fetch(`http://127.0.0.1:${PORT}/og-image.png?v=2026_v172`);
 const ogBuf = Buffer.from(await ogRes.arrayBuffer());
 check('og-image: 200 + PNG + served under CSP img-src self', ogRes.ok && ogBuf.slice(1, 4).toString('latin1') === 'PNG' && ogRes.headers.get('content-security-policy') === CSP);
 
@@ -226,16 +226,16 @@ const sw = await page.evaluate(async () => {
   const probe2 = async (u) => !!(await cache.match(u));
   return {
     name,
-    logoDark: await probe2('/propwire-logo.svg?v=2026_v171'),
-    logoLight: await probe2('/propwire-logo-dark.svg?v=2026_v171'),
-    fav: await probe2('/favicon.svg?v=2026_v171'),
-    i192: await probe2('/icon-192.png?v=2026_v171'),
-    i512: await probe2('/icon-512.png?v=2026_v171'),
-    man: await probe2('/site.webmanifest?v=2026_v171'),
+    logoDark: await probe2('/propwire-logo.svg?v=2026_v172'),
+    logoLight: await probe2('/propwire-logo-dark.svg?v=2026_v172'),
+    fav: await probe2('/favicon.svg?v=2026_v172'),
+    i192: await probe2('/icon-192.png?v=2026_v172'),
+    i512: await probe2('/icon-512.png?v=2026_v172'),
+    man: await probe2('/site.webmanifest?v=2026_v172'),
     book: await probe2('/books/draftkings.svg?v=v152'),
   };
 });
-check('SW: propwire-v171-prod activated', sw.name === 'propwire-v171-prod', String(sw.name));
+check('SW: propwire-v172-prod activated', sw.name === 'propwire-v172-prod', String(sw.name));
 check('SW: precache has authentic SVG logos + icons/manifest', sw.logoDark && sw.logoLight && sw.fav && sw.i192 && sw.i512 && sw.man, JSON.stringify(sw));
 check('SW: v152 book badges still precached', sw.book);
 check('boot: zero hard console errors (CSP inline-style debt tracked separately)', errors.length === 0, errors.slice(0, 3).join(' | '));

@@ -13361,3 +13361,38 @@ dialog.detail-dialog .dialog-sheet-handle {
   font-size: 10.5px;
   color: var(--muted);
 }
+
+/* ═══ v172 — mission W3: mobile data-first + collapsible tactical map ═══ */
+.tactical-map-toggle {
+  display: none;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background: #0d1320;
+  border: 1px solid var(--pw-border-subtle, rgba(255, 255, 255, 0.10));
+  border-radius: 12px;
+  color: #d4fb11;
+  font: 700 11px/1 var(--mono, ui-monospace, 'SF Mono', Menlo, Consolas, monospace);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 11px 14px;
+  cursor: pointer;
+}
+.tactical-map-toggle .tactical-map-chevron { transition: transform 0.18s ease; }
+.tactical-map-toggle[aria-expanded="true"] .tactical-map-chevron { transform: rotate(180deg); }
+.tactical-map-toggle:hover { border-color: rgba(212, 251, 17, 0.45); }
+.tactical-map-body { display: block; }
+@media (max-width: 767px) {
+  .tactical-map-toggle { display: flex; }
+  /* Sniper Feed + Arb Board come before the tactical court even in the Lineups tab */
+  .nba-command-split-grid .nba-side-sniper-panel { order: 1; }
+  .nba-command-split-grid .nba-arb-board-panel { order: 2; }
+  .nba-command-split-grid .nba-tactical-card { order: 3; }
+}
+/* Mission W3 card density: FAIR/PROJ single row in monospaced tabular numerals */
+.card-proj-fair-row .grid-col-val,
+.card-proj-fair-row .grid-col-sub {
+  font-family: var(--mono, ui-monospace, 'SF Mono', Menlo, Consolas, monospace);
+  font-variant-numeric: tabular-nums;
+}

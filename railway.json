@@ -26,10 +26,15 @@
       "restartPolicyMaxRetries": 5
     },
     "grader_cron": {
-      "startCommand": "python -m scripts.grade_arb_history --loop --interval 900",
+      "startCommand": "python -m scripts.grade_arb_history --json",
       "cronSchedule": "*/15 * * * *",
       "restartPolicyType": "ON_FAILURE",
       "restartPolicyMaxRetries": 3
+    },
+    "market_feed": {
+      "startCommand": "python -m src.services.market_feed",
+      "restartPolicyType": "ON_FAILURE",
+      "restartPolicyMaxRetries": 5
     }
   }
 }

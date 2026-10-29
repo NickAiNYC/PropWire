@@ -209,3 +209,91 @@ def test_stripe_billing_checkout_and_webhook():
     )
     assert res_portal.status_code == 200
     assert "portal_url" in res_portal.json()
+
+
+def _full_sniper_alert(alert_id: str):
+    """Minimal-but-complete SniperAlert as produced by the SniperAgent 5-gate path."""
+    from datetime import datetime, timezone as _tz
+
+    from src.agents.schemas import SniperAlert
+
+    return SniperAlert(
+        alert_id=alert_id,
+        prop_id="giannis_antetokounmpo:points",
+        sport="nba",
+        game_id="nba_2026_1029_bos_mil",
+        player_id="giannis_antetokounmpo",
+        player_name="Giannis Antetokounmpo",
+        team="MIL",
+        opponent="BOS",
+        market="points",
+        side="OVER",
+        venue_type="sportsbook",
+        book="DraftKings",
+        line=31.5,
+        odds_american=-112,
+        fair_line=34.2,
+        fair_prob=0.641,
+        implied_prob=0.529,
+        edge_pct=11.2,
+        mispricing_bps=1120.0,
+        ev_per_unit=0.19,
+        kelly_stake=0.028,
+        confidence_score=0.87,
+        liquidity_score=0.91,
+        clv_expectation=0.041,
+        feed_age_seconds=2.1,
+        deep_link="https://sportsbook.draftkings.com/nba/giannis-pts",
+        catalyst_reason="line_move",
+        reasoning_chain="NegBin fair 34.2 vs DK 31.5 (-112)",
+        source_hash="a" * 64,
+        created_at=datetime(2026, 10, 29, 19, 0, 0, tzinfo=_tz.utc),
+    )
+
+
+def test_receipt_hash_locked_at_alert_creation_before_any_share(tmp_path):
+    """
+    Mission W2 (Trust Engine): `entry_receipt_hash` and `receipt_hash` MUST be
+    persisted in `arb_history` at the exact moment the SniperAlert is created —
+    BEFORE any share/verify action — and the share/read path must only ever
+    read (never regenerate) those stored hashes.
+    """
+    from src.services.arb_ledger import ArbLedgerService, verify_receipt
+
+    truth = TruthStore(sqlite_path=tmp_path / "prehash.db")
+    alert = _full_sniper_alert("sniper_prehash_001")
+
+    # The moment the alert fires (insert_sniper_alert auto-records arb_history)
+    truth.insert_sniper_alert(alert)
+
+    # 1. Row exists IMMEDIATELY — no share button involved
+    row = truth.get_arb_history("sniper_prehash_001")
+    assert row is not None, "arb_history row must exist the moment the alert fires"
+    assert row["status"] == "PENDING"
+
+    # 2. Both hashes are locked at creation, full SHA-256 length
+    assert row["entry_receipt_hash"] and len(row["entry_receipt_hash"]) == 64
+    assert row["receipt_hash"] and len(row["receipt_hash"]) == 64
+
+    # 3. The stored row verifies cryptographically BEFORE any share action
+    assert verify_receipt(row)["verified"] is True
+
+    # 4. Share/read path (get_receipt) returns the SAME stored hash — read-only
+    ledger = ArbLedgerService(truth_store=truth)
+    receipt = ledger.get_receipt("sniper_prehash_001")
+    assert receipt is not None
+    assert receipt["entry_receipt_hash"] == row["entry_receipt_hash"]
+    assert receipt["receipt_hash"] == row["receipt_hash"]
+
+    # 5. Grading preserves the entry-time hash and re-locks the full hash
+    ledger.grade_alert(
+        alert_id="sniper_prehash_001",
+        closing_line=33.5,
+        closing_odds_american=-105,
+        actual_stat=36.0,
+    )
+    graded = truth.get_arb_history("sniper_prehash_001")
+    assert graded["status"] == "GRADED"
+    assert graded["entry_receipt_hash"] == row["entry_receipt_hash"], "entry hash must never change"
+    assert graded["receipt_hash"] != row["receipt_hash"], "full hash re-locks with closing data"
+    assert verify_receipt(graded)["verified"] is True

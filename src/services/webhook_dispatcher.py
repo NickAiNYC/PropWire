@@ -8,13 +8,13 @@ Responsibilities:
 2. 5-Minute Rate Limiting & Deduplication Lock:
    Enforces `webhook_lock:{user_id}:{player_id}:{prop_type}` with a 300-second TTL
    in Redis (with durable SQLite fallback) so jittering live lines never spam users.
-3. Institutional Formatting:
-   `format_discord_embed(alert)` and `format_telegram_markdown(alert)` with:
-   - `[PLAYER NAME] | PTS Over 24.5`
-   - `Fair Prob: 64%`
-   - `Polymarket: 58% ($0.58)`
-   - `Top-3 Depth: $500 @ $0.58, $1,200 @ $0.59`
-   - `[🔗 BUY YES ON POLYMARKET]` deep link
+3. Institutional Formatting (mission W4 — clean, high-contrast Lime):
+   `format_discord_embed(alert)`:
+   - Title: `🚨 LIVE SNIPER ALERT: [Player Name]`
+   - Fields: `Edge` (lime embed), `Proj Line` vs `Market Line`, `Book`
+   - Description: prop label, Fair % vs Market %, Top-3 Depth
+   - Link button: `🔗 Execute on Polymarket` / `🔗 View on DraftKings`
+   `format_telegram_markdown(alert)` keeps the compact one-pastebin layout.
 4. Security & Resilience:
    - SSRF Protection (`validate_webhook_target`) strictly whitelists official Discord
      and Telegram endpoints and blocks private/internal IPs or arbitrary hosts.
@@ -55,6 +55,19 @@ DISCORD_WEBHOOK_PATH_RE = re.compile(r"^/api(?:/v\d+)?/webhooks/\d+/[A-Za-z0-9_\
 
 ALLOWED_TELEGRAM_HOSTS = {"api.telegram.org"}
 TELEGRAM_CHAT_ID_RE = re.compile(r"^(?:@[A-Za-z0-9_]{4,64}|-?\d{5,20})$")
+
+# Book display names for the Discord `Book` field / button label (W4)
+BOOK_DISPLAY = {
+    "draftkings": "DraftKings",
+    "fanduel": "FanDuel",
+    "polymarket": "Polymarket",
+    "betmgm": "BetMGM",
+    "pinnacle": "Pinnacle",
+    "caesars": "Caesars",
+    "betrivers": "BetRivers",
+    "fanatics": "Fanatics",
+    "bet365": "bet365",
+}
 
 
 def build_webhook_lock_key(user_id: str, player_id: str, prop_type: str) -> str:
@@ -173,6 +186,22 @@ def _normalize_alert_dict(alert: dict[str, Any] | SniperAlert, arb_card: dict[st
         or "https://polymarket.com"
     )
 
+    raw_fair_line = (
+        card.get("fair_line")
+        if card.get("fair_line") is not None
+        else raw.get("fair_line")
+    )
+    try:
+        fair_line = float(raw_fair_line) if raw_fair_line is not None else 0.0
+    except (TypeError, ValueError):
+        fair_line = 0.0
+    if fair_line <= 0:
+        # Same projection fallback the arb ledger uses when no explicit fair line ships
+        fair_line = round(line * (1.0 + max(edge_pct, 0.0) / 100.0), 1)
+
+    book_raw = str(raw.get("book") or ("Polymarket" if str(card.get("venue_type") or raw.get("venue_type") or "") == "polymarket" else "DraftKings"))
+    book_display = BOOK_DISPLAY.get(book_raw.strip().lower(), book_raw.strip())
+
     return {
         "player_id": str(card.get("player_id") or raw.get("player_id") or player_name.lower().replace(" ", "_")),
         "player_name": player_name,
@@ -180,6 +209,7 @@ def _normalize_alert_dict(alert: dict[str, Any] | SniperAlert, arb_card: dict[st
         "market": market,
         "market_label": market_label,
         "line": line,
+        "fair_line": fair_line,
         "fair_prob_pct": fair_prob_pct,
         "implied_prob_pct": imp_prob_pct,
         "poly_price": poly_price,
@@ -187,7 +217,8 @@ def _normalize_alert_dict(alert: dict[str, Any] | SniperAlert, arb_card: dict[st
         "top3_depth": compact_depth,
         "deep_link": deep_link,
         "venue_type": str(raw.get("venue_type") or ("polymarket" if card else "sportsbook")).lower(),
-        "book": str(raw.get("book") or "Polymarket"),
+        "book": book_raw,
+        "book_display": book_display,
     }
 
 
@@ -196,42 +227,54 @@ def format_discord_embed(
     arb_card: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """
-    Build a high-contrast Discord Webhook JSON payload (with rich embed) containing:
-      - `[PLAYER NAME] | PTS Over 24.5`
-      - `Fair Prob: 64%`
-      - `Polymarket: 58% ($0.58)`
-      - `Top-3 Depth: $500 @ $0.58, $1,200 @ $0.59`
-      - `[🔗 BUY YES ON POLYMARKET]` deep link
+    Build a clean, high-contrast Discord webhook payload (mission W4):
+      - Title: `🚨 LIVE SNIPER ALERT: [Player Name]`
+      - Fields: `Edge` (lime embed color), `Proj Line` vs `Market Line`, `Book`
+      - One-line description: prop · Fair % vs Market % · Top-3 Depth
+      - Link button: `🔗 Execute on Polymarket` or `🔗 View on [Book]`
     """
     info = _normalize_alert_dict(alert, arb_card=arb_card)
-    headline = f"{info['player_name']} | {info['market_label']}"
+    is_polymarket = info["venue_type"] == "polymarket" or info["book_display"].lower() == "polymarket"
+    button_label = (
+        "🔗 Execute on Polymarket"
+        if is_polymarket
+        else f"🔗 View on {info['book_display']}"
+    )
+    edge_sign = "+" if float(info["edge_pct"]) >= 0 else ""
     description = (
-        f"**{headline}**\n"
-        f"• **Fair Prob:** {info['fair_prob_pct']}%\n"
-        f"• **Polymarket:** {info['implied_prob_pct']}% (${info['poly_price']:.2f})\n"
-        f"• **Edge:** +{info['edge_pct']:.1f}%\n"
-        f"• **Top-3 Depth:** {info['top3_depth']}\n\n"
-        f"[🔗 BUY YES ON POLYMARKET]({info['deep_link']})"
+        f"**{info['market_label']}** · "
+        f"Fair **{info['fair_prob_pct']}%** vs Market **{info['implied_prob_pct']}%** (${info['poly_price']:.2f})\n"
+        f"Top-3 Depth: {info['top3_depth']}"
     )
     return {
         "username": "PropWire Sniper Terminal",
-        "content": f"🟢 **{headline}** (+{info['edge_pct']:.1f}% Edge)",
+        "content": "",
         "embeds": [
             {
-                "title": headline,
+                "title": f"🚨 LIVE SNIPER ALERT: {info['player_name']}",
                 "url": info["deep_link"],
                 "description": description,
-                "color": 0xA3E635,  # Lime-400
+                "color": 0xA3E635,  # Lime-400 (terminal accent)
                 "fields": [
-                    {"name": "Fair Prob", "value": f"{info['fair_prob_pct']}%", "inline": True},
-                    {
-                        "name": "Polymarket",
-                        "value": f"{info['implied_prob_pct']}% (${info['poly_price']:.2f})",
-                        "inline": True,
-                    },
-                    {"name": "Top-3 Depth", "value": info["top3_depth"], "inline": False},
+                    {"name": "Edge", "value": f"{edge_sign}{info['edge_pct']:.1f}%", "inline": True},
+                    {"name": "Proj Line", "value": f"{info['fair_line']:.1f}", "inline": True},
+                    {"name": "Market Line", "value": f"{info['line']:.1f}", "inline": True},
+                    {"name": "Book", "value": info["book_display"], "inline": True},
                 ],
-                "footer": {"text": "PropWire Deterministic NegBin/Gamma + CLOB VWAP Engine"},
+                "footer": {"text": "PropWire · No LLM in Decision Path"},
+            }
+        ],
+        "components": [
+            {
+                "type": 1,
+                "components": [
+                    {
+                        "type": 2,
+                        "style": 5,  # LINK button
+                        "label": button_label,
+                        "url": info["deep_link"],
+                    }
+                ],
             }
         ],
     }

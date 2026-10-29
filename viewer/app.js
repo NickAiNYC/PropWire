@@ -3498,8 +3498,8 @@
                   <span class="nba-stat-val home">${esc(row.home)}</span>
                 </div>
                 <div class="nba-stat-bar-track">
-                  <div class="nba-stat-bar-fill away" style="width: ${awayPct}%"></div>
-                  <div class="nba-stat-bar-fill home" style="width: ${homePct}%"></div>
+                  <div class="nba-stat-bar-fill away" data-prog="${awayPct}"></div>
+                  <div class="nba-stat-bar-fill home" data-prog="${homePct}"></div>
                 </div>
               </div>
             `;
@@ -3577,7 +3577,16 @@
     const onCourt = Array.isArray(teamObj.on_court) ? teamObj.on_court : [];
     const bench = Array.isArray(teamObj.bench) ? teamObj.bench : [];
     const isSoccer = game.sport === 'soccer';
-    const matchCenterTab = state.sniperMatchCenterTab || 'lineups';
+    // Mission W3 (data > visuals): mobile lands on Sniper & Arbs so the Sniper
+    // Feed + Arb Board are the first things visible; desktop keeps Lineups.
+    const isMobileViewport = window.matchMedia('(max-width: 767px)').matches;
+    const matchCenterTab = state.sniperMatchCenterTab || (isMobileViewport ? 'sniper' : 'lineups');
+    // Tactical map: collapsed by default on mobile; explicit user choice wins.
+    const mapCollapsed = state.tacticalMapOpen === true
+      ? false
+      : state.tacticalMapOpen === false
+        ? true
+        : isMobileViewport;
 
     // Group players into formation rows (Row 1: GK/PG, Row 2: DEF/Wings, Row 3: MID/Frontcourt, Row 4: FWD)
     const row1 = onCourt.filter((p) => Number(p.formation_row) === 1);
@@ -4023,7 +4032,12 @@
 
                 <div id="nbaSubSimBanner" class="sniper-sim-result" hidden></div>
 
-                <!-- Visual Formation Graphic (Soccer Pitch or NBA Court) -->
+                <!-- W3: Collapsible Tactical Map — collapsed by default <768px, "View Tactical Map" toggle -->
+                <button type="button" class="tactical-map-toggle" data-tactical-toggle aria-expanded="${mapCollapsed ? 'false' : 'true'}" aria-controls="tacticalMapBody">
+                  <span class="tactical-map-toggle-label">${mapCollapsed ? 'View Tactical Map' : 'Hide Tactical Map'}</span>
+                  <svg class="tactical-map-chevron" width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M4 6l4 4 4-4"/></svg>
+                </button>
+                <div class="tactical-map-body" id="tacticalMapBody" ${mapCollapsed ? 'hidden' : ''}>
                 ${isSoccer ? `
                   <div class="nba-court-diagram soccer-pitch-diagram">
                     <svg class="nba-court-svg soccer-pitch-svg" viewBox="0 0 500 580" preserveAspectRatio="none" aria-hidden="true">
@@ -4080,6 +4094,7 @@
                     </div>
                   </div>
                 `}
+                </div>
 
                 <!-- Bench Rotation & Recent Sub Strip -->
                 <div class="nba-bench-strip">
@@ -5150,6 +5165,22 @@
         renderSniperModal('lineups');
       };
     }
+
+    // W3: collapsible tactical map toggle (CSP-safe onclick property assignment)
+    const tacticalToggleBtn = content.querySelector('[data-tactical-toggle]');
+    if (tacticalToggleBtn) {
+      tacticalToggleBtn.onclick = () => {
+        triggerHaptic('light');
+        const mapBody = content.querySelector('#tacticalMapBody');
+        const nowCollapsed = mapBody ? !mapBody.hidden : false;
+        state.tacticalMapOpen = nowCollapsed;
+        renderSniperModal('lineups');
+      };
+    }
+
+    // CSP-clean dynamic widths (match stat bars etc.): data-prog attr -> CSSOM
+    // width after mount — same pattern as the #cardView progress fills.
+    content.querySelectorAll('[data-prog]').forEach((el) => { el.style.width = el.dataset.prog + '%'; });
 
     const staleKillBtn = content.querySelector('#nbaToggleStaleKillBtn');
     if (staleKillBtn) {

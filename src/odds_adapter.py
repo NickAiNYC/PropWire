@@ -650,10 +650,149 @@ class SportsGameOddsProvider(BaseOddsProvider):
         return quotes
 
 
+class PropLineProvider(BaseOddsProvider):
+    """
+    PropLine (api.propline.com) — PRIMARY player-props feed for DraftKings &
+    FanDuel (mission W1). Selected via PROPLINE_API_KEY (or ODDS_PROVIDER=propline).
+
+    Response shape (v1 `/props` endpoint, mirroring the SGO per-book pattern):
+        {"props": [
+            {"event_id": "nba_2026_1029_bos_mil", "sport": "nba",
+             "player_id": "giannis_antetokounmpo", "player_name": "Giannis Antetokounmpo",
+             "team": "MIL", "opponent": "BOS", "market": "points", "line": 31.5,
+             "books": {"draftkings": {"over_odds": -112, "under_odds": -108,
+                                      "deeplink": "https://sportsbook.draftkings.com/..."},
+                       "fanduel":    {"over_odds": -110, "under_odds": -110}}},
+            ...
+        ]}
+
+    Failure policy (mission: one API must never block the MarketAgent loop):
+    missing key, 401, 429, 5xx, timeout, or malformed JSON all degrade to `[]`
+    so the composite chain falls through to The Odds API -> Bovada -> openers.
+    """
+
+    BASE = "https://api.propline.com/v1"
+
+    # PropLine market slug -> internal canonical market id
+    MARKET_MAP = {
+        "points": "points",
+        "rebounds": "rebounds",
+        "assists": "assists",
+        "three_pointers_made": "threes",
+        "three_pointers": "threes",
+        "receiving_yards": "receiving_yards",
+        "receptions": "receptions",
+    }
+
+    # Primary targets first; anything else PropLine ships still flows through.
+    BOOK_PRIORITY = ("draftkings", "fanduel")
+
+    def __init__(self, api_key: Optional[str] = None, timeout: int = 25):
+        self.api_key = api_key or os.environ.get("PROPLINE_API_KEY")
+        self.timeout = timeout
+
+    def fetch_quotes(self, season: int, week: int, game_id: Optional[str] = None) -> List[PropQuote]:
+        if not self.api_key:
+            print("[odds_adapter] PROPLINE_API_KEY not configured. Skipping PropLineProvider.")
+            return []
+        try:
+            import requests
+            params: Dict[str, Any] = {"season": season}
+            if week:
+                params["week"] = week
+            if game_id:
+                params["game_id"] = game_id
+            r = requests.get(
+                f"{self.BASE}/props",
+                params=params,
+                headers={"Authorization": f"Bearer {self.api_key}"},
+                timeout=self.timeout,
+            )
+            if r.status_code == 401:
+                print("[odds_adapter] PropLine rejected the key (401). Falling back.")
+                return []
+            if r.status_code == 429:
+                print("[odds_adapter] PropLine rate-limited (429). Falling back.")
+                return []
+            r.raise_for_status()
+            data = r.json()
+        except Exception as e:
+            print(f"[odds_adapter] PropLineProvider error: {e}. Falling back.")
+            return []
+
+        quotes = self.normalize_response(data, now_ts=datetime.now(timezone.utc).isoformat())
+        print(f"[odds_adapter] PropLineProvider fetched {len(quotes)} live DK/FD prop quotes.")
+        return quotes
+
+    def normalize_response(self, data: dict, now_ts: str) -> List[PropQuote]:
+        """Pure normalizer: PropLine response dict -> PropQuotes (unit-tested offline)."""
+        quotes: List[PropQuote] = []
+        if not isinstance(data, dict):
+            return quotes
+        for prop in data.get("props") or []:
+            if not isinstance(prop, dict):
+                continue
+            market = self.MARKET_MAP.get(str(prop.get("market") or "").lower())
+            if market is None:
+                continue
+            try:
+                line_val = float(prop.get("line"))
+            except (TypeError, ValueError):
+                continue
+            if line_val <= 0:
+                continue
+            event_id = str(prop.get("event_id") or "unknown")
+            player_id = str(prop.get("player_id") or "")
+            player_name = str(prop.get("player_name") or "")
+            books = prop.get("books") or {}
+            if not isinstance(books, dict):
+                continue
+            # DK/FD primary targets first, then any remaining books in feed order.
+            slugs = [s for s in self.BOOK_PRIORITY if s in books] + [
+                s for s in books if s not in self.BOOK_PRIORITY
+            ]
+            for slug in slugs:
+                bk = books.get(slug)
+                if not isinstance(bk, dict) or bk.get("available") is False:
+                    continue
+                try:
+                    over = int(float(bk.get("over_odds")))
+                    under = int(float(bk.get("under_odds")))
+                except (TypeError, ValueError):
+                    continue
+                book_id = canonical_book(slug)
+                meta = BOOK_META.get(book_id)
+                qid = f"propline_{event_id}_{book_id}_{player_id or player_name}_{market}_{line_val}"
+                receipt = hashlib.sha256(
+                    f"{qid}:{bk.get('updated_at') or now_ts}:{over}:{under}".encode()
+                ).hexdigest()[:16]
+                quotes.append(PropQuote(
+                    quote_id=qid,
+                    book=meta["display"] if meta else str(slug),
+                    market=market,
+                    player_raw_name=player_name,
+                    team=str(prop.get("team")) if prop.get("team") else None,
+                    opponent=str(prop.get("opponent")) if prop.get("opponent") else None,
+                    line=line_val,
+                    over_odds=over,
+                    under_odds=under,
+                    observed_at=str(bk.get("updated_at") or now_ts),
+                    source=f"PropLine ({meta['display'] if meta else slug})",
+                    verified=True,
+                    receipt_id=receipt,
+                    source_url=str(bk.get("deeplink") or f"{self.BASE}/props/{event_id}"),
+                    book_id=book_id,
+                    book_short=meta["short"] if meta else None,
+                ))
+        return quotes
+
+
 # Provider registry (v152): one env var swaps the paid feed with zero code
-# change. ODDS_PROVIDER in {oddsapi, sportsgameodds, bovada}; default keeps the
-# historical composite order (oddsapi-if-keyed -> bovada -> openers fallback).
+# change. ODDS_PROVIDER in {propline, oddsapi, sportsgameodds, bovada}; default
+# composite order (v172): propline-if-keyed -> oddsapi-if-keyed -> bovada ->
+# openers fallback. PropLine (DK/FD) is the PRIMARY target when keyed.
 PROVIDER_REGISTRY = {
+    "propline": PropLineProvider,
     "oddsapi": TheOddsApiProvider,
     "sportsgameodds": SportsGameOddsProvider,
     "bovada": BovadaOddsProvider,
@@ -675,12 +814,17 @@ def provider_from_env(api_key: Optional[str] = None) -> Optional[BaseOddsProvide
 class CompositeLiveOddsProvider(BaseOddsProvider):
     """
     Aggregates live quotes from available providers:
+    0. PropLineProvider (PROPLINE_API_KEY) — PRIMARY DK/FD feed (v172)
     1. ODDS_PROVIDER-selected provider (v152 registry) when configured
     2. TheOddsApiProvider (if ODDS_API_KEY is configured)
     3. BovadaOddsProvider (free live endpoint)
     4. Falls back to EarlyMarketOpenersProvider if no network quotes are returned.
+
+    Mission W1 failure policy: a failure in any single provider is caught and
+    skipped — it can never block the whole loop or starve the other sources.
     """
     def __init__(self, api_key: Optional[str] = None):
+        self.propline = PropLineProvider(api_key=api_key)
         self.selected = provider_from_env(api_key=api_key)
         self.bovada = BovadaOddsProvider()
         self.the_odds_api = TheOddsApiProvider(api_key=api_key)
@@ -688,17 +832,32 @@ class CompositeLiveOddsProvider(BaseOddsProvider):
 
     def fetch_quotes(self, season: int, week: int, game_id: Optional[str] = None) -> List[PropQuote]:
         quotes: List[PropQuote] = []
+        # 0) PropLine DK/FD primary feed (graceful: [] on failure/rate-limit)
+        try:
+            if self.propline.api_key:
+                quotes.extend(self.propline.fetch_quotes(season, week, game_id))
+        except Exception as e:
+            print(f"[odds_adapter] PropLine step failed (isolated): {e}")
+
         # 1) explicit provider selection wins
-        if self.selected is not None:
-            quotes.extend(self.selected.fetch_quotes(season, week, game_id))
+        try:
+            if self.selected is not None:
+                quotes.extend(self.selected.fetch_quotes(season, week, game_id))
+        except Exception as e:
+            print(f"[odds_adapter] selected-provider step failed (isolated): {e}")
 
         # 2) The Odds API default path (when no explicit selection was made)
-        if self.selected is None and self.the_odds_api.api_key:
-            quotes.extend(self.the_odds_api.fetch_quotes(season, week, game_id))
+        try:
+            if self.selected is None and self.the_odds_api.api_key:
+                quotes.extend(self.the_odds_api.fetch_quotes(season, week, game_id))
+        except Exception as e:
+            print(f"[odds_adapter] The Odds API step failed (isolated): {e}")
 
         # 3) Bovada live props
-        bovada_quotes = self.bovada.fetch_quotes(season, week, game_id)
-        quotes.extend(bovada_quotes)
+        try:
+            quotes.extend(self.bovada.fetch_quotes(season, week, game_id))
+        except Exception as e:
+            print(f"[odds_adapter] Bovada step failed (isolated): {e}")
 
         if not quotes:
             print("[odds_adapter] No live network quotes retrieved. Using EarlyMarketOpenersProvider fallback.")
