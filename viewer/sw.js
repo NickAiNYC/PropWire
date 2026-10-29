@@ -1,35 +1,24 @@
 // PropWire Service Worker (offline shell only; market data always fails closed)
-const CACHE_NAME = 'propwire-v154-prod';
+const CACHE_NAME = 'propwire-v166-prod';
 const STATIC_ASSETS = [
   '/index.html',
   '/style.css',
   '/app.js',
-  '/style.css?v=2026_v154',
-  '/app.js?v=2026_v154',
-  '/js/sports/registry.js?v=2026_v154',
-  '/js/sports/nfl.js?v=2026_v154',
-  '/js/sports/nba.js?v=2026_v154',
-  '/propwire-logo-dropwire.png?v=2026_v154',
-  '/propwire-logo-dropwire-light.png?v=2026_v154',
-  // v152: self-hosted sportsbook wordmark badges (same-origin, CSP 'self')
-  '/books/draftkings.svg?v=v152',
-  '/books/fanduel.svg?v=v152',
-  '/books/betmgm.svg?v=v152',
-  '/books/caesars.svg?v=v152',
-  '/books/pinnacle.svg?v=v152',
-  '/books/betrivers.svg?v=v152',
-  '/books/fanatics.svg?v=v152',
-  '/books/bet365.svg?v=v152',
-  '/books/espnbet.svg?v=v152',
-  '/books/circa.svg?v=v152',
+  '/style.css?v=2026_v166',
+  '/app.js?v=2026_v166',
+  '/js/sports/registry.js?v=2026_v166',
+  '/js/sports/nfl.js?v=2026_v166',
+  '/js/sports/nba.js?v=2026_v166',
+  '/propwire-logo.svg?v=2026_v166',
+  '/propwire-logo-dark.svg?v=2026_v166',
   // v149 fix: this list previously referenced /manifest.json (never existed),
   // and addAll() is all-or-nothing — one 404 silently precached NOTHING.
   // Now every entry matches the exact busted URLs the pages request.
-  '/site.webmanifest?v=2026_v154',
-  '/favicon.svg?v=2026_v154',
-  '/icon-192.png?v=2026_v154',
-  '/icon-512.png?v=2026_v154',
-  '/apple-touch-icon.png?v=2026_v154'
+  '/site.webmanifest?v=v149',
+  '/favicon.svg?v=v149',
+  '/icon-192.png?v=v149',
+  '/icon-512.png?v=v149',
+  '/apple-touch-icon.png?v=v149'
 ];
 
 self.addEventListener('install', (event) => {
