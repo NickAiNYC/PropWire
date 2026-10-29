@@ -13700,3 +13700,11 @@ dialog.detail-dialog .dialog-sheet-handle {
   font-family: var(--mono, ui-monospace, 'SF Mono', Menlo, Consolas, monospace);
   font-variant-numeric: tabular-nums;
 }
+
+/* ═══ v172b — race #8 (Sapphire ribbon) inline-style conversions ═══ */
+.tnum { font-variant-numeric: tabular-nums; }
+.split-divider-tight { opacity: 0.25; margin: 0 5px; }
+.proj-glow { color: #38bdf8; text-shadow: 0 0 8px rgba(56, 189, 248, 0.35); }
+.edge-cell-muted { color: #475569; font-size: 15px; font-weight: 500; }
+.th-num-w18 { width: 18%; }
+.sim-plus-dim { opacity: 0.6; }

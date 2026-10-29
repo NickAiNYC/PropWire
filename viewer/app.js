@@ -500,10 +500,10 @@
 
     return `
       <div class="bullet-container" title="80% CI: ${dist.low}–${dist.high}${unit} | Fair: ${dist.fair.toFixed(1)} | Proj: ${dist.proj.toFixed(1)}${hasBook ? ` | Book: ${bookLine.toFixed(1)}` : ''}">
-        <div class="bullet-top-readout" style="font-variant-numeric: tabular-nums;">
-          <div><span class="bullet-dim">FAIR</span> <strong class="bullet-bold text-fair font-mono" style="font-variant-numeric: tabular-nums;">${dist.fair.toFixed(1)}</strong></div>
-          <span class="split-divider" style="opacity: 0.25; margin: 0 5px;">|</span>
-          <div><span class="bullet-dim">PROJ</span> <strong class="bullet-bold text-accent font-mono" style="color:#38bdf8; text-shadow:0 0 8px rgba(56,189,248,0.35); font-variant-numeric: tabular-nums;">${dist.proj.toFixed(1)}</strong></div>
+        <div class="bullet-top-readout tnum">
+          <div><span class="bullet-dim">FAIR</span> <strong class="bullet-bold text-fair font-mono tnum">${dist.fair.toFixed(1)}</strong></div>
+          <span class="split-divider split-divider-tight">|</span>
+          <div><span class="bullet-dim">PROJ</span> <strong class="bullet-bold text-accent font-mono tnum proj-glow">${dist.proj.toFixed(1)}</strong></div>
         </div>
         <svg class="bullet-svg" viewBox="0 0 100 14" preserveAspectRatio="none" aria-hidden="true">
           <!-- Background Track (0 to maxScale) -->
@@ -1506,7 +1506,7 @@
                 const isPos = edge > 0;
                 edgeCell.innerHTML = `<span class="simulated-edge-badge ${isPos ? 'pos' : 'neg'}">${isPos ? '+' : ''}${edge.toFixed(1)}% Sim Edge</span>`;
               } else {
-                edgeCell.innerHTML = `<span class="text-muted" style="color: #475569; font-size: 15px; font-weight: 500;">—</span>`;
+                edgeCell.innerHTML = `<span class="text-muted edge-cell-muted">—</span>`;
               }
             }
           }
@@ -5607,9 +5607,9 @@
     return `<tr>
       <th style="width:28%">Player / Driver</th>
       <th style="width:12%">Matchup</th>
-      <th class="th-num${dimCls}" style="width:18%">Book & Status <span class="help-bubble" title="Sportsbook line, odds, and quote verification status">?</span></th>
+      <th class="th-num${dimCls} th-num-w18">Book & Status <span class="help-bubble" title="Sportsbook line, odds, and quote verification status">?</span></th>
       <th class="th-num" style="width:24%">Model (Fair | Proj | 80% CI) <span class="help-bubble" title="True-scale bullet graph: Amber tick is Book line, White tick is Model Fair, Green dot is Proj Mean, Shaded bar is 80% CI.">?</span></th>
-      <th class="th-num${dimCls}" style="width:18%">Price Check / Edge <span class="help-bubble" title="Mathematical edge vs de-vigged market line.">?</span></th>
+      <th class="th-num${dimCls} th-num-w18">Price Check / Edge <span class="help-bubble" title="Mathematical edge vs de-vigged market line.">?</span></th>
     </tr>`;
   }
 
@@ -6045,7 +6045,7 @@
       }
       return `<div class="book-cell book-cell-empty">
         <button type="button" class="simulate-line-btn" data-simulate-player="${esc(pid)}" title="Simulate sportsbook line and edge">
-          <span class="sim-plus">+</span> Simulate Line <span class="sim-plus" style="opacity:0.6;">+</span>
+          <span class="sim-plus">+</span> Simulate Line <span class="sim-plus sim-plus-dim">+</span>
         </button>
       </div>`;
     }
@@ -6122,7 +6122,7 @@
       }
       return `<div class="edge-cell-wrap">
         <div class="edge-cell edge-cell-none ${flashClass}">
-          <span class="text-muted" style="color: #475569; font-size: 15px; font-weight: 500;">—</span>
+          <span class="text-muted edge-cell-muted">—</span>
         </div>
       </div>`;
     }

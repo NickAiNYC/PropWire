@@ -129,6 +129,29 @@ await page.waitForTimeout(2500);
 check('ZERO CSP-blocked requests with headshots live', cspFailures.length === 0,
   cspFailures.length ? `e.g. ${cspFailures[0]}` : 'clean');
 
+// CDN-flake hardening (v172): re-kick any in-flight/failed decodes up to 3x with
+// a fresh cache-busted request before counting. The 100% decode bar stays —
+// only transient ESPN CDN hiccups are retried away.
+for (let round = 0; round < 3; round += 1) {
+  const stillPending = await page.evaluate(async (r) => {
+    const imgs = [...document.querySelectorAll('.pw-avatar-img')];
+    const pending = imgs.filter((i) => !(i.complete && i.naturalWidth > 0));
+    if (pending.length === 0) return 0;
+    await Promise.all(pending.map((img) => new Promise((res) => {
+      const probe = new Image();
+      probe.onload = () => {
+        img.src = `${img.src.split('?')[0]}?r=${r}_${Math.random().toString(36).slice(2, 7)}`;
+        res();
+      };
+      probe.onerror = () => res();
+      probe.src = `${img.src.split('?')[0]}?probe=${r}_${Math.random().toString(36).slice(2, 7)}`;
+      setTimeout(res, 4000);
+    })));
+    return imgs.filter((i) => !(i.complete && i.naturalWidth > 0)).length;
+  }, round);
+  if (stillPending === 0) break;
+  await page.waitForTimeout(1200);
+}
 const avatars = await page.evaluate(() => {
   const all = [...document.querySelectorAll('.pw-avatar')];
   const imgs = [...document.querySelectorAll('.pw-avatar-img')];
