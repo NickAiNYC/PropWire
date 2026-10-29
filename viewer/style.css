@@ -9475,20 +9475,45 @@ html, body {
   object-position: 50% 12%;
   image-rendering: -webkit-optimize-contrast;
 }
-.player-name .pw-avatar { width: 26px; height: 26px; }
+/* v168 — composite avatar: the team logo rides the picture's bottom-left corner
+   as a circular chip on a solid surface (contrast guaranteed on any photo).
+   Sits fully inside the avatar circle (parents keep overflow:hidden), scales
+   with each context's avatar size via %, and dead logos self-remove via the
+   delegated error handler. Chip look mirrors the avatar ring for cohesion. */
+.pw-avatar-team-badge {
+  position: absolute;
+  left: 4%;
+  bottom: 4%;
+  width: 52%;
+  height: 52%;
+  box-sizing: border-box;
+  border-radius: 50%;
+  object-fit: contain;
+  background: radial-gradient(circle at 50% 30%, #1e293b 0%, #0f172a 100%);
+  border: 1.5px solid rgba(255, 255, 255, 0.30);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(0, 0, 0, 0.30);
+}
+[data-theme="light"] .pw-avatar-team-badge {
+  background: linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
+  border-color: rgba(15, 23, 42, 0.24);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.28);
+}
+.player-name .pw-avatar { width: 34px; height: 34px; }
+.player-name .pw-avatar .pw-avatar-initials { font-size: 12px; }
 .card-id-block .pw-avatar {
-  width: 44px;
-  height: 44px;
+  width: 58px;
+  height: 58px;
   border-width: 1.5px;
   box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.22), 0 3px 10px rgba(0, 0, 0, 0.5);
 }
-.card-id-block .pw-avatar .pw-avatar-initials { font-size: 13px; font-weight: 700; color: #cbd5e1; }
-.pw-injury-card-top .pw-avatar { width: 34px; height: 34px; }
+.card-id-block .pw-avatar .pw-avatar-initials { font-size: 14px; font-weight: 700; color: #cbd5e1; }
+.pw-injury-card-top .pw-avatar { width: 44px; height: 44px; }
+.pw-injury-card-top .pw-avatar .pw-avatar-initials { font-size: 13px; }
 .execution-id-main { display: flex; align-items: center; gap: 12px; min-width: 0; }
-.execution-id-main .pw-avatar { width: 48px; height: 48px; }
+.execution-id-main .pw-avatar { width: 56px; height: 56px; }
 .execution-id-main .pw-avatar + div { min-width: 0; }
-.detail-title-row .pw-avatar { width: 56px; height: 56px; border-width: 2px; }
-.detail-title-row .pw-avatar .pw-avatar-initials { font-size: 16px; }
+.detail-title-row .pw-avatar { width: 64px; height: 64px; border-width: 2px; }
+.detail-title-row .pw-avatar .pw-avatar-initials { font-size: 17px; }
 [data-theme="light"] .pw-avatar {
   background: radial-gradient(circle at 50% 25%, #e2e8f0 0%, #cbd5e1 100%);
   border-color: rgba(24, 48, 78, 0.18);
@@ -10746,17 +10771,22 @@ body {
 }
 
 .card-id-block .pw-avatar {
-  width: 44px !important;
-  height: 44px !important;
-  min-width: 44px !important;
-  min-height: 44px !important;
+  width: 58px !important;
+  height: 58px !important;
+  min-width: 58px !important;
+  min-height: 58px !important;
   border-radius: 50% !important;
   border: 1.5px solid rgba(255, 255, 255, 0.14) !important;
   background: radial-gradient(circle at 50% 25%, #243046 0%, #0c121d 100%) !important;
   box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.22), 0 3px 10px rgba(0, 0, 0, 0.5) !important;
-  flex: 0 0 44px !important;
+  flex: 0 0 58px !important;
   position: relative !important;
   overflow: hidden !important;
+}
+/* v168: team badge rides the (now larger) mobile card picture's bottom-left. */
+.card-id-block .pw-avatar-team-badge {
+  border-width: 2px !important;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(0, 0, 0, 0.35) !important;
 }
 .card-id-block .pw-avatar-img {
   position: absolute !important;

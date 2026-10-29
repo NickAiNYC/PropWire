@@ -1,15 +1,15 @@
 #!/usr/bin/env node
-// v154 brand guard — OWNER-RESTORED authentic PropWire SVG lockup (v167)
+// v154 brand guard — OWNER-RESTORED authentic PropWire SVG lockup (v168)
 // lighter baby blue #A8DCF8) + og rebuild. Fresh server each run. Verifies:
 //   - slot PNGs exist with exact dims and serve under prod vercel.json CSP
 //   - RECOLOR probes (browser canvas): white + baby-blue regions present,
 //     zero residual dark ink in the dark-slot art (wholesale-RGB recolor)
-//   - all 5 terminal pages wire dropwire at ?v=2026_v167, zero pwire refs,
+//   - all 5 terminal pages wire dropwire at ?v=2026_v168, zero pwire refs,
 //     zero stale version markers, build-hash 2026-w8-v19
 //   - sw.js text: v154 cache + dropwire precache, pwire files deleted
 //   - header slots render + light-theme flip; lockup envelope recalibrated
 //     for the new art aspect (3.763 vs pwire 4.609 -> ~90px @ h24)
-//   - SW registers, activates propwire-v167-prod, precache populated
+//   - SW registers, activates propwire-v168-prod, precache populated
 //   - boot console: zero hard errors; CSP inline-style debt <= 171 baseline
 // Screenshots: download/headless_v154_dropwire_{desktop,mobile}.png
 import { chromium } from 'playwright';
@@ -90,7 +90,7 @@ const classify = async (url, region) => probe.evaluate(async ([u, reg]) => {
   return { n, white: white / n, blue: blue / n, darkInk };
 }, [url, region]).catch((e) => ({ err: String(e.message || e) }));
 
-const mDark = await classify(`http://127.0.0.1:${PORT}/propwire-logo-dropwire.png?v=2026_v167`);
+const mDark = await classify(`http://127.0.0.1:${PORT}/propwire-logo-dropwire.png?v=2026_v168`);
 if (mDark.err) check('recolor dark slot: probes', false, mDark.err);
 else {
   check('recolor dark slot: white DROP region present (>8%)', mDark.white > 0.08, `${(mDark.white * 100).toFixed(1)}%`);
@@ -98,7 +98,7 @@ else {
   check('recolor dark slot: zero residual dark ink', mDark.darkInk === 0, `ink px=${mDark.darkInk}/${mDark.n}`);
 }
 // chip: art band excludes the 18px pad; ink check ignores chip bg (#0b0e14)
-const mChip = await classify(`http://127.0.0.1:${PORT}/propwire-logo-dropwire-light.png?v=2026_v167`,
+const mChip = await classify(`http://127.0.0.1:${PORT}/propwire-logo-dropwire-light.png?v=2026_v168`,
   [18, 18, ll.w - 18, 138]);
 if (mChip.err) check('recolor light chip: probes', false, mChip.err);
 else {
@@ -111,7 +111,7 @@ else {
     mChip.darkInk / mChip.n <= 0.02, `ink=${mChip.darkInk}/${mChip.n} (${(100 * mChip.darkInk / mChip.n).toFixed(2)}%)`);
 }
 // og: wordmark band y 140..480 — positive presence only (glow tints overlap)
-const mOg = await classify(`http://127.0.0.1:${PORT}/og-image.png?v=2026_v167`, [0, 140, 1200, 480]);
+const mOg = await classify(`http://127.0.0.1:${PORT}/og-image.png?v=2026_v168`, [0, 140, 1200, 480]);
 if (mOg.err) check('recolor og: probes', false, mOg.err);
 else check('recolor og: white DROP + baby-blue WIRE in wordmark band',
   mOg.white > 0.03 && mOg.blue > 0.02, `w ${(mOg.white * 100).toFixed(1)}% / b ${(mOg.blue * 100).toFixed(1)}%`);
@@ -122,21 +122,21 @@ for (const p of pages) {
   const html = readFileSync(join(ROOT, p), 'utf8');
   const has = (re) => re.test(html);
   const ok =
-    has(/src="\/propwire-logo\.svg\?v=2026_v167"/) &&
-    has(/src="\/propwire-logo-dark\.svg\?v=2026_v167"/) &&
-    has(/name="build-hash" content="2026-w8-v20"/) &&
-    has(/og:image" content="https:\/\/propwire\.vercel\.app\/og-image\.png\?v=2026_v167"/) &&
+    has(/src="\/propwire-logo\.svg\?v=2026_v168"/) &&
+    has(/src="\/propwire-logo-dark\.svg\?v=2026_v168"/) &&
+    has(/name="build-hash" content="2026-w8-v21"/) &&
+    has(/og:image" content="https:\/\/propwire\.vercel\.app\/og-image\.png\?v=2026_v168"/) &&
     !has(/propwire-logo-pwire|propwire-logo-dropwire/) &&
     !has(/\?v=2026_v153|2026-w8-v18/);
-  check(`wiring ${p}: authentic SVG lockup @ v167, zero stale refs`, ok);
+  check(`wiring ${p}: authentic SVG lockup @ v168, zero stale refs`, ok);
 }
 
 // ── 4. sw.js text state ───────────────────────────────────────────────────
 const swSrc = readFileSync(join(ROOT, 'sw.js'), 'utf8');
-check('sw.js: cache propwire-v167-prod', swSrc.includes('propwire-v167-prod') && !swSrc.includes('propwire-v166-prod') && !swSrc.includes('propwire-v154-prod'));
-check('sw.js: precaches authentic SVG slots @ v167, zero pwire entries',
-  swSrc.includes("'/propwire-logo.svg?v=2026_v167',") &&
-  swSrc.includes("'/propwire-logo-dark.svg?v=2026_v167',") &&
+check('sw.js: cache propwire-v168-prod', swSrc.includes('propwire-v168-prod') && !swSrc.includes('propwire-v166-prod') && !swSrc.includes('propwire-v154-prod'));
+check('sw.js: precaches authentic SVG slots @ v168, zero pwire entries',
+  swSrc.includes("'/propwire-logo.svg?v=2026_v168',") &&
+  swSrc.includes("'/propwire-logo-dark.svg?v=2026_v168',") &&
   !swSrc.includes('propwire-logo-pwire'));
 
 // ── 5. Header slots render + light-theme flip under prod CSP ──────────────
@@ -190,18 +190,18 @@ const sw = await page.evaluate(async () => {
   const probe2 = async (u) => !!(await cache.match(u));
   return {
     name,
-    logoDark: await probe2('/propwire-logo.svg?v=2026_v167'),
-    logoLight: await probe2('/propwire-logo-dark.svg?v=2026_v167'),
-    i192: await probe2('/icon-192.png?v=2026_v167'),
-    man: await probe2('/site.webmanifest?v=2026_v167'),
+    logoDark: await probe2('/propwire-logo.svg?v=2026_v168'),
+    logoLight: await probe2('/propwire-logo-dark.svg?v=2026_v168'),
+    i192: await probe2('/icon-192.png?v=2026_v168'),
+    man: await probe2('/site.webmanifest?v=2026_v168'),
     book: await probe2('/books/draftkings.svg?v=v152'),
   };
 });
-check('SW: propwire-v167-prod activated', sw.name === 'propwire-v167-prod', String(sw.name));
+check('SW: propwire-v168-prod activated', sw.name === 'propwire-v168-prod', String(sw.name));
 check('SW: precache has dropwire slots + icons + manifest', sw.logoDark && sw.logoLight && sw.i192 && sw.man, JSON.stringify(sw));
 check('SW: v152 book badges still precached', sw.book);
 check('boot: zero hard console errors (CSP inline-style debt tracked separately)', errors.length === 0, errors.slice(0, 3).join(' | '));
-check('boot: CSP inline-style debt not grown (<= 178 v167 merge baseline; owner-redesign debt 171->178)', cspDebt <= 178, `debt=${cspDebt}`);
+check('boot: CSP inline-style debt not grown (<= 178 v168 merge baseline; owner-redesign debt 171->178)', cspDebt <= 178, `debt=${cspDebt}`);
 
 // ── 7. Screenshots: desktop header + mobile 390 topbar (overflow QA) ─────
 await page.evaluate(() => document.querySelector('.pw-brand')?.scrollIntoView({ block: 'center' }));

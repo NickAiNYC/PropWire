@@ -886,7 +886,7 @@
       .trim();
   }
 
-  function avatarFor(playerId, displayName) {
+  function avatarFor(playerId, displayName, team) {
     const store = state.playerPhotos || {};
     const photos = store.photos || {};
     const byName = store.by_name || {};
@@ -900,8 +900,19 @@
       .map((part) => (part[0] || '').toUpperCase())
       .join('').replace(/[^A-Z]/g, '').slice(0, 2)) || '?';
     const face = `<span class="pw-avatar-initials" aria-hidden="true">${esc(initials)}</span>`;
-    if (!entry || !entry.url) return `<span class="pw-avatar pw-avatar-fallback">${face}</span>`;
-    return `<span class="pw-avatar">${face}<img class="pw-avatar-img" src="${esc(entry.url)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer"></span>`;
+    // v168 composite: the team logo rides the picture's bottom-left corner as a
+    // circular chip on a solid dark surface (CSS-owned — team tints are too
+    // subtle over a photo). Dead logos self-remove through the delegated
+    // capture-phase error handler in initPlayerPhotos.
+    const code = String(team || '').toUpperCase();
+    const meta = code ? (NFL_LOGO_MAP[code] || { slug: String(team).toLowerCase() }) : null;
+    const badge = meta
+      ? `<img class="pw-avatar-team-badge" src="${adapter.logo.espnCdnBase}${meta.slug}.png" alt="${esc(code)}" title="${esc(code)}" loading="lazy" decoding="async" referrerpolicy="no-referrer">`
+      : '';
+    if (!entry || !entry.url) {
+      return `<span class="pw-avatar pw-avatar-fallback">${face}${badge}</span>`;
+    }
+    return `<span class="pw-avatar">${face}<img class="pw-avatar-img" src="${esc(entry.url)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer">${badge}</span>`;
   }
 
   async function initPlayerPhotos() {
@@ -911,7 +922,8 @@
     if (typeof document !== 'undefined' && typeof document.addEventListener === 'function') {
       document.addEventListener('error', (event) => {
         const el = event.target;
-        if (el && el.classList && el.classList.contains('pw-avatar-img')) el.remove();
+        if (!el || !el.classList) return;
+        if (el.classList.contains('pw-avatar-img') || el.classList.contains('pw-avatar-team-badge')) el.remove();
       }, true);
     }
     try {
@@ -2382,8 +2394,6 @@
       const isAmber = statusUpper.includes('LIMITED') || statusUpper.includes('QUESTIONABLE');
       const tier = isRed ? 'red' : isAmber ? 'amber' : 'slate';
 
-      const crest = teamCrest(item.team, 'md');
-
       let quantImpact = '';
       // Sport-agnostic gate: NFL injuries vacate targets/air yards; NBA-style
       // injuries vacate minutes. The adapter label owns the unit wording.
@@ -2413,8 +2423,7 @@
         <div class="pw-injury-card">
           <div class="pw-injury-card-top">
             <div class="pw-injury-player-meta">
-              ${crest}
-              ${avatarFor(item.player_id, item.player_name)}
+              ${avatarFor(item.player_id, item.player_name, item.team)}
               <div class="pw-injury-name-col">
                 <div class="pw-injury-name-row">
                   <span class="pw-injury-player-name">${esc(item.player_name)}</span>
@@ -3611,7 +3620,6 @@
     const isWatched = (state.watchlist || []).includes(row.player_id);
     const isLogged = (state.portfolio || []).some((b) => b.sport === SPORT_ID && b.player_id === row.player_id && b.market === state.filters.market);
     const starBtn = `<button class="star-btn ${isWatched ? 'starred' : ''}" type="button" data-watch-player="${esc(row.player_id)}" title="${isWatched ? 'Remove from Watchlist' : 'Add to Watchlist'}" aria-label="Watch">${SVG_ICONS.star(isWatched)}</button>`;
-    const logoImg = teamCrest(row.team, 'md');
     const bulletSvg = propBulletGraphSvg(dist, evaluation, evaluation.side || 'OVER');
     const corrRisk = checkCorrelatedRisk(row, evaluation);
     const rowStateClass = evaluation.state === 'ingested'
@@ -3625,10 +3633,9 @@
     return `<tr class="slate-row ${rowStateClass} ${isTopEdge ? 'top-edge-play' : ''}" data-testid="slate-row" data-player-id="${esc(row.player_id)}" style="--row-index:${Math.min(index, 14)};" tabindex="0" role="button" aria-label="Inspect ${esc(row.player_display_name)}">
       <td>
         <div class="player-cell">
-          ${logoImg}
           <span class="position-box">${esc(row.position)}</span>
           <div class="player-info">
-            <div class="player-name">${starBtn} ${avatarFor(row.player_id, row.player_display_name)}<span class="player-name-text">${esc(row.player_display_name)}</span>${injury ? `<span class="injury-tag">${esc(injury.report_status)}</span>` : ''}</div>
+            <div class="player-name">${starBtn} ${avatarFor(row.player_id, row.player_display_name, row.team)}<span class="player-name-text">${esc(row.player_display_name)}</span>${injury ? `<span class="injury-tag">${esc(injury.report_status)}</span>` : ''}</div>
             <div class="player-meta-line">
               <span class="cell-sub">${esc(row.team)} · ${esc(roleLabel(row))}</span>
               ${keyDriverTag(row, beneficiary)}${sportCalibrationBadge()}
@@ -3788,8 +3795,7 @@
         <div class="card-header-row">
           <div class="card-id-block">
             <button class="star-btn ${isWatched ? 'starred' : ''}" type="button" data-watch-player="${esc(row.player_id)}" title="${isWatched ? 'Remove from Watchlist' : 'Add to Watchlist'}" aria-label="Watch">${SVG_ICONS.star(isWatched)}</button>
-            ${crest}
-            ${avatarFor(row.player_id, row.player_display_name)}
+            ${avatarFor(row.player_id, row.player_display_name, row.team)}
             <div class="card-name-group">
               <span class="card-player-name">${esc(row.player_display_name)}${injury ? ` <span class="injury-tag">${esc(injury.report_status)}</span>` : ''}</span>
               <span class="card-team-matchup">${esc(row.position)} · ${esc(row.team)} ${row.is_home ? 'vs' : '@'} ${esc(row.opponent_team)}</span>${sportCalibrationBadge()}
@@ -4359,7 +4365,7 @@
     const reasons = decision.allowed ? ['Verified receipt', 'Fresh odds and news', `Clears ${pct(policy()?.gate || 0, 0)} gate`] : [decision.message];
     return `
       <section class="execution-identity">
-        <div class="execution-id-main">${avatarFor(row.player_id, row.player_display_name)}<div><span class="execution-kicker">${esc(row.position)} · ${esc(row.team)} ${row.is_home ? 'vs' : '@'} ${esc(row.opponent_team)}</span><h3>${esc(row.player_display_name)}</h3></div></div>
+        <div class="execution-id-main">${avatarFor(row.player_id, row.player_display_name, row.team)}<div><span class="execution-kicker">${esc(row.position)} · ${esc(row.team)} ${row.is_home ? 'vs' : '@'} ${esc(row.opponent_team)}</span><h3>${esc(row.player_display_name)}</h3></div></div>
         <span class="execution-state ${decision.allowed ? 'is-ready' : 'is-blocked'}">${decision.allowed ? 'Verified · ready' : 'Blocked'}</span>
       </section>
       <section class="execution-summary" aria-label="Execution terms">
@@ -5310,8 +5316,7 @@
 
     $('#detailTitle').innerHTML = `
       <div class="detail-title-row">
-        ${teamCrest(row.team, 'lg')}
-        ${avatarFor(row.player_id, row.player_display_name)}
+        ${avatarFor(row.player_id, row.player_display_name, row.team)}
         <span>${esc(row.player_display_name)}</span>
         ${sideBadge}
         ${beneficiary ? ` <span class="surge-tag">${SVG_ICONS.surge} ROLE SURGE</span>` : ''}
