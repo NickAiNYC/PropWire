@@ -8,6 +8,7 @@
 
   const leagueNames = { nba: 'NBA', nfl: 'NFL' };
   const leaguePaths = { nba: 'basketball/nba', nfl: 'football/nfl' };
+  const teamAliases = { LAR: 'LA', WSH: 'WAS', NY: 'NYK', GS: 'GSW', SA: 'SAS', NO: 'NOP' };
   const activeSport = () => localStorage.getItem('propwire_active_sport') === 'nba' ? 'nba' : 'nfl';
   const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
 
@@ -19,7 +20,16 @@
     return `${part('year')}${part('month')}${part('day')}`;
   }
 
-  function gameCard(event) {
+  const teamCode = (value) => teamAliases[value] || value;
+  const eventTeams = (event) => {
+    const competitors = event.competitions?.[0]?.competitors || [];
+    return {
+      away: teamCode(competitors.find((team) => team.homeAway === 'away')?.team?.abbreviation),
+      home: teamCode(competitors.find((team) => team.homeAway === 'home')?.team?.abbreviation)
+    };
+  };
+
+  function gameCard(event, index) {
     const competition = event.competitions?.[0] || {};
     const teams = competition.competitors || [];
     const away = teams.find((team) => team.homeAway === 'away') || {};
@@ -41,13 +51,99 @@
     const score = state === 'pre' ? '<span class="today-versus">VS</span>' :
       `<span class="today-score">${escapeHtml(away.score ?? '0')} <span>–</span> ${escapeHtml(home.score ?? '0')}</span>`;
     return `<article class="today-game-card">
-      <div class="today-game-top"><span>${escapeHtml(time)}</span><span class="today-game-status ${state === 'in' ? 'is-live' : ''}">${escapeHtml(statusText || (state === 'post' ? 'Final' : 'Scheduled'))}</span></div>
-      <div class="today-game-matchup">${team(away)}<div class="today-game-center">${score}</div>${team(home)}</div>
+      <button class="today-game-trigger" type="button" data-game-index="${index}" aria-expanded="false" aria-controls="todayGameProps${index}" aria-label="${escapeHtml(away.team?.displayName || 'Away team')} at ${escapeHtml(home.team?.displayName || 'home team')}: show player prop projections">
+        <div class="today-game-top"><span>${escapeHtml(time)}</span><span class="today-game-status ${state === 'in' ? 'is-live' : ''}">${escapeHtml(statusText || (state === 'post' ? 'Final' : 'Scheduled'))}</span></div>
+        <div class="today-game-matchup">${team(away)}<div class="today-game-center">${score}</div>${team(home)}</div>
+        <div class="today-game-action"><span>PLAYER PROP PROJECTIONS</span><span class="today-game-chevron" aria-hidden="true">⌄</span></div>
+      </button>
+      <div class="today-game-props" id="todayGameProps${index}" hidden></div>
     </article>`;
   }
 
   let requestNumber = 0;
+  let currentEvents = [];
+  const modelCache = new Map();
+  const fetchJson = async (path) => {
+    const response = await fetch(path, { cache: 'no-store' });
+    if (!response.ok) {
+      const error = new Error(`Model data unavailable: ${response.status}`);
+      error.status = response.status;
+      throw error;
+    }
+    return response.json();
+  };
+
+  async function modelSources(sport, dateKey) {
+    const key = `${sport}:${dateKey}`;
+    if (!modelCache.has(key)) {
+      modelCache.set(key, (async () => {
+        if (sport === 'nba') {
+          const date = `${dateKey.slice(0, 4)}-${dateKey.slice(4, 6)}-${dateKey.slice(6)}`;
+          try {
+            const [games, slate] = await Promise.all([
+              fetchJson(`/nba_games_${date}.json`), fetchJson(`/nba_slate_${date}.json`)
+            ]);
+            return [{ games, slate }];
+          } catch (error) {
+            if (error.status === 404) return [];
+            throw error;
+          }
+        }
+        const index = await fetchJson('/feeds/slate-index.json');
+        const slates = Object.values(index.sports?.nfl?.slates || {}).filter((item) => !item.historical && item.games && item.slate);
+        return Promise.all(slates.map(async (item) => {
+          const [games, slate] = await Promise.all([fetchJson(`/${item.games}`), fetchJson(`/${item.slate}`)]);
+          return { games, slate };
+        }));
+      })().catch((error) => { modelCache.delete(key); throw error; }));
+    }
+    return modelCache.get(key);
+  }
+
+  function projectionRow(row, sport) {
+    const number = (value) => Number.isFinite(Number(value)) ? Number(value).toFixed(1) : '—';
+    const stats = sport === 'nba'
+      ? [['PTS', row.proj_pts], ['REB', row.proj_reb], ['AST', row.proj_ast], ['3PM', row.proj_fg3m]]
+      : [['REC YDS', row.proj_yards], ['REC', row.proj_rec]];
+    return `<div class="today-prop-row"><div class="today-prop-player"><strong>${escapeHtml(row.player_display_name)}</strong><span>${escapeHtml(row.team)} · ${escapeHtml(row.position || row.position_hist || '')}</span></div><div class="today-prop-stats">${stats.map(([label, value]) => `<span><b>${number(value)}</b><small>${label}</small></span>`).join('')}</div></div>`;
+  }
+
+  async function showGameProps(button) {
+    const panel = document.getElementById(button.getAttribute('aria-controls'));
+    if (button.getAttribute('aria-expanded') === 'true') {
+      button.setAttribute('aria-expanded', 'false');
+      panel.hidden = true;
+      return;
+    }
+    button.setAttribute('aria-expanded', 'true');
+    panel.hidden = false;
+    if (panel.dataset.loaded) return;
+    panel.innerHTML = '<p class="today-prop-message">Loading player projections…</p>';
+    const event = currentEvents[Number(button.dataset.gameIndex)];
+    const sport = activeSport();
+    const dateKey = easternDate(new Date(event.date));
+    try {
+      const sources = await modelSources(sport, dateKey);
+      if (!button.isConnected) return;
+      const { away, home } = eventTeams(event);
+      const match = sources.flatMap((source) => (Array.isArray(source.games) ? source.games : []).map((game) => ({ game, slate: source.slate })))
+        .find(({ game }) => game.gameday?.replaceAll('-', '') === dateKey && teamCode(game.away_team) === away && teamCode(game.home_team) === home && !game._fixture);
+      const rows = match && Array.isArray(match.slate)
+        ? match.slate.filter((row) => row.game_id === match.game.game_id && !row._fixture && (row.status === 'ACT' || row.status === 'ACTIVE') && !row.excl_reason)
+        : [];
+      rows.sort((a, b) => Number(b.proj_yards ?? b.proj_pts ?? 0) - Number(a.proj_yards ?? a.proj_pts ?? 0));
+      panel.innerHTML = rows.length
+        ? `<div class="today-prop-heading"><strong>${rows.length} player projections</strong><span>PropStein model · research only</span></div><div class="today-prop-list">${rows.map((row) => projectionRow(row, sport)).join('')}</div>`
+        : '<p class="today-prop-message">No PropStein player projections are available for this matchup yet.</p>';
+      panel.dataset.loaded = 'true';
+    } catch (error) {
+      if (!button.isConnected) return;
+      panel.innerHTML = '<p class="today-prop-message">Player projections are unavailable right now. Close and reopen the game to retry.</p>';
+      console.warn('[PropStein] Game projections unavailable:', error);
+    }
+  }
   async function loadTodayGames() {
+    modelCache.clear();
     const sport = activeSport();
     const dateKey = easternDate();
     const dateLabel = new Intl.DateTimeFormat('en-US', {
@@ -69,6 +165,7 @@
         const date = new Date(event.date);
         return !Number.isNaN(date.getTime()) && easternDate(date) === dateKey;
       }).sort((a, b) => new Date(a.date) - new Date(b.date));
+      currentEvents = games;
       gamesEl.innerHTML = games.length ? games.map(gameCard).join('') : `<p class="today-schedule-message">No ${leagueNames[sport]} games are scheduled for today.</p>`;
       document.getElementById('todayScheduleSource').textContent = `Schedule and scores: ESPN · Times shown in Eastern Time · ${games.length} game${games.length === 1 ? '' : 's'}`;
     } catch (error) {
@@ -113,6 +210,10 @@
   }));
   document.getElementById('comingSoonBack').addEventListener('click', showSchedule);
   document.getElementById('todayScheduleRefresh').addEventListener('click', loadTodayGames);
+  gamesEl.addEventListener('click', (event) => {
+    const button = event.target.closest('.today-game-trigger');
+    if (button) showGameProps(button);
+  });
   gamesEl.addEventListener('error', (event) => {
     if (event.target.matches('.today-team-logo img')) event.target.replaceWith(document.createTextNode('—'));
   }, true);
