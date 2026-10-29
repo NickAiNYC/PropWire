@@ -14991,20 +14991,42 @@ dialog.detail-dialog .dialog-sheet-handle {
 .today-schedule-heading p:last-child { margin: 5px 0 0; color: #8e9aab; font: 500 11px/1.3 var(--pw-font-sans, sans-serif); }
 .today-schedule-refresh, .coming-soon-page button { min-height: 32px; padding: 6px 12px; border: 1px solid rgba(56,189,248,.28); border-radius: 8px; background: var(--pw-bg-card); color: #a7dfff; font: 600 11px/1 var(--pw-font-sans, sans-serif); cursor: pointer; }
 .today-schedule-refresh:hover, .coming-soon-page button:hover { border-color: var(--pw-accent-blue); color: #fff; }
-.today-schedule-games { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 290px), 1fr)); gap: 10px; }
-.today-game-card { min-height: 132px; padding: 12px 14px; border: 1px solid var(--pw-border-subtle, rgba(255,255,255,.08)); border-radius: 12px; background: radial-gradient(ellipse at 50% 125%, rgba(56,189,248,.11), transparent 68%), var(--pw-bg-card); }
-.today-game-top { display: flex; justify-content: space-between; gap: 8px; color: #cbd5e1; font: 600 11px/1.3 var(--pw-font-sans, sans-serif); }
-.today-game-status { color: #8c9bad; text-align: right; }
+.today-schedule-games { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 290px), 1fr)); align-items: start; gap: 10px; }
+.today-game-card { min-width: 0; max-width: 560px; overflow: hidden; border: 1px solid rgba(111, 204, 255, .18); border-radius: 26px; background: linear-gradient(155deg, #151c25 0%, #0b111b 58%, #102535 100%); box-shadow: 0 12px 30px rgba(0,0,0,.17); }
+.today-game-trigger { position: relative; display: block; width: 100%; min-height: 184px; padding: 18px 15px 0; overflow: hidden; border: 0; background: radial-gradient(ellipse at 50% 108%, rgba(91, 194, 249, .16), transparent 69%); color: inherit; text-align: inherit; cursor: pointer; }
+.today-game-trigger::before { position: absolute; top: 0; left: 25%; width: 50%; height: 48px; background: linear-gradient(180deg, rgba(78, 179, 236, .15), transparent); clip-path: polygon(0 0, 100% 0, 75% 100%, 25% 100%); content: ''; pointer-events: none; }
+.today-game-trigger:hover { background-color: rgba(82, 177, 232, .07); }
+.today-game-trigger:focus-visible { outline: 2px solid var(--pw-accent-blue); outline-offset: -3px; }
+.today-game-top { position: relative; display: flex; justify-content: center; min-height: 20px; color: #eaf6ff; font: 600 12px/1.3 var(--pw-font-sans, sans-serif); text-align: center; }
+.today-game-status { position: absolute; right: 0; color: #92afc2; font-size: 10px; text-align: right; }
 .today-game-status.is-live { color: var(--pw-accent-blue); }
-.today-game-matchup { display: grid; grid-template-columns: minmax(0,1fr) auto minmax(0,1fr); align-items: center; gap: 8px; margin-top: 18px; }
-.today-team { display: flex; flex-direction: column; align-items: center; gap: 5px; min-width: 0; text-align: center; }
-.today-team strong { max-width: 100%; overflow: hidden; color: #f1f5f9; font: 650 12px/1.2 var(--pw-font-sans, sans-serif); text-overflow: ellipsis; white-space: nowrap; }
-.today-team-logo { display: grid; place-items: center; width: 42px; height: 42px; border: 1px solid rgba(148,163,184,.2); border-radius: 50%; background: #1b2430; color: #a7dfff; font: 700 12px/1 var(--pw-font-mono, monospace); }
-.today-team-logo img { width: 34px; height: 34px; object-fit: contain; }
-.today-game-center { min-width: 55px; color: #a8bdcf; text-align: center; }
+.today-game-matchup { position: relative; display: grid; grid-template-columns: minmax(0,1fr) 50px minmax(0,1fr); align-items: center; gap: 4px; margin-top: 31px; }
+.today-team { display: flex; align-items: center; gap: 5px; min-width: 0; text-align: left; }
+.today-team:last-child { flex-direction: row-reverse; text-align: right; }
+.today-team strong { max-width: 100%; overflow: hidden; color: #f1f5f9; font: 700 11px/1.2 var(--pw-font-sans, sans-serif); text-overflow: ellipsis; white-space: nowrap; }
+.today-team-logo { display: grid; flex: 0 0 44px; place-items: center; width: 44px; height: 44px; border: 1px solid rgba(156, 199, 226, .2); border-radius: 50%; background: #1c2935; color: #a7dfff; font: 700 12px/1 var(--pw-font-mono, monospace); box-shadow: inset 0 0 12px rgba(120, 198, 240, .06); }
+.today-team-logo img { width: 36px; height: 36px; object-fit: contain; }
+.today-game-center { min-width: 50px; color: #d8efff; text-align: center; }
 .today-versus { font: 700 13px/1 var(--pw-font-mono, monospace); }
 .today-score { color: #f8fafc; font: 700 18px/1 var(--pw-font-mono, monospace); white-space: nowrap; }
 .today-score span { color: var(--pw-accent-blue); }
+.today-game-action { position: relative; display: flex; align-items: center; justify-content: space-between; margin: 29px -15px 0; padding: 11px 17px; border-top: 1px solid rgba(117, 205, 252, .22); background: linear-gradient(90deg, rgba(74, 175, 227, .05), rgba(92, 191, 244, .2), rgba(74, 175, 227, .05)); color: #a9e0ff; font: 700 10px/1.2 var(--pw-font-mono, monospace); letter-spacing: .08em; }
+.today-game-chevron { font-size: 18px; line-height: .6; transition: transform .2s; }
+.today-game-trigger[aria-expanded="true"] .today-game-chevron { transform: rotate(180deg); }
+.today-game-props[hidden] { display: none; }
+.today-game-props { padding: 13px 15px 16px; border-top: 1px solid rgba(117, 205, 252, .2); background: linear-gradient(180deg, rgba(31, 73, 100, .33), rgba(8, 15, 24, .8)); }
+.today-prop-heading { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 9px; color: #e6f7ff; font: 700 11px/1.3 var(--pw-font-sans, sans-serif); }
+.today-prop-heading span { color: #88aec7; font-size: 10px; font-weight: 500; text-align: right; }
+.today-prop-list { max-height: 360px; overflow-y: auto; scrollbar-color: rgba(107, 200, 251, .45) transparent; }
+.today-prop-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 9px 1px; border-top: 1px solid rgba(165, 218, 247, .1); }
+.today-prop-player { display: flex; flex-direction: column; min-width: 0; gap: 3px; }
+.today-prop-player strong { overflow: hidden; color: #f0f8ff; font: 700 11px/1.2 var(--pw-font-sans, sans-serif); text-overflow: ellipsis; white-space: nowrap; }
+.today-prop-player span { color: #91a8ba; font: 500 10px/1.2 var(--pw-font-sans, sans-serif); }
+.today-prop-stats { display: flex; flex: 0 0 auto; gap: 12px; text-align: right; }
+.today-prop-stats > span { display: flex; flex-direction: column; gap: 2px; }
+.today-prop-stats b { color: #b8e9ff; font: 700 12px/1 var(--pw-font-mono, monospace); }
+.today-prop-stats small { color: #7897aa; font: 600 8px/1 var(--pw-font-mono, monospace); }
+.today-prop-message { margin: 0; color: #a4c7da; font: 500 11px/1.5 var(--pw-font-sans, sans-serif); }
 .today-schedule-message { grid-column: 1/-1; margin: 0; padding: 20px; border: 1px solid rgba(255,255,255,.08); border-radius: 10px; background: var(--pw-bg-card); color: #a8b6c8; font: 500 12px/1.5 var(--pw-font-sans, sans-serif); }
 .today-schedule-source { margin: 8px 2px 0; color: #748395; font: 500 10px/1.3 var(--pw-font-sans, sans-serif); }
 
