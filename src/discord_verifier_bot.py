@@ -1,3 +1,93 @@
+# src/discord_verifier_bot.py
+import os
+import re
+import aiohttp
+import discord
+from discord.ext import commands
+
+DISCORD_BOT_TOKEN = os.environ.get("DISCORD_BOT_TOKEN")
+PROPSTEIN_VERIFY_URL = os.environ.get(
+    "PROPSTEIN_VERIFY_URL",
+    os.environ.get("PropWire_VERIFY_URL", "https://propstein.vercel.app/api/v1/verify-receipt"),
+)
+POST_BETS_CHANNEL_ID = int(os.environ.get("POST_BETS_CHANNEL_ID", "0"))
+VERIFIED_EXECUTION_ROLE_NAME = "Receipt Verified"
+SHARP_CLV_ROLE_NAME = "CLV Proven (50+ Slips)"
+
+SHA256_REGEX = re.compile(r"\b([a-fA-F0-9]{64})\b")
+
+intents = discord.Intents.default()
+intents.message_content = True
+intents.members = True
+
+bot = commands.Bot(command_prefix="!", intents=intents)
+
+
+def build_verification_embed(author: discord.Member, payload: dict) -> discord.Embed:
+    integrity = payload["integrity"]
+    lifecycle = payload["lifecycle"]
+    entry = lifecycle["entry"]
+    closing = lifecycle.get("closing")
+    settlement = lifecycle.get("settlement")
+    stage = integrity["lifecycle_stage"]
+
+    direction_arrow = "↑" if entry["direction"] == "OVER" else "↓"
+    price_str = f"+{entry['price']}" if entry["price"] > 0 else f"{entry['price']}"
+
+    stage_badges = {
+        "STAGE_1_ENTRY_PROVEN": ("🟢 STAGE 1 · PRE-GAME ENTRY PROVEN", 0x10B981),
+        "STAGE_2_CLV_LOCKED": ("🔵 STAGE 2 · T-0 CLOSING LINE LOCKED", 0x3B82F6),
+        "STAGE_3_SETTLEMENT_FINALIZED": ("🟣 STAGE 3 · OFFICIAL BOXSCORE SETTLED", 0x8B5CF6),
+    }
+
+    badge_text, color_hex = stage_badges.get(stage, ("VERIFIED RECEIPT", 0x10B981))
+
+    embed = discord.Embed(
+        title=f"{entry['player']} ({entry['team']}) · {direction_arrow} {entry['line']} ({price_str})",
+        description=f"**{badge_text}**\nBook: `{entry['book']}` · Market: `{entry['market']}`",
+        color=color_hex,
+    )
+    embed.set_author(name=f"PropStein Cryptographic Audit · {author.display_name}")
+
+    # Entry Metrics
+    embed.add_field(
+        name="1. Entry Quote",
+        value=(
+            f"Line: **{direction_arrow} {entry['line']}** ({price_str})\n"
+            f"Fair: `{entry['fair_line_at_entry']:.1f}` (+{entry['edge_pct_at_entry']:.1f}% Edge)\n"
+            f"Hash: `#{entry['receipt_hash'][:10]}…`"
+        ),
+        inline=True,
+    )
+
+    # Closing Line Metrics
+    if closing:
+        embed.add_field(
+            name="2. T-0 Closing Lock",
+            value=(
+                f"Close: **{closing['line']}**\n"
+                f"Fair Close: `{closing['fair_line']:.1f}`\n"
+                f"Hash: `#{closing['snapshot_hash'][:10]}…`"
+            ),
+            inline=True,
+        )
+    else:
+        embed.add_field(
+            name="2. T-0 Closing Lock",
+            value="⧗ *Awaiting Kickoff (T-5m Lock)*",
+            inline=True,
+        )
+
+    # Settlement & CLV Metrics
+    if settlement:
+        clv_pct = settlement["clv_no_vig_pct"]
+        clv_yards = settlement["clv_delta_yards"]
+        sign = "+" if clv_pct >= 0 else ""
+        yard_sign = "+" if clv_yards >= 0 else ""
+        embed.add_field(
+            name="3. Official Settlement",
+            value=(
+                f"Outcome: **{settlement['outcome']}** (Stat: `{settlement['settled_stat']}`)\n"
                 f"CLV: **{sign}{clv_pct:.2f}%** ({yard_sign}{clv_yards}y)\n"
                 f"Hash: `#{settlement['settlement_hash'][:10]}…`"
             ),
@@ -50,7 +140,7 @@ async def on_message(message: discord.Message):
     async with aiohttp.ClientSession() as session:
         try:
             async with session.post(
-                PropWire_VERIFY_URL,
+                PROPSTEIN_VERIFY_URL,
                 json={"receipt_hash": receipt_hash},
                 timeout=aiohttp.ClientTimeout(total=8),
             ) as resp:

@@ -47,3 +47,15 @@ Set the following variables on the **`propstein-worker`** service in Railway:
 | `NBA_ACTIVE_GAME_IDS` | `2026_nba_mil_bos,2026_nba_gsw_sac` | Active NBA game IDs monitored on a 5-second cadence. |
 | `NBA_PBP_POLL_SECONDS` | `5.0` | Play-by-Play polling interval in seconds. |
 | `ENVIRONMENT` | `production` | Enforces production logging and fail-closed gates. |
+| `LOG_LEVEL` | `INFO` | Emits structured single-line JSON logs for Railway log aggregation. |
+
+---
+
+### 3. Startup Boot-Race Protection & Graceful Shutdown
+
+- **Boot Race Retry (`wait_for_web_service`)**:
+  When Railway deploys `propstein-web` and `propstein-worker` simultaneously, `propstein-worker` may boot before `uvicorn` is listening. On startup, the worker pings `${PROPWIRE_INTERNAL_API_URL}/api/health` with exponential backoff (`1s, 2s, 4s, 8s, 16s` — max 5 retries). If `propstein-web` is still unreachable after 5 attempts, the worker logs a `CRITICAL` `boot_race_web_service_unreachable` JSON alert and waits before polling.
+- **Graceful Shutdown (`SIGTERM` / `SIGINT`)**:
+  During a redeploy, Railway sends `SIGTERM` to the container. `LiveNbaSniperWorker` catches `SIGTERM` and `SIGINT`, finishes the current in-flight poll cycle, closes its health check server and sockets, logs `worker_graceful_shutdown_complete`, and exits with code `0`.
+- **Health Check & 60s Heartbeat**:
+  When `PORT` or `WORKER_HEALTH_PORT` is set on `propstein-worker`, it exposes `GET /health` (`200 OK`) and emits a structured `worker_heartbeat` log every 60 seconds.
