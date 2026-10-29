@@ -54,7 +54,7 @@
       <button class="today-game-trigger" type="button" data-game-index="${index}" aria-expanded="false" aria-controls="todayGameProps${index}" aria-label="${escapeHtml(away.team?.displayName || 'Away team')} at ${escapeHtml(home.team?.displayName || 'home team')}: show player prop projections">
         <div class="today-game-top"><span>${escapeHtml(time)}</span><span class="today-game-status ${state === 'in' ? 'is-live' : ''}">${escapeHtml(statusText || (state === 'post' ? 'Final' : 'Scheduled'))}</span></div>
         <div class="today-game-matchup">${team(away)}<div class="today-game-center">${score}</div>${team(home)}</div>
-        <div class="today-game-action"><span>PLAYER PROP PROJECTIONS</span><span class="today-game-chevron" aria-hidden="true">⌄</span></div>
+        <div class="today-game-action"><span>PLAYER PROPS</span><span class="today-game-chevron" aria-hidden="true">⌄</span></div>
       </button>
       <div class="today-game-props" id="todayGameProps${index}" hidden></div>
     </article>`;
@@ -63,6 +63,7 @@
   let requestNumber = 0;
   let currentEvents = [];
   const modelCache = new Map();
+  let supportingDataPromise;
   const fetchJson = async (path) => {
     const response = await fetch(path, { cache: 'no-store' });
     if (!response.ok) {
@@ -100,12 +101,64 @@
     return modelCache.get(key);
   }
 
-  function projectionRow(row, sport) {
-    const number = (value) => Number.isFinite(Number(value)) ? Number(value).toFixed(1) : '—';
-    const stats = sport === 'nba'
-      ? [['PTS', row.proj_pts], ['REB', row.proj_reb], ['AST', row.proj_ast], ['3PM', row.proj_fg3m]]
-      : [['REC YDS', row.proj_yards], ['REC', row.proj_rec]];
-    return `<div class="today-prop-row"><div class="today-prop-player"><strong>${escapeHtml(row.player_display_name)}</strong><span>${escapeHtml(row.team)} · ${escapeHtml(row.position || row.position_hist || '')}</span></div><div class="today-prop-stats">${stats.map(([label, value]) => `<span><b>${number(value)}</b><small>${label}</small></span>`).join('')}</div></div>`;
+  function supportingData() {
+    if (!supportingDataPromise) {
+      supportingDataPromise = Promise.allSettled([
+        fetchJson('/feeds/player_photos.json'), fetchJson('/live_odds_feed.json')
+      ]).then(([photos, odds]) => ({
+        photos: photos.status === 'fulfilled' ? photos.value : {},
+        quotes: odds.status === 'fulfilled' && Array.isArray(odds.value.quotes) ? odds.value.quotes : []
+      }));
+    }
+    return supportingDataPromise;
+  }
+
+  const normalizedName = (name) => String(name || '').toLowerCase().normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '').replace(/[.,'’]/g, '').replace(/-/g, ' ')
+    .split(/\s+/).filter((part) => part && !['jr', 'sr', 'ii', 'iii', 'iv', 'v'].includes(part)).join(' ').trim();
+
+  function playerPhoto(row, photoMap) {
+    const key = photoMap.by_name?.[normalizedName(row.player_display_name)] || row.player_id;
+    const url = photoMap.photos?.[String(key)]?.url || '';
+    const safeUrl = /^https:\/\/(?:a\.espncdn\.com\/i\/headshots\/|cdn\.nba\.com\/headshots\/)/.test(url) ? url : '';
+    const initials = String(row.player_display_name || '').split(/\s+/).map((part) => part[0] || '').join('').slice(0, 2).toUpperCase();
+    return `<span class="today-prop-photo"><span>${escapeHtml(initials)}</span>${safeUrl ? `<img src="${escapeHtml(safeUrl)}" alt="" loading="lazy">` : ''}</span>`;
+  }
+
+  function matchingLine(row, game, sport, dateKey, quotes) {
+    const market = sport === 'nba' ? 'points' : 'receiving_yards';
+    const projection = Number(sport === 'nba' ? row.proj_pts : row.proj_yards);
+    const candidates = quotes.filter((quote) => quote.game_id === game.game_id && quote.market === market
+      && (String(quote.player_id) === String(row.player_id) || normalizedName(quote.player_name) === normalizedName(row.player_display_name))
+      && !/synthetic|fixture/i.test(`${quote.book || ''} ${quote.source || ''}`)
+      && /^https:\/\//.test(quote.source_url || '')
+      && Number.isFinite(Number(quote.line)) && Number.isFinite(Number(quote.over_odds)) && Number.isFinite(Number(quote.under_odds))
+      && !Number.isNaN(Date.parse(quote.observed_at)) && easternDate(new Date(quote.observed_at)) === dateKey);
+    candidates.sort((a, b) => Number(b.verified === true) - Number(a.verified === true)
+      || Math.abs(Number(a.line) - projection) - Math.abs(Number(b.line) - projection));
+    return candidates[0] || null;
+  }
+
+  function lineBoxes(quote, projection) {
+    if (!quote) return '<p class="today-no-line">No listed Over/Under line for this player today.</p>';
+    const line = Number(quote.line).toFixed(1);
+    const odds = (value) => Number(value) > 0 ? `+${Number(value)}` : String(Number(value));
+    const lean = projection > Number(quote.line) ? 'over' : projection < Number(quote.line) ? 'under' : '';
+    const observed = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', hour: 'numeric', minute: '2-digit' }).format(new Date(quote.observed_at));
+    return `<div class="today-line-boxes" aria-label="Last listed Over and Under prices">
+      <span class="today-line-box over${lean === 'over' ? ' model-lean' : ''}"><b>↑ OVER ${line}</b><small>${escapeHtml(odds(quote.over_odds))}</small></span>
+      <span class="today-line-box under${lean === 'under' ? ' model-lean' : ''}"><b>↓ UNDER ${line}</b><small>${escapeHtml(odds(quote.under_odds))}</small></span>
+    </div><p class="today-line-source">${escapeHtml(quote.book)} · last seen ${escapeHtml(observed)} ET · ${quote.verified === true ? 'receipt verified' : 'unverified line'}</p>`;
+  }
+
+  function projectionRow(row, sport, game, dateKey, photos, quotes) {
+    const projection = Number(sport === 'nba' ? row.proj_pts : row.proj_yards);
+    const secondary = sport === 'nba' ? `${Number(row.proj_reb).toFixed(1)} REB · ${Number(row.proj_ast).toFixed(1)} AST` : `${Number(row.proj_rec).toFixed(1)} receptions projected`;
+    const line = matchingLine(row, game, sport, dateKey, quotes);
+    return `<div class="today-prop-row">
+      <div class="today-prop-summary">${playerPhoto(row, photos)}<div class="today-prop-player"><strong>${escapeHtml(row.player_display_name)}</strong><span>${escapeHtml(row.team)} · ${escapeHtml(row.position || row.position_hist || '')} · ${escapeHtml(secondary)}</span></div><div class="today-prop-projection"><b>${Number.isFinite(projection) ? projection.toFixed(1) : '—'}</b><small>${sport === 'nba' ? 'PTS PROJ' : 'YDS PROJ'}</small></div></div>
+      ${lineBoxes(line, projection)}
+    </div>`;
   }
 
   async function showGameProps(button) {
@@ -123,7 +176,7 @@
     const sport = activeSport();
     const dateKey = easternDate(new Date(event.date));
     try {
-      const sources = await modelSources(sport, dateKey);
+      const [sources, extras] = await Promise.all([modelSources(sport, dateKey), supportingData()]);
       if (!button.isConnected) return;
       const { away, home } = eventTeams(event);
       const match = sources.flatMap((source) => (Array.isArray(source.games) ? source.games : []).map((game) => ({ game, slate: source.slate })))
@@ -133,7 +186,7 @@
         : [];
       rows.sort((a, b) => Number(b.proj_yards ?? b.proj_pts ?? 0) - Number(a.proj_yards ?? a.proj_pts ?? 0));
       panel.innerHTML = rows.length
-        ? `<div class="today-prop-heading"><strong>${rows.length} player projections</strong><span>PropStein model · research only</span></div><div class="today-prop-list">${rows.map((row) => projectionRow(row, sport)).join('')}</div>`
+        ? `<div class="today-prop-heading"><strong>${rows.length} player props</strong><span>Model estimates · line snapshots, not picks</span></div><div class="today-prop-list">${rows.map((row) => projectionRow(row, sport, match.game, dateKey, extras.photos, extras.quotes)).join('')}</div>`
         : '<p class="today-prop-message">No PropStein player projections are available for this matchup yet.</p>';
       panel.dataset.loaded = 'true';
     } catch (error) {
@@ -144,6 +197,7 @@
   }
   async function loadTodayGames() {
     modelCache.clear();
+    supportingDataPromise = null;
     const sport = activeSport();
     const dateKey = easternDate();
     const dateLabel = new Intl.DateTimeFormat('en-US', {
@@ -216,6 +270,7 @@
   });
   gamesEl.addEventListener('error', (event) => {
     if (event.target.matches('.today-team-logo img')) event.target.replaceWith(document.createTextNode('—'));
+    if (event.target.matches('.today-prop-photo img')) event.target.remove();
   }, true);
   loadTodayGames();
 })();

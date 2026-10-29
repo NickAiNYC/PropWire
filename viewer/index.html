@@ -48,12 +48,13 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/style.css?v=2026_v179">
+  <link rel="stylesheet" href="/style.css?v=2026_v186">
   <script src="/js/sports/registry.js?v=2026_v179" defer></script>
   <script src="/js/sports/nfl.js?v=2026_v179" defer></script>
   <script src="/js/sports/nba.js?v=2026_v179" defer></script>
-  <script src="/app.js?v=2026_v179" defer></script>
-  <script src="/js/today-schedule.js?v=2026_v179" defer></script>
+  <script src="/app.js?v=2026_v186" defer></script>
+  <script src="/js/today-schedule.js?v=2026_v186" defer></script>
+  <script src="/js/front-page.js?v=2026_v186" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#slateBoard">Skip to slate</a>
@@ -172,6 +173,7 @@
 
         <!-- Hidden compatibility mobile elements -->
         <button type="button" id="mobileMenuBtn" class="pw-mobile-menu-btn" aria-label="Open Settings" style="display:none;" hidden></button>
+        <button type="button" id="frontMenuBtn" class="front-menu-btn" aria-haspopup="dialog" aria-controls="frontMenuDialog">Menu <span aria-hidden="true">☰</span></button>
       </div>
     </div>
 
@@ -269,6 +271,18 @@
     </div>
   </header>
 
+  <dialog id="frontMenuDialog" class="front-menu-dialog" aria-labelledby="frontMenuTitle">
+    <div class="front-menu-head"><strong id="frontMenuTitle">PropStein menu</strong><button type="button" id="frontMenuClose" aria-label="Close menu">×</button></div>
+    <div class="front-menu-actions">
+      <button type="button" data-front-action="props">All player props <span>↗</span></button>
+      <button type="button" data-front-action="search">Search players <span>⌕</span></button>
+      <button type="button" data-front-action="saved">Saved &amp; ledger <span>↗</span></button>
+      <button type="button" data-front-action="alerts">Injury alerts <span>↗</span></button>
+      <button type="button" data-front-action="settings">Slate &amp; settings <span>↗</span></button>
+      <button type="button" data-front-action="membership">Membership <span>↗</span></button>
+    </div>
+  </dialog>
+
   <main class="shell page" id="slateBoard">
     <section class="today-schedule" id="todaySchedule" aria-live="polite">
       <div class="today-schedule-heading">
@@ -278,6 +292,8 @@
       <div id="todayScheduleGames" class="today-schedule-games"><p class="today-schedule-message">Loading today's games…</p></div>
       <p class="today-schedule-source" id="todayScheduleSource"></p>
     </section>
+
+    <button type="button" id="explorePropsBtn" class="front-explore-btn" aria-expanded="false" aria-controls="fullPlayerBoard">Explore all player props <span aria-hidden="true">↗</span></button>
 
     <section class="coming-soon-page" id="comingSoonPage" hidden aria-live="polite">
       <img class="coming-soon-logo" id="comingSoonLogo" alt="">
@@ -404,7 +420,15 @@
       </div>
     </div>
 
-    <section class="data-board" aria-label="Player slate">
+    <section class="data-board" id="fullPlayerBoard" aria-label="Player slate">
+      <div class="front-pro-bar" role="group" aria-label="Player board quick views">
+        <span>QUICK VIEW</span>
+        <div class="front-pro-segments">
+          <button type="button" data-pro-view="all" aria-pressed="true">All</button>
+          <button type="button" data-pro-view="verified" aria-pressed="false">Verified 15%+ edge</button>
+          <button type="button" data-pro-view="gaps" aria-pressed="false">Book line gaps</button>
+        </div>
+      </div>
       <noscript>
         <div style="padding: 14px 18px; margin-bottom: 16px; background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 8px; color: #f59e0b; font-family: var(--sans); font-size: 13px;">
           <strong>JavaScript Required:</strong> PropStein is a client-side quantitative terminal. 390 projected receivers across 15 Week 7 matchups are rendered dynamically from static JSON data feeds (<code>slate_2026_w7.json</code>). Please enable JavaScript to access live odds comparison, Kelly calculations, and personal CLV tracking.
@@ -445,6 +469,7 @@
           <span>NCPG Helpline &amp; Resources ↗</span>
         </a>
       </div>
+      <details class="front-legal"><summary>Research &amp; legal details</summary>
       <nav class="compliance-research-nav" aria-label="Public research and evidence pages">
         <a class="compliance-pill" href="/performance/"><span>Track Record</span></a>
         <a class="compliance-pill" href="/methodology/"><span>Methodology</span></a>
@@ -454,6 +479,7 @@
       <p class="compliance-disclaimer">
         PropStein is an independent quantitative research terminal and computational decision-support tool. PropStein does not accept wagers, place bets, operate as a sportsbook, or provide financial or investment advice. All model expectations, de-vigged fair values, and Closing Line Value (CLV) metrics are statistical estimates derived from historical distribution models and verified sportsbook data feeds. Odds and availability subject to change. If you or someone you know has a gambling problem, crisis counseling and referral services can be accessed by calling 1-800-GAMBLER (1-800-426-2537).
       </p>
+      </details>
     </footer>
   </main>
 
