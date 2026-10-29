@@ -20,3 +20,5 @@ data/*.db
 data/*.db-*
 .pytest_cache/
 artifacts/
+extensions/node_modules/
+extensions/dist/

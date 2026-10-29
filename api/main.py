@@ -74,6 +74,14 @@ app.add_middleware(
     allow_headers=["Authorization", "Content-Type", "X-Admin-Key", "X-Admin-Token", "X-PropStein-API-Key", "X-PropWire-API-Key"],
 )
 
+# ---------------------------------------------------------------------------
+# PropStein Live Sniper — extension API (additive; see docs/LIVE_SNIPER_AUDIT.md
+# S-1/S-3/S-6 mitigations). Two-line include keeps the change reversible.
+# ---------------------------------------------------------------------------
+from api.extension_router import router as extension_api_router  # noqa: E402
+
+app.include_router(extension_api_router)
+
 
 # ---------------------------------------------------------------------------
 # Entitlement. Whop is the storefront; Stripe is the processor behind it.
