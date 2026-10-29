@@ -273,50 +273,62 @@
     <span id="slateState" hidden>Upcoming slate</span>
     <span id="resultCount" hidden>33 actionable</span>
 
-    <!-- 2027 COHESIVE SLATE TELEMETRY (CALM FINTECH SYSTEM) -->
+    <!-- 2027 COHESIVE SLATE TELEMETRY (SAPPHIRE 4-COLUMN HORIZONTAL RIBBON) -->
     <section class="pw-hero-telemetry-suite" aria-label="Slate Overview">
-      <div class="pw-hero-quant-card">
-        <div class="hero-card-meta">
-          <span class="hero-card-tag">SLATE OVERVIEW · NFL WEEK 7</span>
-          <div class="hero-card-status-pill">
-            <span class="hero-status-dot"></span>
-            <span>10.0% GATE CALIBRATED</span>
-          </div>
-        </div>
-        <div class="hero-metric-row">
-          <div class="hero-metric-val">33 <span class="hero-metric-unit">QUALIFIED</span></div>
-          <div class="hero-metric-badge"><span class="badge-arrow">↗</span> +14.8% AVG EDGE</div>
-        </div>
-        <div class="hero-metric-sub">Verified player lines clearing Poisson-Gamma hurdle · 64 quotes audited</div>
+      <div class="pw-hero-quant-card telemetry-ribbon-grid">
+        <div class="telemetry-top-glow" aria-hidden="true"></div>
 
-        <!-- Quantitative Hurdle Distribution Meter -->
-        <div class="hero-hurdle-scale" aria-hidden="true">
-          <div class="hurdle-scale-track">
-            <div class="hurdle-tier"><span class="tier-dot"></span><span class="tier-lbl">&lt;5% Sub</span></div>
-            <div class="hurdle-tier"><span class="tier-dot"></span><span class="tier-lbl">5.0% Base</span></div>
-            <div class="hurdle-tier"><span class="tier-dot"></span><span class="tier-lbl">7.5% Lean</span></div>
-            <div class="hurdle-tier active"><span class="tier-dot active"></span><span class="tier-lbl">10.0% Gate</span></div>
-            <div class="hurdle-tier alpha"><span class="tier-dot"></span><span class="tier-lbl">15%+ Alpha</span></div>
+        <!-- Col 1: Universe -->
+        <div class="telemetry-col telemetry-col-universe">
+          <span class="telemetry-col-label hero-card-tag">UNIVERSE</span>
+          <div class="telemetry-metric-row">
+            <span class="telemetry-metric-number hero-metric-val">390 <span class="hero-metric-unit">MODELED</span></span>
+            <span class="telemetry-live-dot"></span>
+          </div>
+          <div class="telemetry-subtext hero-metric-sub">0 Audited Live Lines</div>
+          <div class="telemetry-tier-legend hero-hurdle-scale" aria-hidden="true">
+            <span class="tier-chip">&lt;5% Sub</span>
+            <span class="tier-chip">5.0% Base</span>
+            <span class="tier-chip active">● 10.0% Gate</span>
+            <span class="tier-chip alpha">15%+ Alpha</span>
           </div>
         </div>
 
-        <!-- Inset Triple Telemetry Pods -->
-        <div class="hero-pods-row">
-          <div class="hero-pod">
-            <span class="hero-pod-lbl">CLV BEAT RATE</span>
-            <span class="hero-pod-val">74.2%</span>
-            <span class="hero-pod-sub">Goal: 60% · Calibrated</span>
+        <!-- Col 2: Calibration -->
+        <div class="telemetry-col telemetry-col-calibration hero-pod">
+          <span class="telemetry-col-label hero-pod-lbl">CALIBRATION</span>
+          <div class="telemetry-metric-row">
+            <span class="telemetry-metric-number hero-pod-val">74.2%</span>
+            <span class="telemetry-metric-unit">CLV BEAT RATE</span>
           </div>
-          <div class="hero-pod">
-            <span class="hero-pod-lbl">EXECUTION GATE</span>
-            <span class="hero-pod-val">10.0%</span>
-            <span class="hero-pod-sub">Kelly Cap 3.0% Max</span>
+          <div class="telemetry-progress-track">
+            <div class="telemetry-progress-bar"></div>
           </div>
-          <div class="hero-pod">
-            <span class="hero-pod-lbl">MODELED UNIVERSE</span>
-            <span class="hero-pod-val">390</span>
-            <span class="hero-pod-sub">64 Audited Lines</span>
+          <div class="telemetry-subtext hero-pod-sub">Goal: 60% · Calibrated</div>
+        </div>
+
+        <!-- Col 3: Execution Gate -->
+        <div class="telemetry-col telemetry-col-gate hero-pod">
+          <span class="telemetry-col-label hero-pod-lbl">EXECUTION GATE</span>
+          <div class="telemetry-gate-badge">
+            <span class="gate-status-text hero-pod-val">PAUSED</span>
+            <span class="gate-status-dot"></span>
           </div>
+          <div class="telemetry-subtext hero-pod-sub">Standby for verified quotes</div>
+        </div>
+
+        <!-- Col 4: Feed Health -->
+        <div class="telemetry-col telemetry-col-health hero-pod">
+          <span class="telemetry-col-label hero-pod-lbl">FEED HEALTH</span>
+          <div class="telemetry-health-box">
+            <div class="telemetry-health-status">
+              <span class="health-dot"></span>
+              <span class="health-title" id="ribbonHealthTitle">ODDS STALE</span>
+              <span class="health-age" id="ribbonHealthAge">· 7d ago</span>
+            </div>
+            <button type="button" class="telemetry-refresh-btn" id="ribbonRefreshBtn" title="Refresh feed" aria-label="Refresh feed">↻</button>
+          </div>
+          <div class="telemetry-subtext telemetry-root-hash hero-pod-sub">Root #178e29974bf8748c · Fail-Closed</div>
         </div>
       </div>
     </section>
