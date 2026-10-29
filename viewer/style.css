@@ -13802,3 +13802,9 @@ dialog.detail-dialog .dialog-sheet-handle {
 .edge-cell-muted { color: #475569; font-size: 15px; font-weight: 500; }
 .th-num-w18 { width: 18%; }
 .sim-plus-dim { opacity: 0.6; }
+/* v173 CSP-clean: card-density inline conversions (owner 370f810, Task 59) */
+.dens-muted-dash { color: #64748b; font-size: 13px; font-weight: 500; }
+.dens-row-8 { display: flex; gap: 8px; align-items: baseline; margin-top: 2px; }
+.dens-row-6 { display: flex; gap: 6px; align-items: baseline; }
+.dens-proj-val { font-size: 11.5px; font-weight: 700; }
+.dens-fair-sub { color: #94a3b8; font-size: 10px; }
