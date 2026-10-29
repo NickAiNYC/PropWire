@@ -190,6 +190,7 @@
     injuries: { injuries: [], impacted_beneficiaries: {} },
     odds: { quotes: [] },
     filters: { search: '', market: adapter.defaultMarket, position: 'ALL', team: '', gameId: '', playMode: 'actionable', intent: 'all' },
+    proView: 'all',
     view: matchMedia('(max-width: 768px)').matches ? 'cards' : 'table',
     deferredInstall: null,
     selectedPlayerId: null,
@@ -1074,6 +1075,13 @@
   }
 
   function bindControls() {
+    const proBar = $('.front-pro-bar');
+    if (proBar) proBar.addEventListener('click', (event) => {
+      const button = event.target.closest('[data-pro-view]');
+      if (!button) return;
+      state.proView = button.dataset.proView;
+      renderBoard();
+    });
     if ($('#slateSelector')) $('#slateSelector').addEventListener('change', (event) => loadSlate(event.target.value));
     const availBtn = $('#availabilityToggle');
     if (availBtn) availBtn.addEventListener('click', toggleInjuries);
@@ -2994,6 +3002,15 @@
       return true;
     });
 
+    if (state.proView === 'verified') {
+      rows = rows.filter((row) => {
+        const evaluation = evaluateRow(row);
+        return evaluation.state === 'verified' && !evaluation.closed && evaluation.edge >= 0.15;
+      });
+    } else if (state.proView === 'gaps') {
+      rows = rows.filter((row) => Boolean(detectBookDiscrepancy(row)));
+    }
+
     if (intent === 'edge') {
       rows.sort((a, b) => {
         const qA = evaluateRow(a);
@@ -3039,6 +3056,7 @@
 
   function renderBoard() {
     const rows = filteredRows();
+    $$('.front-pro-bar [data-pro-view]').forEach((button) => button.setAttribute('aria-pressed', String(button.dataset.proView === state.proView)));
     const hasPrices = rows.some((row) => Boolean(findQuote(row, state.filters.market)));
     const totalCount = state.slate.length;
     const quotedCount = state.slate.filter((row) => Boolean(findQuote(row, state.filters.market))).length;
@@ -3106,7 +3124,7 @@
           });
         }
       }
-    } else if (state.filters.playMode === 'actionable' && rows.length === 0) {
+    } else if (state.filters.playMode === 'actionable' && rows.length === 0 && state.proView === 'all') {
       // Messaging honesty (2026-10-27 owner review): with stale or unverifiable
       // prices the terminal CANNOT claim "the market is efficient" — a
       // fail-closed board must say qualification is PAUSED, not that the
@@ -3170,7 +3188,11 @@
       if (btn) btn.addEventListener('click', () => setPlayMode('all'));
     } else {
       if ($('#resultCount')) $('#resultCount').textContent = `${rows.length} of ${state.slate.length} player records`;
-      $('#emptyState').innerHTML = `
+      $('#emptyState').innerHTML = state.proView === 'verified'
+        ? '<div class="anti-tout-empty-wrap"><div class="anti-tout-title">No verified 15%+ edges</div><p class="anti-tout-desc">This view requires a verified quote and a modeled probability edge of at least 15%.</p></div>'
+        : state.proView === 'gaps'
+          ? '<div class="anti-tout-empty-wrap"><div class="anti-tout-title">No book line gaps</div><p class="anti-tout-desc">A gap appears when two listed books differ by at least half a unit for this market.</p></div>'
+          : `
         <div class="anti-tout-empty-wrap">
           <div class="anti-tout-icon">${SVG_ICONS.search}</div>
           <div class="anti-tout-title">No Matching Records</div>
@@ -5749,7 +5771,7 @@
     return `<tr>
       <th style="width:28%">Player / Driver</th>
       <th style="width:12%">Matchup</th>
-      <th class="th-num${dimCls} th-num-w18">Book & Status <span class="help-bubble" title="Sportsbook line, odds, and quote verification status">?</span></th>
+      <th class="th-num${dimCls} th-num-w18">Book / Implied % <span class="help-bubble" title="Listed side's raw implied probability from American odds, before removing vig. Quote status appears below.">?</span></th>
       <th class="th-num" style="width:24%">Model (Fair | Proj | 80% CI) <span class="help-bubble" title="True-scale bullet graph: Amber tick is Book line, White tick is Model Fair, Green dot is Proj Mean, Shaded bar is 80% CI.">?</span></th>
       <th class="th-num${dimCls} th-num-w18">Price Check / Edge <span class="help-bubble" title="Mathematical edge vs de-vigged market line.">?</span></th>
     </tr>`;
@@ -6367,7 +6389,16 @@
     const offers = (state.odds?.quotes || []).filter((q) => q.market === state.filters.market &&
       (q.player_id === row.player_id || String(q.player_name || '').toLowerCase() === String(row.player_display_name || '').toLowerCase()));
     if (offers.length < 2) return null;
-    const valid = offers.filter((o) => Number.isFinite(Number(o.line)) && Number(o.line) > 0);
+    // Compare distinct books only. Multiple snapshots from one book are a
+    // line move, not a cross-book gap.
+    const latestByBook = new Map();
+    offers.filter((o) => Number.isFinite(Number(o.line)) && Number(o.line) > 0).forEach((offer) => {
+      const key = resolveBookId(offer.book) || String(offer.book || '').toLowerCase();
+      if (!key) return;
+      const previous = latestByBook.get(key);
+      if (!previous || String(offer.observed_at || '') > String(previous.observed_at || '')) latestByBook.set(key, offer);
+    });
+    const valid = Array.from(latestByBook.values());
     if (valid.length >= 2) {
       const minLine = Math.min(...valid.map((o) => Number(o.line)));
       const maxLine = Math.max(...valid.map((o) => Number(o.line)));
@@ -6437,6 +6468,7 @@
     const disc = row ? detectBookDiscrepancy(row) : null;
     const discHtml = disc ? `<span class="discrepancy-indicator" title="Cross-Book Discrepancy: ${esc(disc.label)}">${SVG_ICONS.edge} ${esc(disc.label)}</span>` : '';
 
+    const implied = impliedProbability(evaluation.odds);
     return `<div class="book-cell ${flashClass}">
       <span class="number-main">
         <span class="dir-line-pill ${isOver ? 'dir-over' : 'dir-under'}">
@@ -6446,6 +6478,7 @@
         <small class="odds-val fixed-odds">${oddsText(evaluation.odds)}</small>
         ${glyph}
       </span>
+      ${implied > 0 ? `<span class="book-implied" title="Raw implied probability from listed ${esc(evaluation.side)} odds; includes bookmaker margin">Implied ${(implied * 100).toFixed(1)}%</span>` : ''}
       ${sparklineHtml}
       <div class="book-meta">
         <span class="book-tag">${esc(bookShort(evaluation.book))}</span>
