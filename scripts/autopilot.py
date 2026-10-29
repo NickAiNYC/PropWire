@@ -654,6 +654,19 @@ def main() -> int:
     write_snapshots_stub(season, week)
     fetch_nba_days(now)
     fetch_nba_odds_days(now)
+    # v176: refresh real Polymarket player-prop quotes (public API, no key,
+    # fail-closed — network failure leaves the feed untouched). DraftKings /
+    # FanDuel still flow through the ODDS_API_KEY gate above.
+    try:
+        _pm = subprocess.run(
+            [sys.executable, str(ROOT / "scripts" / "fetch_polymarket_props.py")],
+            capture_output=True, text=True, timeout=180, cwd=str(ROOT))
+        for line in (_pm.stdout or "").strip().splitlines():
+            print(f"  [polymarket] {line}")
+        if _pm.returncode != 0:
+            print(f"  [warn] polymarket fetch exited {_pm.returncode}", file=sys.stderr)
+    except Exception as exc:
+        print(f"  [warn] polymarket fetch skipped: {exc}", file=sys.stderr)
     # v155: refresh the player headshot map (incremental, fail-open).
     try:
         if str(ROOT) not in sys.path:

@@ -34,12 +34,20 @@ function attachLocalDom(sandbox) {
   return els;
 }
 
-/** Local file-backed fetch mirroring the sandbox impl, with per-path overrides. */
+/** Local file-backed fetch mirroring the sandbox impl, with per-path overrides.
+ * The odds feed is pinned to the committed w7 fixture for the same reason as
+ * the shared sandbox: viewer/live_odds_feed.json now carries real Polymarket
+ * quotes (v176) that refresh daily — staleness scenarios need fixed inputs. */
 function localFetcher(overrides = {}) {
+  const pinnedOdds = path.join(VIEWER, '..', 'test', 'fixtures', 'live_odds_feed_w7_pinned.json');
   return async (rawPath) => {
     const clean = String(rawPath).split('?')[0];
     const override = overrides[clean];
     if (override) return override();
+    if (clean === '/live_odds_feed.json' || clean === 'live_odds_feed.json') {
+      const text = fs.readFileSync(pinnedOdds, 'utf8');
+      return { ok: true, status: 200, json: async () => JSON.parse(text) };
+    }
     const file = path.join(VIEWER, clean.replace(/^\/+/, ''));
     if (!fs.existsSync(file)) return { ok: false, status: 404, json: async () => { throw new Error('not found'); } };
     const text = fs.readFileSync(file, 'utf8');

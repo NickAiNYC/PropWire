@@ -447,20 +447,8 @@
     </form>
   </dialog>
 
-  <!-- Interactive Line Simulator & Stress-Test Tray -->
-  <dialog class="detail-dialog simulate-dialog" id="simulateLineDialog" aria-labelledby="simModalTitle">
-    <form method="dialog" class="dialog-shell sim-shell">
-      <div class="dialog-sheet-handle" aria-hidden="true"></div>
-      <div class="dialog-header">
-        <div>
-          <div class="eyebrow" id="simModalEyebrow">Approximate Line Simulator</div>
-          <h2 id="simModalTitle">Simulate Player Prop Line</h2>
-        </div>
-        <button class="icon-button" value="cancel" aria-label="Close line simulator">×</button>
-      </div>
-      <div class="dialog-body" id="simModalBody"></div>
-    </form>
-  </dialog>
+  <!-- v176: the line simulator now lives INSIDE each player card (inline
+       panel); the old simulateLineDialog modal was retired with it. -->
 
   <!-- Verified execution review: research handoff, never sportsbook placement. -->
   <dialog class="detail-dialog execution-dialog" id="executionDialog" aria-labelledby="executionTitle">

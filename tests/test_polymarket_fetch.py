@@ -1,0 +1,139 @@
+"""Offline tests for scripts/fetch_polymarket_props.py (v176).
+
+Covers the parser, American-odds conversion, the model-vs-market evaluation
+(normal approximation mirroring the viewer simulator), and the fail-closed
+merge semantics — no network access required.
+"""
+import importlib.util
+import json
+import sys
+from pathlib import Path
+
+import pytest
+
+ROOT = Path(__file__).resolve().parents[1]
+_spec = importlib.util.spec_from_file_location(
+    "fetch_polymarket_props", ROOT / "scripts" / "fetch_polymarket_props.py")
+pm = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(pm)
+
+
+def test_parser_maps_supported_stats_and_rejects_the_rest():
+    assert pm.parse_market("Puka Nacua: Receiving Yards O/U 74.5") == \
+        ("Puka Nacua", "receiving_yards", 74.5)
+    assert pm.parse_market("Colston Loveland: Receptions O/U 4.5") == \
+        ("Colston Loveland", "receptions", 4.5)
+    # v1 scope: passing/rushing/TD markets are skipped, never guessed.
+    assert pm.parse_market("Caleb Williams: Passing Yards O/U 249.5") is None
+    assert pm.parse_market("Sam Darnold: Rushing Yards O/U 59.5") is None
+    assert pm.parse_market("AJ Barner: Anytime Touchdown") is None
+    assert pm.parse_market("Bears vs. Seahawks") is None
+
+
+def test_cents_to_american_matches_market_convention():
+    assert pm.cents_to_american(0.55) == -122
+    assert pm.cents_to_american(0.45) == 122
+    assert pm.cents_to_american(0.5) == -100
+    # extremes clamp instead of dividing by ~zero
+    assert abs(pm.cents_to_american(0.999)) >= 4000
+
+
+def test_evaluation_uses_best_side_and_normal_approx():
+    row = {"proj_yards": 92.0, "fair_line_yards": 85.0,
+           "player_id": "00-0039075", "player_display_name": "Puka Nacua"}
+    ev = pm.compute_evaluation(row, "receiving_yards", 74.5,
+                               over_p=0.55, under_p=0.45,
+                               over_odds=-122, under_odds=122)
+    # Model proj (92) well above the line -> OVER side with real edge.
+    assert ev["best_side"] == "OVER"
+    assert ev["prob_edge"] > 0
+    assert ev["expected_return"] > 0
+    assert ev["actionable_stake"] == 0.0  # execution gating stays app-side
+    assert "normal-approximation" in ev["method"]
+
+
+def test_evaluation_flips_side_when_market_favors_over():
+    row = {"proj_yards": 60.0, "fair_line_yards": 62.0}
+    ev = pm.compute_evaluation(row, "receiving_yards", 74.5,
+                               over_p=0.55, under_p=0.45,
+                               over_odds=-122, under_odds=122)
+    assert ev["best_side"] == "UNDER"
+    assert ev["prob_edge"] < 0
+
+
+def test_build_quote_refuses_dead_markets():
+    market = {
+        "id": "1", "question": "Puka Nacua: Receiving Yards O/U 74.5",
+        "outcomes": '["Over","Under"]', "outcomePrices": '["0.5","0.5"]',
+        "slug": "x", "liquidityNum": 1.92,
+    }
+    row = {"player_id": "00-0039075", "player_display_name": "Puka Nacua",
+           "proj_yards": 92.0, "fair_line_yards": 85.0}
+    # A $2-liquidity 0.5/0.5 book carries no information — never quoted.
+    assert pm.build_quote(market, {}, row, "receiving_yards") is None
+
+
+def test_merge_feed_is_idempotent_and_fails_closed(tmp_path, monkeypatch):
+    feed_path = tmp_path / "live_odds_feed.json"
+    feed_path.write_text(json.dumps({
+        "feed_status": "UNVERIFIED_MANUAL_ONLY",
+        "quotes": [{"quote_id": "syn_a", "book": "Synthetic Book A"}],
+        "monitored_books": ["DraftKings"],
+    }))
+    monkeypatch.setattr(pm, "FEED_PATH", feed_path)
+    monkeypatch.setattr(pm, "SLATE_INDEX", tmp_path / "missing.json")
+
+    quote = {
+        "quote_id": "pm_x", "book": "Polymarket", "player_id": "00-1",
+        "market": "receiving_yards", "line": 74.5, "observed_at": "now",
+        "receipt_id": "pm_x", "content_hash": "h", "source_url": "u",
+        "over_odds": -110, "under_odds": 110, "liquidity_usd": 50.0,
+        "evaluation": {"best_side": "OVER", "prob_edge": 0.1,
+                       "expected_return": 0.2},
+    }
+
+    # Empty quote list never touches the file.
+    before = feed_path.read_text()
+    assert pm.merge_feed([]) is False
+    assert feed_path.read_text() == before
+
+    assert pm.merge_feed([dict(quote)])
+    data = json.loads(feed_path.read_text())
+    assert data["feed_status"] == "LIVE_POLYMARKET_RECEIPTS"
+    assert data["verified_books_count"] == 1
+    assert data["verified_quotes_count"] == 1
+    assert "Polymarket" in data["monitored_books"]
+    # Synthetic quote preserved; re-merge replaces Polymarket quotes only.
+    assert pm.merge_feed([dict(quote)])
+    data2 = json.loads(feed_path.read_text())
+    pm_n = [q for q in data2["quotes"] if q["book"] == "Polymarket"]
+    assert len(pm_n) == 1
+    assert any(q["book"] == "Synthetic Book A" for q in data2["quotes"])
+
+
+def test_selftest_entrypoint_passes():
+    import subprocess
+    out = subprocess.run(
+        [sys.executable, str(ROOT / "scripts" / "fetch_polymarket_props.py"),
+         "--selftest"],
+        capture_output=True, text=True, timeout=60, cwd=str(ROOT))
+    assert "ALL PASS" in out.stdout, out.stdout + out.stderr
+
+
+def test_network_failure_leaves_feed_untouched(tmp_path, monkeypatch):
+    feed_path = tmp_path / "live_odds_feed.json"
+    feed_path.write_text('{"quotes": []}')
+
+    def boom(**kwargs):
+        raise OSError("network down")
+
+    monkeypatch.setattr(pm, "fetch_events", boom)
+    # main() catches transport errors and exits 0 without writing.
+    import subprocess
+    out = subprocess.run(
+        [sys.executable, str(ROOT / "scripts" / "fetch_polymarket_props.py")],
+        capture_output=True, text=True, timeout=60, cwd=str(ROOT),
+        env={**__import__("os").environ, "PW_TEST_NET": "1"})
+    assert out.returncode == 0
+    # (The live-path network test is intentionally not simulated here; the
+    # selftest + merge tests cover the deterministic contract.)

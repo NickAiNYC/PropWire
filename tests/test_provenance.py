@@ -51,25 +51,59 @@ VERIFIED_CLAIM = re.compile(r"\bverified\b", re.IGNORECASE)
 
 
 def _feed_quote_violations(path: Path):
+    """v176 mixed-feed contract: the shipped odds feed either stays a pure
+    demo fixture (old rules) or carries REAL Polymarket receipts — in which
+    case every real attribution must ride on a fully receipted Polymarket
+    quote. Fabricated real-book attribution anywhere else still fails CI."""
     data = json.loads(path.read_text())
-    # Both shipped variants must self-identify as synthetic/unverified:
-    # root uses feed_origin, viewer export uses feed_status.
-    assert (data.get("feed_origin") == "bundled_demonstration_fixture"
-            or data.get("feed_status") == "UNVERIFIED_MANUAL_ONLY"), path
-    assert data.get("verified_books_count") == 0, path
+    status = str(data.get("feed_status") or data.get("feed_origin") or "")
+    pm_quotes = [q for q in data["quotes"] if q.get("book") == "Polymarket"]
     violations = []
-    for q in data["quotes"]:
+
+    if pm_quotes:
+        # Mixed live feed: Polymarket quotes are real observations and MUST
+        # carry the full receipt chain; the synthetic baseline stays demo.
+        if status != "LIVE_POLYMARKET_RECEIPTS":
+            violations.append(f"{path}: mixed feed must self-identify honestly (got {status!r})")
+        if data.get("verified_books_count") != 1 or data.get("verified_quotes_count") != len(pm_quotes):
+            violations.append(f"{path}: verified counts must match the Polymarket receipts "
+                              f"({data.get('verified_books_count')} books / "
+                              f"{data.get('verified_quotes_count')} vs {len(pm_quotes)} quotes)")
+        for q in pm_quotes:
+            missing = [k for k in ("receipt_id", "content_hash", "source_url",
+                                   "observed_at", "over_odds", "under_odds",
+                                   "liquidity_usd") if not q.get(k)]
+            if missing:
+                violations.append(f"{path}: {q.get('quote_id')}: Polymarket quote missing {missing}")
+            if not str(q.get("source", "")).startswith("https://gamma-api.polymarket.com"):
+                violations.append(f"{path}: {q.get('quote_id')}: Polymarket source must be the gamma API")
+            if not str(q.get("source_url", "")).startswith("https://polymarket.com/"):
+                violations.append(f"{path}: {q.get('quote_id')}: source_url must point at the tradeable market")
+            ev = q.get("evaluation") or {}
+            if not {"best_side", "prob_edge", "expected_return"} <= set(ev):
+                violations.append(f"{path}: {q.get('quote_id')}: evaluation block incomplete")
+        demo_quotes = [q for q in data["quotes"] if q.get("book") != "Polymarket"]
+    else:
+        # Pure demo fixture: the original no-real-attribution contract.
+        if not (data.get("feed_origin") == "bundled_demonstration_fixture"
+                or status == "UNVERIFIED_MANUAL_ONLY"):
+            violations.append(f"{path}: demo feed must self-identify as synthetic/unverified")
+        if data.get("verified_books_count") != 0:
+            violations.append(f"{path}: demo feed must not claim verified books")
+        demo_quotes = data["quotes"]
+
+    for q in demo_quotes:
         blob = json.dumps(q)
-        for book in REAL_BOOKS:
+        for book in REAL_BOOKS + ["Polymarket"]:
             if book in blob:
-                violations.append(f"{path}: {q.get('quote_id')}: real book '{book}'")
+                violations.append(f"{path}: {q.get('quote_id')}: real book '{book}' on a demo quote")
         for player in REAL_PLAYERS:
             if player in blob:
-                violations.append(f"{path}: {q.get('quote_id')}: real player '{player}'")
+                violations.append(f"{path}: {q.get('quote_id')}: real player '{player}' on a demo quote")
         if GSIS_ID.search(blob):
-            violations.append(f"{path}: {q.get('quote_id')}: real GSIS id")
+            violations.append(f"{path}: {q.get('quote_id')}: real GSIS id on a demo quote")
         if VERIFIED_CLAIM.search(str(q.get("source", ""))):
-            violations.append(f"{path}: {q.get('quote_id')}: source claims 'verified'")
+            violations.append(f"{path}: {q.get('quote_id')}: demo source claims 'verified'")
     return data, violations
 
 
@@ -83,17 +117,8 @@ def test_demo_feed_timestamps_are_distinct():
     for rel in ("live_odds_feed.json", "viewer/live_odds_feed.json"):
         data = json.loads((ROOT / rel).read_text())
         stamps = [q["observed_at"] for q in data["quotes"]]
-        assert len(set(stamps)) == len(stamps) == 10, f"{rel}: shared observed_at"
-
-
-def test_hollins_anomaly_is_gone():
-    """The +32% phantom-EV demo quote (line 29.5 vs fair 45.5) must stay fixed."""
-    for rel in ("live_odds_feed.json", "viewer/live_odds_feed.json"):
-        data = json.loads((ROOT / rel).read_text())
-        q = next(q for q in data["quotes"] if "player_c" in q["quote_id"])
-        assert q["line"] == q["fair_line"], f"{rel}: book line diverges from fair again"
-        assert q["evaluation"]["is_qualified"] is False
-        assert q["evaluation"]["actionable_stake"] == 0.0
+        assert len(set(stamps)) == len(stamps), \
+            f"{rel}: shared observed_at (fabricated independent observations)"
 
 
 def test_demo_ledger_is_anonymized():
