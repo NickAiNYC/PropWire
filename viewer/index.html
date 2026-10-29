@@ -48,11 +48,12 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/style.css?v=2026_v176">
+  <link rel="stylesheet" href="/style.css?v=2026_v177">
   <script src="/js/sports/registry.js?v=2026_v176" defer></script>
   <script src="/js/sports/nfl.js?v=2026_v176" defer></script>
-  <script src="/js/sports/nba.js?v=2026_v176" defer></script>
-  <script src="/app.js?v=2026_v176" defer></script>
+  <script src="/js/sports/nba.js?v=2026_v177" defer></script>
+  <script src="/app.js?v=2026_v177" defer></script>
+  <script src="/js/today-schedule.js?v=2026_v177" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#slateBoard">Skip to slate</a>
@@ -174,12 +175,15 @@
       </div>
     </div>
 
+    <nav class="desktop-league-nav" aria-label="Leagues">
+      <div class="sport-switcher-bar" id="sportSwitcherBar">
+        <div class="sport-switcher" id="sportSwitcher" role="radiogroup" aria-label="Active sport"></div>
+      </div>
+    </nav>
+
     <!-- TIER 2: Filter & Matchup Control Bar -->
     <div class="pw-filterbar">
       <div class="pw-command-row">
-        <div class="sport-switcher-bar" id="sportSwitcherBar">
-          <div class="sport-switcher" id="sportSwitcher" role="radiogroup" aria-label="Active sport"></div>
-        </div>
         <!-- Search Input -->
         <div class="pw-search-wrap command-search-wrap">
           <svg class="pw-search-icon" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -190,6 +194,10 @@
           <kbd class="pw-kbd pw-desktop-only">/</kbd>
         </div>
       </div>
+
+      <nav class="mobile-league-nav pw-mobile-only" aria-label="Leagues">
+        <div class="mobile-league-list" id="mobileSportSwitcher" role="radiogroup" aria-label="Choose a league"></div>
+      </nav>
 
       <!-- Single Horizontal Scrolling Chip Row (Mode, Market, Pos, More) -->
       <div class="pw-chip-scroll-row" id="mobileFilterStrip" role="toolbar" aria-label="Filter chips">
@@ -262,6 +270,23 @@
   </header>
 
   <main class="shell page" id="slateBoard">
+    <section class="today-schedule" id="todaySchedule" aria-live="polite">
+      <div class="today-schedule-heading">
+        <div><p class="today-schedule-eyebrow">TODAY'S SCHEDULE</p><h2 id="todayScheduleTitle">Today's games</h2><p id="todayScheduleDate"></p></div>
+        <button type="button" id="todayScheduleRefresh" class="today-schedule-refresh" aria-label="Refresh today's schedule">Refresh</button>
+      </div>
+      <div id="todayScheduleGames" class="today-schedule-games"><p class="today-schedule-message">Loading today's games…</p></div>
+      <p class="today-schedule-source" id="todayScheduleSource"></p>
+    </section>
+
+    <section class="coming-soon-page" id="comingSoonPage" hidden aria-live="polite">
+      <img class="coming-soon-logo" id="comingSoonLogo" alt="">
+      <p class="today-schedule-eyebrow">COMING NEXT</p>
+      <h1 id="comingSoonTitle">Coming soon</h1>
+      <p id="comingSoonMessage"></p>
+      <button type="button" id="comingSoonBack">Back to today's games</button>
+    </section>
+
     <!-- Data Quality Banner: fixture / offline / stale feed states (Phase 2
          failure-mode UI). Populated by updateFeedHealthUI(); never silent on
          a feed outage. -->

@@ -121,7 +121,7 @@ function dumpDomAccess(domCalls) {
 /** Ids the NFL boot/render path is ALLOWED to resolve via getElementById. */
 const NFL_DOM_ALLOWLIST = new Set([
   // Phase 2 sport chrome (the earned, documented whitelist delta)
-  'sportSwitcher', 'marketChipGroup', 'positionChipGroup', 'signalSheetChips',
+  'sportSwitcher', 'mobileSportSwitcher', 'marketChipGroup', 'positionChipGroup', 'signalSheetChips',
   'slateSelector', 'mobileSlateSelector', 'modeTopBtn', 'topCount',
   // Feed-health failure-mode UI
   'dataQualityBanner', 'dqRetryBtn',
