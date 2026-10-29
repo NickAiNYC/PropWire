@@ -65,7 +65,7 @@ test('NBA adapter: contract complete, markets cover marketOrder, storage keys na
   // Two fixture nights registered; the Oct 22 opener stays the boot default
   // (registration order IS the selector order — pinned so reordering the
   // registry can never silently move the default slate).
-  assert.deepEqual(Object.keys(nba.slates), ['2026-10-22', '2026-10-23']);
+  assert.deepEqual(Object.keys(nba.slates), ['2026-10-22', '2026-10-23', '2026-10-29']);
   for (const slate of Object.values(nba.slates)) {
     assert.match(slate.injuries, /^nba_injuries_\d{4}-\d{2}-\d{2}\.json$/, 'availability feed wired per slate');
     assert.equal(slate.picks, null);
