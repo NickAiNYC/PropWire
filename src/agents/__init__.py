@@ -1,5 +1,5 @@
 """
-PropWire Live Agentic Sniper Terminal (NFL + NBA + Polymarket).
+PropStein Live Agentic Sniper Terminal (NFL + NBA + Polymarket).
 
 Exports the 6-agent topology, deterministic `price_prop` function,
 `StaleKillSwitch`, `DurableRedisStreamBus`, `TruthStore`, and
@@ -67,4 +67,3 @@ __all__ = [
     "narrate_locked_alert",
     "price_prop",
 ]
-
