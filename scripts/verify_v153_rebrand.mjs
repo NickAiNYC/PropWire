@@ -9,7 +9,7 @@
 //   - site.webmanifest icons resolve; PWA identity intact
 //   - icon pixel probe: monogram centered, not corner-stuck (v149 lesson)
 //   - header renders both slot logos (dark-only / light-only), 160x40 box
-//   - SW registers, activates propwire-v173-prod, precache populated with
+//   - SW registers, activates propstein-v173-prod, precache populated with
 //     the new logo PNGs + v153 icons + untouched v152 book badges
 //   - boot console: zero hard errors (v150-classified inline-style CSP
 //     console debt tracked separately, must not grow from v152 baseline)
@@ -105,8 +105,8 @@ for (const p of pages) {
     has(/rel="manifest" href="\/site\.webmanifest\?v=2026_v173"/) &&
     has(/og:image" content="(https:\/\/propwire\.vercel\.app\/og-image\.png|\/propstein-logo\.png)\?v=2026_v173"/) &&
     has(/twitter:image" content="(https:\/\/propwire\.vercel\.app\/og-image\.png|\/propstein-logo\.png)\?v=2026_v173"/) &&
-    has(/src="\/propwire-logo\.svg\?v=2026_v173"/) &&
-    has(/src="\/propwire-logo-dark\.svg\?v=2026_v173"/) &&
+    has(/src="\/(propstein|propwire)-logo(-dark)?\.(png|svg)\?v=2026_v173"/) &&
+    has(/src="\/(propstein|propwire)-logo-dark\.(png|svg)\?v=2026_v173"/) &&
     has(/name="build-hash" content="2026-w8-v26"/) &&
     !has(/propwire-logo-dropwire/) &&
     !has(/\?v=v149|\?v=2026_v1"|\?v=2026_v152|2026-w8-v17/);
@@ -221,13 +221,13 @@ const sw = await page.evaluate(async () => {
   if (!navigator.serviceWorker) return { err: 'no SW' };
   const reg = await navigator.serviceWorker.ready;
   const keys = await caches.keys();
-  const name = keys.find((k) => k.startsWith('propwire-v'));
+  const name = keys.find((k) => k.startsWith('propstein-v'));
   const cache = await caches.open(name);
   const probe2 = async (u) => !!(await cache.match(u));
   return {
     name,
-    logoDark: await probe2('/propwire-logo.svg?v=2026_v173'),
-    logoLight: await probe2('/propwire-logo-dark.svg?v=2026_v173'),
+    logoDark: await probe2('/propstein-logo.svg?v=2026_v173'),
+    logoLight: await probe2('/propstein-logo-dark.svg?v=2026_v173'),
     fav: await probe2('/favicon.svg?v=2026_v173'),
     i192: await probe2('/icon-192.png?v=2026_v173'),
     i512: await probe2('/icon-512.png?v=2026_v173'),
@@ -235,7 +235,7 @@ const sw = await page.evaluate(async () => {
     book: await probe2('/books/draftkings.svg?v=v152'),
   };
 });
-check('SW: propwire-v173-prod activated', sw.name === 'propwire-v173-prod', String(sw.name));
+check('SW: propstein-v173-prod activated', sw.name === 'propstein-v173-prod', String(sw.name));
 check('SW: precache has authentic SVG logos + icons/manifest', sw.logoDark && sw.logoLight && sw.fav && sw.i192 && sw.i512 && sw.man, JSON.stringify(sw));
 check('SW: v152 book badges still precached', sw.book);
 check('boot: zero hard console errors (CSP inline-style debt tracked separately)', errors.length === 0, errors.slice(0, 3).join(' | '));

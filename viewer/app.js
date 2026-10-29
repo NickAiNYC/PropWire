@@ -6153,7 +6153,7 @@
             <span class="sim-control-val" id="simAlphaReadout">${simAlpha > 0 ? `+${simAlpha}%` : `${simAlpha}%`}</span>
           </div>
           <input type="range" id="simAlphaSlider" class="sim-range-slider" min="-30" max="30" step="1" value="${simAlpha}">
-          <div style="display:flex; justify-content:space-between; font-size:10px; color:#64748b; margin-top:2px;">
+          <div class="sim-tray-foot">
             <span>-30% Role Decrease</span>
             <span>0% Baseline</span>
             <span>+30% Role Surge</span>
@@ -6361,7 +6361,7 @@
         const edge = (((dist.proj - simVal) / simVal) * 100);
         const isPos = edge > 0;
         return `<div class="edge-cell-wrap">
-          <button type="button" class="simulated-edge-badge ${isPos ? 'pos' : 'neg'}" data-simulate-player="${esc(pid)}" title="Click to adjust line simulation" style="border:none; cursor:pointer;">${isPos ? '+' : ''}${edge.toFixed(1)}% Sim Edge</button>
+          <button type="button" class="simulated-edge-badge sim-edge-btn-reset ${isPos ? 'pos' : 'neg'}" data-simulate-player="${esc(pid)}" title="Click to adjust line simulation">${isPos ? '+' : ''}${edge.toFixed(1)}% Sim Edge</button>
         </div>`;
       }
       return `<div class="edge-cell-wrap">

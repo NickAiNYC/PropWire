@@ -48,19 +48,22 @@ HARNESSES = [
 ]
 
 SWAPS = [
-    # v172 -> v173 (normal bump)
+    # v172 -> v173 (normal bump; cache target = owner-official propstein- prefix)
     ("2026_v172", "2026_v173"),
-    ("propwire-v172-prod", "propwire-v173-prod"),
+    ("propwire-v172-prod", "propstein-v173-prod"),
+    ("propstein-v172-prod", "propstein-v173-prod"),
     ("2026-w8-v25", "2026-w8-v26"),
     # v171-era -> v173 (repair of the rebrand rewind)
     ("2026_v171", "2026_v173"),
-    ("propwire-v171-prod", "propwire-v173-prod"),
+    ("propwire-v171-prod", "propstein-v173-prod"),
+    ("propstein-v171-prod", "propstein-v173-prod"),
     ("2026-w8-v24", "2026-w8-v26"),
 ]
 
 STALE_MARKERS = [
     "2026_v171", "2026_v172",
     "propwire-v171-prod", "propwire-v172-prod",
+    "propstein-v171-prod", "propstein-v172-prod",
     "2026-w8-v24", "2026-w8-v25",
 ]
 

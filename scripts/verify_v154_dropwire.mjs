@@ -9,7 +9,7 @@
 //   - sw.js text: v154 cache + dropwire precache, pwire files deleted
 //   - header slots render + light-theme flip; lockup envelope recalibrated
 //     for the new art aspect (3.763 vs pwire 4.609 -> ~90px @ h24)
-//   - SW registers, activates propwire-v173-prod, precache populated
+//   - SW registers, activates propstein-v173-prod, precache populated
 //   - boot console: zero hard errors; CSP inline-style debt <= 171 baseline
 // Screenshots: download/headless_v154_dropwire_{desktop,mobile}.png
 import { chromium } from 'playwright';
@@ -122,8 +122,8 @@ for (const p of pages) {
   const html = readFileSync(join(ROOT, p), 'utf8');
   const has = (re) => re.test(html);
   const ok =
-    has(/src="\/propwire-logo\.svg\?v=2026_v173"/) &&
-    has(/src="\/propwire-logo-dark\.svg\?v=2026_v173"/) &&
+    has(/src="\/(propstein|propwire)-logo(-dark)?\.(png|svg)\?v=2026_v173"/) &&
+    has(/src="\/(propstein|propwire)-logo-dark\.(png|svg)\?v=2026_v173"/) &&
     has(/name="build-hash" content="2026-w8-v26"/) &&
     has(/og:image" content="(https:\/\/propwire\.vercel\.app\/og-image\.png|\/propstein-logo\.png)\?v=2026_v173"/) &&
     !has(/propwire-logo-pwire|propwire-logo-dropwire/) &&
@@ -133,7 +133,7 @@ for (const p of pages) {
 
 // ── 4. sw.js text state ───────────────────────────────────────────────────
 const swSrc = readFileSync(join(ROOT, 'sw.js'), 'utf8');
-check('sw.js: cache propwire-v173-prod', swSrc.includes('propwire-v173-prod') && !swSrc.includes('propwire-v166-prod') && !swSrc.includes('propwire-v154-prod'));
+check('sw.js: cache propstein-v173-prod', swSrc.includes('propstein-v173-prod') && !swSrc.includes('propwire-v166-prod') && !swSrc.includes('propwire-v154-prod'));
 check('sw.js: precaches authentic SVG slots @ v171, zero pwire entries',
   swSrc.includes("'/propwire-logo.svg?v=2026_v173',") &&
   swSrc.includes("'/propwire-logo-dark.svg?v=2026_v173',") &&
@@ -185,19 +185,19 @@ const sw = await page.evaluate(async () => {
   if (!navigator.serviceWorker) return { err: 'no SW' };
   const reg = await navigator.serviceWorker.ready;
   const keys = await caches.keys();
-  const name = keys.find((k) => k.startsWith('propwire-v'));
+  const name = keys.find((k) => k.startsWith('propstein-v'));
   const cache = await caches.open(name);
   const probe2 = async (u) => !!(await cache.match(u));
   return {
     name,
-    logoDark: await probe2('/propwire-logo.svg?v=2026_v173'),
-    logoLight: await probe2('/propwire-logo-dark.svg?v=2026_v173'),
+    logoDark: await probe2('/propstein-logo.svg?v=2026_v173'),
+    logoLight: await probe2('/propstein-logo-dark.svg?v=2026_v173'),
     i192: await probe2('/icon-192.png?v=2026_v173'),
     man: await probe2('/site.webmanifest?v=2026_v173'),
     book: await probe2('/books/draftkings.svg?v=v152'),
   };
 });
-check('SW: propwire-v173-prod activated', sw.name === 'propwire-v173-prod', String(sw.name));
+check('SW: propstein-v173-prod activated', sw.name === 'propstein-v173-prod', String(sw.name));
 check('SW: precache has dropwire slots + icons + manifest', sw.logoDark && sw.logoLight && sw.i192 && sw.man, JSON.stringify(sw));
 check('SW: v152 book badges still precached', sw.book);
 check('boot: zero hard console errors (CSP inline-style debt tracked separately)', errors.length === 0, errors.slice(0, 3).join(' | '));

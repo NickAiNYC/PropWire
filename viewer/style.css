@@ -14137,3 +14137,12 @@ dialog.detail-dialog .dialog-sheet-handle {
   color: #ffffff;
 }
 
+/* v173 CSP-clean round 2: line-simulator tray inline conversions (owner 87bddd4, Task 59) */
+.sim-tray-foot { display: flex; justify-content: space-between; font-size: 10px; color: #64748b; margin-top: 2px; }
+.sim-edge-btn-reset { border: none; cursor: pointer; }
+/* v173 CSP-clean round 1: card-density inline conversions (owner 370f810, Task 59) */
+.dens-muted-dash { color: #64748b; font-size: 13px; font-weight: 500; }
+.dens-row-8 { display: flex; gap: 8px; align-items: baseline; margin-top: 2px; }
+.dens-row-6 { display: flex; gap: 6px; align-items: baseline; }
+.dens-proj-val { font-size: 11.5px; font-weight: 700; }
+.dens-fair-sub { color: #94a3b8; font-size: 10px; }
