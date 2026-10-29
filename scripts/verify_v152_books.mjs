@@ -6,8 +6,8 @@
 //     (.bullet-bk .book-logo-mini) and the badges decode (naturalWidth > 0)
 //   - unknown-provider book in the feed's `books` map merges without console errors
 //   - cross-book best-price highlight CSS layer computes mint (#6ee7b7)
-//   - SW propstein-v175-prod activates with populated precache incl. /books/*
-//   - build-hash 2026-w8-v28 + theme #0b0e14, zero CSP violations, zero console errors
+//   - SW propstein-v176-prod activates with populated precache incl. /books/*
+//   - build-hash 2026-w8-v29 + theme #0b0e14, zero CSP violations, zero console errors
 import { chromium } from 'playwright';
 import { createServer } from 'http';
 import { readFileSync, existsSync, mkdirSync } from 'fs';
@@ -67,7 +67,7 @@ const oddsFixture = {
 // Cross-book CSS probe: markup mirrors executionSlipMarkup's cross-book rows.
 const crossbookProbe = `<!doctype html><html lang="en" class="dark" style="color-scheme: dark;"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<link rel="stylesheet" href="/style.css?v=2026_v175">
+<link rel="stylesheet" href="/style.css?v=2026_v176">
 <title>crossbook probe</title></head><body>
 <div class="cross-book-list">
   <div class="cross-book-row is-best">
@@ -163,7 +163,7 @@ const meta = await page.evaluate(() => ({
   hash: document.querySelector('meta[name="build-hash"]')?.content,
   theme: document.querySelector('meta[name="theme-color"]')?.content
 }));
-check('boot: build-hash 2026-w8-v28 + theme #0b0e14', meta.hash === '2026-w8-v28' && meta.theme === '#0b0e14', JSON.stringify(meta));
+check('boot: build-hash 2026-w8-v29 + theme #0b0e14', meta.hash === '2026-w8-v29' && meta.theme === '#0b0e14', JSON.stringify(meta));
 
 // Research mode: w8 boots to the honest paused empty state — cards render after CTA.
 const cta = page.locator('button:has-text("Research Projections"), a:has-text("Research Projections")').first();
@@ -208,16 +208,16 @@ const swState = await page.evaluate(async () => {
     const reg = await navigator.serviceWorker.ready;
     await new Promise((r) => setTimeout(r, 1200));
     const keys = await caches.keys();
-    const target = keys.find((k) => k === 'propstein-v175-prod');
-    if (!target) return { err: `no propstein-v175-prod in ${keys.join(',')}` };
+    const target = keys.find((k) => k === 'propstein-v176-prod');
+    if (!target) return { err: `no propstein-v176-prod in ${keys.join(',')}` };
     const cache = await caches.open(target);
     const keysIn = await cache.keys();
     const badge = await cache.match('/books/draftkings.svg?v=v152');
-    const css = await cache.match('/style.css?v=2026_v175');
+    const css = await cache.match('/style.css?v=2026_v176');
     return { n: keysIn.length, badge: !!badge, css: !!css };
   } catch (e) { return { err: String(e) }; }
 });
-check('SW: propstein-v175-prod active + precache populated', !swState.err && swState.n >= 20 && swState.css && swState.badge, swState.err ? swState.err : `${swState.n} entries, badge precached: ${swState.badge}`);
+check('SW: propstein-v176-prod active + precache populated', !swState.err && swState.n >= 20 && swState.css && swState.badge, swState.err ? swState.err : `${swState.n} entries, badge precached: ${swState.badge}`);
 
 check('CSP: zero CSP-blocked requests', cspFailures.length === 0, cspFailures.slice(0, 3).join(', '));
 check('network: zero non-CSP failed requests', otherFailed.length === 0, otherFailed.slice(0, 3).join(' | '));

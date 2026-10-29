@@ -130,8 +130,10 @@ try {
 
   // v175 simulator honesty labels (open the tray from a card)
   await page.click('[data-view="cards"]');
-  await page.waitForSelector('.card-btn-sim-quick');
-  await page.click('.card-btn-sim-quick');
+  // v176: research cards now open the tray via the .card-sim-primary CTA
+  // (the old .card-btn-sim-quick quick button only remains on quoted cards).
+  await page.waitForSelector('.card-sim-primary');
+  await page.click('.card-sim-primary');
   await page.waitForSelector('#simModalBody .sim-readout-grid', { timeout: 10000 });
   const sim = await page.evaluate(() => ({
     body: document.getElementById('simModalBody')?.textContent || '',
@@ -167,11 +169,14 @@ try {
   const cards = await mpage.evaluate(() => document.querySelectorAll('#cardView .mobile-quant-row').length);
   check('mobile 390: quant cards render (default cards view)', cards >= 5, `${cards} cards`);
 
+  // v176: the research card's old .card-quote-standby-wrap was retired with
+  // the decision-card redesign — the honest wrap contract now lives on the
+  // thumb-zone action bar (SIM primary / COPY FAIR / research tag).
   const wrap = await mpage.evaluate(() => {
-    const el = document.querySelector('.card-quote-standby-wrap');
+    const el = document.querySelector('.card-action-bar');
     return el ? getComputedStyle(el).flexWrap : 'missing';
   });
-  check('mobile 390: standby quote chips wrap (flex-wrap: wrap)', wrap === 'wrap', wrap);
+  check('mobile 390: card action bar wraps (flex-wrap: wrap)', wrap === 'wrap', wrap);
 
   // Compact is a desktop-only density mode: the view switch must keep cards
   // on a 768px-or-below viewport even if the button is tapped.

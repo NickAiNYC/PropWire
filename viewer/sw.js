@@ -1,28 +1,28 @@
 // PropStein Service Worker (offline shell only; market data always fails closed)
-const CACHE_NAME = 'propstein-v175-prod';
+const CACHE_NAME = 'propstein-v176-prod';
 const STATIC_ASSETS = [
   '/index.html',
   '/style.css',
   '/app.js',
-  '/style.css?v=2026_v175',
-  '/app.js?v=2026_v175',
+  '/style.css?v=2026_v176',
+  '/app.js?v=2026_v176',
   // v171: public verify landing assets (externalized from a336e2f inline blocks)
   '/verify-landing.css',
   '/verify-landing.js',
-  '/verify-landing.css?v=2026_v175',
-  '/verify-landing.js?v=2026_v175',
-  '/js/sports/registry.js?v=2026_v175',
-  '/js/sports/nfl.js?v=2026_v175',
-  '/js/sports/nba.js?v=2026_v175',
+  '/verify-landing.css?v=2026_v176',
+  '/verify-landing.js?v=2026_v176',
+  '/js/sports/registry.js?v=2026_v176',
+  '/js/sports/nfl.js?v=2026_v176',
+  '/js/sports/nba.js?v=2026_v176',
   // brand marks: PropStein lighter ice-blue logo suite
   '/propstein-logo.png',
-  '/propstein-logo.png?v=2026_v175',
+  '/propstein-logo.png?v=2026_v176',
   '/propstein-logo-dark.png',
-  '/propstein-logo-dark.png?v=2026_v175',
-  '/propstein-logo.svg?v=2026_v175',
-  '/propstein-logo-dark.svg?v=2026_v175',
-  '/propwire-logo.svg?v=2026_v175',
-  '/propwire-logo-dark.svg?v=2026_v175',
+  '/propstein-logo-dark.png?v=2026_v176',
+  '/propstein-logo.svg?v=2026_v176',
+  '/propstein-logo-dark.svg?v=2026_v176',
+  '/propwire-logo.svg?v=2026_v176',
+  '/propwire-logo-dark.svg?v=2026_v176',
   // v152: self-hosted sportsbook wordmark badges (same-origin, CSP 'self')
   '/books/draftkings.svg?v=v152',
   '/books/fanduel.svg?v=v152',
@@ -37,11 +37,11 @@ const STATIC_ASSETS = [
   // v149 fix: this list previously referenced /manifest.json (never existed),
   // and addAll() is all-or-nothing — one 404 silently precached NOTHING.
   // Now every entry matches the exact busted URLs the pages request.
-  '/site.webmanifest?v=2026_v175',
-  '/favicon.svg?v=2026_v175',
-  '/icon-192.png?v=2026_v175',
-  '/icon-512.png?v=2026_v175',
-  '/apple-touch-icon.png?v=2026_v175'
+  '/site.webmanifest?v=2026_v176',
+  '/favicon.svg?v=2026_v176',
+  '/icon-192.png?v=2026_v176',
+  '/icon-512.png?v=2026_v176',
+  '/apple-touch-icon.png?v=2026_v176'
 ];
 
 self.addEventListener('install', (event) => {
