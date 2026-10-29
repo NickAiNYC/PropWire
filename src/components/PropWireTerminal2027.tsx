@@ -136,7 +136,7 @@ export default function PropWireTerminal2027() {
         <div className="mx-auto flex max-w-[1440px] items-center justify-between px-6 py-3">
           <div className="flex items-center gap-4">
             <span className="font-mono text-lg font-extrabold tracking-wider text-white italic">
-              PROP<span className="text-sky-400">WIRE</span>
+              PROP<span className="text-sky-400">STEIN</span>
             </span>
             <div className="flex items-center gap-2 rounded-full border border-sky-400/20 bg-sky-500/[0.06] px-3 py-1 text-[11px] font-mono text-sky-300">
               <span className="h-1.5 w-1.5 rounded-full bg-sky-400 shadow-[0_0_8px_#38bdf8]" />
@@ -604,3 +604,4 @@ export default function PropWireTerminal2027() {
     </div>
   );
 }
+
