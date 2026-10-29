@@ -17,8 +17,10 @@
   "include": [
     "packages/*/src/**/*.ts",
     "packages/*/src/**/*.tsx",
+    "apps/*/src/**/*.ts",
+    "apps/*/src/**/*.tsx",
     "tests/**/*.ts",
     "demo/**/*.mjs"
   ],
-  "exclude": ["node_modules", "apps", "dist"]
+  "exclude": ["node_modules", "dist"]
 }
