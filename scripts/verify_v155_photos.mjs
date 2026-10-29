@@ -67,7 +67,7 @@ check('app.js: initPlayerPhotos wired at boot', appSrc.includes('await initPlaye
 check('app.js: avatar fallback class ships', appSrc.includes('pw-avatar-fallback'));
 
 const swSrc = readFileSync(join(ROOT, 'sw.js'), 'utf8');
-check('sw.js: cache propstein-v174-prod', swSrc.includes("propstein-v174-prod"));
+check('sw.js: cache propstein-v175-prod', swSrc.includes("propstein-v175-prod"));
 check('sw.js: feeds JSON never precached (network-only data policy)', !/STATIC_ASSETS[\s\S]*?feeds\//.test(swSrc));
 check('vercel.json: img-src allows a.espncdn.com', /img-src[^;]*a\.espncdn\.com/.test(cspHeader));
 
@@ -211,7 +211,7 @@ const swInfo = await page.evaluate(async () => {
     const c = await caches.open(k);
     precached = Math.max(precached, (await c.keys()).length);
   }
-  return { supported: true, hasV155: keys.includes('propstein-v174-prod'), keys, precached };
+  return { supported: true, hasV155: keys.includes('propstein-v175-prod'), keys, precached };
 });
 if (swInfo.supported) {
   check('SW v171 cache registered', swInfo.hasV155, `keys=${swInfo.keys.join(',')}`);
