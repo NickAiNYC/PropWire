@@ -1094,6 +1094,120 @@ async def post_sniper_polymarket_ws_state(request: Request):
     }
 
 
+@app.get("/api/sniper/webhooks")
+def get_sniper_webhooks(user_id: str = Query("default_user")):
+    """
+    Returns configured Discord and Telegram webhook subscriptions for Alert Routing.
+    """
+    engine = get_sniper_engine()
+    subs = engine.truth.list_webhook_subscriptions(user_id=user_id, active_only=False)
+    return {
+        "status": "ok",
+        "user_id": user_id,
+        "subscriptions": subs,
+    }
+
+
+@app.post("/api/sniper/webhooks")
+async def post_sniper_webhooks(request: Request):
+    """
+    Registers or updates Discord and/or Telegram webhook routing subscriptions
+    with strict SSRF protection (`discord.com/api/webhooks/...` or Telegram `chat_id`).
+    """
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+
+    engine = get_sniper_engine()
+    dispatcher = engine.polymarket_arb_agent.webhook_dispatcher
+    user_id = str(body.get("user_id") or "default_user")
+    platform = str(body.get("platform") or "discord").lower()
+    webhook_url = str(body.get("webhook_url") or "").strip()
+    min_edge_gate = float(body.get("min_edge_gate", 4.0))
+    polymarket_only = bool(body.get("polymarket_only", True))
+    active_status = bool(body.get("active_status", True))
+
+    try:
+        saved = dispatcher.register_subscription(
+            user_id=user_id,
+            platform=platform,
+            webhook_url=webhook_url,
+            min_edge_gate=min_edge_gate,
+            polymarket_only=polymarket_only,
+            active_status=active_status,
+        )
+        return {"status": "ok", "subscription": saved}
+    except ValueError as exc:
+        raise HTTPException(400, str(exc))
+
+
+@app.post("/api/sniper/webhooks/test")
+async def post_sniper_webhooks_test(request: Request):
+    """
+    Dispatches a formatted dummy Cross-Venue Polymarket Arbitrage alert to verify
+    Discord/Telegram connection and returns the formatted payloads.
+    """
+    from src.services.webhook_dispatcher import (
+        format_discord_embed,
+        format_telegram_markdown,
+        validate_webhook_target,
+    )
+
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+
+    dummy_alert = {
+        "player_id": "nba_giannis",
+        "player_name": "Giannis Antetokounmpo",
+        "team": "MIL",
+        "market": "points",
+        "market_label": "PTS Over 31.5",
+        "line": 31.5,
+        "fair_prob": 0.64,
+        "implied_prob": 0.58,
+        "poly_ask_price": 0.58,
+        "edge_pct": 6.0,
+        "depth_tooltip": "$500 available at $0.58, $1,200 at $0.59, $850 at $0.60",
+        "deep_link": "https://polymarket.com/event/nba-giannis-antetokounmpo-points-over-31-5",
+        "venue_type": "polymarket",
+        "book": "Polymarket",
+    }
+
+    discord_embed = format_discord_embed(dummy_alert)
+    telegram_md = format_telegram_markdown(dummy_alert)
+
+    platform = str(body.get("platform") or "").lower()
+    target = str(body.get("webhook_url") or "").strip()
+    delivery = None
+    if platform and target:
+        try:
+            validate_webhook_target(platform, target)
+            engine = get_sniper_engine()
+            sub = engine.polymarket_arb_agent.webhook_dispatcher.register_subscription(
+                user_id=str(body.get("user_id") or "default_user"),
+                platform=platform,
+                webhook_url=target,
+                min_edge_gate=float(body.get("min_edge_gate", 4.0)),
+                polymarket_only=bool(body.get("polymarket_only", True)),
+            )
+            delivery = engine.polymarket_arb_agent.webhook_dispatcher._deliver_single_subscription(
+                sub,
+                dummy_alert,
+            )
+        except ValueError as exc:
+            raise HTTPException(400, str(exc))
+
+    return {
+        "status": "ok",
+        "discord_embed": discord_embed,
+        "telegram_markdown": telegram_md,
+        "delivery": delivery,
+    }
+
+
 @app.post("/api/sniper/simulate-substitution")
 async def post_sniper_simulate_substitution(request: Request):
     """

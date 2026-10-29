@@ -45,6 +45,7 @@ from src.agents.schemas import (
 )
 from src.agents.stale_kill_switch import StaleKillSwitch
 from src.model import devig_two_way, ev_per_unit, kelly_fraction
+from src.services.webhook_dispatcher import WebhookDispatcher
 
 logger = logging.getLogger("propwire.agent.polymarket_arb")
 
@@ -313,6 +314,7 @@ class PolymarketArbAgent:
         clob_client: Any = None,
         fee_rate: float = DEFAULT_POLYMARKET_FEE_RATE,
         min_liquidity_usd: float = MIN_TOP3_LIQUIDITY_USD,
+        webhook_dispatcher: WebhookDispatcher | None = None,
     ) -> None:
         self.bus = bus or DurableRedisStreamBus()
         self.truth = truth_store or TruthStore()
@@ -320,6 +322,10 @@ class PolymarketArbAgent:
         self.clob_client = clob_client
         self.fee_rate = float(fee_rate)
         self.min_liquidity_usd = float(min_liquidity_usd)
+        self.webhook_dispatcher = webhook_dispatcher or WebhookDispatcher(
+            truth_store=self.truth,
+            bus=self.bus,
+        )
 
         # WebSocket health state for Stale Orderbook Guard
         self.ws_connected: bool = True
@@ -732,6 +738,12 @@ class PolymarketArbAgent:
                 "arb_card": arb_card,
             },
         )
+        if self.webhook_dispatcher is not None:
+            self.webhook_dispatcher.dispatch_alert(
+                alert,
+                arb_card=arb_card,
+                async_dispatch=True,
+            )
         return arb_card, alert
 
     def on_projection_recalc_5s_update(
@@ -787,3 +799,4 @@ class PolymarketArbAgent:
                 cards.append(card)
         cards.sort(key=lambda c: float(c.get("poly_edge_pct", 0.0)), reverse=True)
         return cards
+

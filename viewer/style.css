@@ -12580,6 +12580,50 @@ dialog.detail-dialog .dialog-sheet-handle {
   pointer-events: none;
 }
 
+/* Alert Routing Tab (Discord / Telegram Webhook Settings) */
+.arb-routing-card {
+  background: #18181b;
+  border: 1px solid #27272a;
+}
+
+.arb-routing-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+@media (min-width: 768px) {
+  .arb-routing-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.arb-routing-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.arb-routing-label {
+  font-family: var(--pw-font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: #f4f4f5;
+}
+
+.arb-routing-hint {
+  font-size: 10.5px;
+  color: #a1a1aa;
+  line-height: 1.35;
+}
+
+.arb-routing-mode-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+
 
 
 

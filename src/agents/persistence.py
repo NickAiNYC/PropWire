@@ -427,6 +427,25 @@ class TruthStore:
                     source_hash TEXT NOT NULL,
                     fetched_at TEXT NOT NULL
                 );
+
+                CREATE TABLE IF NOT EXISTS webhook_subscriptions (
+                    subscription_id TEXT PRIMARY KEY,
+                    user_id TEXT NOT NULL,
+                    platform TEXT NOT NULL,
+                    webhook_url TEXT NOT NULL,
+                    min_edge_gate REAL NOT NULL DEFAULT 4.0,
+                    polymarket_only INTEGER NOT NULL DEFAULT 1,
+                    active_status INTEGER NOT NULL DEFAULT 1,
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL
+                );
+
+                CREATE INDEX IF NOT EXISTS idx_webhook_subs_active ON webhook_subscriptions(active_status, user_id);
+
+                CREATE TABLE IF NOT EXISTS webhook_locks (
+                    lock_key TEXT PRIMARY KEY,
+                    expires_at_epoch REAL NOT NULL
+                );
                 """
             )
 
@@ -1125,4 +1144,89 @@ class TruthStore:
                 (prop_id,),
             ).fetchone()
             return dict(row) if row else None
+
+    # ------------------------------------------------------------------
+    # Webhook Subscriptions & Rate-Limit Lock Store (300s TTL)
+    # ------------------------------------------------------------------
+    def upsert_webhook_subscription(
+        self,
+        *,
+        user_id: str,
+        platform: str,
+        webhook_url: str,
+        min_edge_gate: float = 4.0,
+        polymarket_only: bool = True,
+        active_status: bool = True,
+        subscription_id: str | None = None,
+    ) -> dict[str, Any]:
+        sub_id = subscription_id or f"sub_{user_id}_{platform.lower()}"
+        now_iso = datetime.now(timezone.utc).isoformat()
+        with self._connect_sqlite() as conn:
+            conn.execute(
+                """
+                INSERT INTO webhook_subscriptions (
+                    subscription_id, user_id, platform, webhook_url,
+                    min_edge_gate, polymarket_only, active_status,
+                    created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(subscription_id) DO UPDATE SET
+                    webhook_url = excluded.webhook_url,
+                    min_edge_gate = excluded.min_edge_gate,
+                    polymarket_only = excluded.polymarket_only,
+                    active_status = excluded.active_status,
+                    updated_at = excluded.updated_at
+                """,
+                (
+                    sub_id,
+                    user_id,
+                    platform.lower(),
+                    webhook_url,
+                    float(min_edge_gate),
+                    1 if polymarket_only else 0,
+                    1 if active_status else 0,
+                    now_iso,
+                    now_iso,
+                ),
+            )
+            row = conn.execute(
+                "SELECT * FROM webhook_subscriptions WHERE subscription_id = ?",
+                (sub_id,),
+            ).fetchone()
+            d = dict(row)
+            d["polymarket_only"] = bool(d["polymarket_only"])
+            d["active_status"] = bool(d["active_status"])
+            return d
+
+    def list_webhook_subscriptions(
+        self,
+        *,
+        user_id: str | None = None,
+        active_only: bool = True,
+    ) -> list[dict[str, Any]]:
+        query = "SELECT * FROM webhook_subscriptions WHERE 1=1"
+        params: list[Any] = []
+        if active_only:
+            query += " AND active_status = 1"
+        if user_id:
+            query += " AND user_id = ?"
+            params.append(user_id)
+        query += " ORDER BY updated_at DESC"
+        with self._connect_sqlite() as conn:
+            rows = conn.execute(query, params).fetchall()
+            out = []
+            for r in rows:
+                d = dict(r)
+                d["polymarket_only"] = bool(d["polymarket_only"])
+                d["active_status"] = bool(d["active_status"])
+                out.append(d)
+            return out
+
+    def deactivate_webhook_subscription(self, subscription_id: str) -> None:
+        now_iso = datetime.now(timezone.utc).isoformat()
+        with self._connect_sqlite() as conn:
+            conn.execute(
+                "UPDATE webhook_subscriptions SET active_status = 0, updated_at = ? WHERE subscription_id = ?",
+                (now_iso, subscription_id),
+            )
+
 

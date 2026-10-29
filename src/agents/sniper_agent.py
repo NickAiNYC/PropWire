@@ -38,6 +38,7 @@ from src.agents.schemas import (
 )
 from src.agents.stale_kill_switch import StaleKillSwitch
 from src.model import ev_per_unit, kelly_fraction
+from src.services.webhook_dispatcher import WebhookDispatcher
 
 
 def narrate_locked_alert(alert: SniperAlert, projection: PropProjection) -> str:
@@ -89,10 +90,15 @@ class SniperAgent:
         bus: DurableRedisStreamBus | None = None,
         truth_store: TruthStore | None = None,
         kill_switch: StaleKillSwitch | None = None,
+        webhook_dispatcher: WebhookDispatcher | None = None,
     ) -> None:
         self.bus = bus or DurableRedisStreamBus()
         self.truth = truth_store or TruthStore()
         self.kill_switch = kill_switch or StaleKillSwitch()
+        self.webhook_dispatcher = webhook_dispatcher or WebhookDispatcher(
+            truth_store=self.truth,
+            bus=self.bus,
+        )
 
     @staticmethod
     def estimate_clv_expectation(
@@ -326,6 +332,11 @@ class SniperAgent:
                 "payload": alert.model_dump(mode="json"),
             },
         )
+        if self.webhook_dispatcher is not None:
+            self.webhook_dispatcher.dispatch_alert(
+                alert,
+                async_dispatch=True,
+            )
 
         latency_ms = round((time.perf_counter() - t0) * 1000.0, 2)
         log_entry = StructuredAgentLog(

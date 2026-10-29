@@ -3812,6 +3812,10 @@
           <span class="sniper-tab-count">${polyBoard.length}</span>
           <kbd class="sniper-kbd">P</kbd>
         </button>
+        <button type="button" class="sniper-tab-btn ${activeTab === 'alert_routing' ? 'is-active active' : ''}" data-sniper-tab="alert_routing" role="tab">
+          <span>Alert Routing</span>
+          <kbd class="sniper-kbd">R</kbd>
+        </button>
         <button type="button" class="sniper-tab-btn ${activeTab === 'clv_config' ? 'is-active active' : ''}" data-sniper-tab="clv_config" role="tab">
           <span>CLV &amp; Config</span>
           <span class="sniper-tab-count">${clvSummary.total_logged || 0}</span>
@@ -3956,6 +3960,75 @@
               <tbody>${polyRows}</tbody>
             </table>
           </div>
+        </div>
+      `;
+    } else if (activeTab === 'alert_routing') {
+      const routing = state.sniperRouting || {
+        discordUrl: sniper.webhookUrl || '',
+        telegramChatId: '',
+        polymarketOnly: true,
+        minEdgeGate: 4.0
+      };
+      state.sniperRouting = routing;
+      agenticSectionHtml = `
+        <div class="sniper-card arb-routing-card">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px; flex-wrap:wrap; margin-bottom:10px;">
+            <div>
+              <div class="sniper-section-title" style="margin-bottom:2px;">Alert Routing — Rate-Limited Discord &amp; Telegram Dispatch</div>
+              <div style="font-size:11px; color:var(--muted);">5-Minute Redis Deduplication Lock (<code>webhook_lock:{user}:{player}:{prop}</code> · TTL 300s) + SSRF Host Validation</div>
+            </div>
+            <span class="arb-status-pill is-live">300s DEDUP LOCK ACTIVE</span>
+          </div>
+
+          <div class="arb-routing-grid">
+            <div class="arb-routing-field">
+              <label class="arb-routing-label" for="routingDiscordInput">Connect Discord Webhook</label>
+              <input type="url" id="routingDiscordInput" class="sniper-webhook-input" placeholder="https://discord.com/api/webhooks/123456789/token..." value="${esc(routing.discordUrl || '')}">
+              <span class="arb-routing-hint">Strictly validated against <code>https://discord.com/api/webhooks/...</code> (auto-disables on HTTP 404).</span>
+            </div>
+
+            <div class="arb-routing-field">
+              <label class="arb-routing-label" for="routingTelegramInput">Connect Telegram (Chat ID or Bot Webhook)</label>
+              <div style="display:flex; gap:8px; align-items:center;">
+                <input type="text" id="routingTelegramInput" class="sniper-webhook-input" placeholder="-100192837465 or @propwire_channel" value="${esc(routing.telegramChatId || '')}">
+                <a href="https://t.me/PropWireSniperBot" target="_blank" rel="noopener noreferrer" class="sniper-deeplink-btn" style="white-space:nowrap;">Open Bot ↗</a>
+              </div>
+              <span class="arb-routing-hint">Delivers Markdown alerts with Top-3 CLOB VWAP depth &amp; 1-tap Polymarket deep-link.</span>
+            </div>
+          </div>
+
+          <div style="margin-top:12px;">
+            <div class="arb-routing-label" style="margin-bottom:6px;">Alert Scope Filter</div>
+            <div class="arb-routing-mode-group" id="routingScopeGroup">
+              <button type="button" class="sniper-edge-btn ${routing.polymarketOnly ? 'active' : ''}" data-routing-scope="polymarket_only">
+                Only alert me for Polymarket Arbs
+              </button>
+              <button type="button" class="sniper-edge-btn ${!routing.polymarketOnly ? 'active' : ''}" data-routing-scope="all_edges">
+                Alert me for all Sniper Edges
+              </button>
+            </div>
+          </div>
+
+          <div style="margin-top:12px;">
+            <div class="arb-routing-label" style="margin-bottom:6px;">Minimum Edge Gate for Push Dispatch</div>
+            <div class="sniper-stepper-row" id="routingGateGroup">
+              <button type="button" class="sniper-edge-btn ${Number(routing.minEdgeGate) === 3.0 ? 'active' : ''}" data-routing-gate="3.0">+3.0% Gate</button>
+              <button type="button" class="sniper-edge-btn ${Number(routing.minEdgeGate) === 4.0 ? 'active' : ''}" data-routing-gate="4.0">+4.0% Gate</button>
+              <button type="button" class="sniper-edge-btn ${Number(routing.minEdgeGate) === 5.0 ? 'active' : ''}" data-routing-gate="5.0">+5.0% Gate</button>
+              <button type="button" class="sniper-edge-btn ${Number(routing.minEdgeGate) === 6.0 ? 'active' : ''}" data-routing-gate="6.0">+6.0% Gate</button>
+            </div>
+          </div>
+
+          <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:14px;">
+            <button type="button" class="arb-action-btn is-lime-cta" id="routingSaveBtn" style="width:auto; padding:8px 16px;">
+              Save Alert Routing
+            </button>
+            <button type="button" class="sniper-test-btn" id="routingTestWebhookBtn">
+              Test Webhook
+            </button>
+          </div>
+
+          <div id="routingTestResultBox" class="sniper-sim-result" style="margin-top:10px;" hidden></div>
         </div>
       `;
     }
@@ -4145,6 +4218,128 @@
         renderSniperModal(btn.dataset.sniperTab);
       };
     });
+
+    const routingDiscordInput = content.querySelector('#routingDiscordInput');
+    if (routingDiscordInput) {
+      routingDiscordInput.oninput = (e) => {
+        if (!state.sniperRouting) state.sniperRouting = { polymarketOnly: true, minEdgeGate: 4.0 };
+        state.sniperRouting.discordUrl = e.target.value.trim();
+      };
+    }
+
+    const routingTelegramInput = content.querySelector('#routingTelegramInput');
+    if (routingTelegramInput) {
+      routingTelegramInput.oninput = (e) => {
+        if (!state.sniperRouting) state.sniperRouting = { polymarketOnly: true, minEdgeGate: 4.0 };
+        state.sniperRouting.telegramChatId = e.target.value.trim();
+      };
+    }
+
+    content.querySelectorAll('[data-routing-scope]').forEach((btn) => {
+      btn.onclick = () => {
+        triggerHaptic('light');
+        if (!state.sniperRouting) state.sniperRouting = { polymarketOnly: true, minEdgeGate: 4.0 };
+        state.sniperRouting.polymarketOnly = btn.dataset.routingScope === 'polymarket_only';
+        renderSniperModal('alert_routing');
+      };
+    });
+
+    content.querySelectorAll('[data-routing-gate]').forEach((btn) => {
+      btn.onclick = () => {
+        triggerHaptic('light');
+        if (!state.sniperRouting) state.sniperRouting = { polymarketOnly: true, minEdgeGate: 4.0 };
+        state.sniperRouting.minEdgeGate = Number(btn.dataset.routingGate || 4.0);
+        renderSniperModal('alert_routing');
+      };
+    });
+
+    const routingSaveBtn = content.querySelector('#routingSaveBtn');
+    if (routingSaveBtn) {
+      routingSaveBtn.onclick = async () => {
+        triggerHaptic('medium');
+        const r = state.sniperRouting || {};
+        const box = content.querySelector('#routingTestResultBox');
+        const platform = r.discordUrl ? 'discord' : r.telegramChatId ? 'telegram' : '';
+        const target = r.discordUrl || r.telegramChatId || '';
+        if (!platform || !target) {
+          toast('Enter a Discord webhook URL or Telegram Chat ID first.');
+          return;
+        }
+        try {
+          const res = await fetch('/api/sniper/webhooks', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              user_id: 'default_user',
+              platform,
+              webhook_url: target,
+              min_edge_gate: Number(r.minEdgeGate || 4.0),
+              polymarket_only: Boolean(r.polymarketOnly)
+            })
+          });
+          if (!res.ok) {
+            const err = await res.json().catch(() => ({ detail: 'Invalid webhook endpoint (SSRF protection)' }));
+            if (box) {
+              box.hidden = false;
+              box.innerHTML = `<strong>SSRF Validation Blocked:</strong> ${esc(err.detail || 'Endpoint rejected')}`;
+            }
+            return;
+          }
+          if (box) {
+            box.hidden = false;
+            box.innerHTML = `<strong>Alert Routing Saved:</strong> Platform <code>${esc(platform.toUpperCase())}</code> · Gate <code>+${Number(r.minEdgeGate || 4.0).toFixed(1)}%</code> · Mode <code>${r.polymarketOnly ? 'Polymarket Arbs Only' : 'All Sniper Edges'}</code> (300s Redis dedup lock active).`;
+          }
+          toast('Alert routing subscription saved.');
+        } catch (_) {
+          if (box) {
+            box.hidden = false;
+            box.innerHTML = `<strong>Alert Routing Saved Locally:</strong> Gate <code>+${Number(r.minEdgeGate || 4.0).toFixed(1)}%</code> · Mode <code>${r.polymarketOnly ? 'Polymarket Arbs Only' : 'All Sniper Edges'}</code>.`;
+          }
+        }
+      };
+    }
+
+    const routingTestBtn = content.querySelector('#routingTestWebhookBtn');
+    if (routingTestBtn) {
+      routingTestBtn.onclick = async () => {
+        triggerHaptic('medium');
+        const r = state.sniperRouting || {};
+        const box = content.querySelector('#routingTestResultBox');
+        const platform = r.discordUrl ? 'discord' : r.telegramChatId ? 'telegram' : '';
+        const target = r.discordUrl || r.telegramChatId || '';
+        try {
+          const res = await fetch('/api/sniper/webhooks/test', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              user_id: 'default_user',
+              platform,
+              webhook_url: target,
+              min_edge_gate: Number(r.minEdgeGate || 4.0),
+              polymarket_only: Boolean(r.polymarketOnly)
+            })
+          });
+          if (res.ok) {
+            const data = await res.json();
+            if (box) {
+              box.hidden = false;
+              box.innerHTML = `<strong>Webhook Test Payload Dispatched:</strong><pre style="margin:6px 0 0; font-size:10.5px; white-space:pre-wrap; color:#d4d4d8;">${esc(data.telegram_markdown || '')}</pre>`;
+            }
+            return;
+          }
+          const err = await res.json().catch(() => ({ detail: 'Invalid webhook endpoint' }));
+          if (box) {
+            box.hidden = false;
+            box.innerHTML = `<strong>Webhook Test Blocked:</strong> ${esc(err.detail || 'SSRF validation failed')}`;
+          }
+        } catch (_) {
+          if (box) {
+            box.hidden = false;
+            box.innerHTML = `<strong>Webhook Test Payload (Preview):</strong><pre style="margin:6px 0 0; font-size:10.5px; white-space:pre-wrap; color:#d4d4d8;">🟢 *Giannis Antetokounmpo | PTS Over 31.5*\nFair Prob: 64%\nPolymarket: 58% ($0.58)\nEdge: +6.0%\nTop-3 Depth: $500 @ $0.58, $1,200 @ $0.59\n[🔗 BUY YES ON POLYMARKET](https://polymarket.com/event/nba-giannis-antetokounmpo-points-over-31-5)</pre>`;
+          }
+        }
+      };
+    }
 
     content.querySelectorAll('[data-explain-alert]').forEach((btn) => {
       btn.onclick = () => {
