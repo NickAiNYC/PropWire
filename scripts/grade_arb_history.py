@@ -92,11 +92,35 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Grade pending PropWire Arb History alerts.")
     parser.add_argument("--db-path", type=str, default=None, help="Optional SQLite DB path")
     parser.add_argument("--json", action="store_true", help="Print JSON summary to stdout")
+    parser.add_argument("--loop", action="store_true", help="Run continuously in a loop every interval")
+    parser.add_argument("--interval", type=int, default=900, help="Interval in seconds between runs when looping (default: 900s / 15m)")
     args = parser.parse_args()
 
-    result = run_auto_grader(db_path=Path(args.db_path) if args.db_path else None)
-    if args.json:
-        print(json.dumps(result, indent=2))
+    import signal
+    import time
+
+    running = True
+
+    def _sig_handler(signum: int, frame: Any) -> None:
+        nonlocal running
+        logger.info("Signal %d received, shutting down grader loop gracefully", signum)
+        running = False
+
+    signal.signal(signal.SIGTERM, _sig_handler)
+    signal.signal(signal.SIGINT, _sig_handler)
+
+    while running:
+        result = run_auto_grader(db_path=Path(args.db_path) if args.db_path else None)
+        if args.json:
+            print(json.dumps(result, indent=2))
+        if not args.loop:
+            break
+        logger.info("Grader loop sleeping for %d seconds (next run in %d minutes)...", args.interval, args.interval // 60)
+        time_elapsed = 0
+        while running and time_elapsed < args.interval:
+            time.sleep(1)
+            time_elapsed += 1
+
     return 0
 
 
