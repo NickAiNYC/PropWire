@@ -5,7 +5,7 @@
   "rewrites": [
     { "source": "/ledger", "destination": "/index.html" },
     { "source": "/audit", "destination": "/index.html" },
-    { "source": "/verify/(.*)", "destination": "/verify.html" },
+    { "source": "/verify/:id*", "destination": "/verify" },
     { "source": "/verify", "destination": "/verify.html" }
   ],
   "headers": [
