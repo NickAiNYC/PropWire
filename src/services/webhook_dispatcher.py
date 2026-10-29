@@ -277,6 +277,24 @@ class WebhookDispatcher:
         self.http_post = http_post or requests.post
         self.lock_ttl_seconds = int(lock_ttl_seconds)
         self._executor = ThreadPoolExecutor(max_workers=4, thread_name_prefix="propwire-webhook")
+        self._maybe_seed_env_subscriptions()
+
+    def _maybe_seed_env_subscriptions(self) -> None:
+        """Seed subscriptions from DISCORD_WEBHOOK_URL env var if provided and valid."""
+        env_discord = os.environ.get("DISCORD_WEBHOOK_URL", "").strip()
+        if env_discord:
+            try:
+                self.register_subscription(
+                    user_id="default_user",
+                    platform="discord",
+                    webhook_url=env_discord,
+                    min_edge_gate=float(os.environ.get("WEBHOOK_MIN_EDGE_GATE", "4.0")),
+                    polymarket_only=os.environ.get("WEBHOOK_POLYMARKET_ONLY", "false").lower() in ("1", "true", "yes"),
+                    active_status=True,
+                    subscription_id="env_default_discord",
+                )
+            except Exception as exc:
+                logger.warning("Could not auto-seed DISCORD_WEBHOOK_URL: %s", exc)
 
     def register_subscription(
         self,
