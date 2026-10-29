@@ -234,6 +234,10 @@ class SniperAlert(BaseModel):
     reasoning_chain: str = ""
     source_hash: str
     model_version: str = MODEL_VERSION
+    urgency_score: float = 0.0
+    edge_tier: str = "BASE"
+    is_decaying: bool = False
+    minutes_until_kickoff: Optional[float] = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 

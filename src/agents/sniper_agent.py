@@ -37,6 +37,11 @@ from src.agents.schemas import (
     compute_source_hash,
 )
 from src.agents.stale_kill_switch import StaleKillSwitch
+from src.agents.urgency import (
+    classify_edge_tier,
+    compute_urgency_score,
+    should_show_decaying_badge,
+)
 from src.model import ev_per_unit, kelly_fraction
 from src.services.webhook_dispatcher import WebhookDispatcher
 
@@ -283,6 +288,16 @@ class SniperAgent:
             4,
         )
 
+        mins_kickoff = getattr(projection, "minutes_until_kickoff", None)
+        effective_mins = mins_kickoff if mins_kickoff is not None else 45.0
+        urgency = compute_urgency_score(effective_mins)
+        tier = classify_edge_tier(edge_pct)
+        decaying = should_show_decaying_badge(
+            edge_when_detected=edge_pct,
+            current_edge=edge_pct,
+            minutes_until_kickoff=effective_mins,
+        )
+
         alert = SniperAlert(
             alert_id=f"sniper_{projection.prop_id}_{combined_hash[:8]}",
             prop_id=projection.prop_id,
@@ -315,6 +330,10 @@ class SniperAgent:
             reasoning_chain="",
             source_hash=combined_hash,
             model_version=projection.model_version,
+            urgency_score=urgency,
+            edge_tier=tier,
+            is_decaying=decaying,
+            minutes_until_kickoff=mins_kickoff,
             created_at=now_dt,
         )
 

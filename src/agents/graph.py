@@ -1073,7 +1073,8 @@ class SniperTerminalEngine:
         Return the complete state snapshot for `/api/sniper/feed` and
         `viewer/feeds/sniper_terminal_snapshot.json`.
         """
-        alerts = self.truth.get_recent_alerts(limit=25)
+        from src.agents.urgency import sort_alpha_feed
+        alerts = sort_alpha_feed(self.truth.get_recent_alerts(limit=25))
         suppressions = self.truth.get_recent_suppressions(limit=15)
         clv = self.truth.get_clv_summary()
         arb_ledger = self.arb_ledger.get_public_ledger(limit=50)
