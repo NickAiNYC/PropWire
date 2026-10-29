@@ -491,22 +491,27 @@
     const fairPct = toPct(dist.fair);
     const projPct = toPct(dist.proj);
 
+    const fpDeltaStart = Math.min(fairPct, projPct);
+    const fpDeltaWidth = Math.abs(projPct - fairPct);
+
     const deltaStart = hasBook ? Math.min(bookPct, fairPct) : 0;
     const deltaWidth = hasBook ? Math.abs(fairPct - bookPct) : 0;
     const deltaColor = side === 'OVER' ? 'rgba(132, 204, 22, 0.32)' : 'rgba(56, 189, 248, 0.4)';
 
     return `
       <div class="bullet-container" title="80% CI: ${dist.low}–${dist.high}${unit} | Fair: ${dist.fair.toFixed(1)} | Proj: ${dist.proj.toFixed(1)}${hasBook ? ` | Book: ${bookLine.toFixed(1)}` : ''}">
-        <div class="bullet-top-readout">
-          <div><span class="bullet-dim">FAIR</span> <strong class="bullet-bold text-fair">${dist.fair.toFixed(1)}</strong></div>
-          <span class="split-divider">|</span>
-          <div><span class="bullet-dim">PROJ</span> <strong class="bullet-bold text-accent">${dist.proj.toFixed(1)}</strong></div>
+        <div class="bullet-top-readout" style="font-variant-numeric: tabular-nums;">
+          <div><span class="bullet-dim">FAIR</span> <strong class="bullet-bold text-fair font-mono" style="font-variant-numeric: tabular-nums;">${dist.fair.toFixed(1)}</strong></div>
+          <span class="split-divider" style="opacity: 0.25; margin: 0 5px;">|</span>
+          <div><span class="bullet-dim">PROJ</span> <strong class="bullet-bold text-accent font-mono" style="color:#38bdf8; text-shadow:0 0 8px rgba(56,189,248,0.35); font-variant-numeric: tabular-nums;">${dist.proj.toFixed(1)}</strong></div>
         </div>
         <svg class="bullet-svg" viewBox="0 0 100 14" preserveAspectRatio="none" aria-hidden="true">
           <!-- Background Track (0 to maxScale) -->
           <rect class="bullet-track" x="0" y="5" width="100" height="4" rx="1.5" fill="#2a2d35" />
           <!-- 80% Confidence Interval Bar -->
           <rect class="bullet-fill" x="${lowPct.toFixed(1)}" y="4.5" width="${widthPct.toFixed(1)}" height="5" rx="1" fill="#465264" />
+          <!-- Model Fair-to-Projection Visual Delta Fill -->
+          ${fpDeltaWidth > 0 ? `<rect class="bullet-fp-delta" x="${fpDeltaStart.toFixed(1)}" y="4.5" width="${Math.max(1.5, fpDeltaWidth).toFixed(1)}" height="5" rx="1" fill="rgba(56, 189, 248, 0.28)" />` : ''}
           <!-- Edge Delta Highlight -->
           ${hasBook && deltaWidth > 0 ? `<rect x="${deltaStart.toFixed(1)}" y="4.5" width="${deltaWidth.toFixed(1)}" height="5" fill="${deltaColor}" />` : ''}
           <!-- Book Line Marker (Crisp Vertical Amber Tick) -->
@@ -518,7 +523,7 @@
         </svg>
         <div class="bullet-bottom-sub">
           <span class="bullet-ci-wrap">80% <span class="bullet-ci-tag">${dist.low}–${dist.high}${unit}</span></span>
-          <span class="bullet-bk">${hasBook ? `${bookLogoImg(evaluation.book, 'book-logo book-logo-mini')}Bk ${bookLine.toFixed(1)}` : 'Model only'}</span>
+          <span class="bullet-bk">${hasBook ? `${bookLogoImg(evaluation.book, 'book-logo book-logo-mini')}Bk ${bookLine.toFixed(1)}` : ''}</span>
         </div>
       </div>`;
   }
@@ -1478,7 +1483,45 @@
     } catch (_) {}
 
     $('#slateRows').addEventListener('click', inspectFromEvent);
+    $('#slateRows').addEventListener('input', (e) => {
+      const input = e.target.closest('.sim-line-input');
+      if (input) {
+        const pid = input.dataset.playerId;
+        const val = parseFloat(input.value);
+        if (!state.simulatedLines) state.simulatedLines = {};
+        if (!isNaN(val) && val > 0) {
+          state.simulatedLines[pid] = val;
+        } else {
+          delete state.simulatedLines[pid];
+        }
+        const rowEl = input.closest('tr[data-testid="slate-row"]');
+        if (rowEl) {
+          const edgeCell = rowEl.querySelector('.edge-cell-wrap');
+          if (edgeCell) {
+            const rowData = state.slate.find((r) => r.player_id === pid);
+            if (rowData) {
+              const dist = distributionRange(rowData);
+              if (!isNaN(val) && val > 0) {
+                const edge = (((dist.proj - val) / val) * 100);
+                const isPos = edge > 0;
+                edgeCell.innerHTML = `<span class="simulated-edge-badge ${isPos ? 'pos' : 'neg'}">${isPos ? '+' : ''}${edge.toFixed(1)}% Sim Edge</span>`;
+              } else {
+                edgeCell.innerHTML = `<span class="text-muted" style="color: #475569; font-size: 15px; font-weight: 500;">—</span>`;
+              }
+            }
+          }
+        }
+      }
+    });
     $('#cardView').addEventListener('click', inspectFromEvent);
+
+    const ribbonRefreshBtn = $('#ribbonRefreshBtn');
+    if (ribbonRefreshBtn) {
+      ribbonRefreshBtn.addEventListener('click', () => {
+        triggerHaptic('light');
+        window.location.reload();
+      });
+    }
 
     const portfolioBtn = $('#portfolioBtn');
     if (portfolioBtn) portfolioBtn.addEventListener('click', openPortfolioDialog);
@@ -2328,6 +2371,21 @@
     if (health.newsFreshness === 'stale') {
       items.push('<strong>NEWS FEED STALE</strong><span>News watcher exceeded the dead-man threshold — automated sniper dispatch is suppressed.</span>');
       if (tone === 'ok') tone = 'warn';
+    }
+
+    const ribbonHealthTitle = $('#ribbonHealthTitle');
+    const ribbonHealthAge = $('#ribbonHealthAge');
+    if (health.oddsFreshness === 'stale') {
+      const ageMin = Math.max(1, Math.round(health.oddsAgeSeconds / 60));
+      const ageLabel = ageMin > 1440 ? `${Math.floor(ageMin / 1440)}d ago` : ageMin > 60 ? `${Math.floor(ageMin / 60)}h ago` : `${ageMin}m ago`;
+      if (ribbonHealthTitle) ribbonHealthTitle.textContent = 'ODDS STALE';
+      if (ribbonHealthAge) ribbonHealthAge.textContent = `· ${ageLabel}`;
+    } else if (health.odds === 'error') {
+      if (ribbonHealthTitle) ribbonHealthTitle.textContent = 'ODDS OFFLINE';
+      if (ribbonHealthAge) ribbonHealthAge.textContent = '· Standby';
+    } else {
+      if (ribbonHealthTitle) ribbonHealthTitle.textContent = 'LIVE FRESH';
+      if (ribbonHealthAge) ribbonHealthAge.textContent = '· Connected';
     }
 
     const mobileStatusPill = $('#mobileStatusPill');
@@ -5545,12 +5603,13 @@
   }
 
   function tableHead(hasPrices) {
+    const dimCls = !hasPrices ? ' th-inactive-col' : '';
     return `<tr>
       <th style="width:28%">Player / Driver</th>
       <th style="width:12%">Matchup</th>
-      <th class="th-num" style="width:18%">Book & Status <span class="help-bubble" title="Sportsbook line, odds, and quote verification status">?</span></th>
+      <th class="th-num${dimCls}" style="width:18%">Book & Status <span class="help-bubble" title="Sportsbook line, odds, and quote verification status">?</span></th>
       <th class="th-num" style="width:24%">Model (Fair | Proj | 80% CI) <span class="help-bubble" title="True-scale bullet graph: Amber tick is Book line, White tick is Model Fair, Green dot is Proj Mean, Shaded bar is 80% CI.">?</span></th>
-      <th class="th-num" style="width:18%">Price Check / Edge <span class="help-bubble" title="Mathematical edge vs de-vigged market line.">?</span></th>
+      <th class="th-num${dimCls}" style="width:18%">Price Check / Edge <span class="help-bubble" title="Mathematical edge vs de-vigged market line.">?</span></th>
     </tr>`;
   }
 
@@ -5970,7 +6029,25 @@
       </div>`;
     }
     if (evaluation.state === 'none') {
-      return `<div class="book-cell"><span class="number-main book-empty" aria-label="No market quote">—</span><div class="book-meta model-only-help-wrap"><button type="button" class="meta-pill model-only model-only-help" data-model-only-help aria-expanded="false" aria-label="Why is this model only?">${SVG_ICONS.lock} Model only</button><span class="model-only-popover" role="status" hidden>No verified market receipt is available. Projections remain visible, but price-dependent actions stay locked.</span>${injury ? `<span class="injury-warning-tag" title="Snap risk unpriced">${SVG_ICONS.warn} ${esc(injury.report_status)}</span>` : ''}</div></div>`;
+      const pid = row ? row.player_id : '';
+      const isSimulating = state.simulatingId === pid;
+      const simVal = (state.simulatedLines && state.simulatedLines[pid] !== undefined)
+        ? state.simulatedLines[pid]
+        : (row ? distributionRange(row).fair.toFixed(1) : '');
+
+      if (isSimulating) {
+        return `<div class="book-cell book-cell-empty">
+          <div class="sim-input-wrap">
+            <input type="number" step="0.5" class="sim-line-input" data-player-id="${esc(pid)}" autofocus placeholder="${esc(simVal)}" value="${esc(simVal)}" onclick="event.stopPropagation()">
+            <button type="button" class="sim-close-btn" data-sim-close="${esc(pid)}" title="Cancel" aria-label="Cancel simulation">✕</button>
+          </div>
+        </div>`;
+      }
+      return `<div class="book-cell book-cell-empty">
+        <button type="button" class="simulate-line-btn" data-simulate-player="${esc(pid)}" title="Simulate sportsbook line and edge">
+          <span class="sim-plus">+</span> Simulate Line <span class="sim-plus" style="opacity:0.6;">+</span>
+        </button>
+      </div>`;
     }
     const quoteKey = row ? `${row.player_id}::${state.filters.market}` : '';
     const flash = quoteKey && state.tickFlashes ? state.tickFlashes[quoteKey] : null;
@@ -6033,10 +6110,19 @@
     const glyph = flash === 'up' ? '<span class="tick-flash-glyph tick-glyph-up" aria-hidden="true">▲</span>' : flash === 'down' ? '<span class="tick-flash-glyph tick-glyph-down" aria-hidden="true">▼</span>' : '';
 
     if (evaluation.state === 'none') {
+      const pid = row ? row.player_id : '';
+      const simVal = state.simulatedLines && state.simulatedLines[pid];
+      if (simVal !== undefined && row) {
+        const dist = distributionRange(row);
+        const edge = (((dist.proj - simVal) / simVal) * 100);
+        const isPos = edge > 0;
+        return `<div class="edge-cell-wrap">
+          <span class="simulated-edge-badge ${isPos ? 'pos' : 'neg'}">${isPos ? '+' : ''}${edge.toFixed(1)}% Sim Edge</span>
+        </div>`;
+      }
       return `<div class="edge-cell-wrap">
         <div class="edge-cell edge-cell-none ${flashClass}">
-          <span class="edge-line-top text-muted">—</span>
-          <span class="exec-tag exec-tag-none" title="No verified market receipt is available. Edge and staking remain locked.">MODEL ONLY</span>
+          <span class="text-muted" style="color: #475569; font-size: 15px; font-weight: 500;">—</span>
         </div>
       </div>`;
     }
@@ -6208,6 +6294,28 @@
     if (logBtn) {
       event.stopPropagation();
       logBet(logBtn.dataset.logBet);
+      return;
+    }
+    const simBtn = event.target.closest('[data-simulate-player]');
+    if (simBtn) {
+      event.preventDefault();
+      event.stopPropagation();
+      const pid = simBtn.dataset.simulatePlayer;
+      state.simulatingId = (state.simulatingId === pid) ? null : pid;
+      renderBoard();
+      return;
+    }
+    const simClose = event.target.closest('[data-sim-close]');
+    if (simClose) {
+      event.preventDefault();
+      event.stopPropagation();
+      if (state.simulatedLines) delete state.simulatedLines[simClose.dataset.simClose];
+      state.simulatingId = null;
+      renderBoard();
+      return;
+    }
+    if (event.target.closest('.sim-line-input')) {
+      event.stopPropagation();
       return;
     }
     const button = event.target.closest('[data-inspect]');
