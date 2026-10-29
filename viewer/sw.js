@@ -90,7 +90,7 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       fetch(event.request)
         .catch(() => caches.match('/index.html'))
-        .then((response) => response || new Response('PropWire is offline. Live market data is unavailable.', {
+        .then((response) => response || new Response('PropStein is offline. Live market data is unavailable.', {
           status: 503,
           headers: { 'Content-Type': 'text/plain; charset=utf-8' }
         }))

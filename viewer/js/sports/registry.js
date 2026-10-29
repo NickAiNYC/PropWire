@@ -73,5 +73,6 @@
   };
 
   Object.freeze(PropWireSports);
+  window.PropSteinSports = PropWireSports;
   window.PropWireSports = PropWireSports;
 })();

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""PropWire public SEO pages — B4 (competitive brief 2026-10-27).
+"""PropStein public SEO pages — B4 (competitive brief 2026-10-27).
 
 Generates static, JS-free, CSP-safe HTML into viewer/ from the model's own
 fixture data. Every page carries the evidence-record honesty rules:
@@ -17,7 +17,7 @@ from datetime import datetime, timezone
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 VIEWER = os.path.join(ROOT, "viewer")
-BASE_URL = "https://propwire.vercel.app"
+BASE_URL = "https://propstein.vercel.app"
 SNAPSHOTS = "snapshots_2026_w7.json"
 
 MARKETS = {
@@ -36,7 +36,7 @@ MARKETS = {
 }
 
 LIMITATIONS = """
-<p>PropWire publishes model limitations alongside every page. Roles and
+<p>PropStein publishes model limitations alongside every page. Roles and
 thresholds are provisional pending chronological holdout validation. In our
 published week-1 holdout evaluation the model's Brier score trailed the naive
 baseline; we treat that as an open defect, not a marketing problem, and we
@@ -74,7 +74,7 @@ def page(title, description, canonical_path, breadcrumb, body,
          show_limitations=True):
     """Render a full standalone HTML page (no JS, CSP-safe external CSS)."""
     crumbs = []
-    trail = [("PropWire", "/")] + breadcrumb
+    trail = [("PropStein", "/")] + breadcrumb
     for i, (label, path) in enumerate(trail):
         crumbs.append(
             f'<li><a href="{esc(path)}">{esc(label)}</a></li>'
@@ -99,7 +99,7 @@ def page(title, description, canonical_path, breadcrumb, body,
                 "name": title,
                 "description": description,
                 "url": BASE_URL + canonical_path,
-                "isPartOf": {"@type": "WebSite", "name": "PropWire", "url": BASE_URL + "/"},
+                "isPartOf": {"@type": "WebSite", "name": "PropStein", "url": BASE_URL + "/"},
             },
         ],
     }, indent=1)
@@ -110,7 +110,7 @@ def page(title, description, canonical_path, breadcrumb, body,
     </section>""" if show_limitations else "")
     nav = """
   <header class="pub-header">
-    <a class="pub-brand" href="/">PropWire</a>
+    <a class="pub-brand" href="/">PropStein</a>
     <nav class="pub-nav">
       <a href="/nfl/props/receiving-yards/">NFL Receiving Yards</a>
       <a href="/nfl/props/receptions/">NFL Receptions</a>
@@ -146,7 +146,7 @@ def page(title, description, canonical_path, breadcrumb, body,
 {body}{limit_block}
   </main>
   <footer class="pub-footer">
-    <p>PropWire is quantitative research, not betting advice. No wager should
+    <p>PropStein is quantitative research, not betting advice. No wager should
     be placed based on any content on this site. 21+ where applicable. If
     gambling stops being fun, call 1-800-GAMBLER.</p>
     <nav class="pub-footer-nav">
@@ -268,7 +268,7 @@ def player_market_page(snap, other_market_path, games_by_id, injuries_index):
     created_h = created[:16].replace("T", " ") if created else "unknown"
     body = f"""
     <h1>{esc(name)} &ndash; {esc(m['label'])}: Model Fair Line &amp; Research</h1>
-    <p class="pub-lede">PropWire's pre-kickoff model projection for {esc(name)}
+    <p class="pub-lede">PropStein's pre-kickoff model projection for {esc(name)}
     ({esc(snap.get('position') or '')}, {esc(snap.get('team') or '')}) in the
     {esc(matchup)} game &mdash; {esc(m['label'].lower())} market, {esc(snap.get('slate') or '')}.
     Snapshot taken <time datetime="{esc(created)}">{esc(created_h)} UTC</time>.</p>
@@ -358,7 +358,7 @@ def market_page(market_key, snaps, performance_path="/performance/"):
     limitations.</p>
     <p class="pub-note">Top {len(top)} of {len(rows)} modeled players by projected
     volume. The full board, with live verification states and execution gating,
-    lives in the <a href="/">PropWire terminal</a>.</p>
+    lives in the <a href="/">PropStein terminal</a>.</p>
     <div class="pub-tablewrap">
     <table class="pub-table">
       <thead><tr><th>Player</th><th>Matchup</th><th>Pos</th><th>Fair line</th>
@@ -372,7 +372,7 @@ def market_page(market_key, snaps, performance_path="/performance/"):
       <h2>Why publish fair lines instead of picks</h2>
       <p>Most picks sites sell a table of odds. The professional question is not
       &ldquo;what is the line&rdquo; but &ldquo;which side of this price is
-      wrong, by how much, and how confident is the model.&rdquo; PropWire
+      wrong, by how much, and how confident is the model.&rdquo; PropStein
       publishes the fair line, the acceptable price boundaries, the role
       evidence behind each projection, and a dated track record &mdash;
       including the weeks where calibration was poor.</p>
@@ -409,7 +409,7 @@ def performance_page():
             f"<td>{esc('WIN' if outcome == 'win' else outcome.upper())}</td>"
             f"<td class='pub-num'>{esc(r.get('net_pnl'))}</td></tr>")
     body = f"""
-    <h1>PropWire Track Record &amp; Evidence</h1>
+    <h1>PropStein Track Record &amp; Evidence</h1>
     <p class="pub-lede">Headline performance is full-board CLV &mdash; every
     decision graded against closing line value with confidence intervals, not a
     cherry-picked ledger subset. Everything graded so far is published as-is,
@@ -484,8 +484,8 @@ def performance_page():
       week. The commitment is the record, not the highlight reel.</p>
     </section>"""
     return page(
-        "PropWire Track Record: Graded Decisions, CLV and Calibration",
-        "Every graded PropWire decision published as-is: ledger record, "
+        "PropStein Track Record: Graded Decisions, CLV and Calibration",
+        "Every graded PropStein decision published as-is: ledger record, "
         "full-board close calibration, holdout model evaluation including "
         "negative results, and the honest sample-size caveats.",
         "/performance/", [("Track Record", None)], body)
@@ -495,8 +495,8 @@ def methodology_page():
     holdout = load("holdout_eval_2026_w1.json")
     hmet = holdout.get("metrics") or {}
     body = f"""
-    <h1>How PropWire Works: Model, Gating and Verification</h1>
-    <p class="pub-lede">PropWire is a decision terminal for player-prop
+    <h1>How PropStein Works: Model, Gating and Verification</h1>
+    <p class="pub-lede">PropStein is a decision terminal for player-prop
     markets. Instead of selling picks, it publishes what a professional needs
     to trust a price: the model's fair line, the price boundaries where value
     exists, the evidence behind each projection, and a dated, falsifiable
@@ -542,7 +542,7 @@ def methodology_page():
       <h2>FAQ</h2>
       <dl class="pub-faq">
         <dt>Is this betting advice?</dt>
-        <dd>No. PropWire is quantitative research about player-prop prices.
+        <dd>No. PropStein is quantitative research about player-prop prices.
         Nothing here recommends a wager, and the track-record page exists so
         you can audit the model yourself.</dd>
         <dt>Why show losing calibration publicly?</dt>
@@ -556,8 +556,8 @@ def methodology_page():
       </dl>
     </section>"""
     return page(
-        "PropWire Methodology: Fair Lines, Gating and Published Defects",
-        "How the PropWire model works: NegBin-Gamma projections, pre-kickoff "
+        "PropStein Methodology: Fair Lines, Gating and Published Defects",
+        "How the PropStein model works: NegBin-Gamma projections, pre-kickoff "
         "snapshots, verification states, execution gating, and published "
         "model limitations including negative holdout results.",
         "/methodology/", [("Methodology", None)], body)
@@ -566,16 +566,16 @@ def methodology_page():
 def terms_page():
     body = """
     <h1>Terms of Use</h1>
-    <p class="pub-lede">Plain-language terms for using PropWire. We tried to
+    <p class="pub-lede">Plain-language terms for using PropStein. We tried to
     keep this short and honest rather than long and defensive. Bracketed
     items are placeholders the operator completes before relying on this
     document.</p>
     <section>
-      <h2>What PropWire is</h2>
-      <p>PropWire is a quantitative research terminal for NFL player-prop
+      <h2>What PropStein is</h2>
+      <p>PropStein is a quantitative research terminal for NFL player-prop
       markets. It publishes projections, fair lines, price boundaries, line
       snapshots and a dated track record. It is provided for informational
-      and research purposes only. PropWire is not a sportsbook, does not
+      and research purposes only. PropStein is not a sportsbook, does not
       accept wagers, never handles customer money, and is not affiliated
       with, endorsed by or sponsored by the NFL, any team, or any sportsbook
       named on this site. All third-party trademarks belong to their
@@ -611,7 +611,7 @@ def terms_page():
     </section>
     <section>
       <h2>Limitation of liability</h2>
-      <p>To the maximum extent permitted by law, PropWire and its operators
+      <p>To the maximum extent permitted by law, PropStein and its operators
       are not liable for any losses connected to your use of, or reliance
       on, the site &mdash; including wagering losses, missed opportunities,
       data errors, downtime or consequential damages. Your sole remedy for
@@ -619,11 +619,11 @@ def terms_page():
     </section>
     <section>
       <h2>Acceptable use</h2>
-      <p>You may use PropWire personally for research. You may not resell or
+      <p>You may use PropStein personally for research. You may not resell or
       republish the site's content as your own, attempt to circumvent rate
       limits or access controls, or bulk-harvest pages or data feeds in a
       way that degrades the service for others. If you cite the work, credit
-      PropWire with a link.</p>
+      PropStein with a link.</p>
     </section>
     <section>
       <h2>Changes, governing law, contact</h2>
@@ -633,8 +633,8 @@ def terms_page():
       conflict-of-law rules. Questions: <strong>[CONTACT EMAIL]</strong>.</p>
     </section>"""
     return page(
-        "PropWire Terms of Use &mdash; Research Terminal, Not Betting Advice",
-        "Plain-language terms: PropWire is quantitative research, not "
+        "PropStein Terms of Use &mdash; Research Terminal, Not Betting Advice",
+        "Plain-language terms: PropStein is quantitative research, not "
         "betting advice; no wagers accepted; 21+; no profit warranties; "
         "liability limits and acceptable use.",
         "/legal/terms/", [("Terms of Use", None)], body,
@@ -644,7 +644,7 @@ def terms_page():
 def privacy_page():
     body = """
     <h1>Privacy Policy</h1>
-    <p class="pub-lede">Short version: PropWire has no accounts, asks for no
+    <p class="pub-lede">Short version: PropStein has no accounts, asks for no
     personal information, and stores your UI preferences in your own
     browser. Bracketed items are placeholders the operator completes before
     relying on this document.</p>
@@ -683,7 +683,7 @@ def privacy_page():
     </section>
     <section>
       <h2>Children</h2>
-      <p>PropWire is intended for adults of legal gambling age in their
+      <p>PropStein is intended for adults of legal gambling age in their
       jurisdiction (21+ in most U.S. states) and is not directed to
       children. If you believe a minor has used the site, contact us and we
       will investigate.</p>
@@ -697,7 +697,7 @@ def privacy_page():
       <strong>[CONTACT EMAIL]</strong>.</p>
     </section>"""
     return page(
-        "PropWire Privacy Policy &mdash; No Accounts, No Ad Trackers",
+        "PropStein Privacy Policy &mdash; No Accounts, No Ad Trackers",
         "Privacy policy: no accounts, no personal data collection, "
         "first-party local storage only, aggregate analytics, no ad-tech "
         "trackers, no data sale.",
@@ -708,7 +708,7 @@ def privacy_page():
 def responsible_gaming_page():
     body = """
     <h1>Responsible Gaming</h1>
-    <p class="pub-lede">PropWire is a research tool, and we take the
+    <p class="pub-lede">PropStein is a research tool, and we take the
     responsibilities that come with covering betting markets seriously. If
     betting has stopped being a game for you or someone close to you, help
     is available and it works.</p>
@@ -775,7 +775,7 @@ def responsible_gaming_page():
       these, tell us at <strong>[CONTACT EMAIL]</strong>.</p>
     </section>"""
     return page(
-        "PropWire Responsible Gaming &mdash; Limits, Self-Exclusion and Help",
+        "PropStein Responsible Gaming &mdash; Limits, Self-Exclusion and Help",
         "Responsible gaming: betting is entertainment with a budget; set "
         "limits first; warning signs; 1-800-GAMBLER, NCPG and Gamblers "
         "Anonymous help resources; our operator commitments.",
