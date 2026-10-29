@@ -1,3 +1,7 @@
+# PropStein
+
+<img src="viewer/propstein-logo.svg" alt="PropStein logo" width="420" />
+
 ### 3. Weekly Operational Cadence
 
 1. **Tuesday – Thursday (Ingest & Projection)**:
@@ -31,7 +35,7 @@ The viewer frontend and pre-computed slate data are deployed to Vercel at global
 - **Configuration**: Service workers are never cached, HTML/data use short edge caching, and versioned static assets use immutable caching.
 
 #### Deploying Slate Updates to Vercel
-Whenever the weekly pipeline runs (`python src/week1.py`), updated projections and picks are automatically synced to `viewer/slate_projections.json` and `viewer/current_picks.json`. To push the new slate to Vercel production:
+Whenever the weekly pipeline runs (`python src/week1.py`), updated projections and picks are automatically synced to `viewer/slate_projections.json` and `viewer/current_picks.json`. To push the new weekly build live:
 
 ```bash
 vercel --prod
