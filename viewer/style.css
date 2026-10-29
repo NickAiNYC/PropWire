@@ -9549,6 +9549,55 @@ html, body {
 [data-theme="light"] .cross-book-row.is-best .cross-book-status { color: #087a5b; }
 
 
+/* 
+===== v155 — player headshots =====================================
+   ESPN CDN headshots (a.espncdn.com — CSP img-src allowed since v150).
+   Markup pattern: initials always rendered underneath; the <img> sits on top
+   and is removed by a delegated capture-phase error listener when a URL dies,
+   so the initials become the fallback. No inline styles / handlers (CSP). */
+.pw-avatar {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex: 0 0 auto;
+  background: linear-gradient(140deg, #16202e, #0c141d);
+  border: 1px solid rgba(148, 184, 220, 0.16);
+  vertical-align: middle;
+}
+.pw-avatar-initials {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: #7e95b5;
+  user-select: none;
+}
+.pw-avatar-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 20%;
+}
+.player-name .pw-avatar { width: 24px; height: 24px; }
+.card-id-block .pw-avatar { width: 32px; height: 32px; }
+.pw-injury-card-top .pw-avatar { width: 30px; height: 30px; }
+.execution-id-main { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.execution-id-main .pw-avatar { width: 44px; height: 44px; }
+.execution-id-main .pw-avatar + div { min-width: 0; }
+.detail-title-row .pw-avatar { width: 48px; height: 48px; }
+[data-theme="light"] .pw-avatar {
+  background: linear-gradient(140deg, #e9eff6, #d8e3ee);
+  border-color: rgba(24, 48, 78, 0.18);
+}
+[data-theme="light"] .pw-avatar-initials { color: #3d5a7d; }
+=======
+
 /* 9. Seamless Single Header Brand Lockup */
 .pw-brand {
   background: transparent !important;
@@ -11060,4 +11109,5 @@ dialog.detail-dialog .dialog-sheet-handle {
   from { transform: translateX(100%); }
   to { transform: translateX(0); }
 }
+
 

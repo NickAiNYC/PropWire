@@ -186,6 +186,7 @@
     slate: [],
     games: [],
     picks: {},
+    playerPhotos: { photos: {}, byName: {} },
     injuries: { injuries: [], impacted_beneficiaries: {} },
     odds: { quotes: [] },
     filters: { search: '', market: adapter.defaultMarket, position: 'ALL', team: '', gameId: '', playMode: 'actionable', intent: 'all' },
@@ -866,6 +867,64 @@
     }
   }
 
+  // ---- v155 player headshots -------------------------------------------------
+  // Map: viewer/feeds/player_photos.json — {photos: {player_id: {url,name,league}},
+  // by_name: {normalized_name: player_id}}. Built by scripts/build_player_photos.py
+  // (ESPN search v2, strict normalized name match, URLs verified 200 image/*).
+  // Headshots ride a.espncdn.com — CSP img-src already allows it (v150 crests).
+  // Cosmetic layer, fail-open: any error leaves the terminal exactly as before.
+  function normalizePlayerName(value) {
+    return String(value || '')
+      .toLowerCase()
+      .normalize('NFKD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[.,'’]/g, '')
+      .replace(/-/g, ' ')
+      .split(/\s+/)
+      .filter((token) => token && !['jr', 'sr', 'ii', 'iii', 'iv', 'v'].includes(token))
+      .join(' ')
+      .trim();
+  }
+
+  function avatarFor(playerId, displayName) {
+    const store = state.playerPhotos || {};
+    const photos = store.photos || {};
+    const byName = store.by_name || {};
+    let entry = null;
+    if (playerId && photos[String(playerId)]) entry = photos[String(playerId)];
+    else if (displayName) {
+      const pid = byName[normalizePlayerName(displayName)];
+      if (pid && photos[pid]) entry = photos[pid];
+    }
+    const initials = (String(displayName || '').trim().split(/\s+/)
+      .map((part) => (part[0] || '').toUpperCase())
+      .join('').replace(/[^A-Z]/g, '').slice(0, 2)) || '?';
+    const face = `<span class="pw-avatar-initials" aria-hidden="true">${esc(initials)}</span>`;
+    if (!entry || !entry.url) return `<span class="pw-avatar pw-avatar-fallback">${face}</span>`;
+    return `<span class="pw-avatar">${face}<img class="pw-avatar-img" src="${esc(entry.url)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer"></span>`;
+  }
+
+  async function initPlayerPhotos() {
+    // Delegated capture-phase error handler: a dead headshot URL removes the
+    // <img> so the initials underneath show through. CSP-safe (no inline
+    // handlers — same discipline as the v150 crest fix).
+    if (typeof document !== 'undefined' && typeof document.addEventListener === 'function') {
+      document.addEventListener('error', (event) => {
+        const el = event.target;
+        if (el && el.classList && el.classList.contains('pw-avatar-img')) el.remove();
+      }, true);
+    }
+    try {
+      const ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+      const timer = ctrl ? setTimeout(() => { try { ctrl.abort(); } catch (_) {} }, 4000) : null;
+      const res = await fetch('/feeds/player_photos.json', ctrl ? { cache: 'no-store', signal: ctrl.signal } : { cache: 'no-store' });
+      if (timer) clearTimeout(timer);
+      if (!res || !res.ok) return;
+      const data = await res.json();
+      if (data && data.photos && data.by_name) state.playerPhotos = data;
+    } catch (_) { /* cosmetic layer — fail open */ }
+  }
+
   async function init() {
     quarantineThirdPartyInjections();
     initTheme();
@@ -874,6 +933,9 @@
     // adapter.slates, so autopilot-registered weeks must exist before the
     // selector (and mobile twin) are populated. Fail-closed — see above.
     await initSlateIndex();
+    // v155: headshot map BEFORE first render so avatars paint with the board.
+    // 4s abort guard keeps boot honest on a dead network.
+    await initPlayerPhotos();
     renderSportChrome();
     bindControls();
     initInstall();
@@ -2352,6 +2414,7 @@
           <div class="pw-injury-card-top">
             <div class="pw-injury-player-meta">
               ${crest}
+              ${avatarFor(item.player_id, item.player_name)}
               <div class="pw-injury-name-col">
                 <div class="pw-injury-name-row">
                   <span class="pw-injury-player-name">${esc(item.player_name)}</span>
@@ -3565,7 +3628,7 @@
           ${logoImg}
           <span class="position-box">${esc(row.position)}</span>
           <div class="player-info">
-            <div class="player-name">${starBtn} ${esc(row.player_display_name)}${injury ? `<span class="injury-tag">${esc(injury.report_status)}</span>` : ''}</div>
+            <div class="player-name">${starBtn} ${avatarFor(row.player_id, row.player_display_name)}<span class="player-name-text">${esc(row.player_display_name)}</span>${injury ? `<span class="injury-tag">${esc(injury.report_status)}</span>` : ''}</div>
             <div class="player-meta-line">
               <span class="cell-sub">${esc(row.team)} · ${esc(roleLabel(row))}</span>
               ${keyDriverTag(row, beneficiary)}${sportCalibrationBadge()}
@@ -3726,6 +3789,7 @@
           <div class="card-id-block">
             <button class="star-btn ${isWatched ? 'starred' : ''}" type="button" data-watch-player="${esc(row.player_id)}" title="${isWatched ? 'Remove from Watchlist' : 'Add to Watchlist'}" aria-label="Watch">${SVG_ICONS.star(isWatched)}</button>
             ${crest}
+            ${avatarFor(row.player_id, row.player_display_name)}
             <div class="card-name-group">
               <span class="card-player-name">${esc(row.player_display_name)}${injury ? ` <span class="injury-tag">${esc(injury.report_status)}</span>` : ''}</span>
               <span class="card-team-matchup">${esc(row.position)} · ${esc(row.team)} ${row.is_home ? 'vs' : '@'} ${esc(row.opponent_team)}</span>${sportCalibrationBadge()}
@@ -4295,7 +4359,7 @@
     const reasons = decision.allowed ? ['Verified receipt', 'Fresh odds and news', `Clears ${pct(policy()?.gate || 0, 0)} gate`] : [decision.message];
     return `
       <section class="execution-identity">
-        <div><span class="execution-kicker">${esc(row.position)} · ${esc(row.team)} ${row.is_home ? 'vs' : '@'} ${esc(row.opponent_team)}</span><h3>${esc(row.player_display_name)}</h3></div>
+        <div class="execution-id-main">${avatarFor(row.player_id, row.player_display_name)}<div><span class="execution-kicker">${esc(row.position)} · ${esc(row.team)} ${row.is_home ? 'vs' : '@'} ${esc(row.opponent_team)}</span><h3>${esc(row.player_display_name)}</h3></div></div>
         <span class="execution-state ${decision.allowed ? 'is-ready' : 'is-blocked'}">${decision.allowed ? 'Verified · ready' : 'Blocked'}</span>
       </section>
       <section class="execution-summary" aria-label="Execution terms">
@@ -5247,6 +5311,7 @@
     $('#detailTitle').innerHTML = `
       <div class="detail-title-row">
         ${teamCrest(row.team, 'lg')}
+        ${avatarFor(row.player_id, row.player_display_name)}
         <span>${esc(row.player_display_name)}</span>
         ${sideBadge}
         ${beneficiary ? ` <span class="surge-tag">${SVG_ICONS.surge} ROLE SURGE</span>` : ''}

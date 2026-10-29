@@ -64,6 +64,18 @@ OCT23_GAMES = [
     ("GSW", "LAC", "22:00", "Intuit Dome"),
     ("PHX", "LAL", "22:30", "Crypto.com Arena"),
 ]
+OCT29_GAMES = [
+    ("BOS", "PHI", "19:00", "Wells Fargo Center"),
+    ("MIL", "NYK", "19:30", "Madison Square Garden"),
+    ("CLE", "IND", "19:00", "Gainbridge Fieldhouse"),
+    ("ORL", "MIA", "19:30", "Kaseya Center"),
+    ("DET", "CHI", "20:00", "United Center"),
+    ("SAS", "HOU", "20:00", "Toyota Center"),
+    ("DEN", "OKC", "20:00", "Paycom Center"),
+    ("PHX", "LAC", "22:00", "Intuit Dome"),
+    ("GSW", "LAL", "22:30", "Crypto.com Arena"),
+    ("UTA", "SAC", "22:00", "Golden 1 Center"),
+]
 
 # (name, pos, minutes, usage, pts, reb, ast, fg3[, status])
 ROSTERS = {
@@ -555,6 +567,33 @@ def oct23_injuries(rows):
     return make_injuries(rows, "2026-10-23", plan, "2026-10-23T17:00:00Z")
 
 
+def oct29_injuries(rows):
+    by_id = {r["player_id"]: r for r in rows}
+    bos = sorted([r for r in rows if r["team"] == "BOS"], key=lambda r: (-r["usage_rate"], r["player_id"]))
+    lal = sorted([r for r in rows if r["team"] == "LAL"], key=lambda r: (-r["usage_rate"], r["player_id"]))
+    gsw = sorted([r for r in rows if r["team"] == "GSW"], key=lambda r: (-r["usage_rate"], r["player_id"]))
+    plan = [
+        ("fx-nba-jayson-tatum", "OUT", "Achilles (left) — rehab", "Out (Rehab Assignment)", "CRITICAL",
+         "Public injury reporting (real status on a fixture slate); stat impact modeled synthetically.",
+         "Continues his Achilles rehab with no return timetable — real public reporting; the slate modeling here is synthetic. Boston redistributes his creation load in the meantime.",
+         [(bos[0]["player_id"], 0.40, 6.0, "Primary creation minutes",
+           "Defensive shells bracket his spots once the scouting report catches up."),
+          (bos[1]["player_id"], 0.30, 4.5, "Secondary on-ball bulk",
+           "Bench units may route creation through the backup guard instead.")]),
+        (lal[3]["player_id"], "QUESTIONABLE", "Ankle Sprain (Grade 1)", "Limited Practice (Estimated)", "ELEVATED",
+         INJ_SOURCE,
+         "Hypothetical fixture status (not a real injury report): game-time decision with a limited practice week; minutes risk flagged without removing the player from the board.",
+         [(lal[4]["player_id"], 0.35, 5.0, "Wing scoring bulk", "Bench units may route creation through the backup guard instead."),
+          (lal[5]["player_id"], 0.25, 3.5, "Second-unit guard minutes", "Frontcourt foul trouble reshuffles the rotation within a quarter.")]),
+        (gsw[3]["player_id"], "QUESTIONABLE", "Knee Soreness", "Day-to-Day", "ELEVATED",
+         INJ_SOURCE,
+         "Hypothetical fixture status (not a real injury report): knee soreness limits scrimmage time; day-to-day designation monitored ahead of tip-off.",
+         [(gsw[4]["player_id"], 0.35, 4.5, "Secondary scoring role", "Rotation dependent on match matchups."),
+          (gsw[5]["player_id"], 0.30, 3.0, "Wing defense minutes", "Small-ball looks alter wing minutes.")]),
+    ]
+    return make_injuries(rows, "2026-10-29", plan, "2026-10-29T17:00:00Z")
+
+
 def validate(nights):
     for date, (rows, games, env, inj) in nights.items():
         ids = set()
@@ -611,13 +650,17 @@ def validate(nights):
 if __name__ == "__main__":
     rows22, games22 = build_night("2026-10-22", OCT22_GAMES, 20261022)
     rows23, games23 = build_night("2026-10-23", OCT23_GAMES, 20261023)
+    rows29, games29 = build_night("2026-10-29", OCT29_GAMES, 20261029)
     odds22 = build_odds(rows22, "2026-10-22", "2026-10-22T17:00:00Z", 20261222)
     odds23 = build_odds(rows23, "2026-10-23", "2026-10-23T17:00:00Z", 20261223)
+    odds29 = build_odds(rows29, "2026-10-29", "2026-10-29T17:00:00Z", 20261229)
     inj22 = oct22_injuries(rows22)
     inj23 = oct23_injuries(rows23)
+    inj29 = oct29_injuries(rows29)
     nights = {
         "2026-10-22": (rows22, games22, odds22, inj22),
         "2026-10-23": (rows23, games23, odds23, inj23),
+        "2026-10-29": (rows29, games29, odds29, inj29),
     }
     validate(nights)
     outputs = {}

@@ -25,7 +25,11 @@ PIPELINE (run mode, in order)
      boots from to discover new weeks/nights WITHOUT code edits (NFL weeks
      + NBA date slates; NBA entries appear automatically once
      BALLDONTLIE_API_KEY is configured and scripts/fetch_nba.py runs).
-  6. Bump the build-hash WEEK segment in the terminal pages
+  6. Refresh viewer/feeds/player_photos.json — the ESPN headshot map for
+     every player on the current slates (incremental: only names still
+     unresolved hit the search API; every URL is verified before it ships;
+     fail-open, a cosmetic layer must never abort the data pipeline).
+  7. Bump the build-hash WEEK segment in the terminal pages
      (2026-w7-v15 -> 2026-w8-v15). UI version counters (asset busters, SW
      cache name) are NOT touched by automation — those are manual releases.
 
@@ -562,6 +566,23 @@ def selftest() -> int:
     sample = "build 2026-w7-v15"
     if BUILD_HASH_RE.sub(lambda m: f"2026-w8-v{m.group(2)}", sample) != "build 2026-w8-v15":
         failures.append("build-hash bump regex broken")
+    # v155: player-photo builder pure logic (offline)
+    try:
+        try:
+            import build_player_photos as _bpp
+        except ImportError:  # running as a module (python -m scripts.autopilot)
+            from scripts import build_player_photos as _bpp
+        if _bpp.normalize_name("A.J. Brown Jr.") != "aj brown":
+            failures.append("photo normalize_name broken")
+        if _bpp.normalize_name("De'Vonta Smith") != _bpp.normalize_name("DeVonta Smith"):
+            failures.append("photo apostrophe normalize broken")
+        _hits = [{"displayName": "Puka Nakua", "sport": "football"},
+                 {"displayName": "Puka Nacua", "sport": "football"}]
+        _best = _bpp.pick_best(_hits, "puka nacua", "nfl")
+        if not _best or _best.get("displayName") != "Puka Nacua":
+            failures.append("photo pick_best broken")
+    except Exception as exc:
+        failures.append(f"photo module import failed: {exc}")
     if failures:
         for f in failures:
             print(f"SELFTEST FAIL: {f}", file=sys.stderr)
@@ -612,6 +633,7 @@ def main() -> int:
         print(f"[plan] write viewer/injuries_{season}_w{week}.json (nflverse report)")
         print(f"[plan] ensure viewer/snapshots_{season}_w{week}.json")
         print(f"[plan] regenerate viewer/feeds/slate-index.json")
+        print(f"[plan] refresh viewer/feeds/player_photos.json (incremental, ESPN)")
         print(f"[plan] bump build-hash week segment -> 2026-w{week}-v*")
         return 0
 
@@ -632,6 +654,16 @@ def main() -> int:
     write_snapshots_stub(season, week)
     fetch_nba_days(now)
     fetch_nba_odds_days(now)
+    # v155: refresh the player headshot map (incremental, fail-open).
+    try:
+        if str(ROOT) not in sys.path:
+            sys.path.insert(0, str(ROOT))
+        from scripts.build_player_photos import refresh as _refresh_photos
+        _ps = _refresh_photos()
+        print(f"[autopilot] player photos: {_ps['new']} new, {_ps['kept']} kept, "
+              f"{_ps['unresolved']} unresolved -> viewer/feeds/player_photos.json")
+    except Exception as exc:
+        print(f"  [warn] player photo refresh skipped: {exc}", file=sys.stderr)
     slate_ok = (VIEWER / f"slate_{season}_w{week}.json").exists()
     if not slate_ok and args.skip_model:
         print(f"[autopilot] slate_{season}_w{week}.json missing and model skipped "
