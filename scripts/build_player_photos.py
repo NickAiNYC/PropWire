@@ -57,6 +57,8 @@ ALIAS_FIRST = {
     "herb": ["herbert"],
     "josh": ["joshua"],
     "deuce": ["miles"],
+    "ron": ["ronald"],
+    "marquise": ["hollywood"],
 }
 _DROP_RE = re.compile(r"[.,'’]")   # removed outright: A.J.==AJ, De'Vonta==DeVonta (ESPN style)
 _SPACE_RE = re.compile(r"[-]")      # hyphenated surnames -> space-separated
@@ -276,7 +278,11 @@ def refresh(limit: int | None = None, force: bool = False, quiet: bool = False) 
         for query in espn_search_variants(meta["name"]):
             time.sleep(POLITENESS_SLEEP)
             hits = espn_search(query)
-            best = pick_best(hits, key, meta["league"]) or pick_fuzzy(hits, key, meta["league"])
+            q_norm = normalize_name(query)
+            best = (pick_best(hits, key, meta["league"]) or
+                    pick_best(hits, q_norm, meta["league"]) or
+                    pick_fuzzy(hits, key, meta["league"]) or
+                    pick_fuzzy(hits, q_norm, meta["league"]))
             if best and headshot_of(best):
                 break
         url = headshot_of(best) if best else ""
