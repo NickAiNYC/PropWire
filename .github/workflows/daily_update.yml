@@ -19,8 +19,21 @@ name: Daily Data Autopilot
 
 on:
   schedule:
+    # Daily baseline: 11:00 UTC (07:00 ET morning rollover) and 21:00 UTC (17:00 ET afternoon check)
     - cron: '0 11 * * *'
     - cron: '0 21 * * *'
+    # Game-day live kickoff windows:
+    # Sunday early window (11:30 ET / 15:30 UTC inactives + 12:45 ET / 16:45 UTC pre-kickoff line lock)
+    - cron: '30 15 * * 0'
+    - cron: '45 16 * * 0'
+    # Sunday late window (15:30 ET / 19:30 UTC afternoon inactives)
+    - cron: '30 19 * * 0'
+    # Sunday Night Football pre-kickoff (19:45 ET / 23:45 UTC)
+    - cron: '45 23 * * 0'
+    # Thursday Night Football pre-kickoff (19:30 ET / 23:30 UTC)
+    - cron: '30 23 * * 4'
+    # Monday Night Football pre-kickoff (19:30 ET / 23:30 UTC)
+    - cron: '30 23 * * 1'
   workflow_dispatch:
 
 concurrency:
@@ -53,6 +66,7 @@ jobs:
         env:
           ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
           BALLDONTLIE_API_KEY: ${{ secrets.BALLDONTLIE_API_KEY }}
+          NBA_ODDS_API_KEY: ${{ secrets.NBA_ODDS_API_KEY }}
         run: python scripts/autopilot.py --run
 
       - name: Commit and push refreshed slate (if changed)

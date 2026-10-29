@@ -1,16 +1,20 @@
 // PropWire Service Worker (offline shell only; market data always fails closed)
-const CACHE_NAME = 'propwire-v154-prod';
+const CACHE_NAME = 'propwire-v166-prod';
 const STATIC_ASSETS = [
   '/index.html',
   '/style.css',
   '/app.js',
-  '/style.css?v=2026_v154',
-  '/app.js?v=2026_v154',
-  '/js/sports/registry.js?v=2026_v154',
-  '/js/sports/nfl.js?v=2026_v154',
-  '/js/sports/nba.js?v=2026_v154',
+  '/style.css?v=2026_v166',
+  '/app.js?v=2026_v166',
+  '/js/sports/registry.js?v=2026_v166',
+  '/js/sports/nfl.js?v=2026_v166',
+  '/js/sports/nba.js?v=2026_v166',
+  // v154 DROPWIRE brand lockup (user-approved white + baby-blue recolor)
   '/propwire-logo-dropwire.png?v=2026_v154',
   '/propwire-logo-dropwire-light.png?v=2026_v154',
+  // main's SVG brand marks (kept for non-DROPWIRE surfaces)
+  '/propwire-logo.svg?v=2026_v166',
+  '/propwire-logo-dark.svg?v=2026_v166',
   // v152: self-hosted sportsbook wordmark badges (same-origin, CSP 'self')
   '/books/draftkings.svg?v=v152',
   '/books/fanduel.svg?v=v152',
