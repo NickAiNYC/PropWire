@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { buildSandbox, loadApp, attachSyntheticQuote, authorizeSyntheticExecution, VIEWER } from './helpers/sandbox.mjs';
+import { buildSandbox, loadApp, attachSyntheticQuote, authorizeSyntheticExecution, VIEWER, FROZEN_MS } from './helpers/sandbox.mjs';
 
 /**
  * FEED HEALTH / FAILURE-MODE UI — Phase 2, commit 5.
@@ -195,13 +195,17 @@ test('ledger trust boundary: fixture entries are blocked; trusted NFL entries pr
 
 const STALE_LIVE_HEALTH = () => ({
   dataKind: 'live', odds: 'ok', news: 'ok',
-  oddsUpdatedAt: new Date(Date.now() - 6 * 864e5).toISOString(),
-  newsLastPolledAt: new Date().toISOString(),
+  // Anchor to the SANDBOX's frozen clock, not the real one. With real
+  // Date.now() this fixture aged itself into the future (frozen now =
+  // 2026-10-22): age clamped to 0, freshness read "ok", and the paused
+  // panel never rendered — a time bomb that detonated on 2026-10-29.
+  oddsUpdatedAt: new Date(FROZEN_MS - 6 * 864e5).toISOString(),
+  newsLastPolledAt: new Date(FROZEN_MS).toISOString(),
 });
 const FRESH_LIVE_HEALTH = () => ({
   dataKind: 'live', odds: 'ok', news: 'ok',
-  oddsUpdatedAt: new Date().toISOString(),
-  newsLastPolledAt: new Date().toISOString(),
+  oddsUpdatedAt: new Date(FROZEN_MS).toISOString(),
+  newsLastPolledAt: new Date(FROZEN_MS).toISOString(),
 });
 
 function renderActionableEmpty(P) {
