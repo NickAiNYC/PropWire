@@ -11754,6 +11754,11 @@ dialog.detail-dialog .dialog-sheet-handle {
   overflow-x: auto;
 }
 
+/* v169 — CSP-clean variants for the split court-to-sniper switcher (replaces
+   inline style="" attributes, which prod style-src blocks). */
+.nba-game-switcher-split { justify-content: space-between; }
+.nba-game-pill-row { display: flex; gap: 8px; overflow-x: auto; }
+
 .nba-game-pill {
   padding: 6px 12px;
   min-height: 34px;

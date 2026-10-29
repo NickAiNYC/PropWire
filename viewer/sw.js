@@ -1,17 +1,17 @@
 // PropWire Service Worker (offline shell only; market data always fails closed)
-const CACHE_NAME = 'propwire-v168-prod';
+const CACHE_NAME = 'propwire-v169-prod';
 const STATIC_ASSETS = [
   '/index.html',
   '/style.css',
   '/app.js',
-  '/style.css?v=2026_v168',
-  '/app.js?v=2026_v168',
-  '/js/sports/registry.js?v=2026_v168',
-  '/js/sports/nfl.js?v=2026_v168',
-  '/js/sports/nba.js?v=2026_v168',
+  '/style.css?v=2026_v169',
+  '/app.js?v=2026_v169',
+  '/js/sports/registry.js?v=2026_v169',
+  '/js/sports/nfl.js?v=2026_v169',
+  '/js/sports/nba.js?v=2026_v169',
   // brand marks: owner-restored authentic PropWire SVG lockup (header)
-  '/propwire-logo.svg?v=2026_v168',
-  '/propwire-logo-dark.svg?v=2026_v168',
+  '/propwire-logo.svg?v=2026_v169',
+  '/propwire-logo-dark.svg?v=2026_v169',
   // v152: self-hosted sportsbook wordmark badges (same-origin, CSP 'self')
   '/books/draftkings.svg?v=v152',
   '/books/fanduel.svg?v=v152',
@@ -26,11 +26,11 @@ const STATIC_ASSETS = [
   // v149 fix: this list previously referenced /manifest.json (never existed),
   // and addAll() is all-or-nothing — one 404 silently precached NOTHING.
   // Now every entry matches the exact busted URLs the pages request.
-  '/site.webmanifest?v=2026_v168',
-  '/favicon.svg?v=2026_v168',
-  '/icon-192.png?v=2026_v168',
-  '/icon-512.png?v=2026_v168',
-  '/apple-touch-icon.png?v=2026_v168'
+  '/site.webmanifest?v=2026_v169',
+  '/favicon.svg?v=2026_v169',
+  '/icon-192.png?v=2026_v169',
+  '/icon-512.png?v=2026_v169',
+  '/apple-touch-icon.png?v=2026_v169'
 ];
 
 self.addEventListener('install', (event) => {
