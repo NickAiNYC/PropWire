@@ -957,6 +957,50 @@
       });
     }
 
+    const mobileSearchBtn = $('#mobileSearchBtn');
+    if (mobileSearchBtn) {
+      mobileSearchBtn.addEventListener('click', () => {
+        triggerHaptic('light');
+        const cmdRow = $('.pw-command-row');
+        if (cmdRow) {
+          cmdRow.classList.toggle('active');
+          const searchInput = $('#searchInput');
+          if (cmdRow.classList.contains('active') && searchInput) {
+            searchInput.focus();
+          }
+        }
+      });
+    }
+
+    const mobileContextPill = $('#mobileContextPill');
+    if (mobileContextPill) {
+      mobileContextPill.addEventListener('click', () => {
+        triggerHaptic('light');
+        const moreFiltersDialog = $('#moreFiltersDialog');
+        if (moreFiltersDialog) moreFiltersDialog.showModal();
+      });
+    }
+
+    // Unified Filters Bottom Sheet Handlers
+    $$('#sheetPosChips [data-sheet-pos]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        triggerHaptic('light');
+        const pos = btn.dataset.sheetPos;
+        state.filters.position = pos;
+        $$('#sheetPosChips [data-sheet-pos]').forEach((b) => b.classList.toggle('active', b === btn));
+        syncFilters();
+      });
+    });
+
+    $$('.filter-mode-chips [data-sheet-mode]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        triggerHaptic('light');
+        const mode = btn.dataset.sheetMode;
+        setPlayMode(mode);
+        $$('.filter-mode-chips [data-sheet-mode]').forEach((b) => b.classList.toggle('active', b === btn));
+      });
+    });
+
     const modalGateMinus = $('#modalGateMinus');
     const modalGatePlus = $('#modalGatePlus');
     const modalCapMinus = $('#modalCapMinus');
@@ -2132,6 +2176,14 @@
       if ($('#marketState')) $('#marketState').textContent = `${verified}/${ingested} Receipt-Verified`;
     }
     if ($('#priceCheckText')) $('#priceCheckText').textContent = `${ingested} ingested · ${verified} receipt-verified.`;
+
+    const mobileHeaderSport = $('#mobileHeaderSport');
+    const mobileHeaderSlate = $('#mobileHeaderSlate');
+    if (mobileHeaderSport) mobileHeaderSport.textContent = (SPORT_ID || 'nfl').toUpperCase();
+    if (mobileHeaderSlate) {
+      const short = config?.shortLabel || (config?.week != null ? `W${config.week}` : (state.slateKey || 'Live'));
+      mobileHeaderSlate.textContent = short;
+    }
   }
 
   function renderInjuries() {
@@ -3512,33 +3564,31 @@
       heroSubHtml = `<span class="card-edge-sub">EDGE LOCKED</span>`;
     } else if (evaluation.closed) {
       heroEdgeHtml = '<span class="card-hero-edge closed">CLOSED</span>';
-      heroSubHtml = '<span class="card-edge-sub">OFF BOARD</span>';
+      heroSubHtml = '<span class="card-edge-sub status-no-line">OFF BOARD</span>';
+    } else if (evaluation.state === 'none') {
+      heroEdgeHtml = '<span class="card-hero-edge none">—</span>';
+      heroSubHtml = '<span class="card-edge-sub status-no-line">NO LINE</span>';
     } else if (evaluation.volatilityHalt) {
       heroEdgeHtml = `<span class="card-hero-edge text-shift" title="${esc(evaluation.haltReason)}">SHIFT</span>`;
-      heroSubHtml = '<span class="card-edge-sub text-shift">VOLATILITY</span>';
+      heroSubHtml = '<span class="card-edge-sub status-verify">VERIFY</span>';
     } else if (evaluation.highEdgeCaution) {
       heroEdgeHtml = `<span class="card-hero-edge text-caution" title="${esc(evaluation.highEdgeWarning)}">${signedPct(evaluation.edge)}</span>`;
-      heroSubHtml = '<span class="card-edge-sub text-caution">CHECK SPREAD</span>';
+      heroSubHtml = '<span class="card-edge-sub status-verify">VERIFY</span>';
     } else if (evaluation.dataCheck) {
       heroEdgeHtml = `<span class="card-hero-edge text-caution">${signedPct(evaluation.edge)}</span>`;
-      heroSubHtml = '<span class="card-edge-sub text-caution">DATA AUDIT</span>';
+      heroSubHtml = '<span class="card-edge-sub status-verify">VERIFY</span>';
+    } else if (execution && execution.allowed) {
+      heroEdgeHtml = `<span class="card-hero-edge positive">+${(evaluation.edge * 100).toFixed(1)}%</span>`;
+      heroSubHtml = '<span class="card-edge-sub status-active">ACTIVE</span>';
     } else if (evaluation.edge > 0) {
       heroEdgeHtml = `<span class="card-hero-edge positive">+${(evaluation.edge * 100).toFixed(1)}%</span>`;
-      if (corrRisk) {
-        heroSubHtml = `<span class="card-edge-sub ${corrRisk.badgeClass}">${esc(corrRisk.badgeText)}</span>`;
-      } else if (beneficiary) {
-        heroSubHtml = '<span class="card-edge-sub text-surge">SURGE</span>';
-      } else if (num(row.f_tgt_share || row.target_share) >= 0.28) {
-        heroSubHtml = `<span class="card-edge-sub">ALPHA ${pct(row.f_tgt_share || row.target_share, 0)}</span>`;
-      } else {
-        heroSubHtml = '<span class="card-edge-sub">EDGE VALUE</span>';
-      }
+      heroSubHtml = '<span class="card-edge-sub status-sub-gate">SUB-GATE</span>';
     } else if (evaluation.edge < 0) {
       heroEdgeHtml = `<span class="card-hero-edge negative">${(evaluation.edge * 100).toFixed(1)}%</span>`;
-      heroSubHtml = '<span class="card-edge-sub">NEGATIVE EV</span>';
+      heroSubHtml = '<span class="card-edge-sub status-sub-gate">SUB-GATE</span>';
     } else {
       heroEdgeHtml = '<span class="card-hero-edge none">—</span>';
-      heroSubHtml = '<span class="card-edge-sub">NEUTRAL</span>';
+      heroSubHtml = '<span class="card-edge-sub status-sub-gate">SUB-GATE</span>';
     }
 
     // Row 2 Data Grid Columns
@@ -3615,7 +3665,7 @@
             <button class="star-btn ${isWatched ? 'starred' : ''}" type="button" data-watch-player="${esc(row.player_id)}" title="${isWatched ? 'Remove from Watchlist' : 'Add to Watchlist'}" aria-label="Watch">${SVG_ICONS.star(isWatched)}</button>
             ${crest}
             <div class="card-name-group">
-              <span class="card-player-name">${esc(row.player_display_name)}</span>
+              <span class="card-player-name">${esc(row.player_display_name)}${injury ? ` <span class="injury-tag">${esc(injury.report_status)}</span>` : ''}</span>
               <span class="card-team-matchup">${esc(row.position)} · ${esc(row.team)} ${row.is_home ? 'vs' : '@'} ${esc(row.opponent_team)}</span>${sportCalibrationBadge()}
             </div>
           </div>

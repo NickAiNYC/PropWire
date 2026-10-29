@@ -58,40 +58,58 @@
   <a class="skip-link" href="#slateBoard">Skip to slate</a>
 
   <header class="pw-terminal-chrome">
-    <!-- TIER 1: Global Terminal Header (56px desktop) -->
+    <!-- TIER 1: Global Terminal Header (56px desktop, 52px mobile) -->
     <div class="pw-topbar">
       <!-- Left: Brand + Live Status Dot -->
       <div class="pw-topbar-left">
         <a href="#slateBoard" class="pw-brand" aria-label="PropWire home">
-          <img src="/propwire-logo.svg?v=2026_v166" alt="PropWire" class="pw-brand-img pw-brand-dark-only" height="52">
-          <img src="/propwire-logo-dark.svg?v=2026_v166" alt="" aria-hidden="true" class="pw-brand-img pw-brand-light-only" height="52">
+          <img src="/propwire-logo.svg?v=2026_v166" alt="PropWire" class="pw-brand-img pw-brand-dark-only" height="44">
+          <img src="/propwire-logo-dark.svg?v=2026_v166" alt="" aria-hidden="true" class="pw-brand-img pw-brand-light-only" height="44">
         </a>
-        <div class="pw-telemetry-pod" aria-label="System telemetry">
-        <div class="pw-live-status-dot" id="mobileStatusPill" title="Live Odds Feed Active · Tap for Telemetry">
-          <span class="polling-dot pulse"></span>
-          <span class="pw-live-label pw-desktop-only" id="mobileStatusText">UNVERIFIED</span>
-        </div>
-        <div class="pw-divider pw-desktop-only"></div>
-        <!-- Compact Availability Trigger (Desktop Only) -->
-        <button type="button" id="availabilityToggle" class="pw-alert-pill pw-desktop-only" title="Click to view availability &amp; vacated volume" aria-expanded="false" aria-controls="injuryDetails">
-          <span class="pw-alert-dot"></span>
-          <span class="pw-alert-count" id="injuryAlertCount">7 Injury Alerts</span>
-          <span class="pw-alert-preview" id="injuryAlertPreview">Doubs OUT · Evans OUT · A.J. Brown LIM</span>
-          <span class="pw-alert-chevron" id="injuryAlertChevron">▾</span>
-        </button>
+        <div class="pw-telemetry-pod pw-desktop-only" aria-label="System telemetry">
+          <div class="pw-live-status-dot" id="mobileStatusPill" title="Live Odds Feed Active · Tap for Telemetry">
+            <span class="polling-dot pulse"></span>
+            <span class="pw-live-label" id="mobileStatusText">UNVERIFIED</span>
+          </div>
+          <div class="pw-divider"></div>
+          <!-- Compact Availability Trigger (Desktop Only) -->
+          <button type="button" id="availabilityToggle" class="pw-alert-pill" title="Click to view availability &amp; vacated volume" aria-expanded="false" aria-controls="injuryDetails">
+            <span class="pw-alert-dot"></span>
+            <span class="pw-alert-count" id="injuryAlertCount">7 Injury Alerts</span>
+            <span class="pw-alert-preview" id="injuryAlertPreview">Doubs OUT · Evans OUT · A.J. Brown LIM</span>
+            <span class="pw-alert-chevron" id="injuryAlertChevron">▾</span>
+          </button>
         </div>
       </div>
 
-      <!-- Right: Mobile Options & Desktop Actions -->
+      <!-- Center (Mobile Only): Institutional Sport/Week Context Badge -->
+      <div class="pw-topbar-center pw-mobile-only">
+        <button type="button" class="pw-mobile-context-pill" id="mobileContextPill" aria-label="Switch slate or sport">
+          <span class="pw-ctx-sport" id="mobileHeaderSport">NFL</span>
+          <span class="pw-ctx-sep">·</span>
+          <span class="pw-ctx-slate" id="mobileHeaderSlate">W8</span>
+          <span class="pw-ctx-chevron">▾</span>
+        </button>
+      </div>
+
+      <!-- Right: Mobile Search & Desktop Controls -->
       <div class="pw-topbar-right">
-        <!-- Slate Selector (Mobile & Desktop) -->
-        <select id="slateSelector" class="pw-select pw-select-slate" aria-label="Select Slate">
+        <!-- Mobile Search Toggle Icon (Only control on mobile right) -->
+        <button type="button" id="mobileSearchBtn" class="pw-mobile-search-btn pw-mobile-only" aria-label="Toggle player search" title="Search player or team">
+          <svg class="pw-search-icon" width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="7" cy="7" r="4.5"/>
+            <path d="M10.5 10.5L14 14"/>
+          </svg>
+        </button>
+
+        <!-- Slate Selector (Desktop) -->
+        <select id="slateSelector" class="pw-select pw-select-slate pw-desktop-only" aria-label="Select Slate">
           <option value="2026_w7">W7 Unverified</option>
           <option value="2026_w1">W1 Audit</option>
         </select>
 
-        <!-- Compact Injury Alert Pill (Mobile & Desktop) -->
-        <button type="button" class="pw-injury-header-pill" id="slimInjuryBanner" title="Click to view availability &amp; vacated volume">
+        <!-- Compact Injury Alert Pill (Desktop) -->
+        <button type="button" class="pw-injury-header-pill pw-desktop-only" id="slimInjuryBanner" title="Click to view availability &amp; vacated volume">
           <span class="slim-injury-dot"></span>
           <span class="slim-injury-text" id="slimInjuryText">7 Alerts</span>
         </button>
@@ -138,13 +156,9 @@
           <span class="sniper-active-badge" id="sniperActiveBadge" hidden>LIVE</span>
         </button>
 
-        <!-- Commercial Pricing / Membership Tiers (Mobile & Desktop) -->
-        <!-- 2026-10-27 review: static viewer is locked to Observer mode — the
-             header chip must read as an ACTION (Upgrade), never as an active
-             PRO membership that does not exist. -->
-        <button type="button" id="pricingBtn" class="pw-btn-nav pw-btn-upgrade" title="Upgrade: membership tiers & access">
-          <span class="pro-text-desktop pw-desktop-only">Upgrade</span>
-          <span class="pro-text-mobile pw-mobile-only">Upgrade</span>
+        <!-- Commercial Pricing / Membership Tiers (Desktop & Sheet Trigger) -->
+        <button type="button" id="pricingBtn" class="pw-btn-nav pw-btn-upgrade pw-desktop-only" title="Upgrade: membership tiers & access">
+          <span class="pro-text-desktop">Upgrade</span>
         </button>
 
         <!-- Desktop Action Buttons -->
@@ -155,14 +169,8 @@
         </button>
         <button type="button" id="exportBtn" class="pw-btn-icon pw-desktop-only" aria-label="Export CSV" title="Export CSV">↓</button>
 
-        <!-- Mobile Menu / Hamburger Button -->
-        <button type="button" id="mobileMenuBtn" class="pw-mobile-menu-btn pw-mobile-only" aria-label="Open Settings &amp; Risk Policy" title="Settings &amp; Risk Policy">
-          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="menu-icon" width="16" height="16">
-            <line x1="3" y1="5" x2="17" y2="5"/>
-            <line x1="3" y1="10" x2="17" y2="10"/>
-            <line x1="3" y1="15" x2="17" y2="15"/>
-          </svg>
-        </button>
+        <!-- Hidden compatibility mobile elements -->
+        <button type="button" id="mobileMenuBtn" class="pw-mobile-menu-btn" aria-label="Open Settings" style="display:none;" hidden></button>
       </div>
     </div>
 
@@ -528,37 +536,60 @@
     </form>
   </dialog>
 
-  <!-- More Filters Bottom Sheet (Signal Archetypes & Game Matchups) -->
+  <!-- Unified Filters Bottom Sheet (Position, Team, Matchup, Injury, Usage, Price State) -->
   <dialog class="detail-dialog more-filters-dialog" id="moreFiltersDialog" aria-labelledby="moreFiltersTitle">
     <form method="dialog" class="dialog-shell">
       <div class="dialog-sheet-handle" aria-hidden="true"></div>
       <div class="dialog-header">
         <div>
-          <div class="eyebrow">Advanced Filters</div>
-          <h2 id="moreFiltersTitle">Signal &amp; Matchup Filter</h2>
+          <div class="eyebrow">Quantitative Filter Suite</div>
+          <h2 id="moreFiltersTitle">Slate Filters</h2>
         </div>
         <button class="icon-button" value="cancel" aria-label="Close filters">×</button>
       </div>
       <div class="dialog-body more-filters-body">
+        <!-- 1. Price State & Execution Mode -->
         <div class="filter-sheet-section">
-          <h4>Player Signal Archetype</h4>
-          <div class="signal-sheet-chips" id="signalSheetChips" role="radiogroup" aria-label="Signal Archetype">
-            <button type="button" class="signal-chip-btn active" data-intent="all">All Signals</button>
-            <button type="button" class="signal-chip-btn" data-intent="edge">Highest Edge (&gt;10%)</button>
-            <button type="button" class="signal-chip-btn" data-intent="surge">Role Surges (Injury Vacancies)</button>
-            <button type="button" class="signal-chip-btn" data-intent="volume">High Floor (7+ Targets)</button>
-            <button type="button" class="signal-chip-btn" data-intent="deep">Deep Threats (12+ aDOT)</button>
+          <h4>Price State &amp; Qualification</h4>
+          <div class="signal-sheet-chips filter-mode-chips" role="radiogroup" aria-label="Dataset Mode">
+            <button type="button" class="signal-chip-btn active" data-sheet-mode="actionable">Active (Clearing Gate)</button>
+            <button type="button" class="signal-chip-btn" data-sheet-mode="top">Top Projections</button>
+            <button type="button" class="signal-chip-btn" data-sheet-mode="all">All Modeled Universe</button>
           </div>
         </div>
 
+        <!-- 2. Position Filter -->
+        <div class="filter-sheet-section">
+          <h4>Position</h4>
+          <div class="signal-sheet-chips filter-pos-chips" id="sheetPosChips" role="radiogroup" aria-label="Position">
+            <button type="button" class="signal-chip-btn active" data-sheet-pos="ALL">All Positions</button>
+            <button type="button" class="signal-chip-btn" data-sheet-pos="WR">WR / Guards</button>
+            <button type="button" class="signal-chip-btn" data-sheet-pos="TE">TE / Forwards</button>
+            <button type="button" class="signal-chip-btn" data-sheet-pos="RB">RB / Centers</button>
+          </div>
+        </div>
+
+        <!-- 3. Signal & Injury / Role Change -->
+        <div class="filter-sheet-section">
+          <h4>Signal &amp; Role Context</h4>
+          <div class="signal-sheet-chips" id="signalSheetChips" role="radiogroup" aria-label="Signal Archetype">
+            <button type="button" class="signal-chip-btn active" data-intent="all">All Signals</button>
+            <button type="button" class="signal-chip-btn" data-intent="edge">Highest Edge (&gt;10%)</button>
+            <button type="button" class="signal-chip-btn" data-intent="surge">Role Surges (Teammate OUT)</button>
+            <button type="button" class="signal-chip-btn" data-intent="volume">Alpha Usage (&gt;25% Share)</button>
+            <button type="button" class="signal-chip-btn" data-intent="deep">Deep Threats (&gt;12 aDOT)</button>
+          </div>
+        </div>
+
+        <!-- 4. Game Matchups -->
         <div class="filter-sheet-section">
           <h4>Game Matchups</h4>
           <div class="matchup-sheet-chips prime-chips" id="matchupSheetChips"></div>
         </div>
 
         <div class="filter-sheet-actions">
-          <button type="button" id="resetMoreFiltersBtn" class="filter-reset-btn">Reset to All</button>
-          <button type="button" id="applyMoreFiltersBtn" class="filter-apply-btn">Done</button>
+          <button type="button" id="resetMoreFiltersBtn" class="filter-reset-btn">Reset All</button>
+          <button type="button" id="applyMoreFiltersBtn" class="filter-apply-btn">Apply Filters</button>
         </div>
       </div>
     </form>
@@ -676,27 +707,35 @@
     </form>
   </dialog>
 
-  <!-- 4-Tab Native Mobile Bottom Navigation Bar (44px+ touch targets) -->
+  <!-- Fixed 3-Tab Mobile Bottom Navigation (44px+ touch targets, iOS Safe Area aware) -->
   <nav class="mobile-bottom-nav" aria-label="Mobile Navigation">
     <button type="button" class="bottom-nav-item active" id="bottomNavSlate" aria-label="View Player Slate">
-      <svg class="prop-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6.5L8 2l6 4.5V14a1 1 0 01-1 1H3a1 1 0 01-1-1V6.5z"/><path d="M6 15V9h4v6"/></svg>
+      <svg class="prop-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>
       <span>Slate</span>
     </button>
-    <button type="button" class="bottom-nav-item" id="bottomNavWatchlist" aria-label="View Watchlist">
-      <svg class="prop-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="8 1.5 10.2 6 15 6.7 11.5 10.1 12.3 14.9 8 12.6 3.7 14.9 4.5 10.1 1 6.7 5.8 6 8 1.5"/></svg>
-      <span>Watchlist</span>
+    <button type="button" class="bottom-nav-item" id="bottomNavWatchlist" aria-label="View Saved Watchlist">
+      <svg class="prop-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 2.5h9a1 1 0 011 1v11l-5.5-3.5L2.5 14.5v-11a1 1 0 011-1z"/></svg>
+      <span>Saved</span>
       <span class="bottom-nav-badge" id="bottomNavWatchlistBadge" hidden>0</span>
     </button>
-    <button type="button" class="bottom-nav-item" id="bottomNavLedger" aria-label="Open Personal CLV Ledger">
+    <button type="button" class="bottom-nav-item" id="bottomNavLedger" aria-label="Open CLV Record Ledger">
       <svg class="prop-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 3.5h11a1 1 0 011 1v8a1 1 0 01-1 1h-11a1 1 0 01-1-1v-8a1 1 0 011-1z"/><path d="M5.5 3.5v-1a1 1 0 011-1h4a1 1 0 011 1v1M8 7v4M6 9h4"/></svg>
-      <span>Ledger</span>
+      <span>Record</span>
       <span class="bottom-nav-badge" id="bottomNavBadge" hidden>0</span>
     </button>
-    <button type="button" class="bottom-nav-item" id="bottomNavAudit" aria-label="Open Public CLV Validation Report">
+    <button type="button" class="bottom-nav-item pw-desktop-only" id="bottomNavAudit" aria-label="Open Public CLV Validation Report" style="display:none;" hidden>
       <svg class="prop-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 1.5H3.5a1 1 0 00-1 1v11a1 1 0 001 1h9a1 1 0 001-1V6L9 1.5z"/><path d="M9 1.5V6h4.5M5 10h6M5 7.5h2M5 12.5h6"/></svg>
       <span>Audit</span>
     </button>
   </nav>
+
+  <!-- Institutional Disclaimer & Responsible Gaming Footer -->
+  <footer class="pw-institutional-footer" role="contentinfo">
+    <div class="pw-footer-inner">
+      <p class="pw-legal-notice"><strong>Statistical Research Only:</strong> PropWire provides quantitative distribution modeling and closing line value (CLV) research for NFL and NBA player propositions. It is not financial advice and does not accept or place bets. Past calibration or CLV performance does not guarantee future outcomes.</p>
+      <p class="pw-rg-notice"><strong>Responsible Gaming:</strong> If you or someone you know has a gambling problem, help is available. Call 1-800-GAMBLER (1-800-426-2537) or visit <a href="https://www.ncpgambling.org" target="_blank" rel="noopener noreferrer">ncpgambling.org</a>. 21+ only.</p>
+    </div>
+  </footer>
 
   <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 </body>
