@@ -21,10 +21,14 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import http.server
 import json
 import logging
 import os
 import random
+import signal
+import sys
+import threading
 import time
 import urllib.error
 import urllib.parse
@@ -147,6 +151,8 @@ class LiveNbaSniperWorker:
         backoff: Optional[ExponentialBackoff] = None,
         pbp_fetcher: Optional[Callable[[str, Optional[str]], dict[str, Any]]] = None,
         http_poster: Optional[Callable[[str, dict[str, Any]], dict[str, Any]]] = None,
+        health_checker: Optional[Callable[[str], bool]] = None,
+        heartbeat_interval_sec: float = 60.0,
     ) -> None:
         self.internal_api_base = (
             internal_api_base
@@ -158,6 +164,15 @@ class LiveNbaSniperWorker:
         self.backoff = backoff or ExponentialBackoff(base_delay_sec=5.0, max_delay_sec=40.0)
         self._pbp_fetcher = pbp_fetcher or self._default_pbp_fetcher
         self._http_poster = http_poster or self._default_http_poster
+        self._health_checker = health_checker or self._default_health_checker
+        self.heartbeat_interval_sec = heartbeat_interval_sec
+
+        # Lifecycle & graceful shutdown state
+        self.shutdown_requested: bool = False
+        self.resources_closed: bool = False
+        self.last_heartbeat_mono: float = time.monotonic()
+        self._health_httpd: Optional[http.server.ThreadingHTTPServer] = None
+        self._health_thread: Optional[threading.Thread] = None
 
         # Local roster state per (game_id, team): {"on_court": set[str], "bench": set[str]}
         self.roster_state: dict[tuple[str, str], dict[str, set[str]]] = {}
@@ -475,14 +490,183 @@ class LiveNbaSniperWorker:
             "dispatched_events": dispatched_events,
         }
 
+    def _default_health_checker(self, base_url: str) -> bool:
+        """
+        Ping the internal FastAPI web service (`/api/health` with fallback to `/health`)
+        to prevent startup boot race conditions during simultaneous Railway deploys.
+        """
+        for path in ("/api/health", "/health/live", "/health"):
+            url = f"{base_url.rstrip('/')}{path}"
+            req = urllib.request.Request(url, method="GET")
+            try:
+                with urllib.request.urlopen(req, timeout=3.0) as resp:
+                    if 200 <= resp.status < 300:
+                        return True
+            except Exception:
+                continue
+        return False
+
+    async def wait_for_web_service(
+        self,
+        *,
+        max_retries: int = 5,
+        base_delay_sec: float = 1.0,
+    ) -> bool:
+        """
+        Boot Race Guard:
+        Pings the web service's `/api/health` or `/health` endpoint with exponential
+        backoff (max `max_retries` attempts) before entering the main polling loop.
+        If the web service is still unreachable after all retries, logs a CRITICAL
+        warning and returns False.
+        """
+        for attempt in range(1, max_retries + 1):
+            try:
+                if self._health_checker(self.internal_api_base):
+                    log_structured(
+                        logging.INFO,
+                        "web_service_ready",
+                        internal_api_base=self.internal_api_base,
+                        attempt=attempt,
+                    )
+                    return True
+            except Exception as exc:
+                log_structured(
+                    logging.WARNING,
+                    "web_service_health_ping_error",
+                    internal_api_base=self.internal_api_base,
+                    attempt=attempt,
+                    error=str(exc),
+                )
+
+            if attempt < max_retries:
+                delay = round(base_delay_sec * (2 ** (attempt - 1)), 3)
+                log_structured(
+                    logging.WARNING,
+                    "web_service_not_ready_retrying",
+                    internal_api_base=self.internal_api_base,
+                    attempt=attempt,
+                    max_retries=max_retries,
+                    retry_in_sec=delay,
+                )
+                await asyncio.sleep(delay)
+
+        log_structured(
+            logging.CRITICAL,
+            "boot_race_web_service_unreachable",
+            internal_api_base=self.internal_api_base,
+            max_retries=max_retries,
+            reason="Web service did not respond after max startup retries; waiting before polling.",
+        )
+        return False
+
+    def handle_shutdown_signal(self, signum: int, _frame: Any = None) -> None:
+        """
+        Signal handler for `SIGTERM` and `SIGINT`.
+        Flags `self.shutdown_requested = True` so the current in-flight poll completes
+        cleanly before resources are closed and the process exits with code 0.
+        """
+        sig_name = signal.Signals(signum).name if signum in signal.Signals._value2member_map_ else str(signum)
+        self.shutdown_requested = True
+        log_structured(
+            logging.INFO,
+            "worker_shutdown_signal_received",
+            signal=sig_name,
+            signum=signum,
+        )
+
+    def install_signal_handlers(self) -> None:
+        """Register `SIGTERM` and `SIGINT` handlers in the main thread."""
+        signal.signal(signal.SIGTERM, self.handle_shutdown_signal)
+        signal.signal(signal.SIGINT, self.handle_shutdown_signal)
+
+    def start_health_server(self, port: int = 8081) -> int:
+        """
+        Start a lightweight background HTTP `/health` endpoint for Railway healthchecks.
+        Returns the actual bound port.
+        """
+        worker_ref = self
+
+        class _HealthHandler(http.server.BaseHTTPRequestHandler):
+            def do_GET(self) -> None:  # noqa: N802
+                if self.path.startswith("/health") or self.path.startswith("/api/health"):
+                    body = json.dumps(
+                        {
+                            "ok": not worker_ref.shutdown_requested,
+                            "service": "live_nba_sniper_worker",
+                            "stale_games": worker_ref.is_feed_stale,
+                            "ts": datetime.now(timezone.utc).isoformat(),
+                        }
+                    ).encode("utf-8")
+                    self.send_response(200)
+                    self.send_header("Content-Type", "application/json")
+                    self.send_header("Content-Length", str(len(body)))
+                    self.end_headers()
+                    self.wfile.write(body)
+                else:
+                    self.send_response(404)
+                    self.end_headers()
+
+            def log_message(self, format: str, *args: Any) -> None:  # noqa: A002
+                return
+
+        self._health_httpd = http.server.ThreadingHTTPServer(("0.0.0.0", port), _HealthHandler)
+        bound_port = int(self._health_httpd.server_address[1])
+        self._health_thread = threading.Thread(
+            target=self._health_httpd.serve_forever,
+            name="worker-health-http",
+            daemon=True,
+        )
+        self._health_thread.start()
+        log_structured(logging.INFO, "worker_health_server_started", port=bound_port)
+        return bound_port
+
+    def stop_health_server(self) -> None:
+        if self._health_httpd is not None:
+            try:
+                self._health_httpd.shutdown()
+                self._health_httpd.server_close()
+            except Exception:
+                pass
+            self._health_httpd = None
+            self._health_thread = None
+
+    def close_resources(self) -> None:
+        """Close any HTTP sessions, health server sockets, and mark clean teardown."""
+        self.stop_health_server()
+        self.resources_closed = True
+        log_structured(
+            logging.INFO,
+            "worker_graceful_shutdown_complete",
+            exit_code=0,
+        )
+
+    def maybe_emit_heartbeat(self, cycle: int, game_ids: list[str]) -> bool:
+        now_mono = time.monotonic()
+        if (now_mono - self.last_heartbeat_mono) >= self.heartbeat_interval_sec:
+            self.last_heartbeat_mono = now_mono
+            log_structured(
+                logging.INFO,
+                "worker_heartbeat",
+                cycle=cycle,
+                monitored_games=game_ids,
+                stale_flags=self.is_feed_stale,
+            )
+            return True
+        return False
+
     async def run_daemon(
         self,
         game_ids: list[str],
         *,
         max_cycles: Optional[int] = None,
-    ) -> None:
+        check_web_on_boot: bool = False,
+        boot_max_retries: int = 5,
+        boot_base_delay_sec: float = 1.0,
+    ) -> int:
         """
         Asynchronous standalone worker loop (runs in its own Railway worker process).
+        Finishes any in-flight poll when `SIGTERM`/`SIGINT` sets `self.shutdown_requested`,
+        closes resources, and returns exit code 0.
         """
         cycle = 0
         log_structured(
@@ -492,14 +676,30 @@ class LiveNbaSniperWorker:
             poll_interval_sec=self.poll_interval_sec,
             internal_api_base=self.internal_api_base,
         )
-        while max_cycles is None or cycle < max_cycles:
-            cycle += 1
-            sleep_sec = self.poll_interval_sec
-            for gid in game_ids:
-                res = self.poll_game_once(gid)
-                if res["status"] == "error":
-                    sleep_sec = max(sleep_sec, float(res.get("backoff_delay_sec", self.poll_interval_sec)))
-            await asyncio.sleep(sleep_sec)
+
+        if check_web_on_boot:
+            web_ok = await self.wait_for_web_service(
+                max_retries=boot_max_retries,
+                base_delay_sec=boot_base_delay_sec,
+            )
+            if not web_ok and not self.shutdown_requested:
+                await asyncio.sleep(min(self.poll_interval_sec, boot_base_delay_sec))
+
+        try:
+            while not self.shutdown_requested and (max_cycles is None or cycle < max_cycles):
+                cycle += 1
+                sleep_sec = self.poll_interval_sec
+                for gid in game_ids:
+                    res = self.poll_game_once(gid)
+                    if res["status"] == "error":
+                        sleep_sec = max(sleep_sec, float(res.get("backoff_delay_sec", self.poll_interval_sec)))
+                self.maybe_emit_heartbeat(cycle, game_ids)
+                if self.shutdown_requested or (max_cycles is not None and cycle >= max_cycles):
+                    break
+                await asyncio.sleep(sleep_sec)
+        finally:
+            self.close_resources()
+        return 0
 
 
 def main() -> None:
@@ -525,14 +725,31 @@ def main() -> None:
         action="store_true",
         help="Run a single poll cycle and exit (for healthchecks/tests)",
     )
+    parser.add_argument(
+        "--skip-boot-check",
+        action="store_true",
+        help="Skip initial web service health check retry loop",
+    )
     args = parser.parse_args()
     game_ids = [g.strip() for g in args.games.split(",") if g.strip()]
     worker = LiveNbaSniperWorker(
         internal_api_base=args.api_url,
         poll_interval_sec=args.interval,
     )
-    asyncio.run(worker.run_daemon(game_ids, max_cycles=1 if args.once else None))
+    worker.install_signal_handlers()
+    health_port = int(os.environ.get("WORKER_HEALTH_PORT", os.environ.get("PORT", "0")))
+    if health_port > 0:
+        worker.start_health_server(port=health_port)
+    exit_code = asyncio.run(
+        worker.run_daemon(
+            game_ids,
+            max_cycles=1 if args.once else None,
+            check_web_on_boot=not args.skip_boot_check,
+        )
+    )
+    sys.exit(exit_code)
 
 
 if __name__ == "__main__":
     main()
+
