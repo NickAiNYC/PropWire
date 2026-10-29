@@ -5820,7 +5820,7 @@
         ? state.simulatedLines[row.player_id]
         : null;
       gridColsHtml = `
-        <div class="card-grid-col col-book" style="grid-column: span 2;">
+        <div class="card-grid-col col-book dens-span2">
           <span class="grid-col-lbl">SPORTSBOOK</span>
           <div class="card-quote-standby-wrap">
             ${simVal !== null
@@ -5830,9 +5830,9 @@
               ${simVal !== null ? 'Edit Sim' : '+ Simulate'}
             </button>
           </div>
-          <div class="card-proj-fair-row font-mono" style="display: flex; gap: 8px; align-items: baseline; margin-top: 4px;">
-            <span class="font-mono text-white" style="font-size: 11.5px; font-weight: 700;">PROJ ${dist.proj.toFixed(1)}</span>
-            <span class="font-mono" style="color: #94a3b8; font-size: 10px;">FAIR ${fairVal.toFixed(1)}</span>
+          <div class="card-proj-fair-row font-mono dens-row-8">
+            <span class="font-mono text-white dens-proj-val">PROJ ${dist.proj.toFixed(1)}</span>
+            <span class="font-mono dens-fair-sub">FAIR ${fairVal.toFixed(1)}</span>
           </div>
           <div class="card-prog-track"><div class="card-prog-fill" data-prog="${progRatio}"></div></div>
         </div>
@@ -5853,15 +5853,15 @@
       gridColsHtml = `
         <div class="card-grid-col col-book">
           <span class="grid-col-lbl">BOOK</span>
-          <span class="grid-col-val font-mono text-white" style="font-weight:700;">${evaluation.side === 'OVER' ? '↑' : '↓'} ${evaluation.line.toFixed(1)}</span>
+          <span class="grid-col-val font-mono text-white dens-val-700">${evaluation.side === 'OVER' ? '↑' : '↓'} ${evaluation.line.toFixed(1)}</span>
           <span class="card-odds-pill ${juiceClass}">${juiceLabel}</span>
         </div>
         <div class="card-grid-col col-model">
           <span class="grid-col-lbl">MODEL</span>
-          <div class="card-proj-fair-row font-mono" style="display: flex; gap: 6px; align-items: baseline;">
-            <span class="font-mono text-white" style="font-size: 11.5px; font-weight: 700;">PROJ ${dist.proj.toFixed(1)}</span>
+          <div class="card-proj-fair-row font-mono dens-row-6">
+            <span class="font-mono text-white dens-proj-val">PROJ ${dist.proj.toFixed(1)}</span>
             ${hasPositiveEdge ? `<span class="card-edge-badge-lime">+${edgePctDisplay}%</span>` : ''}
-            <span class="font-mono" style="color: #94a3b8; font-size: 10px;">FAIR ${fairVal.toFixed(1)}</span>
+            <span class="font-mono dens-fair-sub">FAIR ${fairVal.toFixed(1)}</span>
           </div>
           <div class="card-prog-track"><div class="card-prog-fill" data-prog="${progRatio}"></div></div>
         </div>
@@ -6186,7 +6186,7 @@
             <span class="sim-control-val" id="simAlphaReadout">${simAlpha > 0 ? `+${simAlpha}%` : `${simAlpha}%`}</span>
           </div>
           <input type="range" id="simAlphaSlider" class="sim-range-slider" min="-30" max="30" step="1" value="${simAlpha}">
-          <div style="display:flex; justify-content:space-between; font-size:10px; color:#64748b; margin-top:2px;">
+          <div class="sim-tray-foot">
             <span>-30% Role Decrease</span>
             <span>0% Baseline</span>
             <span>+30% Role Surge</span>
@@ -6394,7 +6394,7 @@
         const edge = (((dist.proj - simVal) / simVal) * 100);
         const isPos = edge > 0;
         return `<div class="edge-cell-wrap">
-          <button type="button" class="simulated-edge-badge ${isPos ? 'pos' : 'neg'}" data-simulate-player="${esc(pid)}" title="Click to adjust line simulation" style="border:none; cursor:pointer;">${isPos ? '+' : ''}${edge.toFixed(1)}% Sim Edge</button>
+          <button type="button" class="simulated-edge-badge sim-edge-btn-reset ${isPos ? 'pos' : 'neg'}" data-simulate-player="${esc(pid)}" title="Click to adjust line simulation">${isPos ? '+' : ''}${edge.toFixed(1)}% Sim Edge</button>
         </div>`;
       }
       return `<div class="edge-cell-wrap">

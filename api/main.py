@@ -1547,7 +1547,9 @@ async def stripe_webhook(request: Request):
         raise HTTPException(503, "Stripe webhook secret is not configured")
 
     if not verify_stripe_webhook_signature(payload_bytes, sig_header, webhook_secret):
-        raise HTTPException(503, "Invalid Stripe webhook signature")
+        # 400 (not 503): a bad signature is a permanent client error — a 503 would
+        # make Stripe retry an event that can never authenticate. Fail-closed either way.
+        raise HTTPException(400, "Invalid Stripe webhook signature")
 
     try:
         event = json.loads(payload_bytes.decode("utf-8"))

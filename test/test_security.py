@@ -43,18 +43,23 @@ def test_stripe_webhook_returns_503_on_missing_secret(client, monkeypatch):
     assert res_legacy.status_code == 503
 
 
-def test_stripe_webhook_returns_503_on_invalid_hmac(client, monkeypatch):
-    """Assert Stripe webhook fails closed with 503 when HMAC signature verification fails."""
+def test_stripe_webhook_returns_400_on_invalid_hmac(client, monkeypatch):
+    """Assert Stripe webhook fails closed with 400 when HMAC signature verification fails.
+
+    400 (permanent client error), NOT 503: a 503 tells Stripe to retry an event
+    that can never authenticate. Fail-closed contract per merged PR #32:
+    unset secret -> 503, bad signature -> 400, valid signature -> 200.
+    """
     monkeypatch.setenv("STRIPE_WEBHOOK_SECRET", "whsec_test_secret_key_12345")
-    
+
     payload = json.dumps({"id": "evt_test_123", "type": "checkout.session.completed"})
     headers = {
         "Stripe-Signature": "t=1700000000,v1=invalid_hmac_hash_00000000",
         "Content-Type": "application/json",
     }
-    
+
     res = client.post("/api/billing/webhook", data=payload, headers=headers)
-    assert res.status_code == 503
+    assert res.status_code == 400
     assert "invalid stripe webhook signature" in res.json().get("detail", "").lower()
 
 
