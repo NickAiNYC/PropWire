@@ -1299,17 +1299,28 @@
         triggerHaptic('light');
         const planTier = checkoutBtn.getAttribute('data-checkout-tier') || 'sharp';
         const plan = planTier === 'quant' ? 'pro_yearly' : 'pro_monthly';
+        // v175 P2: checkout requires a server-verified session token — the
+        // server derives the billing user_id from it and rejects anonymous
+        // calls with 401 before touching Stripe. No token → no API call.
+        const sessionToken = (() => {
+          try {
+            return (typeof localStorage !== 'undefined' &&
+              (localStorage.getItem('propstein-session-token') || localStorage.getItem('propwire-session-token'))) || null;
+          } catch (_) { return null; }
+        })();
+        if (!sessionToken) {
+          toast('Sign in to start checkout. Access is verified by the server.');
+          return;
+        }
         toast('Redirecting to secure Stripe checkout ($29/mo)...');
         (async () => {
           try {
-            const uid = (typeof localStorage !== 'undefined' && localStorage.getItem('propwire-user-id')) || ('usr_' + Math.random().toString(36).slice(2, 9));
             const email = (typeof localStorage !== 'undefined' && localStorage.getItem('propwire-user-email')) || undefined;
             const res = await fetch('/api/billing/create-checkout-session', {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
+              headers: { 'Content-Type': 'application/json', 'X-PropStein-API-Key': sessionToken },
               body: JSON.stringify({
                 plan: plan,
-                user_id: uid,
                 email: email
               })
             });
@@ -1319,6 +1330,12 @@
                 window.location.href = data.checkout_url;
                 return;
               }
+            } else if (res.status === 401) {
+              toast('Session rejected. Sign in again to manage membership.');
+              return;
+            } else if (res.status === 429) {
+              toast('Too many checkout attempts. Please wait a minute and retry.');
+              return;
             }
           } catch (err) {
             console.warn('Checkout redirection failed:', err);
@@ -1515,19 +1532,36 @@
     });
     $('#cardView').addEventListener('click', inspectFromEvent);
 
+    // v175 fail-closed heartbeat probe: re-fetches the odds feed with
+    // cache:'no-store' (via triggerOddsPoll) and reports the OBSERVED feed
+    // age honestly. "Verified" is only ever claimed when the fetched data is
+    // actually fresh — a stale or unreachable feed reports exactly that.
     const ribbonRefreshBtn = $('#ribbonRefreshBtn');
     if (ribbonRefreshBtn) {
-      ribbonRefreshBtn.addEventListener('click', () => {
+      ribbonRefreshBtn.addEventListener('click', async () => {
         triggerHaptic('light');
         ribbonRefreshBtn.classList.add('spinning');
         const statusEl = elById('ribbonHeartbeatStatus');
-        if (statusEl) statusEl.textContent = 'Probing live DK & FD feeds...';
-        toast('Probing live DraftKings & FanDuel odds feeds...');
-        setTimeout(() => {
-          ribbonRefreshBtn.classList.remove('spinning');
-          if (statusEl) statusEl.textContent = 'Heartbeat active · Auto-probe standby';
-          toast('Heartbeat verified: Odds feeds polled (Fail-closed invariant active)');
-        }, 750);
+        if (statusEl) statusEl.textContent = 'Probing odds feed (no-store)...';
+        toast('Probing odds feed...');
+        await triggerOddsPoll(true);
+        ribbonRefreshBtn.classList.remove('spinning');
+        updateFeedHealthUI();
+        const health = feedHealthStates();
+        const ageLabel = health.oddsAgeSeconds === null ? 'age unknown'
+          : health.oddsAgeSeconds > 86400 ? `${Math.round(health.oddsAgeSeconds / 86400)}d ago`
+            : health.oddsAgeSeconds > 3600 ? `${Math.round(health.oddsAgeSeconds / 3600)}h ago`
+              : `${Math.max(1, Math.round(health.oddsAgeSeconds / 60))}m ago`;
+        if (health.odds === 'error' || health.oddsFreshness === 'unknown') {
+          if (statusEl) statusEl.textContent = 'Heartbeat FAILED · Odds feed unreachable';
+          toast('Heartbeat FAILED: odds feed unreachable — research mode (fail-closed)');
+        } else if (health.oddsFreshness === 'stale') {
+          if (statusEl) statusEl.textContent = `Heartbeat checked · Odds STALE (${ageLabel})`;
+          toast(`Heartbeat checked: odds feed still STALE (${ageLabel}) — research mode`);
+        } else {
+          if (statusEl) statusEl.textContent = `Heartbeat verified · Odds fresh (${ageLabel})`;
+          toast('Heartbeat verified: odds feed fresh (fail-closed invariant active)');
+        }
       });
     }
 
@@ -2264,6 +2298,7 @@
 
     renderAll(clvReport);
     updateFeedHealthUI();
+    updateClvRibbon(clvReport);
     updateSniperUIBadges();
     checkSniperAlerts();
     window.__PROP_WIRE_READY__ = true;
@@ -2423,6 +2458,74 @@
       + '</div>';
     const retry = document.getElementById('dqRetryBtn');
     if (retry) retry.addEventListener('click', () => window.location.reload());
+  }
+
+  /**
+   * v175 CLV honesty: the hero CALIBRATION pod (beat rate, trend sparkline,
+   * delta chip) is driven from the SAME clv_audit_report.json ledger that
+   * powers /verify and the CLV dialog — never from static markup. With no
+   * (or too little) graded ledger data the pod renders "n/a" instead of an
+   * invented figure. Sparkline points are the CUMULATIVE beat rate over the
+   * graded ledger sequence, in ledger order.
+   */
+  function updateClvRibbon(report) {
+    const rateEl = $('#clvBeatRateVal');
+    const deltaEl = $('#clvTrendDelta');
+    const wrapEl = $('#clvTrendWrap');
+    const lineEl = $('#clvSparkLine');
+    const dotEl = $('#clvSparkDot');
+    const barEl = document.querySelector('.telemetry-progress-bar');
+    if (!rateEl) return;
+
+    const records = (report && (report.records || report.ledger)) || [];
+    const graded = records.filter((r) => r && typeof r.beat_close === 'boolean');
+
+    if (!graded.length) {
+      rateEl.textContent = 'n/a';
+      if (deltaEl) deltaEl.textContent = 'n/a';
+      if (wrapEl) {
+        wrapEl.title = 'CLV ledger unavailable — no graded receipts yet';
+        wrapEl.setAttribute('aria-label', 'CLV beat rate unavailable');
+      }
+      if (lineEl) lineEl.setAttribute('points', '');
+      if (dotEl) dotEl.setAttribute('cx', '0');
+      if (barEl && barEl.style && typeof barEl.style.setProperty === 'function') {
+        barEl.style.setProperty('--clv-beat-rate', '0%');
+      }
+      return;
+    }
+
+    let beats = 0;
+    const cumulative = graded.map((r, i) => {
+      if (r.beat_close) beats++;
+      return beats / (i + 1);
+    });
+    const rate = Math.round((beats / graded.length) * 1000) / 10;
+
+    rateEl.textContent = `${rate.toFixed(1)}%`;
+    if (deltaEl) deltaEl.textContent = `n=${graded.length}`;
+    if (wrapEl) {
+      wrapEl.title = `CLV beat rate: ${beats}/${graded.length} graded receipts beat close (cumulative ledger trend)`;
+      wrapEl.setAttribute('aria-label', `CLV beat rate ${rate.toFixed(1)}% over ${graded.length} graded receipts`);
+    }
+    if (barEl && barEl.style && typeof barEl.style.setProperty === 'function') {
+      barEl.style.setProperty('--clv-beat-rate', `${Math.min(100, rate).toFixed(1)}%`);
+    }
+
+    // Sparkline: cumulative beat rate (0..1) mapped into the 56x18 box.
+    if (lineEl && graded.length >= 2) {
+      const n = graded.length;
+      const x = (i) => +(2 + (i * (54 - 2)) / (n - 1)).toFixed(1);
+      const y = (v) => +(16 - v * 14).toFixed(1);
+      lineEl.setAttribute('points', cumulative.map((v, i) => `${x(i)},${y(v)}`).join(' '));
+      if (dotEl) {
+        dotEl.setAttribute('cx', String(x(n - 1)));
+        dotEl.setAttribute('cy', String(y(cumulative[n - 1])));
+      }
+    } else if (lineEl) {
+      lineEl.setAttribute('points', '');
+      if (dotEl) dotEl.setAttribute('cx', '0');
+    }
   }
 
   /**
@@ -5843,7 +5946,7 @@
         </div>
         <div class="card-grid-col col-action">
           <button type="button" class="card-btn-view card-btn-view-ghost" data-inspect="${esc(row.player_id)}" aria-label="View Details" title="Open full quantitative model drawer">›</button>
-          <button type="button" class="card-btn-sim-quick" data-simulate-player="${esc(row.player_id)}" aria-label="Simulate Line" title="Quick line stress-test & de-vig">⚡ Sim</button>
+          <button type="button" class="card-btn-sim-quick" data-simulate-player="${esc(row.player_id)}" aria-label="Simulate Line" title="Quick line stress-test (approx. model)">⚡ Sim</button>
         </div>
       `;
     } else {
@@ -5871,7 +5974,7 @@
         </div>
         <div class="card-grid-col col-action">
           <button type="button" class="card-btn-view card-btn-view-ghost" data-inspect="${esc(row.player_id)}" aria-label="View Details" title="Open full quantitative model drawer">›</button>
-          <button type="button" class="card-btn-sim-quick" data-simulate-player="${esc(row.player_id)}" aria-label="Simulate Line" title="Quick line stress-test & de-vig">⚡ Sim</button>
+          <button type="button" class="card-btn-sim-quick" data-simulate-player="${esc(row.player_id)}" aria-label="Simulate Line" title="Quick line stress-test (approx. model)">⚡ Sim</button>
           ${isLogged || execution.allowed
             ? `<button type="button" class="card-btn-log ${isLogged ? 'logged' : ''}" data-log-bet="${esc(row.player_id)}" aria-label="${isLogged ? 'Remove from Ledger' : 'Review verified play'}" title="${isLogged ? 'Remove from Ledger' : 'Review verified play'}">${isLogged ? 'Logged' : 'Review'}</button>`
             : `<button type="button" class="card-btn-log blocked" disabled aria-label="Execution blocked: ${esc(execution.message)}" title="${esc(execution.message)}">${SVG_ICONS.lock}</button>`}
@@ -6208,11 +6311,11 @@
               <span class="sim-readout-v">${adjFair.toFixed(1)}</span>
             </div>
             <div class="sim-readout-item">
-              <span class="sim-readout-k">P(Win) Devigged</span>
+              <span class="sim-readout-k" title="Normal approximation of the model fair distribution (clamped 5–95%). Not a de-vigged market probability.">P(Win) Model Approx.</span>
               <span class="sim-readout-v">${(pWin * 100).toFixed(1)}%</span>
             </div>
             <div class="sim-readout-item">
-              <span class="sim-readout-k">Kelly Stake</span>
+              <span class="sim-readout-k" title="Half-Kelly, hard-capped at 3% of bankroll.">Kelly Stake (½·cap 3%)</span>
               <span class="sim-readout-v ${cappedKelly > 0 ? 'pos' : ''}">${(cappedKelly * 100).toFixed(1)}%</span>
             </div>
             <div class="sim-readout-item">
@@ -6221,6 +6324,8 @@
             </div>
           </div>
         </div>
+
+        <div class="sim-approx-note" role="note">Approximate stress-test: P(Win) uses a normal approximation of the model distribution — not exact compound NegBin/Gamma pricing — and the suggested stake is half-Kelly capped at 3% of bankroll.</div>
 
         <div class="sim-actions-row">
           <button type="button" class="sim-btn-apply" id="simApplyBtn">Apply Simulation to Slate</button>
