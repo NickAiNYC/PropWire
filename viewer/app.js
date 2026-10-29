@@ -1504,7 +1504,7 @@
               if (!isNaN(val) && val > 0) {
                 const edge = (((dist.proj - val) / val) * 100);
                 const isPos = edge > 0;
-                edgeCell.innerHTML = `<span class="simulated-edge-badge ${isPos ? 'pos' : 'neg'}">${isPos ? '+' : ''}${edge.toFixed(1)}% Sim Edge</span>`;
+                edgeCell.innerHTML = `<span class="simulated-edge-badge ${isPos ? 'pos' : 'neg'} pulse-lime">${isPos ? '+' : ''}${edge.toFixed(1)}% Sim Edge</span>`;
               } else {
                 edgeCell.innerHTML = `<span class="text-muted edge-cell-muted">—</span>`;
               }
@@ -5773,17 +5773,16 @@
       gridColsHtml = `
         <div class="card-grid-col col-book" style="grid-column: span 2;">
           <span class="grid-col-lbl">STATUS</span>
-          <button type="button" class="grid-col-val color-muted model-only-help mobile-model-help" data-model-only-help aria-expanded="false" aria-label="Why is there no active quote?">• MODEL ONLY</button>
-          <span class="model-only-popover" role="status" hidden>No verified market receipt is available. Projections remain visible, but price-dependent actions stay locked.</span>
-          <div class="card-proj-fair-row">
-            <span class="grid-col-val font-large">PROJ ${dist.proj.toFixed(1)}</span>
-            <span class="grid-col-sub font-small">FAIR ${fairVal.toFixed(1)}</span>
+          <span class="grid-col-val text-muted font-mono" style="color: #64748b; font-size: 13px; font-weight: 500;">—</span>
+          <div class="card-proj-fair-row font-mono" style="display: flex; gap: 8px; align-items: baseline; margin-top: 2px;">
+            <span class="font-mono text-white" style="font-size: 11.5px; font-weight: 700;">PROJ ${dist.proj.toFixed(1)}</span>
+            <span class="font-mono" style="color: #94a3b8; font-size: 10px;">FAIR ${fairVal.toFixed(1)}</span>
           </div>
           <div class="card-prog-track"><div class="card-prog-fill" data-prog="${progRatio}"></div></div>
         </div>
         <div class="card-grid-col col-steam">
           <span class="grid-col-lbl">FAIR</span>
-          <span class="grid-col-val">${fairVal.toFixed(1)}</span>
+          <span class="grid-col-val font-mono">${fairVal.toFixed(1)}</span>
           <span class="grid-col-sub">Model</span>
         </div>
         <div class="card-grid-col col-action">
@@ -5799,10 +5798,10 @@
         </div>
         <div class="card-grid-col col-model">
           <span class="grid-col-lbl">MODEL</span>
-          <div class="card-proj-fair-row">
-            <span class="grid-col-val font-large">PROJ ${dist.proj.toFixed(1)}</span>
+          <div class="card-proj-fair-row font-mono" style="display: flex; gap: 6px; align-items: baseline;">
+            <span class="font-mono text-white" style="font-size: 11.5px; font-weight: 700;">PROJ ${dist.proj.toFixed(1)}</span>
             ${hasPositiveEdge ? `<span class="card-edge-badge-lime">+${edgePctDisplay}%</span>` : ''}
-            <span class="grid-col-sub font-small">FAIR ${fairVal.toFixed(1)}</span>
+            <span class="font-mono" style="color: #94a3b8; font-size: 10px;">FAIR ${fairVal.toFixed(1)}</span>
           </div>
           <div class="card-prog-track"><div class="card-prog-fill" data-prog="${progRatio}"></div></div>
         </div>
