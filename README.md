@@ -73,6 +73,11 @@ cd src && python backtest.py          # ~4 min, reproduces docs/FINDINGS.md
 
 Data downloads itself from nflverse GitHub releases. No key needed.
 
+Player headshots (`viewer/feeds/player_photos.json`) resolve daily via the
+public ESPN search API (`scripts/build_player_photos.py`, incremental +
+fail-open inside the autopilot pipeline); every URL is verified before it
+ships and unmapped names fall back to initials avatars.
+
 Live picks need `ODDS_API_KEY` (player props are a paid tier — there is no free
 path) and `WHOP_API_KEY` for entitlement.
 
