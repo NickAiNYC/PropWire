@@ -73,6 +73,16 @@ def test_build_quote_refuses_dead_markets():
     assert pm.build_quote(market, {}, row, "receiving_yards") is None
 
 
+def test_clob_outcome_orientation_and_depth(monkeypatch):
+    market = {"outcomes": '["Under", "Over"]', "clobTokenIds": '["under-id", "over-id"]'}
+    assert pm.outcome_token_ids(market) == ("over-id", "under-id")
+    monkeypatch.setattr(pm, "_http_json", lambda url: {"asks": [
+        {"price": "0.60", "size": "100"}, {"price": "0.55", "size": "20"},
+        {"price": "0.55", "size": "30"}]})
+    assert pm.fetch_token_book("over-id") == {
+        "token_id": "over-id", "ask_price": 0.55, "ask_depth_usd": 27.5}
+
+
 def test_merge_feed_is_idempotent_and_fails_closed(tmp_path, monkeypatch):
     feed_path = tmp_path / "live_odds_feed.json"
     feed_path.write_text(json.dumps({
@@ -85,9 +95,12 @@ def test_merge_feed_is_idempotent_and_fails_closed(tmp_path, monkeypatch):
 
     quote = {
         "quote_id": "pm_x", "book": "Polymarket", "player_id": "00-1",
-        "market": "receiving_yards", "line": 74.5, "observed_at": "now",
-        "receipt_id": "pm_x", "content_hash": "h", "source_url": "u",
+        "market": "receiving_yards", "line": 74.5, "observed_at": "2026-10-29T12:00:00Z",
+        "receipt_id": "pm_x", "content_hash": "a" * 64, "source_url": "https://polymarket.com/market/x",
         "over_odds": -110, "under_odds": 110, "liquidity_usd": 50.0,
+        "over_token_id": "over-id", "under_token_id": "under-id",
+        "over_ask_price": 0.55, "under_ask_price": 0.45,
+        "over_ask_depth_usd": 50.0, "under_ask_depth_usd": 60.0,
         "evaluation": {"best_side": "OVER", "prob_edge": 0.1,
                        "expected_return": 0.2},
     }
@@ -99,9 +112,10 @@ def test_merge_feed_is_idempotent_and_fails_closed(tmp_path, monkeypatch):
 
     assert pm.merge_feed([dict(quote)])
     data = json.loads(feed_path.read_text())
-    assert data["feed_status"] == "LIVE_POLYMARKET_RECEIPTS"
-    assert data["verified_books_count"] == 1
-    assert data["verified_quotes_count"] == 1
+    assert data["feed_status"] == "LIVE_POLYMARKET_CLOB_UNVERIFIED"
+    assert data["verified_books_count"] == 0
+    assert data["verified_quotes_count"] == 0
+    assert (tmp_path / "live_odds_feed.manifest.json").exists()
     assert "Polymarket" in data["monitored_books"]
     # Synthetic quote preserved; re-merge replaces Polymarket quotes only.
     assert pm.merge_feed([dict(quote)])
@@ -109,6 +123,11 @@ def test_merge_feed_is_idempotent_and_fails_closed(tmp_path, monkeypatch):
     pm_n = [q for q in data2["quotes"] if q["book"] == "Polymarket"]
     assert len(pm_n) == 1
     assert any(q["book"] == "Synthetic Book A" for q in data2["quotes"])
+
+    # A malformed CLOB observation is quarantined without replacing the feed.
+    prior = feed_path.read_bytes()
+    assert pm.merge_feed([dict(quote, under_ask_price=1.2)]) is False
+    assert feed_path.read_bytes() == prior
 
 
 def test_selftest_entrypoint_passes():

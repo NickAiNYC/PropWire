@@ -159,6 +159,44 @@ def test_checkout_session_invalid_token_fails_closed_when_server_key_set(client,
     assert res_ok.status_code == 200
 
 
+@pytest.mark.parametrize("method,path", [
+    ("get", "/api/sniper/webhooks"),
+    ("post", "/api/sniper/webhooks"),
+    ("post", "/api/sniper/webhooks/test"),
+    ("post", "/api/sniper/polymarket-ws-state"),
+    ("post", "/api/sniper/simulate-substitution"),
+    ("post", "/api/sniper/feed-stale"),
+    ("post", "/api/sniper/simulate-scratch"),
+    ("post", "/api/sniper/explain"),
+    ("get", "/api/sniper/history?private_only=true"),
+])
+def test_private_sniper_routes_reject_missing_or_foreign_key(client, monkeypatch, method, path):
+    monkeypatch.setenv("PROPSTEIN_API_KEY", "server_managed_key_do_not_share")
+    monkeypatch.delenv("PROPWIRE_API_KEY", raising=False)
+    monkeypatch.setattr(api_main, "get_sniper_engine", lambda: (_ for _ in ()).throw(
+        AssertionError("private route reached engine before authentication")))
+    call = getattr(client, method)
+    assert call(path).status_code == 401
+    assert call(path, headers={"X-PropStein-API-Key": "foreign"}).status_code == 401
+    assert call(path, headers={"X-PropStein-API-Key": "pw_quant_live_key"}).status_code == 401
+
+
+def test_private_history_fails_closed_when_no_key_configured(client):
+    assert client.get("/api/sniper/history?user_id=someone",
+                      headers={"X-PropStein-API-Key": "anything"}).status_code == 401
+
+
+def test_legacy_literal_key_never_unlocks_pro(monkeypatch):
+    from src.services.billing import BillingService
+
+    service = BillingService.__new__(BillingService)
+    service.whop_api_key = None
+    assert service.check_user_entitlement(api_key="pw_quant_live_key")["is_pro"] is False
+    monkeypatch.setenv("PROPSTEIN_API_KEY", "new-secret-key")
+    assert service.check_user_entitlement(api_key="pw_quant_live_key")["is_pro"] is False
+    assert service.check_user_entitlement(api_key="new-secret-key")["is_pro"] is True
+
+
 def test_checkout_session_long_token_derives_hashed_principal(client, monkeypatch):
     """Long tokens hash to a stable sanitized principal (clv/log scoping rule)."""
     recorded = {}

@@ -99,10 +99,11 @@ def test_arb_ledger_service_grading_and_receipt(tmp_path):
     assert len(pub["receipts"]) >= 1
 
 
-def test_api_receipt_and_history_endpoints():
+def test_api_receipt_and_history_endpoints(monkeypatch):
     from fastapi.testclient import TestClient
     from api.main import app
 
+    monkeypatch.setenv("PROPSTEIN_API_KEY", "test-private-history-key")
     client = TestClient(app)
 
     # 1. Test public arb ledger performance endpoint
@@ -127,7 +128,7 @@ def test_api_receipt_and_history_endpoints():
     # 4. Authorized request passes
     res_auth = client.get(
         "/api/sniper/history?private_only=true",
-        headers={"X-PropWire-API-Key": "pw_quant_live_key"},
+        headers={"X-PropWire-API-Key": "test-private-history-key"},
     )
     assert res_auth.status_code == 200
 
