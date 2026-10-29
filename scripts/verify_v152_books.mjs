@@ -6,7 +6,7 @@
 //     (.bullet-bk .book-logo-mini) and the badges decode (naturalWidth > 0)
 //   - unknown-provider book in the feed's `books` map merges without console errors
 //   - cross-book best-price highlight CSS layer computes mint (#6ee7b7)
-//   - SW propwire-v154-prod activates with populated precache incl. /books/*
+//   - SW propwire-v167-prod activates with populated precache incl. /books/*
 //   - build-hash 2026-w8-v19 + theme #0b0e14, zero CSP violations, zero console errors
 import { chromium } from 'playwright';
 import { createServer } from 'http';
@@ -67,7 +67,7 @@ const oddsFixture = {
 // Cross-book CSS probe: markup mirrors executionSlipMarkup's cross-book rows.
 const crossbookProbe = `<!doctype html><html lang="en" class="dark" style="color-scheme: dark;"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<link rel="stylesheet" href="/style.css?v=2026_v154">
+<link rel="stylesheet" href="/style.css?v=2026_v167">
 <title>crossbook probe</title></head><body>
 <div class="cross-book-list">
   <div class="cross-book-row is-best">
@@ -208,16 +208,16 @@ const swState = await page.evaluate(async () => {
     const reg = await navigator.serviceWorker.ready;
     await new Promise((r) => setTimeout(r, 1200));
     const keys = await caches.keys();
-    const target = keys.find((k) => k === 'propwire-v154-prod');
-    if (!target) return { err: `no propwire-v154-prod in ${keys.join(',')}` };
+    const target = keys.find((k) => k === 'propwire-v167-prod');
+    if (!target) return { err: `no propwire-v167-prod in ${keys.join(',')}` };
     const cache = await caches.open(target);
     const keysIn = await cache.keys();
     const badge = await cache.match('/books/draftkings.svg?v=v152');
-    const css = await cache.match('/style.css?v=2026_v154');
+    const css = await cache.match('/style.css?v=2026_v167');
     return { n: keysIn.length, badge: !!badge, css: !!css };
   } catch (e) { return { err: String(e) }; }
 });
-check('SW: propwire-v154-prod active + precache populated', !swState.err && swState.n >= 20 && swState.css && swState.badge, swState.err ? swState.err : `${swState.n} entries, badge precached: ${swState.badge}`);
+check('SW: propwire-v167-prod active + precache populated', !swState.err && swState.n >= 20 && swState.css && swState.badge, swState.err ? swState.err : `${swState.n} entries, badge precached: ${swState.badge}`);
 
 check('CSP: zero CSP-blocked requests', cspFailures.length === 0, cspFailures.slice(0, 3).join(', '));
 check('network: zero non-CSP failed requests', otherFailed.length === 0, otherFailed.slice(0, 3).join(' | '));
