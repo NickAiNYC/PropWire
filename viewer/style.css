@@ -12623,6 +12623,75 @@ dialog.detail-dialog .dialog-sheet-handle {
   gap: 8px;
 }
 
+/* v171 — CSP-clean equivalents for Alert Routing inline styles.
+   Prod CSP is style-src 'self' (no unsafe-inline): inline style="" attributes
+   are silently stripped, so the Alert Routing pane must be class-driven. */
+.arb-head-tools {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.arb-routing-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.arb-routing-title {
+  margin-bottom: 2px;
+}
+
+.arb-routing-subnote {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.arb-routing-telegram-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.arb-routing-telegram-row .sniper-deeplink-btn {
+  white-space: nowrap;
+}
+
+.arb-routing-block {
+  margin-top: 12px;
+}
+
+.arb-routing-label-tight {
+  margin-bottom: 6px;
+}
+
+.arb-routing-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+
+.arb-routing-save {
+  width: auto;
+  padding: 8px 16px;
+}
+
+.arb-routing-result {
+  margin-top: 10px;
+}
+
+.arb-routing-payload-pre {
+  margin: 6px 0 0;
+  font-size: 10.5px;
+  white-space: pre-wrap;
+  color: #d4d4d8;
+}
+
 
 
 
