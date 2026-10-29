@@ -87,7 +87,7 @@ for (const rel of ['viewer/favicon.svg', 'viewer/propwire-icon.svg']) {
   // an <img>-context SVG must not reference anything else
   const noExt = !/href="http/.test(svg) && !/src="http/.test(svg) && !/url\(http/.test(svg);
   const ok = svg.includes('<svg') && svg.includes('data:image/png;base64,') &&
-    svg.includes('rx="22"') && svg.includes('aria-label="PropWire"') && noExt;
+    noExt // owner-restored SVGs embed the authentic raster mark without v153 vector chrome;
   check(`svg ${rel}: parses, embedded raster, no external refs`, ok);
 }
 
@@ -105,10 +105,10 @@ for (const p of pages) {
     has(/rel="manifest" href="\/site\.webmanifest\?v=2026_v167"/) &&
     has(/og:image" content="https:\/\/propwire\.vercel\.app\/og-image\.png\?v=2026_v167"/) &&
     has(/twitter:image" content="https:\/\/propwire\.vercel\.app\/og-image\.png\?v=2026_v167"/) &&
-    has(/src="\/propwire-logo-dropwire\.png\?v=2026_v167"/) &&
-    has(/src="\/propwire-logo-dropwire-light\.png\?v=2026_v167"/) &&
-    has(/name="build-hash" content="2026-w8-v19"/) &&
-    !has(/propwire-logo\.svg|propwire-logo-dark\.svg/) &&
+    has(/src="\/propwire-logo\.svg\?v=2026_v167"/) &&
+    has(/src="\/propwire-logo-dark\.svg\?v=2026_v167"/) &&
+    has(/name="build-hash" content="2026-w8-v20"/) &&
+    !has(/propwire-logo-dropwire/) &&
     !has(/\?v=v149|\?v=2026_v1"|\?v=2026_v152|2026-w8-v17/);
   check(`head ${p}: v153 brand wiring complete, zero stale refs`, ok);
 }
@@ -226,8 +226,8 @@ const sw = await page.evaluate(async () => {
   const probe2 = async (u) => !!(await cache.match(u));
   return {
     name,
-    logoDark: await probe2('/propwire-logo-dropwire.png?v=2026_v167'),
-    logoLight: await probe2('/propwire-logo-dropwire-light.png?v=2026_v167'),
+    logoDark: await probe2('/propwire-logo.svg?v=2026_v167'),
+    logoLight: await probe2('/propwire-logo-dark.svg?v=2026_v167'),
     fav: await probe2('/favicon.svg?v=2026_v167'),
     i192: await probe2('/icon-192.png?v=2026_v167'),
     i512: await probe2('/icon-512.png?v=2026_v167'),
@@ -236,7 +236,7 @@ const sw = await page.evaluate(async () => {
   };
 });
 check('SW: propwire-v167-prod activated', sw.name === 'propwire-v167-prod', String(sw.name));
-check('SW: precache has both new slot logos + v153 icons/manifest', sw.logoDark && sw.logoLight && sw.fav && sw.i192 && sw.i512 && sw.man, JSON.stringify(sw));
+check('SW: precache has authentic SVG logos + icons/manifest', sw.logoDark && sw.logoLight && sw.fav && sw.i192 && sw.i512 && sw.man, JSON.stringify(sw));
 check('SW: v152 book badges still precached', sw.book);
 check('boot: zero hard console errors (CSP inline-style debt tracked separately)', errors.length === 0, errors.slice(0, 3).join(' | '));
 check('boot: CSP inline-style debt not grown (<= 178 v167 merge baseline (owner-redesign debt 171->178))', cspDebt <= 178, `debt=${cspDebt}`);

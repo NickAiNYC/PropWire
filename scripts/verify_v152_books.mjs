@@ -7,7 +7,7 @@
 //   - unknown-provider book in the feed's `books` map merges without console errors
 //   - cross-book best-price highlight CSS layer computes mint (#6ee7b7)
 //   - SW propwire-v167-prod activates with populated precache incl. /books/*
-//   - build-hash 2026-w8-v19 + theme #0b0e14, zero CSP violations, zero console errors
+//   - build-hash 2026-w8-v20 + theme #0b0e14, zero CSP violations, zero console errors
 import { chromium } from 'playwright';
 import { createServer } from 'http';
 import { readFileSync, existsSync, mkdirSync } from 'fs';
@@ -163,7 +163,7 @@ const meta = await page.evaluate(() => ({
   hash: document.querySelector('meta[name="build-hash"]')?.content,
   theme: document.querySelector('meta[name="theme-color"]')?.content
 }));
-check('boot: build-hash 2026-w8-v19 + theme #0b0e14', meta.hash === '2026-w8-v19' && meta.theme === '#0b0e14', JSON.stringify(meta));
+check('boot: build-hash 2026-w8-v20 + theme #0b0e14', meta.hash === '2026-w8-v20' && meta.theme === '#0b0e14', JSON.stringify(meta));
 
 // Research mode: w8 boots to the honest paused empty state — cards render after CTA.
 const cta = page.locator('button:has-text("Research Projections"), a:has-text("Research Projections")').first();

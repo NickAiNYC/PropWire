@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// v154 dropwire guard — recolored DROPWIRE header logo (DROP white, WIRE
+// v154 brand guard — OWNER-RESTORED authentic PropWire SVG lockup (v167)
 // lighter baby blue #A8DCF8) + og rebuild. Fresh server each run. Verifies:
 //   - slot PNGs exist with exact dims and serve under prod vercel.json CSP
 //   - RECOLOR probes (browser canvas): white + baby-blue regions present,
@@ -122,21 +122,21 @@ for (const p of pages) {
   const html = readFileSync(join(ROOT, p), 'utf8');
   const has = (re) => re.test(html);
   const ok =
-    has(/src="\/propwire-logo-dropwire\.png\?v=2026_v167"/) &&
-    has(/src="\/propwire-logo-dropwire-light\.png\?v=2026_v167"/) &&
-    has(/name="build-hash" content="2026-w8-v19"/) &&
+    has(/src="\/propwire-logo\.svg\?v=2026_v167"/) &&
+    has(/src="\/propwire-logo-dark\.svg\?v=2026_v167"/) &&
+    has(/name="build-hash" content="2026-w8-v20"/) &&
     has(/og:image" content="https:\/\/propwire\.vercel\.app\/og-image\.png\?v=2026_v167"/) &&
-    !has(/propwire-logo-pwire|propwire-logo\.svg|propwire-logo-dark\.svg/) &&
+    !has(/propwire-logo-pwire|propwire-logo-dropwire/) &&
     !has(/\?v=2026_v153|2026-w8-v18/);
-  check(`wiring ${p}: dropwire @ v154, zero pwire/stale refs`, ok);
+  check(`wiring ${p}: authentic SVG lockup @ v167, zero stale refs`, ok);
 }
 
 // ── 4. sw.js text state ───────────────────────────────────────────────────
 const swSrc = readFileSync(join(ROOT, 'sw.js'), 'utf8');
 check('sw.js: cache propwire-v167-prod', swSrc.includes('propwire-v167-prod') && !swSrc.includes('propwire-v166-prod') && !swSrc.includes('propwire-v154-prod'));
-check('sw.js: precaches both dropwire slots @ v154, zero pwire entries',
-  swSrc.includes("'/propwire-logo-dropwire.png?v=2026_v167',") &&
-  swSrc.includes("'/propwire-logo-dropwire-light.png?v=2026_v167',") &&
+check('sw.js: precaches authentic SVG slots @ v167, zero pwire entries',
+  swSrc.includes("'/propwire-logo.svg?v=2026_v167',") &&
+  swSrc.includes("'/propwire-logo-dark.svg?v=2026_v167',") &&
   !swSrc.includes('propwire-logo-pwire'));
 
 // ── 5. Header slots render + light-theme flip under prod CSP ──────────────
@@ -190,8 +190,8 @@ const sw = await page.evaluate(async () => {
   const probe2 = async (u) => !!(await cache.match(u));
   return {
     name,
-    logoDark: await probe2('/propwire-logo-dropwire.png?v=2026_v167'),
-    logoLight: await probe2('/propwire-logo-dropwire-light.png?v=2026_v167'),
+    logoDark: await probe2('/propwire-logo.svg?v=2026_v167'),
+    logoLight: await probe2('/propwire-logo-dark.svg?v=2026_v167'),
     i192: await probe2('/icon-192.png?v=2026_v167'),
     man: await probe2('/site.webmanifest?v=2026_v167'),
     book: await probe2('/books/draftkings.svg?v=v152'),
