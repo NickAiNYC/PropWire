@@ -364,6 +364,27 @@ def fetch_nba_days(now: datetime) -> None:
             print((result.stderr or "")[-500:], file=sys.stderr)
 
 
+def fetch_nba_odds_days(now: datetime) -> None:
+    """Optional: The Odds API NBA schedule + points props for today + next 2 ET days.
+
+    Uses a DEDICATED NBA_ODDS_API_KEY (free plan, 500 credits/mo) so it never
+    drains the NFL ODDS_API_KEY pool. ~1 credit per game; the script refuses to
+    spend past --max-credits. Best effort: failures warn and continue.
+    """
+    if not os.environ.get("NBA_ODDS_API_KEY"):
+        print("[autopilot] NBA odds: no NBA_ODDS_API_KEY - skipped")
+        return
+    days = ",".join((now + timedelta(days=o)).strftime("%Y-%m-%d") for o in (0, 1, 2))
+    env = {**os.environ, "ODDS_API_KEY": os.environ["NBA_ODDS_API_KEY"]}
+    result = subprocess.run(
+        [sys.executable, str(ROOT / "scripts" / "fetch_nba_odds.py"), "--dates", days],
+        cwd=ROOT, capture_output=True, text=True, timeout=300, env=env,
+    )
+    print(f"[autopilot] NBA odds {days}: {'ok' if result.returncode == 0 else f'exit {result.returncode}'}")
+    if result.returncode not in (0, 2, 4):
+        print((result.stderr or "")[-500:], file=sys.stderr)
+
+
 # ---------------------------------------------------------------------------
 # Slate-index manifest — how the viewer discovers new weeks without code edits
 # ---------------------------------------------------------------------------
@@ -632,6 +653,7 @@ def main() -> int:
     injuries_path = write_injuries(season, week, games)
     write_snapshots_stub(season, week)
     fetch_nba_days(now)
+    fetch_nba_odds_days(now)
     # v155: refresh the player headshot map (incremental, fail-open).
     try:
         if str(ROOT) not in sys.path:

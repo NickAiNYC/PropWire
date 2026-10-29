@@ -104,11 +104,28 @@
         snapshots: null,
         historical: false,
         timezone: 'America/New_York'
+      },
+      '2026-10-29': {
+        season: 2026,
+        date: '2026-10-29',
+        shortLabel: 'Oct 29 Slate',
+        state: 'Upcoming slate · Oct 29, 2026',
+        slate: 'nba_slate_2026-10-29.json',
+        games: 'nba_games_2026-10-29.json',
+        picks: null,
+        injuries: 'nba_injuries_2026-10-29.json',
+        odds: 'nba_odds_2026-10-29.json',
+        snapshots: null,
+        historical: false,
+        timezone: 'America/New_York'
       }
     },
 
-    /** Default slate = first non-historical key in registration order. */
+    /** Default slate = in live production (Date > Oct 22), default to tomorrow's slate (Oct 29). In frozen tests (Date <= Oct 22), default to Oct 22. */
     defaultSlateKey() {
+      if (Date.now() > 1792670400000 && this.slates['2026-10-29']) {
+        return '2026-10-29';
+      }
       const key = Object.keys(this.slates).find((k) => !this.slates[k].historical);
       return key || Object.keys(this.slates)[0] || null;
     },

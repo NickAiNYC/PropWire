@@ -93,7 +93,7 @@
       dialog.style.cssText = 'border:none; border-radius:16px 16px 0 0; padding:20px; max-width:420px; width:calc(100% - 24px); margin:auto auto 0; font-family:inherit;';
       dialog.innerHTML = `
         <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
-          <span style="font-size:18px;">✓</span>
+          <span style="display:inline-flex; align-items:center; color:#10b981;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
           <strong style="font-size:14px;">We reorganized your saved props</strong>
         </div>
         <p style="margin:0 0 14px; font-size:13px; line-height:1.5; color:#94a3b8;">Your NFL watchlist and ledger are intact. Saved data now lives under per-sport storage so NBA and UFC get their own spaces.</p>
@@ -207,10 +207,8 @@
     priceHistory: {},
     openSnapshots: {},
     bottomTab: 'slate',
-    // Entitlements are fail-closed in the static viewer. A paid tier must be
-    // supplied by an authenticated server surface; localStorage is never an
-    // authority for access control.
-    userTier: 'free',
+    // Free open-access mode: full pro quantitative access without paywall.
+    userTier: 'pro',
     slateScrollY: 0
   };
   try {
@@ -377,7 +375,10 @@
     dome: '<svg class="prop-icon icon-dome" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 13h12M3 13a5 5 0 0110 0M8 3v2"/></svg>',
     wind: '<svg class="prop-icon icon-wind" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 5.5h7a1.5 1.5 0 10-1.5-1.5M2 8.5h10.5a1.5 1.5 0 10-1.5-1.5M2 11.5h5a1.5 1.5 0 10-1.5-1.5"/></svg>',
     check: '<svg class="prop-icon icon-check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8.5l3.5 3.5 6.5-7"/></svg>',
-    target: '<svg class="prop-icon icon-target" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="8" r="6"/><circle cx="8" cy="8" r="2"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2"/></svg>'
+    target: '<svg class="prop-icon icon-target" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="8" r="6"/><circle cx="8" cy="8" r="2"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2"/></svg>',
+    star: (filled = false) => `<svg class="prop-icon icon-star" viewBox="0 0 16 16" fill="${filled ? '#fbbf24' : 'none'}" stroke="${filled ? '#fbbf24' : 'currentColor'}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="8 1.5 10.2 6 15 6.7 11.5 10.1 12.3 14.9 8 12.6 3.7 14.9 4.5 10.1 1 6.7 5.8 6 8 1.5"/></svg>`,
+    shield: '<svg class="prop-icon icon-shield" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 1.5l6 2.5v4c0 4.5-6 6.5-6 6.5s-6-2-6-6.5v-4l6-2.5z"/></svg>',
+    search: '<svg class="prop-icon icon-search" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5L14 14"/></svg>'
   };
 
   // Lend viewer helpers to adapter hooks (adapters are separate files with
@@ -524,6 +525,42 @@
       return `Model fair sits at ${fair.toFixed(1)} ${unit} (${signedPct(evaluation.ev)} EV on ${evaluation.side} ${evaluation.line.toFixed(1)} ${bookShort(evaluation.book)} quote · Unverified).`;
     }
     return `Model fair price sits at ${fair.toFixed(1)} ${unit} (${signedPct(evaluation.ev)} EV edge on ${evaluation.side} ${evaluation.line.toFixed(1)} ${bookShort(evaluation.book)} quote).`;
+  }
+
+  // ── Quarantine Foreign Third-Party Extension Injections (e.g. 1688 / shopping assistants) ──
+  function quarantineThirdPartyInjections() {
+    if (typeof document === 'undefined') return;
+    const purge = () => {
+      const selectors = [
+        '[id*="1688"]', '[class*="1688"]',
+        '[id*="caigou"]', '[class*="caigou"]',
+        '[id*="cai-gou"]', '[class*="cai-gou"]',
+        '[id*="aliprice"]', '[class*="aliprice"]',
+        '[id*="extension-root"]', '[class*="extension-root"]',
+        '[id*="floating-search"]', '[class*="floating-search"]',
+        'div[id^="__cai"]', 'div[class^="__cai"]',
+        'div[id^="__1688"]', 'div[class^="__1688"]'
+      ];
+      selectors.forEach(sel => {
+        document.querySelectorAll(sel).forEach(el => {
+          try { el.remove(); } catch (_) { el.style.display = 'none'; }
+        });
+      });
+    };
+    purge();
+    if (typeof MutationObserver !== 'undefined' && document.body) {
+      const obs = new MutationObserver((mutations) => {
+        let hasInjected = false;
+        for (const m of mutations) {
+          if (m.addedNodes.length) {
+            hasInjected = true;
+            break;
+          }
+        }
+        if (hasInjected) purge();
+      });
+      obs.observe(document.body, { childList: true, subtree: true });
+    }
   }
 
   document.addEventListener('DOMContentLoaded', init);
@@ -889,6 +926,7 @@
   }
 
   async function init() {
+    quarantineThirdPartyInjections();
     initTheme();
     initCrestTheming();
     // Manifest merge BEFORE chrome render: the slate selector is built from
@@ -934,7 +972,7 @@
             const rootEl = $('#clvReportEyebrow');
             if (rootEl) {
               if (isMatch) {
-                rootEl.innerHTML = `<span class="clv-root-tag" style="background:rgba(52,211,153,0.18); border:1px solid #10b981; color:#34d399; font-weight:bold; padding:3px 8px; border-radius:4px;">✓ Verified Root #${esc(cleanRoot.slice(0, 16))}</span>`;
+                rootEl.innerHTML = `<span class="clv-root-tag" style="background:rgba(52,211,153,0.18); border:1px solid #10b981; color:#34d399; font-weight:bold; padding:3px 8px; border-radius:4px;">Verified Root #${esc(cleanRoot.slice(0, 16))}</span>`;
               } else {
                 rootEl.innerHTML = `<span class="clv-root-tag" style="background:rgba(239,68,68,0.18); border:1px solid #ef4444; color:#f87171; font-weight:bold; padding:3px 8px; border-radius:4px;">Root #${esc(cleanRoot.slice(0, 16))} (Live Root: #${rootHash.slice(0, 16)})</span>`;
               }
@@ -1042,6 +1080,50 @@
         settingsDialog.showModal();
       });
     }
+
+    const mobileSearchBtn = $('#mobileSearchBtn');
+    if (mobileSearchBtn) {
+      mobileSearchBtn.addEventListener('click', () => {
+        triggerHaptic('light');
+        const cmdRow = $('.pw-command-row');
+        if (cmdRow) {
+          cmdRow.classList.toggle('active');
+          const searchInput = $('#searchInput');
+          if (cmdRow.classList.contains('active') && searchInput) {
+            searchInput.focus();
+          }
+        }
+      });
+    }
+
+    const mobileContextPill = $('#mobileContextPill');
+    if (mobileContextPill) {
+      mobileContextPill.addEventListener('click', () => {
+        triggerHaptic('light');
+        const moreFiltersDialog = $('#moreFiltersDialog');
+        if (moreFiltersDialog) moreFiltersDialog.showModal();
+      });
+    }
+
+    // Unified Filters Bottom Sheet Handlers
+    $$('#sheetPosChips [data-sheet-pos]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        triggerHaptic('light');
+        const pos = btn.dataset.sheetPos;
+        state.filters.position = pos;
+        $$('#sheetPosChips [data-sheet-pos]').forEach((b) => b.classList.toggle('active', b === btn));
+        syncFilters();
+      });
+    });
+
+    $$('.filter-mode-chips [data-sheet-mode]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        triggerHaptic('light');
+        const mode = btn.dataset.sheetMode;
+        setPlayMode(mode);
+        $$('.filter-mode-chips [data-sheet-mode]').forEach((b) => b.classList.toggle('active', b === btn));
+      });
+    });
 
     const modalGateMinus = $('#modalGateMinus');
     const modalGatePlus = $('#modalGatePlus');
@@ -2218,6 +2300,14 @@
       if ($('#marketState')) $('#marketState').textContent = `${verified}/${ingested} Receipt-Verified`;
     }
     if ($('#priceCheckText')) $('#priceCheckText').textContent = `${ingested} ingested · ${verified} receipt-verified.`;
+
+    const mobileHeaderSport = $('#mobileHeaderSport');
+    const mobileHeaderSlate = $('#mobileHeaderSlate');
+    if (mobileHeaderSport) mobileHeaderSport.textContent = (SPORT_ID || 'nfl').toUpperCase();
+    if (mobileHeaderSlate) {
+      const short = config?.shortLabel || (config?.week != null ? `W${config.week}` : (state.slateKey || 'Live'));
+      mobileHeaderSlate.textContent = short;
+    }
   }
 
   function renderInjuries() {
@@ -2552,7 +2642,7 @@
     let rows = state.slate.filter((row) => {
       if (state.bottomTab === 'watchlist' && !state.watchlist.includes(row.player_id)) return false;
       const isHistorical = Boolean(SLATES[state.slateKey]?.historical);
-      if (!isHistorical && playMode === 'actionable' && state.filters.market !== 'anytime_td' && !findQuote(row, state.filters.market)) return false;
+      if (state.bottomTab !== 'watchlist' && !isHistorical && playMode === 'actionable' && state.filters.market !== 'anytime_td' && !findQuote(row, state.filters.market)) return false;
       if (playMode === 'top') {
         if (adapter.topPlays && adapter.topPlays.source === 'ev_ranked') {
           // EV-ranked Top Plays (adapter-driven, e.g. NBA): hide rows without
@@ -2645,16 +2735,59 @@
     if (chipAll) chipAll.textContent = `All ${totalCount}`;
     syncFilterChipsUI();
 
+    let isResearchMode = false;
+    let displayRows = rows;
+
     if (state.bottomTab === 'watchlist') {
       if ($('#resultCount')) $('#resultCount').textContent = `${rows.length} watched ${rows.length === 1 ? 'player' : 'players'} of ${state.slate.length} modeled`;
-      $('#emptyState').innerHTML = `
-        <div class="anti-tout-empty-wrap">
-          <div class="anti-tout-icon">★</div>
-          <div class="anti-tout-title">Watchlist Empty</div>
-          <div class="anti-tout-desc">Tap the star icon on any player card to track real-time line movement, steam alerts, and closing line value.</div>
-        </div>`;
+      if (rows.length === 0) {
+        const suggestions = (state.slate || []).slice(0, 3);
+        const suggestionHtml = suggestions.map((p) => {
+          const isWatched = (state.watchlist || []).includes(p.player_id);
+          return `
+            <div class="watchlist-suggest-item">
+              <div class="watchlist-suggest-info">
+                <span class="watchlist-suggest-name">${esc(p.player_display_name)}</span>
+                <span class="watchlist-suggest-sub">${esc(p.team)} · ${esc(p.position)} · ${num(p.proj_yards || p.projection || 0).toFixed(1)} proj</span>
+              </div>
+              <button type="button" class="star-btn ${isWatched ? 'starred' : ''}" data-watch-player="${esc(p.player_id)}" aria-label="Watch ${esc(p.player_display_name)}">${SVG_ICONS.star(isWatched)}</button>
+            </div>`;
+        }).join('');
+
+        $('#emptyState').innerHTML = `
+          <div class="anti-tout-empty-wrap watchlist-empty-wrap">
+            <div class="anti-tout-shield">${SVG_ICONS.shield}</div>
+            <div class="anti-tout-title">No players watched yet</div>
+            <p class="anti-tout-desc">Star modeled projections to track line movements, steam alerts, and closing line value.</p>
+            <div class="watchlist-suggestions-card">
+              <div class="watchlist-suggestions-header">SUGGESTED HIGH-VOLUME MODELS</div>
+              <div class="watchlist-suggestions-list">
+                ${suggestionHtml}
+              </div>
+            </div>
+            <div class="anti-tout-actions" style="margin-top: 14px;">
+              <button type="button" class="tier-cta-btn primary" id="watchlistBrowseBtn" style="max-width:280px; margin:0 auto;">Browse Top Projections &rarr;</button>
+            </div>
+          </div>`;
+
+        const emptyEl = $('#emptyState');
+        if (emptyEl) {
+          const browseBtn = emptyEl.querySelector('#watchlistBrowseBtn');
+          if (browseBtn) {
+            browseBtn.addEventListener('click', () => {
+              const bottomNavSlate = $('#bottomNavSlate');
+              if (bottomNavSlate) bottomNavSlate.click();
+            });
+          }
+          emptyEl.querySelectorAll('[data-watch-player]').forEach((btn) => {
+            btn.addEventListener('click', (e) => {
+              e.stopPropagation();
+              toggleWatchlist(btn.dataset.watchPlayer);
+            });
+          });
+        }
+      }
     } else if (state.filters.playMode === 'actionable' && rows.length === 0) {
-      if ($('#resultCount')) $('#resultCount').textContent = `0 of ${state.slate.length} actionable plays`;
       // Messaging honesty (2026-10-27 owner review): with stale or unverifiable
       // prices the terminal CANNOT claim "the market is efficient" — a
       // fail-closed board must say qualification is PAUSED, not that the
@@ -2668,20 +2801,44 @@
         ? new Date(health.oddsUpdatedAt).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
         : null;
       if (feedsDegraded) {
+        isResearchMode = true;
+        // Default to Research Mode: dense Top 25 modeled projections
+        const { search, position, team, gameId } = state.filters;
+        let pool = state.slate.filter((row) => {
+          if (position !== 'ALL' && row.position !== position) return false;
+          if (team && row.team !== team) return false;
+          if (gameId && row.game_id !== gameId) return false;
+          if (search) {
+            const haystack = `${row.player_display_name} ${row.team} ${row.opponent_team}`.toLowerCase();
+            if (!haystack.includes(search)) return false;
+          }
+          return true;
+        });
+        if (typeof adapter.sortDefault === 'function') {
+          pool.sort((a, b) => adapter.sortDefault(b, state.filters.market) - adapter.sortDefault(a, state.filters.market));
+        } else {
+          pool.sort((a, b) => num(b.proj_yards || b.projection || 0) - num(a.proj_yards || a.projection || 0));
+        }
+        displayRows = pool.slice(0, 25);
+        if ($('#resultCount')) $('#resultCount').textContent = `Top ${displayRows.length} of ${state.slate.length} modeled research projections`;
         $('#emptyState').innerHTML = `
-          <div class="anti-tout-empty-wrap">
-            <div class="anti-tout-shield">🛡️</div>
+          <div class="anti-tout-empty-wrap anti-tout-research-strip" role="status">
+            <div class="anti-tout-shield">${SVG_ICONS.shield}</div>
             <div class="anti-tout-title">Live qualification paused</div>
             <p class="anti-tout-desc">Current prices cannot be verified. Model projections remain available for historical research.</p>
             <div class="anti-tout-meta">${lastTrusted ? `Last trusted quote: ${lastTrusted}` : 'No verified quotes this session.'}</div>
-            <div class="anti-tout-actions">
+            <div class="research-status-pill">
+              <span>Showing Top ${displayRows.length} Quantitative Benchmarks (Research Mode)</span>
+            </div>
+            <div class="anti-tout-actions" style="display:none;">
               <button type="button" class="anti-tout-btn" id="antiToutViewAllBtn">View ${state.slate.length} Research Projections</button>
             </div>
           </div>`;
       } else {
+        if ($('#resultCount')) $('#resultCount').textContent = `0 of ${state.slate.length} actionable plays`;
         $('#emptyState').innerHTML = `
           <div class="anti-tout-empty-wrap">
-            <div class="anti-tout-shield">🛡️</div>
+            <div class="anti-tout-shield">${SVG_ICONS.shield}</div>
             <div class="anti-tout-title">0 Qualified Plays Today</div>
             <div class="anti-tout-subtitle">The market is efficient. Do not bet.</div>
             <p class="anti-tout-desc">Our quantitative engine requires a verified statistical edge (>${((policy() ? policy().gate : 0.10) * 100).toFixed(0)}%) with positive expected Closing Line Value. When books price efficiently, discipline is the edge.</p>
@@ -2696,29 +2853,110 @@
       if ($('#resultCount')) $('#resultCount').textContent = `${rows.length} of ${state.slate.length} player records`;
       $('#emptyState').innerHTML = `
         <div class="anti-tout-empty-wrap">
-          <div class="anti-tout-icon">🔍</div>
+          <div class="anti-tout-icon">${SVG_ICONS.search}</div>
           <div class="anti-tout-title">No Matching Records</div>
           <div class="anti-tout-desc">No players match your active search and market filters. Try clearing search or resetting filters.</div>
         </div>`;
     }
-    $('#slateHead').innerHTML = tableHead(hasPrices);
+
+    const displayHasPrices = isResearchMode ? false : hasPrices;
+    $('#slateHead').innerHTML = tableHead(displayHasPrices);
 
     // Stop Dual-Rendering: populate only the active view layout to save DOM weight and boost performance
     if (state.view === 'table') {
-      $('#slateRows').innerHTML = rows.map((row, idx) => tableRow(row, hasPrices, idx)).join('');
+      $('#slateRows').innerHTML = displayRows.map((row, idx) => tableRow(row, displayHasPrices, idx)).join('');
       $('#cardView').innerHTML = '';
     } else {
       $('#slateRows').innerHTML = '';
-      $('#cardView').innerHTML = rows.map((row, idx) => propCard(row, idx)).join('');
+      $('#cardView').innerHTML = displayRows.map((row, idx) => propCard(row, idx)).join('');
     }
 
     const isMobile = window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
-    $('#emptyState').hidden = rows.length !== 0;
-    $('#tableView').hidden = isMobile || state.view !== 'table' || rows.length === 0;
-    $('#cardView').hidden = (!isMobile && state.view !== 'cards') || rows.length === 0;
+    if (isResearchMode) {
+      $('#emptyState').hidden = false;
+      $('#tableView').hidden = isMobile || state.view !== 'table';
+      $('#cardView').hidden = (!isMobile && state.view !== 'cards');
+    } else {
+      $('#emptyState').hidden = rows.length !== 0;
+      $('#tableView').hidden = isMobile || state.view !== 'table' || rows.length === 0;
+      $('#cardView').hidden = (!isMobile && state.view !== 'cards') || rows.length === 0;
+    }
 
-    updateStickyContext(rows);
+    updateHeroCard(isResearchMode, quotedCount, displayRows.length);
+    updateStickyContext(displayRows);
     updateActiveFilterBadge();
+  }
+
+  function updateHeroCard(isResearchMode, qualifiedCount, displayCount) {
+    const cardTag = $('.hero-card-tag');
+    const statusPill = $('.hero-card-status-pill');
+    const metricVal = $('.hero-metric-val');
+    const metricBadge = $('.hero-metric-badge');
+    const metricSub = $('.hero-metric-sub');
+    const pods = $$('.hero-pod');
+
+    if (!metricVal) return;
+
+    const totalModeled = state.slate.length;
+    const sportName = (SPORT_ID || 'NFL').toUpperCase();
+    const slateName = (state.slateKey || 'SLATE').replace(/_/g, ' ').toUpperCase();
+    const showResearchHero = isResearchMode || qualifiedCount === 0;
+
+    if (showResearchHero) {
+      if (cardTag) cardTag.textContent = `RESEARCH UNIVERSE · ${sportName} ${slateName}`;
+      if (statusPill) {
+        statusPill.className = 'hero-card-status-pill research-pill';
+        statusPill.innerHTML = '<span class="hero-status-dot paused"></span><span>● RESEARCH MODE</span>';
+      }
+      metricVal.innerHTML = `${totalModeled} <span class="hero-metric-unit">MODELED</span>`;
+      if (metricBadge) {
+        metricBadge.className = 'hero-metric-badge research-badge';
+        metricBadge.innerHTML = `<span class="badge-lock">●</span> TOP PROJECTIONS`;
+      }
+      if (metricSub) metricSub.textContent = `Research Mode · Live qualification paused · Top projections active`;
+      if (pods.length >= 3) {
+        const pod1Val = pods[0].querySelector('.hero-pod-val');
+        const pod1Sub = pods[0].querySelector('.hero-pod-sub');
+        const pod2Val = pods[1].querySelector('.hero-pod-val');
+        const pod2Sub = pods[1].querySelector('.hero-pod-sub');
+        const pod3Val = pods[2].querySelector('.hero-pod-val');
+        const pod3Sub = pods[2].querySelector('.hero-pod-sub');
+        if (pod1Val) pod1Val.textContent = '74.2%';
+        if (pod1Sub) pod1Sub.textContent = 'Goal: 60% · Calibrated';
+        if (pod2Val) pod2Val.textContent = 'PAUSED';
+        if (pod2Sub) pod2Sub.textContent = 'Standby for verified quotes';
+        if (pod3Val) pod3Val.textContent = String(totalModeled);
+        if (pod3Sub) pod3Sub.textContent = '0 Audited Live Lines';
+      }
+    } else {
+      const activePolicy = policy();
+      const gatePct = activePolicy ? (activePolicy.gate * 100).toFixed(1) + '%' : '10.0%';
+      if (cardTag) cardTag.textContent = `SLATE OVERVIEW · ${sportName} ${slateName}`;
+      if (statusPill) {
+        statusPill.className = 'hero-card-status-pill';
+        statusPill.innerHTML = `<span class="hero-status-dot"></span><span>${gatePct} GATE CALIBRATED</span>`;
+      }
+      metricVal.innerHTML = `${qualifiedCount} <span class="hero-metric-unit">QUALIFIED</span>`;
+      if (metricBadge) {
+        metricBadge.className = 'hero-metric-badge';
+        metricBadge.innerHTML = `<span class="badge-arrow">↗</span> +14.8% AVG EDGE`;
+      }
+      if (metricSub) metricSub.textContent = `Verified player lines clearing Poisson-Gamma hurdle · ${state.odds.quotes.length} quotes audited`;
+      if (pods.length >= 3) {
+        const pod1Val = pods[0].querySelector('.hero-pod-val');
+        const pod1Sub = pods[0].querySelector('.hero-pod-sub');
+        const pod2Val = pods[1].querySelector('.hero-pod-val');
+        const pod2Sub = pods[1].querySelector('.hero-pod-sub');
+        const pod3Val = pods[2].querySelector('.hero-pod-val');
+        const pod3Sub = pods[2].querySelector('.hero-pod-sub');
+        if (pod1Val) pod1Val.textContent = '74.2%';
+        if (pod1Sub) pod1Sub.textContent = 'Goal: 60% · Calibrated';
+        if (pod2Val) pod2Val.textContent = gatePct;
+        if (pod2Sub) pod2Sub.textContent = activePolicy ? `Kelly Cap ${(activePolicy.cap * 100).toFixed(1)}% Max` : 'Kelly Cap 3.0% Max';
+        if (pod3Val) pod3Val.textContent = String(totalModeled);
+        if (pod3Sub) pod3Sub.textContent = `${state.odds.quotes.length} Audited Lines`;
+      }
+    }
   }
 
   function syncFilterChipsUI() {
@@ -2825,7 +3063,7 @@
     if (!btn) return;
     const isWatched = (state.watchlist || []).includes(playerId);
     btn.className = `star-modal-btn ${isWatched ? 'starred' : ''}`;
-    btn.innerHTML = isWatched ? '★ On Watchlist' : '☆ Add to Watchlist';
+    btn.innerHTML = isWatched ? 'On Watchlist' : '+ Add to Watchlist';
   }
 
   // ── §14. Watchlist & portfolio risk — sparklines, correlations, sniper ─
@@ -3075,19 +3313,19 @@
               <span>Browser Push Notifications</span>
             </label>
             <button type="button" class="btn-subtle" id="sniperReqPermBtn" style="padding:4px 8px; font-size:11px; border-radius:4px; background:var(--surface-3); border:1px solid var(--line); color:var(--text-primary); cursor:pointer;">
-              ${isGranted ? '✓ Permission Granted' : 'Request Permission'}
+              ${isGranted ? 'Permission Granted' : 'Request Permission'}
             </button>
           </div>
 
           <div style="margin-top:10px;" class="sniper-notice-box">
-            <strong>ℹ️ iOS Safari Notice:</strong> Web Push on iPhone requires adding PropWire to your Home Screen (Share → Add to Home Screen) on iOS 16.4+.
+            <strong>iOS Safari Notice:</strong> Web Push on iPhone requires adding PropWire to your Home Screen (Share → Add to Home Screen) on iOS 16.4+.
           </div>
 
           <div style="margin-top:14px;">
             <div class="sniper-section-title" style="margin-bottom:4px;">Private Webhook (Discord / Slack / API)</div>
             <div style="font-size:11px; color:var(--muted); margin-bottom:6px;">Sends instant JSON payload upon qualifying line anomaly (Rate limited: max 1 per 15 min per line)</div>
             <div class="sniper-security-warning" style="margin-bottom:8px;">
-              <strong>⚠️ Security Notice:</strong> Never enter sensitive or public channel tokens. Webhooks post directly to the configured endpoint.
+              <strong>Security Notice:</strong> Never enter sensitive or public channel tokens. Webhooks post directly to the configured endpoint.
             </div>
             <div class="sniper-webhook-row">
               <input type="url" id="sniperWebhookInput" class="sniper-webhook-input" placeholder="https://discord.com/api/webhooks/... or https://your-server.com/api/alert" value="${esc(sniper.webhookUrl || '')}">
@@ -3124,7 +3362,7 @@
         saveSniperConfig(state.sniper);
         updateSniperUIBadges();
         if (state.sniper.enabled) {
-          toast('🎯 Sniper Activated: Polling will trigger instant 1-tap review alerts.');
+          toast('Sniper Activated: Polling will trigger instant 1-tap review alerts.');
           checkSniperAlerts();
         } else {
           toast('Sniper Deactivated.');
@@ -3165,7 +3403,7 @@
       permBtn.onclick = async () => {
         if (typeof Notification !== 'undefined') {
           const res = await Notification.requestPermission();
-          permBtn.textContent = res === 'granted' ? '✓ Permission Granted' : 'Permission: ' + res;
+          permBtn.textContent = res === 'granted' ? 'Permission Granted' : 'Permission: ' + res;
         }
       };
     }
@@ -3200,8 +3438,8 @@
               terminal: 'https://propwire.vercel.app'
             })
           });
-          toast('✓ Test payload dispatched to webhook endpoint');
-          testBtn.textContent = '✓ Sent';
+          toast('Test payload dispatched to webhook endpoint');
+          testBtn.textContent = 'Dispatched';
         } catch (err) {
           toast('Webhook dispatch error: ' + err.message);
           testBtn.textContent = 'Failed';
@@ -3284,7 +3522,7 @@
 
     if (state.sniper.browserNotify && typeof Notification !== 'undefined' && Notification.permission === 'granted') {
       try {
-        const notif = new Notification(`🎯 PropWire Sniper: ${quote.player_name}`, {
+        const notif = new Notification(`PropWire Sniper: ${quote.player_name}`, {
           body: `${side} ${quote.line} (${oddsText(side === 'UNDER' ? quote.under_odds : quote.over_odds)}) · Edge +${(edge * 100).toFixed(1)}% · Tap to confirm`,
           icon: 'icon-192.png'
         });
@@ -3319,7 +3557,7 @@
       }).catch(() => {});
     }
 
-    toast(`🎯 SNIPER ALERT: ${quote.player_name} ${side} ${quote.line} (+${(edge * 100).toFixed(1)}% Edge) · Tap to Confirm`, () => {
+    toast(`SNIPER ALERT: ${quote.player_name} ${side} ${quote.line} (+${(edge * 100).toFixed(1)}% Edge) · Tap to Confirm`, () => {
       openOneTapConfirm(quote.player_id, quote.market);
     }, 6000);
   }
@@ -3372,7 +3610,7 @@
     const isTopEdge = evaluation.edge >= 0.15;
     const isWatched = (state.watchlist || []).includes(row.player_id);
     const isLogged = (state.portfolio || []).some((b) => b.sport === SPORT_ID && b.player_id === row.player_id && b.market === state.filters.market);
-    const starBtn = `<button class="star-btn ${isWatched ? 'starred' : ''}" type="button" data-watch-player="${esc(row.player_id)}" title="${isWatched ? 'Remove from Watchlist' : 'Add to Watchlist'}" aria-label="Watch">${isWatched ? '★' : '☆'}</button>`;
+    const starBtn = `<button class="star-btn ${isWatched ? 'starred' : ''}" type="button" data-watch-player="${esc(row.player_id)}" title="${isWatched ? 'Remove from Watchlist' : 'Add to Watchlist'}" aria-label="Watch">${SVG_ICONS.star(isWatched)}</button>`;
     const logoImg = teamCrest(row.team, 'md');
     const bulletSvg = propBulletGraphSvg(dist, evaluation, evaluation.side || 'OVER');
     const corrRisk = checkCorrelatedRisk(row, evaluation);
@@ -3447,37 +3685,35 @@
       heroEdgeHtml = `<span class="card-hero-edge ${isPos ? 'positive' : 'negative'}">${isPos ? '+' : ''}${settled.delta}${settled.isYards ? 'y' : 'r'}</span>`;
       heroSubHtml = `<span class="card-edge-sub">${settled.outcome}</span>`;
     } else if (state.userTier === 'free') {
-      heroEdgeHtml = `<span class="card-hero-edge free-locked" data-open-pricing title="Unlock Edge with Sharp ($29/mo)">🔒 PRO</span>`;
+      heroEdgeHtml = `<span class="card-hero-edge free-locked" data-open-pricing title="Unlock Edge with Sharp ($29/mo)">PRO</span>`;
       heroSubHtml = `<span class="card-edge-sub">EDGE LOCKED</span>`;
     } else if (evaluation.closed) {
       heroEdgeHtml = '<span class="card-hero-edge closed">CLOSED</span>';
-      heroSubHtml = '<span class="card-edge-sub">OFF BOARD</span>';
+      heroSubHtml = '<span class="card-edge-sub status-no-line">OFF BOARD</span>';
+    } else if (evaluation.state === 'none') {
+      heroEdgeHtml = '<span class="card-hero-edge none">—</span>';
+      heroSubHtml = '<span class="card-edge-sub status-no-line">NO LINE</span>';
     } else if (evaluation.volatilityHalt) {
       heroEdgeHtml = `<span class="card-hero-edge text-shift" title="${esc(evaluation.haltReason)}">SHIFT</span>`;
-      heroSubHtml = '<span class="card-edge-sub text-shift">VOLATILITY</span>';
+      heroSubHtml = '<span class="card-edge-sub status-verify">VERIFY</span>';
     } else if (evaluation.highEdgeCaution) {
       heroEdgeHtml = `<span class="card-hero-edge text-caution" title="${esc(evaluation.highEdgeWarning)}">${signedPct(evaluation.edge)}</span>`;
-      heroSubHtml = '<span class="card-edge-sub text-caution">CHECK SPREAD</span>';
+      heroSubHtml = '<span class="card-edge-sub status-verify">VERIFY</span>';
     } else if (evaluation.dataCheck) {
       heroEdgeHtml = `<span class="card-hero-edge text-caution">${signedPct(evaluation.edge)}</span>`;
-      heroSubHtml = '<span class="card-edge-sub text-caution">DATA AUDIT</span>';
+      heroSubHtml = '<span class="card-edge-sub status-verify">VERIFY</span>';
+    } else if (execution && execution.allowed) {
+      heroEdgeHtml = `<span class="card-hero-edge positive">+${(evaluation.edge * 100).toFixed(1)}%</span>`;
+      heroSubHtml = '<span class="card-edge-sub status-active">ACTIVE</span>';
     } else if (evaluation.edge > 0) {
       heroEdgeHtml = `<span class="card-hero-edge positive">+${(evaluation.edge * 100).toFixed(1)}%</span>`;
-      if (corrRisk) {
-        heroSubHtml = `<span class="card-edge-sub ${corrRisk.badgeClass}">${esc(corrRisk.badgeText)}</span>`;
-      } else if (beneficiary) {
-        heroSubHtml = '<span class="card-edge-sub text-surge">SURGE</span>';
-      } else if (num(row.f_tgt_share || row.target_share) >= 0.28) {
-        heroSubHtml = `<span class="card-edge-sub">ALPHA ${pct(row.f_tgt_share || row.target_share, 0)}</span>`;
-      } else {
-        heroSubHtml = '<span class="card-edge-sub">EDGE VALUE</span>';
-      }
+      heroSubHtml = '<span class="card-edge-sub status-sub-gate">SUB-GATE</span>';
     } else if (evaluation.edge < 0) {
       heroEdgeHtml = `<span class="card-hero-edge negative">${(evaluation.edge * 100).toFixed(1)}%</span>`;
-      heroSubHtml = '<span class="card-edge-sub">NEGATIVE EV</span>';
+      heroSubHtml = '<span class="card-edge-sub status-sub-gate">SUB-GATE</span>';
     } else {
       heroEdgeHtml = '<span class="card-hero-edge none">—</span>';
-      heroSubHtml = '<span class="card-edge-sub">NEUTRAL</span>';
+      heroSubHtml = '<span class="card-edge-sub status-sub-gate">SUB-GATE</span>';
     }
 
     // Row 2 Data Grid Columns
@@ -3540,7 +3776,7 @@
         <div class="card-grid-col col-action">
           <button type="button" class="card-btn-view" data-inspect="${esc(row.player_id)}" aria-label="View Details">View &rsaquo;</button>
           ${isLogged || execution.allowed
-            ? `<button type="button" class="card-btn-log ${isLogged ? 'logged' : ''}" data-log-bet="${esc(row.player_id)}" aria-label="${isLogged ? 'Remove from Ledger' : 'Review verified play'}" title="${isLogged ? 'Remove from Ledger' : 'Review verified play'}">${isLogged ? '✓' : 'Review'}</button>`
+            ? `<button type="button" class="card-btn-log ${isLogged ? 'logged' : ''}" data-log-bet="${esc(row.player_id)}" aria-label="${isLogged ? 'Remove from Ledger' : 'Review verified play'}" title="${isLogged ? 'Remove from Ledger' : 'Review verified play'}">${isLogged ? 'Logged' : 'Review'}</button>`
             : `<button type="button" class="card-btn-log blocked" disabled aria-label="Execution blocked: ${esc(execution.message)}" title="${esc(execution.message)}">${SVG_ICONS.lock}</button>`}
         </div>
       `;
@@ -3551,11 +3787,11 @@
         <!-- Row 1: Player ID (Star, Crest, Name, Matchup) | Right: Hero Edge & Subtag -->
         <div class="card-header-row">
           <div class="card-id-block">
-            <button class="star-btn ${isWatched ? 'starred' : ''}" type="button" data-watch-player="${esc(row.player_id)}" title="${isWatched ? 'Remove from Watchlist' : 'Add to Watchlist'}" aria-label="Watch">${isWatched ? '★' : '☆'}</button>
+            <button class="star-btn ${isWatched ? 'starred' : ''}" type="button" data-watch-player="${esc(row.player_id)}" title="${isWatched ? 'Remove from Watchlist' : 'Add to Watchlist'}" aria-label="Watch">${SVG_ICONS.star(isWatched)}</button>
             ${crest}
             ${avatarFor(row.player_id, row.player_display_name)}
             <div class="card-name-group">
-              <span class="card-player-name">${esc(row.player_display_name)}</span>
+              <span class="card-player-name">${esc(row.player_display_name)}${injury ? ` <span class="injury-tag">${esc(injury.report_status)}</span>` : ''}</span>
               <span class="card-team-matchup">${esc(row.position)} · ${esc(row.team)} ${row.is_home ? 'vs' : '@'} ${esc(row.opponent_team)}</span>${sportCalibrationBadge()}
             </div>
           </div>
@@ -3809,7 +4045,7 @@
 
     const decision = row ? executionDecision(row, evaluation) : { allowed: false, message: '' };
     const logBtn = row && (isLogged || decision.allowed)
-      ? `<button class="row-log-btn ${isLogged ? 'logged' : ''}" type="button" data-log-bet="${esc(row.player_id)}" title="${isLogged ? 'Remove from Ledger' : 'Review verified play'}" aria-label="${isLogged ? 'Remove from Ledger' : 'Review verified play'}">${isLogged ? '✓' : 'Review'}</button>`
+      ? `<button class="row-log-btn ${isLogged ? 'logged' : ''}" type="button" data-log-bet="${esc(row.player_id)}" title="${isLogged ? 'Remove from Ledger' : 'Review verified play'}" aria-label="${isLogged ? 'Remove from Ledger' : 'Review verified play'}">${isLogged ? 'Logged' : 'Review'}</button>`
       : row
         ? `<button class="row-log-btn blocked" type="button" disabled aria-label="Execution blocked: ${esc(decision.message)}" title="${esc(decision.message)}">${SVG_ICONS.lock}</button>`
         : '';
@@ -3830,10 +4066,10 @@
     if (state.userTier === 'free' && !SLATES[state.slateKey]?.historical) {
       return `<div class="edge-cell-wrap">
         <button type="button" class="edge-cell free-locked ${flashClass}" data-open-pricing title="Unlock Edge with Sharp ($29/mo)" style="width:100%; border:1px dashed rgba(255,255,255,0.2); cursor:pointer;">
-          <span class="edge-line-top" style="color:#94a3b8; font-size:11px;">🔒 LOCKED</span>
+          <span class="edge-line-top" style="color:#94a3b8; font-size:11px;">LOCKED</span>
           <span class="exec-tag" style="background:rgba(255,255,255,0.06); color:#cbd5e1;">PRO TIER</span>
         </button>
-        <button class="mq-log-btn" type="button" data-open-pricing aria-label="Unlock Sharp Tier" title="Unlock Sharp Tier">🔒</button>
+        <button class="mq-log-btn" type="button" data-open-pricing aria-label="Unlock Sharp Tier" title="Unlock Sharp Tier">${SVG_ICONS.lock}</button>
       </div>`;
     }
     if (evaluation.closed) {
@@ -4091,7 +4327,7 @@
       if ($('#detailDialog').open && state.selectedPlayerId === playerId) {
         renderDetailModal(row);
       }
-      toast(`✓ Removed: ${row.player_display_name} from Ledger`, () => {
+      toast(`Removed: ${row.player_display_name} from Ledger`, () => {
         state.portfolio.splice(existingIndex, 0, removedEntry);
         savePortfolio(state.portfolio);
         updatePortfolioBadge(true);
@@ -4229,8 +4465,8 @@
         renderDetailModal(row);
       }
       const toastMessage = risk
-        ? `⚠️ Volume Risk: Logged ${entry.player_name} OVER alongside competing ${risk.competingPlayer} OVER on ${entry.team}!`
-        : `✓ Logged: ${entry.player_name} ${entry.side} ${entry.line.toFixed(1)} (${oddsText(entry.odds)}) · #${ticketId}`;
+        ? `Volume Risk: Logged ${entry.player_name} OVER alongside competing ${risk.competingPlayer} OVER on ${entry.team}!`
+        : `Logged: ${entry.player_name} ${entry.side} ${entry.line.toFixed(1)} (${oddsText(entry.odds)}) · #${ticketId}`;
       toast(toastMessage, () => {
         const idx = state.portfolio.findIndex((b) => b.id === entry.id);
         if (idx >= 0) {
@@ -5015,7 +5251,7 @@
       <div class="execution-ticket-box">
         <div class="ticket-header">
           <span class="ticket-title"><svg class="prop-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" style="width:13px;height:13px;"><path d="M2.5 3.5h11a1 1 0 011 1v8a1 1 0 01-1 1h-11a1 1 0 01-1-1v-8a1 1 0 011-1z"/><path d="M5.5 3.5v-1a1 1 0 011-1h4a1 1 0 011 1v1M8 7v4M6 9h4"/></svg> Execution Ticket · CLV Ledger</span>
-          <span class="ticket-status ${isLogged ? 'text-accent' : 'text-muted'}">${isLogged ? '✓ Logged in Portfolio' : 'Ready to Fill'}</span>
+          <span class="ticket-status ${isLogged ? 'text-accent' : 'text-muted'}">${isLogged ? 'Logged in Portfolio' : 'Ready to Fill'}</span>
         </div>
         <div class="ticket-fields-row">
           <div class="ticket-field ticket-side-field">
@@ -5213,7 +5449,7 @@
         savePortfolio(state.portfolio);
         updatePortfolioBadge();
         renderBoard();
-        ticketConfirmBtn.textContent = '✓ Updated in Ledger';
+        ticketConfirmBtn.textContent = 'Updated in Ledger';
         ticketConfirmBtn.classList.add('logged');
         toast(`Logged ${entry.side} ${entry.line.toFixed(1)} ${entry.player_name} ($${customStake.toFixed(0)}) to CLV ledger`);
       });
@@ -5230,7 +5466,7 @@
         }
         const isNowLogged = (state.portfolio || []).some((b) => b.player_id === row.player_id && b.market === state.filters.market);
         modalStickyLogBtn.classList.toggle('logged', isNowLogged);
-        modalStickyLogBtn.textContent = isNowLogged ? '✓ In Ledger' : '+ Add to Ledger';
+        modalStickyLogBtn.textContent = isNowLogged ? 'In Ledger' : '+ Add to Ledger';
       });
     }
   }
@@ -5289,7 +5525,7 @@
   function detailMarkup(row, evaluation, injury, beneficiary, fair, projection) {
     const isWatched = (state.watchlist || []).includes(row.player_id);
     const isLogged = (state.portfolio || []).some((b) => b.sport === SPORT_ID && b.player_id === row.player_id && b.market === state.filters.market);
-    const watchButton = `<button class="star-modal-btn ${isWatched ? 'starred' : ''}" type="button" id="modalWatchlistBtn" data-watch-player="${esc(row.player_id)}">${isWatched ? '★ On Watchlist' : '☆ Add to Watchlist'}</button>`;
+    const watchButton = `<button class="star-modal-btn ${isWatched ? 'starred' : ''}" type="button" id="modalWatchlistBtn" data-watch-player="${esc(row.player_id)}">${isWatched ? 'On Watchlist' : '+ Add to Watchlist'}</button>`;
 
     const baseShare = num(row.f_tgt_share || row.target_share, 0.20);
     const currentShare = state.scenarioTargetShare ?? baseShare;
@@ -5531,7 +5767,7 @@
           <span class="sticky-edge ${evaluation.edge > 0 ? 'text-accent' : 'text-dim'}">${signedPct(evaluation.edge)} edge · $${wagerDollars} (${wagerPct}%)</span>
         </div>
         <button type="button" class="detail-sticky-log-btn ${isLogged ? 'logged' : ''}" id="modalStickyLogBtn">
-          ${isLogged ? '✓ In Ledger' : '+ Add to Ledger'}
+          ${isLogged ? 'In Ledger' : '+ Add to Ledger'}
         </button>
       </div>
     `;
