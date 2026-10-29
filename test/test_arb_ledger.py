@@ -175,7 +175,14 @@ def test_stripe_billing_checkout_and_webhook():
     assert status_data["is_pro"] is False
     assert status_data["tier"] == "free"
 
-    # 3. Simulate idempotent Stripe webhook for checkout.session.completed
+    # 3. Simulate an idempotent, properly SIGNED Stripe webhook (fail-closed era:
+    #    the endpoint refuses unsigned events when STRIPE_WEBHOOK_SECRET is set)
+    import hashlib
+    import hmac as _hmac
+    import json as _json
+    import os as _os
+    import time as _time
+
     webhook_payload = {
         "id": "evt_test_001",
         "type": "checkout.session.completed",
@@ -189,10 +196,47 @@ def test_stripe_billing_checkout_and_webhook():
             }
         },
     }
-    res_webhook = client.post("/api/billing/webhook", json=webhook_payload)
-    assert res_webhook.status_code == 200
-    wh_result = res_webhook.json()
-    assert wh_result["processed"] is True
+
+    secret = "whsec_test_propwire_fail_closed"
+    prev_secret = _os.environ.get("STRIPE_WEBHOOK_SECRET")
+    try:
+        # 3a. Unsigned request with NO configured secret must be REJECTED (fail-closed, 503)
+        _os.environ.pop("STRIPE_WEBHOOK_SECRET", None)
+        res_unsigned = client.post("/api/billing/webhook", json=webhook_payload)
+        assert res_unsigned.status_code == 503, "unsigned webhooks must not unlock PRO"
+
+        # 3b. With a secret configured, a bad/missing signature must be REJECTED (400)
+        _os.environ["STRIPE_WEBHOOK_SECRET"] = secret
+        res_tampered = client.post(
+            "/api/billing/webhook",
+            content=_json.dumps(webhook_payload).encode(),
+            headers={
+                "Content-Type": "application/json",
+                "Stripe-Signature": f"t={int(_time.time())},v1={'0' * 64}",
+            },
+        )
+        assert res_tampered.status_code == 400
+
+        # 3c. Correctly signed request is processed
+        raw = _json.dumps(webhook_payload).encode()
+        ts = int(_time.time())
+        computed = _hmac.new(secret.encode(), f"{ts}.".encode() + raw, hashlib.sha256).hexdigest()
+        res_webhook = client.post(
+            "/api/billing/webhook",
+            content=raw,
+            headers={
+                "Content-Type": "application/json",
+                "Stripe-Signature": f"t={ts},v1={computed}",
+            },
+        )
+        assert res_webhook.status_code == 200
+        wh_result = res_webhook.json()
+        assert wh_result["processed"] is True
+    finally:
+        if prev_secret is None:
+            _os.environ.pop("STRIPE_WEBHOOK_SECRET", None)
+        else:
+            _os.environ["STRIPE_WEBHOOK_SECRET"] = prev_secret
 
     # 4. Now user status must be PRO
     res_status_pro = client.get(f"/api/billing/status?user_id={uid}")
