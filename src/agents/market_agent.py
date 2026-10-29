@@ -59,13 +59,57 @@ class MarketIngestAgent:
         line_noise_threshold: float = 0.5,
         prob_noise_threshold: float = 0.012,
         bus: DurableRedisStreamBus | None = None,
+        propline_api_key: str | None = None,
+        odds_api_key: str | None = None,
     ):
         self.stream_bus = stream_bus or bus or DurableRedisStreamBus()
         self.truth_store = truth_store or TruthStore()
         self.kill_switch = kill_switch or StaleKillSwitch()
         self.line_noise_threshold = line_noise_threshold
         self.prob_noise_threshold = prob_noise_threshold
+        self.propline_api_key = propline_api_key or os.environ.get("PROPLINE_API_KEY")
+        self.odds_api_key = odds_api_key or os.environ.get("ODDS_API_KEY")
         self._last_seen_quotes: dict[str, tuple[float, float]] = {}
+
+    def fetch_and_ingest_props(
+        self,
+        *,
+        season: int = 2026,
+        week: int = 7,
+        game_id: str | None = None,
+        sport: str = "nfl",
+        provider_override: Any | None = None,
+        now: datetime | None = None,
+    ) -> list[dict[str, Any]]:
+        """
+        Ingest live player props via PropLine (with automatic failover to The Odds API)
+        into market_state and the event stream.
+        """
+        from src.odds_adapter import PropLineProvider
+        provider = provider_override or PropLineProvider(api_key=self.propline_api_key)
+        quotes = provider.fetch_quotes(season=season, week=week, game_id=game_id)
+
+        results = []
+        for q in quotes:
+            raw = {
+                "sport": sport,
+                "game_id": game_id or f"{season}_w{week}",
+                "player_id": q.player_raw_name.lower().replace(" ", "_"),
+                "player_name": q.player_raw_name,
+                "team": q.team or "UNK",
+                "opponent": q.opponent or "UNK",
+                "market": q.market,
+                "venue_type": "sportsbook",
+                "book": q.book,
+                "line": q.line,
+                "over_odds": q.over_odds,
+                "under_odds": q.under_odds if q.under_odds is not None else -110,
+                "is_live": False,
+                "fetched_at": q.observed_at,
+            }
+            res = self.ingest_quote(raw, now=now)
+            results.append(res)
+        return results
 
     def ingest_quote(
         self,

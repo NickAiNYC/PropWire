@@ -37,6 +37,50 @@ class StaleKillSwitch:
             now_utc = now_utc.replace(tzinfo=timezone.utc)
         return max(0.0, round((now_utc - fetched_at).total_seconds(), 3))
 
+    @staticmethod
+    def get_expected_cadence_seconds(sport: str, is_live: bool = False, in_game: bool = False) -> float:
+        """
+        Cadence varies by sport and game status:
+        - NBA live: 5s
+        - NFL during game / live: 30s
+        - Off-hours / pregame: 15 min (900s)
+        """
+        s = (sport or "").strip().lower()
+        if s == "nba" and is_live:
+            return 5.0
+        if s == "nfl" and (is_live or in_game):
+            return 30.0
+        return 900.0  # 15 minutes for pregame / off-hours
+
+    def evaluate_cadence_freshness(
+        self,
+        *,
+        last_update: datetime,
+        last_expected_update: datetime | None = None,
+        sport: str = "nfl",
+        is_live: bool = False,
+        in_game: bool = False,
+        now: datetime | None = None,
+    ) -> tuple[bool, float, float, str]:
+        """
+        Compare last_update vs last_expected_update.
+        If stale > 2x expected cadence, trigger 'ODDS STALE' state and suppress alerts.
+        Returns: (is_stale, elapsed_seconds, max_allowed_seconds, state_label)
+        """
+        now_utc = now or datetime.now(timezone.utc)
+        if last_update.tzinfo is None:
+            last_update = last_update.replace(tzinfo=timezone.utc)
+        if now_utc.tzinfo is None:
+            now_utc = now_utc.replace(tzinfo=timezone.utc)
+
+        cadence = self.get_expected_cadence_seconds(sport=sport, is_live=is_live, in_game=in_game)
+        max_allowed = 2.0 * cadence
+        elapsed = max(0.0, (now_utc - last_update).total_seconds())
+
+        is_stale = elapsed > max_allowed
+        state_label = "ODDS STALE" if is_stale else "LIVE FRESH"
+        return is_stale, elapsed, max_allowed, state_label
+
     def threshold_for(
         self,
         feed_type: Literal["injury", "lineup", "odds"],
