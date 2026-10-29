@@ -1,5 +1,5 @@
-// PropWire Service Worker (PWA Offline Support & Cache)
-const CACHE_NAME = 'propwire-v124-prod';
+// PropStein Service Worker (PWA Offline Support & Cache)
+const CACHE_NAME = 'propstein-v187-icons';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -8,10 +8,10 @@ const STATIC_ASSETS = [
   '/style.css?v=2026_v124',
   '/app.js?v=2026_v124',
   '/manifest.json',
-  '/favicon.svg',
-  '/icon-192.png',
-  '/icon-512.png',
-  '/apple-touch-icon.png'
+  '/favicon.svg?v=2027_icon1',
+  '/icon-192.png?v=2027_icon1',
+  '/icon-512.png?v=2027_icon1',
+  '/apple-touch-icon.png?v=2027_icon1'
 ];
 
 self.addEventListener('install', (event) => {
