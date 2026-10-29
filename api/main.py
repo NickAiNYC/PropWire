@@ -104,8 +104,9 @@ def verify_entitlement(authorization: str | None) -> dict:
 
 
 @app.get("/health/live")
+@app.get("/api/health")
 def health_live():
-    return {"ok": True, "ts": datetime.now(timezone.utc).isoformat()}
+    return {"ok": True, "service": "propwire-web", "ts": datetime.now(timezone.utc).isoformat()}
 
 
 @app.get("/health")
