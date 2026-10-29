@@ -254,8 +254,9 @@
 
       <!-- Desktop View Switcher -->
       <div class="pw-segmented pw-view-toggle view-switch pw-desktop-only" role="group" aria-label="View layout switcher">
-        <button type="button" data-view="table" class="pw-seg-btn active">Table</button>
-        <button type="button" data-view="cards" class="pw-seg-btn">Grid</button>
+        <button type="button" data-view="table" class="pw-seg-btn active" title="Detailed financial table">Table</button>
+        <button type="button" data-view="cards" class="pw-seg-btn" title="Comfortable card grid">Grid</button>
+        <button type="button" data-view="compact-grid" class="pw-seg-btn" title="High-density 4-5 column compact grid">Compact</button>
       </div>
     </div>
   </header>
@@ -757,7 +758,7 @@
     </form>
   </dialog>
 
-  <!-- Fixed 3-Tab Mobile Bottom Navigation (44px+ touch targets, iOS Safe Area aware) -->
+  <!-- Fixed 4-Tab Mobile Bottom Navigation (44px+ touch targets, iOS Safe Area aware) -->
   <nav class="mobile-bottom-nav" aria-label="Mobile Navigation">
     <button type="button" class="bottom-nav-item active" id="bottomNavSlate" aria-label="View Player Slate">
       <svg class="prop-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>
@@ -773,7 +774,7 @@
       <span>Record</span>
       <span class="bottom-nav-badge" id="bottomNavBadge" hidden>0</span>
     </button>
-    <button type="button" class="bottom-nav-item pw-desktop-only" id="bottomNavAudit" aria-label="Open Public CLV Validation Report" style="display:none;" hidden>
+    <button type="button" class="bottom-nav-item" id="bottomNavAudit" aria-label="Open Public CLV Validation Report">
       <svg class="prop-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 1.5H3.5a1 1 0 00-1 1v11a1 1 0 001 1h9a1 1 0 001-1V6L9 1.5z"/><path d="M9 1.5V6h4.5M5 10h6M5 7.5h2M5 12.5h6"/></svg>
       <span>Audit</span>
     </button>
