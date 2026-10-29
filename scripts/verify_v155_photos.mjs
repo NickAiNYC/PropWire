@@ -67,7 +67,7 @@ check('app.js: initPlayerPhotos wired at boot', appSrc.includes('await initPlaye
 check('app.js: avatar fallback class ships', appSrc.includes('pw-avatar-fallback'));
 
 const swSrc = readFileSync(join(ROOT, 'sw.js'), 'utf8');
-check('sw.js: cache propwire-v168-prod', swSrc.includes("propwire-v168-prod"));
+check('sw.js: cache propwire-v169-prod', swSrc.includes("propwire-v169-prod"));
 check('sw.js: feeds JSON never precached (network-only data policy)', !/STATIC_ASSETS[\s\S]*?feeds\//.test(swSrc));
 check('vercel.json: img-src allows a.espncdn.com', /img-src[^;]*a\.espncdn\.com/.test(cspHeader));
 
@@ -188,10 +188,10 @@ const swInfo = await page.evaluate(async () => {
     const c = await caches.open(k);
     precached = Math.max(precached, (await c.keys()).length);
   }
-  return { supported: true, hasV155: keys.includes('propwire-v168-prod'), keys, precached };
+  return { supported: true, hasV155: keys.includes('propwire-v169-prod'), keys, precached };
 });
 if (swInfo.supported) {
-  check('SW v168 cache registered', swInfo.hasV155, `keys=${swInfo.keys.join(',')}`);
+  check('SW v169 cache registered', swInfo.hasV155, `keys=${swInfo.keys.join(',')}`);
   check('SW precache populated', swInfo.precached > 0, `${swInfo.precached} entries`);
 } else {
   console.log('SKIP  service worker (not supported in this context)');

@@ -924,6 +924,10 @@
         const el = event.target;
         if (!el || !el.classList) return;
         if (el.classList.contains('pw-avatar-img') || el.classList.contains('pw-avatar-team-badge')) el.remove();
+        // v169: NBA court avatars hide (not remove) on a dead URL — keeps the
+        // lineup slot's layout. CSSOM assignment is CSP-exempt; the old inline
+        // onerror="this.style.display='none'" was blocked on prod by script-src.
+        if (el.classList.contains('nba-court-avatar-img')) el.style.display = 'none';
       }, true);
     }
     try {
@@ -3383,7 +3387,7 @@
       return `
         <div class="nba-court-player ${statusClass}" data-court-player="${esc(p.player_id)}" title="${esc(p.name)} · ${esc(p.position)} · Rem ${Number(p.minutes_remaining).toFixed(1)}m">
           <div class="nba-court-avatar-wrap">
-            ${headshotUrl ? `<img src="${headshotUrl}" alt="${esc(p.name)}" class="nba-court-avatar-img" loading="lazy" onerror="this.style.display='none'">` : ''}
+            ${headshotUrl ? `<img src="${headshotUrl}" alt="${esc(p.name)}" class="nba-court-avatar-img" loading="lazy">` : ''}
             <span class="nba-court-avatar-fallback">${esc(initials(p.name))}</span>
             <span class="nba-court-node-badge ${statusClass}">${esc(badgeText)}</span>
           </div>
@@ -3600,9 +3604,9 @@
 
     return `
       <div class="nba-live-lineup-shell ${isStaleCourt ? 'is-feed-stale' : ''}">
-        <!-- Game Switcher Pills + Stale Outage Test -->
-        <div class="nba-game-switcher" style="justify-content:space-between;">
-          <div style="display:flex; gap:8px; overflow-x:auto;">
+        <!-- Game Switcher Pills + Stale Outage Test (v169: CSP-clean — inline style attrs moved to CSS classes) -->
+        <div class="nba-game-switcher nba-game-switcher-split">
+          <div class="nba-game-pill-row">
             ${gameKeys.map((gk) => {
               const g = courtGames[gk];
               return `<button type="button" class="nba-game-pill ${gk === activeGameKey ? 'active' : ''}" data-court-game="${esc(gk)}">${esc(g.away_team)} @ ${esc(g.home_team)} · ${esc(g.status_pill)}</button>`;
