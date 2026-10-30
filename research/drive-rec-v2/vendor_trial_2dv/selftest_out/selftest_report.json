@@ -1,6 +1,6 @@
 {
   "harness_selftest": "PASS",
-  "n_tests": 9,
+  "n_tests": 15,
   "tests": [
     {
       "test": "T1_fixture_determinism",
@@ -15,12 +15,22 @@
     {
       "test": "T3_fault_sensitivity",
       "status": "PASS",
-      "detail": "all 7 injected faults caught by their target checks"
+      "detail": "all 9 injected faults caught by their target checks"
     },
     {
       "test": "T3b_fault_details",
       "status": "PASS",
       "detail": "V7 reports exactly the 2 injected settlement faults (got 2)"
+    },
+    {
+      "test": "T3c_fault_details",
+      "status": "PASS",
+      "detail": "V3 catches the F8 provenance fault: SYN25_G02: discovery_timestamp_utc missing or invalid (None) (owner requirement: record the discovery timestamp)"
+    },
+    {
+      "test": "T3d_fault_details",
+      "status": "PASS",
+      "detail": "V9 catches F9 (unestablished row) and F7 (actual 25 != modeled 10)"
     },
     {
       "test": "T4_tamper_detection",
@@ -46,6 +56,26 @@
       "test": "T8_credential_safety",
       "status": "PASS",
       "detail": "REAL mode without ODDS_API_KEY refuses to run (key never accepted from files/arguments/chat)"
+    },
+    {
+      "test": "T9_credit_fail_closed",
+      "status": "PASS",
+      "detail": "response without usage headers -> ABORT PARTIAL (1 unestablished ledger row(s); reason: historical_event_odds/SYN26_G08@T-15m: x-requests-used missing on non-retryable \u2026)"
+    },
+    {
+      "test": "T10_budget_cap_all_kinds",
+      "status": "PASS",
+      "detail": "cap=25 -> abort PARTIAL pre-request after 2 quote pulls (measured 20 credits, running max 20 <= 25; reason: budget guard (pre-request): measured spend 20 + modeled 10 >\u2026)"
+    },
+    {
+      "test": "T11_event_map_required",
+      "status": "PASS",
+      "detail": "acquisition without event_id_map.json refuses to run (verified historical event IDs required first)"
+    },
+    {
+      "test": "T12_discover_tool",
+      "status": "PASS",
+      "detail": "discover_event_ids.py refuses REAL mode without ODDS_API_KEY; offline --selftest passes"
     }
   ],
   "note": "All data is SYNTHETIC-HARNESS-TEST; zero vendor requests, zero credits consumed. This validates the verification CODE, not the vendor."

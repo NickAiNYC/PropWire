@@ -5,12 +5,34 @@
     "name": "The Odds API",
     "base_url": "https://api.the-odds-api.com/v4",
     "env_key_name": "ODDS_API_KEY",
-    "credit_rule": "10 credits per region per market per event per historical request (vendor-documented; confirmed by the project owner 2026-10-30)",
+    "credit_rule": "10 credits per region per market per event per historical request (vendor-documented; confirmed by the project owner 2026-10-30). Per-call cost is also self-reported in the x-requests-last response header; cumulative usage in x-requests-used (retrieved 2026-10-30).",
     "historical_endpoint": "/historical/sports/{sport_key}/events/{event_id}?date={decision_ts_utc}&regions={regions}&markets={market}&oddsFormat=american",
-    "events_endpoint": "/sports/{sport_key}/events?commence_time_from={from}&commence_time_to={to}",
     "snapshot_semantics": "closest snapshot at or earlier than the requested date; previous_timestamp/next_timestamp navigation; per-bookmaker last_update"
   },
   "sport_key_candidates": ["playerprops_nfl", "americanfootball_nfl"],
+  "discovery": {
+    "policy": "verified event-ID mapping required before acquisition (owner code inspection 2026-10-30: /sports/{sport_key}/events is a CURRENT-events endpoint and is NOT a reliable discovery source for completed games; vendor docs 2026-10-30: completed games surface via /scores only within daysFrom=3)",
+    "map_path": "artifacts/event_id_map.json",
+    "stage_a_tool": "discover_event_ids.py",
+    "fetch_gate": "quote requests require a map entry with non-null event_id and status=='verified'; every other game is ledgered as a discovery miss and SKIPPED (fail-closed)",
+    "provenance_fields": ["event_id", "status", "discovery_source", "discovery_timestamp_utc", "commence_time_verified", "sport_key"],
+    "provenance_verified_by": "V3",
+    "go_forward_strategy": "for future acquisitions, capture event IDs from /events while games are upcoming (before completion) and archive them to the map"
+  },
+  "documented_costs": {
+    "sports_list": 0,
+    "events_list": 1,
+    "event_detail": 1,
+    "historical_event_odds_per_region_per_market": 10,
+    "note": "Modeled values for PRE-FLIGHT AUTHORIZATION ONLY (projections; /v4/sports documented as not counting against usage, retrieved 2026-10-30). ACTUAL consumption is measured from the x-requests-used/-remaining/-last response headers and reconciled by check V9; modeled never overrides measured."
+  },
+  "retry": {
+    "max_attempts": 3,
+    "retryable_status": [429, 500, 502, 503, 504],
+    "backoff_seconds": 2.0,
+    "retry_after_honored": true,
+    "note": "every attempt is authorized against the cap before the request and observed by the Meter after it (owner defect-2 fix, 2026-10-30)"
+  },
   "market_candidates": ["player_receiving_yards"],
   "region": "us",
   "odds_format": "american",

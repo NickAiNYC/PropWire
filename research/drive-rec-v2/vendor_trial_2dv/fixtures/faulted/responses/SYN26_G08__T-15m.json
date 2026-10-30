@@ -1,4 +1,8 @@
 {
+  "_sim": {
+    "credit_cost": 10,
+    "omit_usage_headers": true
+  },
   "_synthetic_fixture": true,
   "away_team": "SYN_A08",
   "bookmakers": [

@@ -34,7 +34,7 @@ DRIVE = HERE.parent
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(DRIVE / "decision_2d"))
 
-from credit_meter import load_config  # noqa: E402
+from credit_meter import load_config, ledger_summary  # noqa: E402
 from fetch_trial_quotes import TEAM_NAMES, norm_team  # noqa: E402
 
 PASS, FAIL, PENDING_MANUAL = "PASS", "FAIL", "PENDING_MANUAL"
@@ -88,6 +88,11 @@ class Trial:
         self.data_label = self.raw_manifest.get("data_label", "UNKNOWN")
         self.synthetic = self.data_label != "REAL_VENDOR_RESPONSES"
         self.cfg = load_config()
+        # event-ID map actually used by the acquisition run (defect-1 fix:
+        # copied byte-for-byte into the run directory by fetch_trial_quotes)
+        map_path = data_dir / "event_id_map.json"
+        self.event_map = (json.loads(map_path.read_text())
+                          if map_path.exists() else None)
         self.ledger = [json.loads(line) for line in
                        (data_dir / "credit_ledger.jsonl").read_text().splitlines()
                        if line.strip()]
@@ -245,11 +250,70 @@ def v2_timestamps(t: Trial) -> dict:
 
 def v3_market_identification(t: Trial) -> dict:
     violations, observed = [], []
+    # --- event-ID map provenance (owner defect-1 fix, 2026-10-30): every
+    # sampled game needs a verified map entry whose discovery SOURCE and
+    # TIMESTAMP are recorded; response event ids must trace to the map. ---
+    entries = ({e.get("game_id"): e
+                for e in (t.event_map or {}).get("entries", [])}
+               if t.event_map else {})
+    if t.event_map is None:
+        violations.append("event_id_map.json missing from the run directory "
+                          "(discovery provenance unverifiable)")
+    tol_h = t.cfg["commence_vs_schedule_tolerance_hours"]
+    for gid in sorted(t.games):
+        game = t.games[gid]
+        e = entries.get(gid)
+        if e is None:
+            violations.append(f"{gid}: no event_id_map entry (discovery "
+                              "provenance missing)")
+            continue
+        if not e.get("event_id"):
+            violations.append(f"{gid}: event_id_map entry has null event_id")
+        if e.get("status") != "verified":
+            violations.append(f"{gid}: event_id_map entry status "
+                              f"{e.get('status')!r} != 'verified'")
+        if not str(e.get("discovery_source") or "").strip():
+            violations.append(f"{gid}: discovery_source missing (owner "
+                              "requirement: record the discovery source)")
+        ts = e.get("discovery_timestamp_utc")
+        ts_ok = isinstance(ts, str) and ts.strip()
+        if ts_ok:
+            try:
+                parse_ts(ts)
+            except ValueError:
+                ts_ok = False
+        if not ts_ok:
+            violations.append(f"{gid}: discovery_timestamp_utc missing or "
+                              f"invalid ({ts!r}) (owner requirement: record "
+                              "the discovery timestamp)")
+        cv = e.get("commence_time_verified")
+        if not cv:
+            violations.append(f"{gid}: commence_time_verified missing from "
+                              "event_id_map entry")
+        else:
+            c = parse_ts(cv)
+            gameday = datetime.strptime(game["gameday"], "%Y-%m-%d").replace(
+                tzinfo=timezone.utc)
+            if not (gameday - timedelta(hours=tol_h)
+                    <= c <= gameday + timedelta(hours=36)):
+                violations.append(
+                    f"{gid}: map commence_time_verified {cv} outside schedule "
+                    f"window around {game['gameday']}")
     for (gid, off) in sorted(t.responses):
         meta, doc = t.responses[(gid, off)]["meta"], t.responses[(gid, off)]["doc"]
         game = t.games.get(gid)
         if game is None or doc is None:
             continue
+        entry = entries.get(gid)
+        if entry is not None and str(doc.get("game_id")) != str(entry.get("event_id")):
+            violations.append(f"{gid}@{off}: response event {doc.get('game_id')} "
+                              f"!= event_id_map {entry.get('event_id')}")
+        if entry is not None and entry.get("commence_time_verified") \
+                and doc.get("commence_time") is not None:
+            if parse_ts(entry["commence_time_verified"]) != parse_ts(doc["commence_time"]):
+                violations.append(f"{gid}@{off}: response commence_time "
+                                  f"{doc.get('commence_time')} != map "
+                                  f"{entry['commence_time_verified']}")
         if str(doc.get("game_id")) != str(meta.get("event_id")):
             violations.append(f"{gid}@{off}: response game_id {doc.get('game_id')} "
                               f"!= requested event {meta.get('event_id')}")
@@ -295,15 +359,19 @@ def v3_market_identification(t: Trial) -> dict:
                             f"{o.get('label')!r} not Over/Under")
         observed.append({"game_id": gid, "offset": off,
                          "commence_time": commence,
-                         "home": doc.get("home_team"), "away": doc.get("away_team")})
+                         "home": doc.get("home_team"), "away": doc.get("away_team"),
+                         "event_id": meta.get("event_id")})
     return {"check": "V3", "title": "Market identification",
             "status": FAIL if violations else PASS,
             "summary": (f"{len(observed)} responses checked for player/team/game/"
-                        "line/over-under identification"),
+                        "line/over-under identification + event-ID map "
+                        f"provenance ({len(entries)} map entries)"),
             "violations": violations[:50],
             "n_violations": len(violations),
             "observed": observed,
-            "requirement": "Correct player, team, game, line, and over/under"}
+            "requirement": ("Correct player, team, game, line, and over/under, "
+                            "traced to a verified event-ID map whose discovery "
+                            "source and timestamp are recorded")}
 
 
 def v4_bookmaker_identity(t: Trial) -> dict:
@@ -551,34 +619,65 @@ def v8_commercial_rights(t: Trial) -> dict:
 
 
 def v9_cost(t: Trial) -> dict:
-    hist = [r for r in t.ledger if r.get("request_kind") == "historical_event_odds"]
-    discovery = [r for r in t.ledger if r.get("request_kind") == "events_discovery"]
-    mismatches = [r for r in hist
-                  if r.get("actual_credits") != r.get("modeled_credits")]
-    modeled_total = sum(r.get("modeled_credits") or 0 for r in hist)
-    actual_total = sum(r.get("actual_credits") or 0 for r in hist)
+    """Cost reconciliation (owner defect-2 fix, 2026-10-30).
+
+    Every metered request — baseline, discovery, retries, quote pulls — is
+    reconciled from the recorded usage headers (x-requests-used cumulative
+    delta, cross-checked against x-requests-last and the remaining delta).
+    FAIL when: consumption could not be established on any response, headers
+    disagree with each other or the recorded actuals, a null actual is not a
+    tolerated open/baseline row, the measured total exceeds the cap, any
+    quote pull's actual != modeled, or the run aborted on a consumption
+    failure.
+    """
+    s = ledger_summary(t.dir / "credit_ledger.jsonl")
+    cap = t.cfg["credit_budget_cap"]
     failures = []
-    if mismatches:
-        failures.append(f"{len(mismatches)} requests where actual credits != "
-                        "modeled (vendor headers disagree with documented rule)")
-    if actual_total > t.cfg["credit_budget_cap"]:
-        failures.append(f"actual total {actual_total} exceeds budget cap "
-                        f"{t.cfg['credit_budget_cap']}")
+    if s["n_unestablished"]:
+        failures.append(f"{s['n_unestablished']} response(s) with consumption "
+                        "UNESTABLISHED (usage headers missing/unreliable)")
+    if s["n_inconsistencies"]:
+        failures.append(f"{s['n_inconsistencies']} usage-header reconciliation "
+                        "inconsistency(ies)")
+    if s["n_null_anomalies"]:
+        failures.append(f"{s['n_null_anomalies']} ledger row(s) with null "
+                        "actual_credits outside tolerated open/baseline rows")
+    if s["n_quote_mismatches"]:
+        failures.append(f"{s['n_quote_mismatches']} quote request(s) where "
+                        "actual credits != modeled (vendor headers disagree "
+                        "with documented rule)")
+    if s["actual_total"] > cap:
+        failures.append(f"measured total {s['actual_total']} exceeds budget "
+                        f"cap {cap} (baseline+discovery+retries+quotes, all "
+                        "metered kinds)")
+    partial_reason = t.raw_manifest.get("partial_reason")
+    if partial_reason and "consumption" in str(partial_reason).lower():
+        failures.append(f"run aborted on a consumption failure: {partial_reason}")
+    by_kind = ", ".join(f"{k}={v}" for k, v in sorted(s["by_kind"].items())) \
+        or "none"
     return {"check": "V9", "title": "Cost",
             "status": FAIL if failures else PASS,
-            "summary": (f"{len(hist)} historical requests; modeled {modeled_total} "
-                        f"/ actual {actual_total} credits; {len(discovery)} "
-                        f"discovery requests metered separately; budget cap "
-                        f"{t.cfg['credit_budget_cap']}"),
-            "mismatches": [{"game_id": r.get("game_id"),
-                            "offset": r.get("offset_label"),
-                            "modeled": r.get("modeled_credits"),
-                            "actual": r.get("actual_credits")}
-                           for r in mismatches],
-            "modeled_total": modeled_total,
-            "actual_total": actual_total,
+            "summary": (f"{s['n_rows']} metered requests; measured "
+                        f"{s['actual_total']} credits total ({by_kind}); "
+                        f"budget cap {cap}; {s['n_quote_mismatches']} quote "
+                        "actual-vs-modeled mismatches"),
             "failures": failures,
-            "requirement": "Actual credits consumed reconcile with vendor documentation"}
+            "modeled_total": sum(r.get("modeled_credits") or 0 for r in t.ledger
+                                 if r.get("request_kind") == "historical_event_odds"),
+            "actual_total": s["actual_total"],
+            "actual_total_by_kind": s["by_kind"],
+            "n_metered_rows": s["n_rows"],
+            "n_unestablished": s["n_unestablished"],
+            "unestablished": s["unestablished"],
+            "n_inconsistencies": s["n_inconsistencies"],
+            "inconsistencies": s["inconsistencies"][:50],
+            "n_null_anomalies": s["n_null_anomalies"],
+            "mismatches": s["quote_mismatches"],
+            "n_mismatches": s["n_quote_mismatches"],
+            "partial_reason": partial_reason,
+            "requirement": ("Actual credits consumed reconcile with vendor "
+                            "documentation; consumption established for every "
+                            "request incl. discovery and retries")}
 
 
 def v10_reproducibility(t: Trial) -> dict:
@@ -592,7 +691,8 @@ def v10_reproducibility(t: Trial) -> dict:
             problems.append(f"hash mismatch: {rel}")
     on_disk = {str(p.relative_to(t.dir)) for p in
                list((t.dir / "responses").glob("*.json"))
-               + list((t.dir / "events").glob("*.json"))}
+               + list((t.dir / "events").glob("*.json"))
+               + list((t.dir / "infra").glob("*.json"))}
     orphans = sorted(on_disk - set(listed))
     if orphans:
         problems.append(f"raw files not in manifest: {orphans}")
@@ -715,9 +815,14 @@ def render_report(t: Trial, checks: list[dict], verdict: tuple[str, str],
     v9 = next(c for c in checks if c["check"] == "V9")
     a("## 3. Actual API consumption")
     a("")
-    a(f"- historical requests: modeled **{v9['modeled_total']}** vs actual "
-      f"**{v9['actual_total']}** credits (budget cap {t.cfg['credit_budget_cap']})")
-    a(f"- per-request mismatches vs documented rule: {len(v9['mismatches'])}")
+    a(f"- metered requests: **{v9['n_metered_rows']}**; measured total "
+      f"**{v9['actual_total']}** credits vs cap {t.cfg['credit_budget_cap']}")
+    a(f"- by request kind: "
+      f"{', '.join(f'{k}={v}' for k, v in sorted(v9['actual_total_by_kind'].items()))}")
+    a(f"- quote pulls: modeled **{v9['modeled_total']}**; actual-vs-modeled "
+      f"mismatches: {v9['n_mismatches']}")
+    a(f"- consumption-unestablished rows: {v9['n_unestablished']}; header "
+      f"inconsistencies: {v9['n_inconsistencies']}")
     a("")
     a("## 4. Check verdicts V1-V10")
     a("")
@@ -775,6 +880,9 @@ def render_report(t: Trial, checks: list[dict], verdict: tuple[str, str],
     a(f"- raw manifest: `{t.dir / 'manifest.json'}` (sha256 "
       f"{sha256_file(t.dir / 'manifest.json')[:16]}…)")
     a("- sample manifest: precommitted selection, schedule metadata only")
+    if t.event_map is not None:
+        a(f"- event-ID map: `{t.dir / 'event_id_map.json'}` (discovery source "
+          "+ timestamp per entry; verified by V3)")
     a(f"- evidence JSONs: `{out_dir}` (deterministic; no wall-clock content)")
     if t.synthetic:
         a("- **SYNTHETIC HARNESS TEST**: zero vendor requests, zero credits "
