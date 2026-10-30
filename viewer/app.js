@@ -3055,6 +3055,7 @@
   }
 
   function renderBoard() {
+    renderHomeEdgePreview();
     const rows = filteredRows();
     $$('.front-pro-bar [data-pro-view]').forEach((button) => button.setAttribute('aria-pressed', String(button.dataset.proView === state.proView)));
     const hasPrices = rows.some((row) => Boolean(findQuote(row, state.filters.market)));
@@ -3231,6 +3232,45 @@
     updateHeroCard(isResearchMode, quotedCount, displayRows.length);
     updateStickyContext(displayRows);
     updateActiveFilterBadge();
+  }
+
+  function renderHomeEdgePreview() {
+    const list = $('#homeEdgeList');
+    const status = $('#homeEdgeStatus');
+    if (!list || !status) return;
+    const health = feedHealthStates();
+    const asOf = health.oddsUpdatedAt && !Number.isNaN(Date.parse(health.oddsUpdatedAt))
+      ? new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZoneName: 'short' }).format(new Date(health.oddsUpdatedAt))
+      : null;
+    const fresh = !SLATES[state.slateKey]?.historical && health.dataKind !== 'fixture' && health.odds === 'ok' && health.oddsFreshness === 'ok'
+      && health.news === 'ok' && health.newsFreshness === 'ok';
+    if (!fresh) {
+      status.textContent = `Live edges paused · ${asOf ? `last odds update ${asOf}` : 'no verified update available'}`;
+      list.innerHTML = '<p class="home-edge-empty">Prices or news are unavailable or stale. Browse model projections below; no picks are being recommended.</p>';
+      return;
+    }
+    const market = state.filters.market;
+    const plays = state.slate.map((row) => ({ row, evaluation: evaluateRow(row) }))
+      .filter(({ evaluation }) => evaluation.actionable && evaluation.state === 'verified')
+      .sort((a, b) => b.evaluation.ev - a.evaluation.ev)
+      .slice(0, 3);
+    status.textContent = `${plays.length ? `Top ${plays.length} verified ${plays.length === 1 ? 'edge' : 'edges'}` : 'No qualified edges'} · odds as of ${asOf || 'time unavailable'}`;
+    if (!plays.length) {
+      list.innerHTML = '<p class="home-edge-empty">No verified price clears the model gate right now. Check again after the next feed update.</p>';
+      return;
+    }
+    list.innerHTML = plays.map(({ row, evaluation }) => {
+      const quote = evaluation.quote;
+      const marketProb = devig(quote.over_odds, quote.under_odds);
+      const implied = evaluation.side === 'UNDER' ? marketProb.under : marketProb.over;
+      const winProb = Math.max(0, Math.min(1, implied + evaluation.edge));
+      const odds = evaluation.odds > 0 ? `+${evaluation.odds}` : String(evaluation.odds);
+      return `<article class="home-edge-card">
+        <div class="home-edge-player"><strong>${esc(row.player_display_name)}</strong><span>${esc(row.team)} · ${esc(row.opponent_team)} · ${esc(market.replaceAll('_', ' '))}</span></div>
+        <div class="home-edge-line"><span class="home-edge-direction ${evaluation.side === 'UNDER' ? 'under' : 'over'}">${evaluation.side === 'UNDER' ? '↓ UNDER' : '↑ OVER'}</span><strong>${evaluation.line.toFixed(1)} <small>${esc(odds)}</small></strong><span>${esc(evaluation.book)}</span></div>
+        <div class="home-edge-metrics"><span><small>MODEL WIN</small><strong>${(winProb * 100).toFixed(1)}%</strong></span><span><small>EDGE</small><strong>+${(evaluation.edge * 100).toFixed(1)}%</strong></span><span><small>EV</small><strong>+${(evaluation.ev * 100).toFixed(1)}%</strong></span></div>
+      </article>`;
+    }).join('');
   }
 
   function updateHeroCard(isResearchMode, qualifiedCount, displayCount) {

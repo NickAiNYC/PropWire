@@ -1,13 +1,13 @@
 // PropStein Service Worker (offline shell only; market data always fails closed)
-const CACHE_NAME = 'propstein-v189-charcoal';
+const CACHE_NAME = 'propstein-v190-edge-preview';
 const STATIC_ASSETS = [
   '/index.html',
   '/style.css',
   '/app.js',
-  '/style.css?v=2026_v189',
-  '/app.js?v=2026_v189',
+  '/style.css?v=2026_v190',
+  '/app.js?v=2026_v190',
   '/js/today-schedule.js?v=2026_v189',
-  '/js/front-page.js?v=2026_v189',
+  '/js/front-page.js?v=2026_v190',
   '/league-logos/nba.png',
   '/league-logos/nfl.png',
   '/league-logos/ufc.svg',

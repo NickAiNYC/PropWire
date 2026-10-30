@@ -21,6 +21,7 @@
     if (event.target === menu) menu.close();
   });
   exploreButton.addEventListener('click', () => setBoardOpen(!document.body.classList.contains('front-board-open'), true));
+  document.getElementById('homeEdgeOpenBoard')?.addEventListener('click', () => setBoardOpen(true, true));
   menu.querySelector('.front-menu-actions').addEventListener('click', (event) => {
     const action = event.target.closest('[data-front-action]')?.dataset.frontAction;
     if (!action) return;
