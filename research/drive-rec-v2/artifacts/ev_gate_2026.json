@@ -1,0 +1,390 @@
+{
+  "season": 2026,
+  "label": "genuinely unseen prospective (weeks 1-7)",
+  "hypothetical_warning": "SIMULATED PRICES ONLY. The corpus contains no genuine contemporaneous market quotes; every EV/return number below is hypothetical and cannot establish executable betting profitability.",
+  "quote_construction": {
+    "note": "Fixed NOW, before candidate evaluation, so no quote parameter can be tuned to results.",
+    "market_reference": "calibrated probability of the same player computed with the feature row from the previous team drive in the same game (lag-1 staleness); for a player's first drive of a game, a context-neutralized row (median context, zero in-game counters)",
+    "vig": 0.06,
+    "quote_latency_drives": 1,
+    "execution_slippage": 0.02,
+    "sensitivity_grid": {
+      "vig": [
+        0.03,
+        0.06,
+        0.1
+      ],
+      "quote_latency_drives": [
+        0,
+        1,
+        2,
+        4,
+        "frozen_pregame"
+      ],
+      "execution_slippage": [
+        0.0,
+        0.02,
+        0.05
+      ]
+    },
+    "decimal_odds_formula": "D = 1 / (reference_prob * (1 + vig))",
+    "model_ev_formula": "EV_model = p * D_exec - 1, D_exec = 1 / (reference * (1 + vig) * (1 + slippage))",
+    "realized_return_formula": "R = y * D_exec - 1"
+  },
+  "analysis_note": "EV bands are evaluated within the alert region (model probability >= 0.25). An initial unconditional implementation was dominated by longshot quotes outside the engine's operating region; the restriction to the alert region matches Decision 2C's requirement to evaluate 'the regions where the alert engine would operate'. Quote construction parameters are exactly as frozen in criteria v3.",
+  "baseline": {
+    "scenario": "BASELINE (frozen in criteria v3 C8 before evaluation)",
+    "vig": 0.06,
+    "latency_drives": 1,
+    "execution_slippage": 0.02,
+    "hypothetical": true,
+    "incumbent": {
+      "alert_region_note": "EV bands are evaluated within the alert region p_incumbent >= 0.25 (the engine's conviction gate). Probability thresholds below are unconditional.",
+      "ev_bands": {
+        "EV >= 0%": {
+          "n": 826,
+          "n_games": 107,
+          "mean_pred_prob": 0.42740113174962746,
+          "realized_freq": 0.39951573849878935,
+          "prob_gap_obs_minus_pred": -0.02788539325083811,
+          "realized_freq_ci": [
+            0.36044801641586866,
+            0.4378832134457036
+          ],
+          "mean_predicted_ev": 1.3176907810764973,
+          "median_predicted_ev": 0.11808217192730308,
+          "mean_predicted_ev_ci": [
+            0.8132253084116615,
+            1.8618977703834627
+          ],
+          "mean_realized_return": 0.9954926939817101,
+          "median_realized_return": -1.0,
+          "mean_realized_return_ci": [
+            0.44575863775214913,
+            1.6811585119583135
+          ],
+          "mean_decimal_odds": 6.542292149849704,
+          "median_decimal_odds": 2.707834668306967,
+          "share_quotes_implied_prob_lt_5pct": 0.048426150121065374
+        },
+        "EV >= 3%": {
+          "n": 666,
+          "n_games": 105,
+          "mean_pred_prob": 0.436206927670404,
+          "realized_freq": 0.40540540540540543,
+          "prob_gap_obs_minus_pred": -0.03080152226499855,
+          "realized_freq_ci": [
+            0.3565199300488452,
+            0.4523809523809524
+          ],
+          "mean_predicted_ev": 1.6308422800730926,
+          "median_predicted_ev": 0.15458110323656937,
+          "mean_predicted_ev_ci": [
+            1.026801335498028,
+            2.334179655927856
+          ],
+          "mean_realized_return": 1.2361464456683995,
+          "median_realized_return": -1.0,
+          "mean_realized_return_ci": [
+            0.5233911998604961,
+            2.043405316048649
+          ],
+          "mean_decimal_odds": 7.46572016309916,
+          "median_decimal_odds": 2.7620249443794056,
+          "share_quotes_implied_prob_lt_5pct": 0.06006006006006006
+        },
+        "EV >= 5%": {
+          "n": 592,
+          "n_games": 104,
+          "mean_pred_prob": 0.4405945374650417,
+          "realized_freq": 0.41047297297297297,
+          "prob_gap_obs_minus_pred": -0.03012156449206871,
+          "realized_freq_ci": [
+            0.35489551496739324,
+            0.46142026810351255
+          ],
+          "mean_predicted_ev": 1.829671799682831,
+          "median_predicted_ev": 0.17497874595934593,
+          "mean_predicted_ev_ci": [
+            1.1194677058679208,
+            2.651565457852139
+          ],
+          "mean_realized_return": 1.3935484765176744,
+          "median_realized_return": -1.0,
+          "mean_realized_return_ci": [
+            0.5790974424475481,
+            2.331355703649502
+          ],
+          "mean_decimal_odds": 8.058312302907098,
+          "median_decimal_odds": 2.7620249443794056,
+          "share_quotes_implied_prob_lt_5pct": 0.06756756756756757
+        },
+        "EV >= 8%": {
+          "n": 502,
+          "n_games": 103,
+          "mean_pred_prob": 0.44517243587313793,
+          "realized_freq": 0.40836653386454186,
+          "prob_gap_obs_minus_pred": -0.03680590200859607,
+          "realized_freq_ci": [
+            0.34849067955836094,
+            0.4655878399338228
+          ],
+          "mean_predicted_ev": 2.1463503669616064,
+          "median_predicted_ev": 0.19653319429555371,
+          "mean_predicted_ev_ci": [
+            1.3031579482375863,
+            3.102788796334499
+          ],
+          "mean_realized_return": 1.6259860422511352,
+          "median_realized_return": -1.0,
+          "mean_realized_return_ci": [
+            0.6608957171769934,
+            2.6969775250947943
+          ],
+          "mean_decimal_odds": 9.024570244627842,
+          "median_decimal_odds": 2.7932857033967475,
+          "share_quotes_implied_prob_lt_5pct": 0.0796812749003984
+        }
+      },
+      "prob_thresholds": {
+        "p_incumbent >= 0.25": {
+          "n": 2918,
+          "n_games": 107,
+          "mean_pred_prob": 0.35074846082993544,
+          "realized_freq": 0.3588074023303633,
+          "prob_gap_obs_minus_pred": 0.008058941500427852,
+          "realized_freq_ci": [
+            0.33833773384825927,
+            0.37866569144216866
+          ],
+          "mean_predicted_ev": 0.2680974193492498,
+          "median_predicted_ev": -0.09433457029974118,
+          "mean_predicted_ev_ci": [
+            0.13063875795592075,
+            0.4296791067462653
+          ],
+          "mean_realized_return": 0.22426967912282633,
+          "median_realized_return": -1.0,
+          "mean_realized_return_ci": [
+            0.06239208712818986,
+            0.41241152107286566
+          ],
+          "mean_decimal_odds": 3.804665572888494,
+          "median_decimal_odds": 2.7620249443794056,
+          "share_quotes_implied_prob_lt_5pct": 0.013708019191226868
+        },
+        "p_incumbent >= 0.30": {
+          "n": 1808,
+          "n_games": 105,
+          "mean_pred_prob": 0.39867125388666125,
+          "realized_freq": 0.38495575221238937,
+          "prob_gap_obs_minus_pred": -0.01371550167427188,
+          "realized_freq_ci": [
+            0.3612049797991812,
+            0.4097850941787458
+          ],
+          "mean_predicted_ev": 0.2791341673586486,
+          "median_predicted_ev": -0.045608130827122895,
+          "mean_predicted_ev_ci": [
+            0.13124587248195307,
+            0.4549637220787251
+          ],
+          "mean_realized_return": 0.13751863199904757,
+          "median_realized_return": -1.0,
+          "mean_realized_return_ci": [
+            -0.039206083786433955,
+            0.33624867282121323
+          ],
+          "mean_decimal_odds": 3.3221447327173754,
+          "median_decimal_odds": 2.5200879588638507,
+          "share_quotes_implied_prob_lt_5pct": 0.012168141592920354
+        }
+      }
+    },
+    "candidate": {
+      "alert_region_note": "EV bands are evaluated within the alert region p_cal >= 0.25 (the engine's conviction gate). Probability thresholds below are unconditional.",
+      "ev_bands": {
+        "EV >= 0%": {
+          "n": 1301,
+          "n_games": 107,
+          "mean_pred_prob": 0.32479494253328595,
+          "realized_freq": 0.31283627978478096,
+          "prob_gap_obs_minus_pred": -0.011958662748504989,
+          "realized_freq_ci": [
+            0.2850498860311712,
+            0.34122054930751566
+          ],
+          "mean_predicted_ev": 1.1876208569949513,
+          "median_predicted_ev": 0.0883903329978255,
+          "mean_predicted_ev_ci": [
+            0.7847642289013508,
+            1.6843718671643142
+          ],
+          "mean_realized_return": 0.9469382229899779,
+          "median_realized_return": -1.0,
+          "mean_realized_return_ci": [
+            0.49101420890817027,
+            1.4647998894437242
+          ],
+          "mean_decimal_odds": 6.877279672684106,
+          "median_decimal_odds": 3.4136733069500025,
+          "share_quotes_implied_prob_lt_5pct": 0.0415065334358186
+        },
+        "EV >= 3%": {
+          "n": 836,
+          "n_games": 107,
+          "mean_pred_prob": 0.3370396798006367,
+          "realized_freq": 0.33014354066985646,
+          "prob_gap_obs_minus_pred": -0.006896139130780243,
+          "realized_freq_ci": [
+            0.2995094365915736,
+            0.36376089247704396
+          ],
+          "mean_predicted_ev": 1.842273715861425,
+          "median_predicted_ev": 0.17813992600704154,
+          "mean_predicted_ev_ci": [
+            1.2353829289614422,
+            2.5694132192118277
+          ],
+          "mean_realized_return": 1.506926677389906,
+          "median_realized_return": -1.0,
+          "mean_realized_return_ci": [
+            0.7984741984342619,
+            2.3070258042678304
+          ],
+          "mean_decimal_odds": 8.82150592989345,
+          "median_decimal_odds": 3.4136733069500025,
+          "share_quotes_implied_prob_lt_5pct": 0.0645933014354067
+        },
+        "EV >= 5%": {
+          "n": 803,
+          "n_games": 107,
+          "mean_pred_prob": 0.33660894352956805,
+          "realized_freq": 0.33499377334993774,
+          "prob_gap_obs_minus_pred": -0.0016151701796303097,
+          "realized_freq_ci": [
+            0.3024917005420054,
+            0.37054993839049116
+          ],
+          "mean_predicted_ev": 1.9162425701003247,
+          "median_predicted_ev": 0.18259812063915848,
+          "mean_predicted_ev_ci": [
+            1.280656619257195,
+            2.6658395010640334
+          ],
+          "mean_realized_return": 1.5840150348658615,
+          "median_realized_return": -1.0,
+          "mean_realized_return_ci": [
+            0.8443223905553128,
+            2.410918110209846
+          ],
+          "mean_decimal_odds": 9.06031601594831,
+          "median_decimal_odds": 3.747023724826166,
+          "share_quotes_implied_prob_lt_5pct": 0.06724782067247821
+        },
+        "EV >= 8%": {
+          "n": 716,
+          "n_games": 107,
+          "mean_pred_prob": 0.3303932403553569,
+          "realized_freq": 0.3254189944134078,
+          "prob_gap_obs_minus_pred": -0.0049742459419490626,
+          "realized_freq_ci": [
+            0.28896754739591135,
+            0.3652545696719937
+          ],
+          "mean_predicted_ev": 2.1409577051362727,
+          "median_predicted_ev": 0.1875454647583885,
+          "mean_predicted_ev_ci": [
+            1.4306930129180644,
+            2.988647826663758
+          ],
+          "mean_realized_return": 1.7602932387074217,
+          "median_realized_return": -1.0,
+          "mean_realized_return_ci": [
+            0.926936065273044,
+            2.6981725434968173
+          ],
+          "mean_decimal_odds": 9.823273655059827,
+          "median_decimal_odds": 3.7755600477376663,
+          "share_quotes_implied_prob_lt_5pct": 0.07541899441340782
+        }
+      },
+      "prob_thresholds": {
+        "p_cal >= 0.25": {
+          "n": 4064,
+          "n_games": 107,
+          "mean_pred_prob": 0.3331574379541694,
+          "realized_freq": 0.3334153543307087,
+          "prob_gap_obs_minus_pred": 0.0002579163765392689,
+          "realized_freq_ci": [
+            0.316376184168953,
+            0.350135996676459
+          ],
+          "mean_predicted_ev": 0.30052117621687946,
+          "median_predicted_ev": -0.07510173880873106,
+          "mean_predicted_ev_ci": [
+            0.16879660650911987,
+            0.4598525050521324
+          ],
+          "mean_realized_return": 0.23784658146636609,
+          "median_realized_return": -1.0,
+          "mean_realized_return_ci": [
+            0.08614823778341066,
+            0.41407576107300814
+          ],
+          "mean_decimal_odds": 4.032185240998989,
+          "median_decimal_odds": 2.900889883114585,
+          "share_quotes_implied_prob_lt_5pct": 0.01328740157480315
+        },
+        "p_cal >= 0.30": {
+          "n": 2382,
+          "n_games": 107,
+          "mean_pred_prob": 0.37158631610734283,
+          "realized_freq": 0.3694374475230898,
+          "prob_gap_obs_minus_pred": -0.0021488685842530053,
+          "realized_freq_ci": [
+            0.347370867063853,
+            0.38946589590766617
+          ],
+          "mean_predicted_ev": 0.28394502180546305,
+          "median_predicted_ev": -0.07510173880873106,
+          "mean_predicted_ev_ci": [
+            0.1457572263837768,
+            0.4389070691146665
+          ],
+          "mean_realized_return": 0.13632164500635038,
+          "median_realized_return": -1.0,
+          "mean_realized_return_ci": [
+            -0.014446609964456385,
+            0.30716410979811265
+          ],
+          "mean_decimal_odds": 3.527862255154433,
+          "median_decimal_odds": 2.6609176165225,
+          "share_quotes_implied_prob_lt_5pct": 0.012174643157010915
+        }
+      }
+    },
+    "c4_checks_candidate": {
+      "EV >= 0%": {
+        "status": "PASS",
+        "gap": -0.011958662748504989,
+        "threshold": 0.03
+      },
+      "EV >= 3%": {
+        "status": "PASS",
+        "gap": -0.006896139130780243,
+        "threshold": 0.03
+      },
+      "EV >= 5%": {
+        "status": "PASS",
+        "gap": -0.0016151701796303097,
+        "threshold": 0.03
+      },
+      "EV >= 8%": {
+        "status": "PASS",
+        "gap": -0.0049742459419490626,
+        "threshold": 0.03
+      }
+    }
+  }
+}

@@ -1,0 +1,146 @@
+{
+  "generated_at_utc": "2026-10-30T04:23:07.697143+00:00",
+  "decision": "2C \u2014 Tail Calibration & Economic Reliability",
+  "verdict": {
+    "criteria_v3_sha256": "894926614908c9d2179dfea8a357f420dff4d68095db2ebd49556c1ff2528219",
+    "checks_2025_previously_inspected_holdout": {
+      "C1_sample_adequacy": true,
+      "C2_top_decile": true,
+      "C3_alert_regions": true,
+      "C3_incumbent_operating_point": true,
+      "C4_ev_band_probability": false,
+      "C5_global_non_degradation": true
+    },
+    "checks_2026_genuinely_unseen": {
+      "C1_sample_adequacy": true,
+      "C2_top_decile": true,
+      "C3_alert_regions": true,
+      "C3_incumbent_operating_point": true,
+      "C4_ev_band_probability": true,
+      "C5_global_non_degradation": true
+    },
+    "c9_rule": "The candidate is promoted to CANDIDATE_CALIBRATED (research-only status change) ONLY if every evaluable primary criterion passes on BOTH HOLDOUT_2025 and UNSEEN_2026. Any FAIL, or any LOW_SAMPLE on a primary slice, leaves status RESEARCH_ONLY. The CALIBRATED production label remains BLOCKED pending human sign-off, which is DEFERRED per Decision 2C. HUMAN_REVIEW.md is not signed.",
+    "candidate_status": "RESEARCH_ONLY",
+    "calibrated_label": "BLOCKED (human sign-off deferred per Decision 2C)",
+    "human_review_md": "present, UNSIGNED, status DEFERRED"
+  },
+  "checks_2025": {
+    "C1_sample_adequacy": true,
+    "C2_top_decile": true,
+    "C3_alert_regions": true,
+    "C3_incumbent_operating_point": true,
+    "C4_ev_band_probability": false,
+    "C5_global_non_degradation": true
+  },
+  "checks_2026": {
+    "C1_sample_adequacy": true,
+    "C2_top_decile": true,
+    "C3_alert_regions": true,
+    "C3_incumbent_operating_point": true,
+    "C4_ev_band_probability": true,
+    "C5_global_non_degradation": true
+  },
+  "candidate_status": "RESEARCH_ONLY",
+  "preserved_artifacts": [
+    {
+      "file": "artifacts/candidate_evaluation.json",
+      "sha256": "66df18ada277ae3fa49efdb5c98876d2a132470cef45d63ce59402015dfa8d18"
+    },
+    {
+      "file": "artifacts/candidate_predictions_2023.csv.gz",
+      "sha256": "3cfe497d3382efe143d2ef979ecbb209c0db1a511de561faa2d2e42af313a382"
+    },
+    {
+      "file": "artifacts/candidate_predictions_2024.csv.gz",
+      "sha256": "814a29250133e644d6663e0462921ebbbfd7f4ca3f7403b2f4ac32bcfef38af3"
+    },
+    {
+      "file": "artifacts/candidate_predictions_2025.csv.gz",
+      "sha256": "6b92edf602be8baae955e4ef563efbbcd81061939cc57a4058c49a240fe5c578"
+    },
+    {
+      "file": "artifacts/candidate_predictions_2026.csv.gz",
+      "sha256": "182cb9ff9dbfb377576b7a107c14e0a03ae6b80742cf2338d36b04950e3acd71"
+    },
+    {
+      "file": "artifacts/corpus_stats.json",
+      "sha256": "e01f1f2b35f82da9cad0e03dd704b83304c38e7c76a60d310e1b6a18d22c6619"
+    },
+    {
+      "file": "artifacts/criteria_v3.json",
+      "sha256": "27f5513b7bb53f78224bfdca346df72461500e9fe07ea64ab1c5798996541050"
+    },
+    {
+      "file": "artifacts/dev_comparison.json",
+      "sha256": "c06a62800cf537e997fa516cfeee7880194e87ac189b54df2a487ab62a8a75e1"
+    },
+    {
+      "file": "artifacts/ev_gate_2025.json",
+      "sha256": "98352936ff2e5e0e1fc74045b0c07648d1b5980f890a9b8265ebba908fde54fc"
+    },
+    {
+      "file": "artifacts/ev_gate_2026.json",
+      "sha256": "efe7a8edcb012534b5d47bb1aaaff874f85549b46b4397a8ed3b66410454bbcd"
+    },
+    {
+      "file": "artifacts/ev_gate_sensitivity_2025.csv",
+      "sha256": "86cf846058c67fb53e837a7c91b16f0817806475c71a2570a6819f538109e3b8"
+    },
+    {
+      "file": "artifacts/ev_gate_sensitivity_2026.csv",
+      "sha256": "00ae1ebbca6067eb969efa93c7a9391a3ceaf978a4678fb9c88ea514d1c1f145"
+    },
+    {
+      "file": "artifacts/incumbent_evaluation.json",
+      "sha256": "d25925f91c093b61458350490352b6be73187bc47546880a0170f257a276ccec"
+    },
+    {
+      "file": "artifacts/incumbent_model.json",
+      "sha256": "9bf7f7a767d78a5d02b21acb4dc996fd14333cb73a6d06f0ef5e65c27b1e3f24"
+    },
+    {
+      "file": "artifacts/incumbent_predictions_2023.csv.gz",
+      "sha256": "b1577544e89aca3b7d2efba694c75b0e23aea8b1328456b007741d078351274d"
+    },
+    {
+      "file": "artifacts/incumbent_predictions_2024.csv.gz",
+      "sha256": "71e8725e1d44843df9df96d7cf3f9736145daf7f175675ffb910dd2f234e5ff7"
+    },
+    {
+      "file": "artifacts/incumbent_predictions_2025.csv.gz",
+      "sha256": "d72d8122c43582ce147385f98c361cfb5341a0c997ad07c6bdf78a8c5d6569ec"
+    },
+    {
+      "file": "artifacts/incumbent_predictions_2026.csv.gz",
+      "sha256": "0d5751a96bd20501906bb37ec2e2856f9a2ef959f572bee684c8fa84b3d360ac"
+    },
+    {
+      "file": "artifacts/incumbent_reliability_2023.csv",
+      "sha256": "36c5212178ea0d2ceb8a9f194c9c98a3263c8580be1e323d297bd4adf2193d0a"
+    },
+    {
+      "file": "artifacts/incumbent_reliability_2024.csv",
+      "sha256": "eca6998e200fe39109e941033f29b6567d730689381ac41627e6a165f8aadf7a"
+    },
+    {
+      "file": "artifacts/incumbent_reliability_2025.csv",
+      "sha256": "f306f021094db5940862ee028082d5adaaa28efe30354da67db9124599f48cb1"
+    },
+    {
+      "file": "artifacts/incumbent_reliability_2026.csv",
+      "sha256": "3ea6e92eda3bb8d8718097c1b4cd4455662fffaa6840da062649222ebefdd094"
+    },
+    {
+      "file": "artifacts/isotonic_calibrator.json",
+      "sha256": "6e6174616d3fd11ac907a4e61488891d6e512d69e53953294312f81d35a0d845"
+    },
+    {
+      "file": "artifacts/provenance_manifest.json",
+      "sha256": "72c965e782fa55d1d5a6a12469710bd43cb3010b7bea37176cd4e04511eaf25b"
+    },
+    {
+      "file": "artifacts/tail_recalibration_report.json",
+      "sha256": "9edf733f51d8435cfb6706faf907139aa47a15fb64736d314257a10ab6a77134"
+    }
+  ]
+}

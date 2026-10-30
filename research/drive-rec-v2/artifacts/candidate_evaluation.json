@@ -1,0 +1,1119 @@
+{
+  "criteria_v3_sha256": "894926614908c9d2179dfea8a357f420dff4d68095db2ebd49556c1ff2528219",
+  "seasons": {
+    "2025": {
+      "label": "PREVIOUSLY INSPECTED HOLDOUT \u2014 informed model-development decisions; not an untouched final test set (Decision 2C).",
+      "rows": 51114,
+      "games": 272,
+      "global": {
+        "incumbent": {
+          "brier": 0.12176747238227195,
+          "log_loss": 0.3928180304309757,
+          "auc": 0.7287216674945741,
+          "ece_decile": 0.016811174869937082
+        },
+        "candidate": {
+          "brier": 0.12146663609087491,
+          "log_loss": 0.39154865672737044,
+          "auc": 0.7282437156307845,
+          "ece_decile": 0.005375054702857375
+        },
+        "clustered_differences": {
+          "brier_cal_minus_inc": {
+            "diff": -0.00030083629139704415,
+            "ci_low": -0.0004983923175144623,
+            "ci_high": -0.0001238081044099723,
+            "n_games": 272
+          },
+          "logloss_cal_minus_inc": {
+            "diff": -0.0012693924460335237,
+            "ci_low": -0.0019470441123882257,
+            "ci_high": -0.0006756836606569645,
+            "n_games": 272
+          }
+        }
+      },
+      "reliability": {
+        "incumbent": [
+          {
+            "bin": 0,
+            "p_low": 0.0,
+            "p_high": 0.1,
+            "n": 19637,
+            "mean_pred": 0.06462387905835965,
+            "obs_rate": 0.054488974894332125
+          },
+          {
+            "bin": 1,
+            "p_low": 0.1,
+            "p_high": 0.2,
+            "n": 18363,
+            "mean_pred": 0.14166350284194287,
+            "obs_rate": 0.16037684474214453
+          },
+          {
+            "bin": 2,
+            "p_low": 0.2,
+            "p_high": 0.30000000000000004,
+            "n": 7856,
+            "mean_pred": 0.24297190039683084,
+            "obs_rate": 0.2717668024439919
+          },
+          {
+            "bin": 3,
+            "p_low": 0.30000000000000004,
+            "p_high": 0.4,
+            "n": 3279,
+            "mean_pred": 0.3421985494683981,
+            "obs_rate": 0.33058859408356206
+          },
+          {
+            "bin": 4,
+            "p_low": 0.4,
+            "p_high": 0.5,
+            "n": 1307,
+            "mean_pred": 0.44351499807049366,
+            "obs_rate": 0.4039785768936496
+          },
+          {
+            "bin": 5,
+            "p_low": 0.5,
+            "p_high": 0.6000000000000001,
+            "n": 534,
+            "mean_pred": 0.5414245172577908,
+            "obs_rate": 0.48314606741573035
+          },
+          {
+            "bin": 6,
+            "p_low": 0.6000000000000001,
+            "p_high": 0.7000000000000001,
+            "n": 108,
+            "mean_pred": 0.6361840632431102,
+            "obs_rate": 0.5185185185185185
+          },
+          {
+            "bin": 7,
+            "p_low": 0.7000000000000001,
+            "p_high": 0.8,
+            "n": 30,
+            "mean_pred": 0.7277289359578086,
+            "obs_rate": 0.5666666666666667
+          },
+          {
+            "bin": 8,
+            "p_low": 0.8,
+            "p_high": 0.9,
+            "n": 0,
+            "mean_pred": null,
+            "obs_rate": null
+          },
+          {
+            "bin": 9,
+            "p_low": 0.9,
+            "p_high": 1.0,
+            "n": 0,
+            "mean_pred": null,
+            "obs_rate": null
+          }
+        ],
+        "candidate": [
+          {
+            "bin": 0,
+            "p_low": 0.0,
+            "p_high": 0.1,
+            "n": 19838,
+            "mean_pred": 0.05369747898861503,
+            "obs_rate": 0.05499546325234399
+          },
+          {
+            "bin": 1,
+            "p_low": 0.1,
+            "p_high": 0.2,
+            "n": 13666,
+            "mean_pred": 0.143002470002355,
+            "obs_rate": 0.14298258451631787
+          },
+          {
+            "bin": 2,
+            "p_low": 0.2,
+            "p_high": 0.30000000000000004,
+            "n": 10705,
+            "mean_pred": 0.24795176997535578,
+            "obs_rate": 0.24325081737505838
+          },
+          {
+            "bin": 3,
+            "p_low": 0.30000000000000004,
+            "p_high": 0.4,
+            "n": 4580,
+            "mean_pred": 0.3365604357567489,
+            "obs_rate": 0.31965065502183404
+          },
+          {
+            "bin": 4,
+            "p_low": 0.4,
+            "p_high": 0.5,
+            "n": 2325,
+            "mean_pred": 0.4388386868570822,
+            "obs_rate": 0.421505376344086
+          },
+          {
+            "bin": 5,
+            "p_low": 0.5,
+            "p_high": 0.6000000000000001,
+            "n": 0,
+            "mean_pred": null,
+            "obs_rate": null
+          },
+          {
+            "bin": 6,
+            "p_low": 0.6000000000000001,
+            "p_high": 0.7000000000000001,
+            "n": 0,
+            "mean_pred": null,
+            "obs_rate": null
+          },
+          {
+            "bin": 7,
+            "p_low": 0.7000000000000001,
+            "p_high": 0.8,
+            "n": 0,
+            "mean_pred": null,
+            "obs_rate": null
+          },
+          {
+            "bin": 8,
+            "p_low": 0.8,
+            "p_high": 0.9,
+            "n": 0,
+            "mean_pred": null,
+            "obs_rate": null
+          },
+          {
+            "bin": 9,
+            "p_low": 0.9,
+            "p_high": 1.0,
+            "n": 0,
+            "mean_pred": null,
+            "obs_rate": null
+          }
+        ]
+      },
+      "criteria_checks": {
+        "C2_top_decile": {
+          "incumbent": {
+            "threshold": 0.30369654097458454,
+            "n": 5112,
+            "mean_pred": 0.3985397304369906,
+            "obs_rate": 0.3730438184663537,
+            "gap_pred_minus_obs": 0.025495911970636886
+          },
+          "candidate": {
+            "threshold": 0.3311148086522462,
+            "n": 5161,
+            "mean_pred": 0.3886261648695884,
+            "obs_rate": 0.37163340437899633,
+            "gap_pred_minus_obs": 0.016992760490592063
+          },
+          "candidate_check": {
+            "n": 5161,
+            "n_games": 271,
+            "mean_pred": 0.3886261648695884,
+            "obs_rate": 0.37163340437899633,
+            "gap_obs_minus_pred": -0.016992760490592063,
+            "gap_ci_low": -0.030476399659339622,
+            "gap_ci_high": -0.001688795243182582,
+            "relative_gap": 0.045724523926978955,
+            "point_threshold_pass": true,
+            "ci_containment_pass": true,
+            "status": "PASS",
+            "thresholds": {
+              "abs": 0.03,
+              "rel": 0.1,
+              "ci_contain": 0.05
+            },
+            "decile_threshold": 0.3311148086522462
+          }
+        },
+        "C3_alert_regions": {
+          "primary": {
+            "p_cal >= 0.25": {
+              "n": 11513,
+              "n_games": 272,
+              "mean_pred": 0.33401606213621915,
+              "obs_rate": 0.3226787110223226,
+              "gap_obs_minus_pred": -0.011337351113896554,
+              "gap_ci_low": -0.0203765933409801,
+              "gap_ci_high": -0.0016030021393744697,
+              "relative_gap": 0.03513510723399489,
+              "point_threshold_pass": true,
+              "ci_containment_pass": true,
+              "status": "PASS",
+              "thresholds": {
+                "abs": 0.03,
+                "rel": 0.1,
+                "ci_contain": 0.05
+              }
+            },
+            "p_cal >= 0.30": {
+              "n": 6905,
+              "n_games": 272,
+              "mean_pred": 0.3709988041576577,
+              "obs_rate": 0.35394641564083995,
+              "gap_obs_minus_pred": -0.01705238851681773,
+              "gap_ci_low": -0.028871750388773536,
+              "gap_ci_high": -0.0039397164041416735,
+              "relative_gap": 0.04817788163200754,
+              "point_threshold_pass": true,
+              "ci_containment_pass": true,
+              "status": "PASS",
+              "thresholds": {
+                "abs": 0.03,
+                "rel": 0.1,
+                "ci_contain": 0.05
+              }
+            }
+          },
+          "secondary_reported_only": {
+            "p_cal >= 0.35": {
+              "n": 3158,
+              "n_games": 259,
+              "mean_pred": 0.420103616670746,
+              "obs_rate": 0.4046865104496517,
+              "gap_obs_minus_pred": -0.015417106221094323,
+              "gap_ci_low": -0.0315876532737226,
+              "gap_ci_high": 0.0003799960548694384,
+              "relative_gap": 0.03809641740705467,
+              "point_threshold_pass": true,
+              "ci_containment_pass": true,
+              "status": "PASS",
+              "thresholds": {
+                "abs": 0.03,
+                "rel": 0.1,
+                "ci_contain": 0.05
+              }
+            },
+            "p_cal >= 0.40": {
+              "n": 2325,
+              "n_games": 245,
+              "mean_pred": 0.4388386868570822,
+              "obs_rate": 0.421505376344086,
+              "gap_obs_minus_pred": -0.017333310512996192,
+              "gap_ci_low": -0.037960181142915154,
+              "gap_ci_high": 0.0027158872125635134,
+              "relative_gap": 0.04112239483950627,
+              "point_threshold_pass": true,
+              "ci_containment_pass": true,
+              "status": "PASS",
+              "thresholds": {
+                "abs": 0.03,
+                "rel": 0.1,
+                "ci_contain": 0.05
+              }
+            }
+          },
+          "incumbent_operating_point": {
+            "p_inc >= 0.30 rows, candidate p_cal vs obs": {
+              "n": 5258,
+              "n_games": 271,
+              "mean_pred": 0.3873391882768596,
+              "obs_rate": 0.3695321414986687,
+              "gap_obs_minus_pred": -0.017807046778190894,
+              "gap_ci_low": -0.030484748604248824,
+              "gap_ci_high": -0.002948092318779273,
+              "relative_gap": 0.04818808644350372,
+              "point_threshold_pass": true,
+              "ci_containment_pass": true,
+              "status": "PASS",
+              "thresholds": {
+                "abs": 0.03,
+                "rel": 0.1,
+                "ci_contain": 0.05
+              }
+            },
+            "p_inc >= 0.30 rows, incumbent p vs obs (reference)": {
+              "n": 5258,
+              "n_games": 271,
+              "mean_pred": 0.39585461873519645,
+              "obs_rate": 0.3695321414986687,
+              "gap_obs_minus_pred": -0.026322477236527753,
+              "gap_ci_low": -0.039172180893307706,
+              "gap_ci_high": -0.012024498840553214,
+              "relative_gap": 0.07123190185777814,
+              "point_threshold_pass": true,
+              "ci_containment_pass": true,
+              "status": "PASS",
+              "thresholds": {
+                "abs": 0.03,
+                "rel": 0.1,
+                "ci_contain": 0.05
+              }
+            },
+            "p_inc >= 0.40 rows, candidate p_cal vs obs": {
+              "n": 1979,
+              "n_games": 234,
+              "mean_pred": 0.44132603574033646,
+              "obs_rate": 0.4340576048509348,
+              "gap_obs_minus_pred": -0.007268430889401656,
+              "gap_ci_low": -0.02927378569376953,
+              "gap_ci_high": 0.012978832986344063,
+              "relative_gap": 0.016745314004803117,
+              "point_threshold_pass": true,
+              "ci_containment_pass": true,
+              "status": "PASS",
+              "thresholds": {
+                "abs": 0.03,
+                "rel": 0.1,
+                "ci_contain": 0.05
+              }
+            }
+          }
+        },
+        "C5_global_non_degradation": {
+          "brier_ok": true,
+          "log_loss_ok": true,
+          "auc_ok": true,
+          "ece_ok": true,
+          "status": "PASS"
+        }
+      },
+      "prospective_slices": {
+        "position": {
+          "RB": {
+            "n": 15442,
+            "candidate": {
+              "mean_pred": 0.12028840099684479,
+              "obs_rate": 0.11896127444631524,
+              "gap_obs_minus_pred": -0.0013271265505295504,
+              "gap_ci_low": -0.006376146845319448,
+              "gap_ci_high": 0.00397619418437645
+            },
+            "incumbent": {
+              "mean_pred": 0.11699185549220423,
+              "obs_rate": 0.11896127444631524,
+              "gap_obs_minus_pred": 0.001969418954111013,
+              "gap_ci_low": -0.0031197756138907997,
+              "gap_ci_high": 0.007235705965822788
+            }
+          },
+          "TE": {
+            "n": 12295,
+            "candidate": {
+              "mean_pred": 0.16797773661601692,
+              "obs_rate": 0.16307442049613663,
+              "gap_obs_minus_pred": -0.004903316119880291,
+              "gap_ci_low": -0.010470580225837883,
+              "gap_ci_high": 0.0015163328715911523
+            },
+            "incumbent": {
+              "mean_pred": 0.1577600918979339,
+              "obs_rate": 0.16307442049613663,
+              "gap_obs_minus_pred": 0.005314328598202717,
+              "gap_ci_low": -0.0004794162810602471,
+              "gap_ci_high": 0.01185372682243648
+            }
+          },
+          "WR": {
+            "n": 23377,
+            "candidate": {
+              "mean_pred": 0.18448958479000443,
+              "obs_rate": 0.18184540360183085,
+              "gap_obs_minus_pred": -0.0026441811881735833,
+              "gap_ci_low": -0.007901682706927739,
+              "gap_ci_high": 0.0032795000454874834
+            },
+            "incumbent": {
+              "mean_pred": 0.17599898567767705,
+              "obs_rate": 0.18184540360183085,
+              "gap_obs_minus_pred": 0.005846417924153802,
+              "gap_ci_low": 0.0003829145651924375,
+              "gap_ci_high": 0.011663497517090997
+            }
+          }
+        },
+        "game_state": {
+          "leading": {
+            "n": 18401,
+            "candidate": {
+              "mean_pred": 0.13426501800298096,
+              "obs_rate": 0.1296668659311994,
+              "gap_obs_minus_pred": -0.004598152071781575,
+              "gap_ci_low": -0.009674614528211998,
+              "gap_ci_high": 0.0010548424493417156
+            },
+            "incumbent": {
+              "mean_pred": 0.13056264722869282,
+              "obs_rate": 0.1296668659311994,
+              "gap_obs_minus_pred": -0.0008957812974934309,
+              "gap_ci_low": -0.005953949589033231,
+              "gap_ci_high": 0.004867088369997256
+            }
+          },
+          "tied": {
+            "n": 9097,
+            "candidate": {
+              "mean_pred": 0.17853524822590802,
+              "obs_rate": 0.1659887875123667,
+              "gap_obs_minus_pred": -0.012546460713541319,
+              "gap_ci_low": -0.020842302555709673,
+              "gap_ci_high": -0.003187201803108719
+            },
+            "incumbent": {
+              "mean_pred": 0.1674972983790511,
+              "obs_rate": 0.1659887875123667,
+              "gap_obs_minus_pred": -0.0015085108666844094,
+              "gap_ci_low": -0.009522048216209583,
+              "gap_ci_high": 0.0075167408623346785
+            }
+          },
+          "trailing": {
+            "n": 23616,
+            "candidate": {
+              "mean_pred": 0.17534074500928185,
+              "obs_rate": 0.17771849593495934,
+              "gap_obs_minus_pred": 0.002377750925677491,
+              "gap_ci_low": -0.003134045081518074,
+              "gap_ci_high": 0.008089976657649132
+            },
+            "incumbent": {
+              "mean_pred": 0.16659767342366902,
+              "obs_rate": 0.17771849593495934,
+              "gap_obs_minus_pred": 0.011120822511290318,
+              "gap_ci_low": 0.0057786591667747305,
+              "gap_ci_high": 0.016859668834361907
+            }
+          }
+        },
+        "two_minute": {
+          "normal": {
+            "n": 44358,
+            "candidate": {
+              "mean_pred": 0.16964355169770692,
+              "obs_rate": 0.16738806979575274,
+              "gap_obs_minus_pred": -0.0022554819019541816,
+              "gap_ci_low": -0.00643597061780925,
+              "gap_ci_high": 0.002433886842875951
+            },
+            "incumbent": {
+              "mean_pred": 0.16124710530484643,
+              "obs_rate": 0.16738806979575274,
+              "gap_obs_minus_pred": 0.006140964490906314,
+              "gap_ci_low": 0.0019058974149012233,
+              "gap_ci_high": 0.010896585688201557
+            }
+          },
+          "two_min": {
+            "n": 6756,
+            "candidate": {
+              "mean_pred": 0.10517230866137584,
+              "obs_rate": 0.09887507400828893,
+              "gap_obs_minus_pred": -0.006297234653086903,
+              "gap_ci_low": -0.013156978964814119,
+              "gap_ci_high": 0.0007624265634787381
+            },
+            "incumbent": {
+              "mean_pred": 0.10479244426737636,
+              "obs_rate": 0.09887507400828893,
+              "gap_obs_minus_pred": -0.005917370259087423,
+              "gap_ci_low": -0.012868344241000074,
+              "gap_ci_high": 0.0008475702023267401
+            }
+          }
+        },
+        "half": {
+          "first_half": {
+            "n": 25116,
+            "candidate": {
+              "mean_pred": 0.17004524663343212,
+              "obs_rate": 0.16411849020544672,
+              "gap_obs_minus_pred": -0.005926756427985402,
+              "gap_ci_low": -0.01083143689693831,
+              "gap_ci_high": -0.0006819694678017961
+            },
+            "incumbent": {
+              "mean_pred": 0.1601422323328113,
+              "obs_rate": 0.16411849020544672,
+              "gap_obs_minus_pred": 0.003976257872635419,
+              "gap_ci_low": -0.0008599967456598765,
+              "gap_ci_high": 0.009308253535582208
+            }
+          },
+          "second_half_ot": {
+            "n": 25998,
+            "candidate": {
+              "mean_pred": 0.15250159124078227,
+              "obs_rate": 0.15274251865528118,
+              "gap_obs_minus_pred": 0.0002409274144989093,
+              "gap_ci_low": -0.004750679135229616,
+              "gap_ci_high": 0.0056217308346323365
+            },
+            "incumbent": {
+              "mean_pred": 0.1476438396535073,
+              "obs_rate": 0.15274251865528118,
+              "gap_obs_minus_pred": 0.0050986790017738814,
+              "gap_ci_low": -3.053542155146266e-05,
+              "gap_ci_high": 0.010437715972734485
+            }
+          }
+        }
+      }
+    },
+    "2026": {
+      "label": "GENUINELY UNSEEN \u2014 no development decision in this rebuild has used 2026 data; weeks 1-7.",
+      "rows": 21357,
+      "games": 107,
+      "global": {
+        "incumbent": {
+          "brier": 0.1154475084911322,
+          "log_loss": 0.37597263730298514,
+          "auc": 0.738775073365765,
+          "ece_decile": 0.017450426585792128
+        },
+        "candidate": {
+          "brier": 0.11495687015682053,
+          "log_loss": 0.3739068485806269,
+          "auc": 0.7383433962416679,
+          "ece_decile": 0.0044337794874474805
+        },
+        "clustered_differences": {
+          "brier_cal_minus_inc": {
+            "diff": -0.0004906383343116633,
+            "ci_low": -0.0008366836556124586,
+            "ci_high": -0.0001871596946426628,
+            "n_games": 107
+          },
+          "logloss_cal_minus_inc": {
+            "diff": -0.002065804173974395,
+            "ci_low": -0.003104485522090207,
+            "ci_high": -0.0010884401763169857,
+            "n_games": 107
+          }
+        }
+      },
+      "reliability": {
+        "incumbent": [
+          {
+            "bin": 0,
+            "p_low": 0.0,
+            "p_high": 0.1,
+            "n": 9214,
+            "mean_pred": 0.06485621276215714,
+            "obs_rate": 0.051986108096375085
+          },
+          {
+            "bin": 1,
+            "p_low": 0.1,
+            "p_high": 0.2,
+            "n": 7473,
+            "mean_pred": 0.1414532553343424,
+            "obs_rate": 0.16071189615950757
+          },
+          {
+            "bin": 2,
+            "p_low": 0.2,
+            "p_high": 0.30000000000000004,
+            "n": 2862,
+            "mean_pred": 0.24246949299809914,
+            "obs_rate": 0.2830188679245283
+          },
+          {
+            "bin": 3,
+            "p_low": 0.30000000000000004,
+            "p_high": 0.4,
+            "n": 1119,
+            "mean_pred": 0.34235215451127116,
+            "obs_rate": 0.3610366398570152
+          },
+          {
+            "bin": 4,
+            "p_low": 0.4,
+            "p_high": 0.5,
+            "n": 446,
+            "mean_pred": 0.4441330455033736,
+            "obs_rate": 0.4013452914798206
+          },
+          {
+            "bin": 5,
+            "p_low": 0.5,
+            "p_high": 0.6000000000000001,
+            "n": 179,
+            "mean_pred": 0.5466557212251906,
+            "obs_rate": 0.46368715083798884
+          },
+          {
+            "bin": 6,
+            "p_low": 0.6000000000000001,
+            "p_high": 0.7000000000000001,
+            "n": 56,
+            "mean_pred": 0.6376347539260104,
+            "obs_rate": 0.48214285714285715
+          },
+          {
+            "bin": 7,
+            "p_low": 0.7000000000000001,
+            "p_high": 0.8,
+            "n": 8,
+            "mean_pred": 0.7579134394125977,
+            "obs_rate": 0.375
+          },
+          {
+            "bin": 8,
+            "p_low": 0.8,
+            "p_high": 0.9,
+            "n": 0,
+            "mean_pred": null,
+            "obs_rate": null
+          },
+          {
+            "bin": 9,
+            "p_low": 0.9,
+            "p_high": 1.0,
+            "n": 0,
+            "mean_pred": null,
+            "obs_rate": null
+          }
+        ],
+        "candidate": [
+          {
+            "bin": 0,
+            "p_low": 0.0,
+            "p_high": 0.1,
+            "n": 9302,
+            "mean_pred": 0.05368931639450369,
+            "obs_rate": 0.05246183616426575
+          },
+          {
+            "bin": 1,
+            "p_low": 0.1,
+            "p_high": 0.2,
+            "n": 5531,
+            "mean_pred": 0.14232644287334426,
+            "obs_rate": 0.15006327969625746
+          },
+          {
+            "bin": 2,
+            "p_low": 0.2,
+            "p_high": 0.30000000000000004,
+            "n": 4142,
+            "mean_pred": 0.24638164779630087,
+            "obs_rate": 0.23853211009174313
+          },
+          {
+            "bin": 3,
+            "p_low": 0.30000000000000004,
+            "p_high": 0.4,
+            "n": 1573,
+            "mean_pred": 0.3364383486379465,
+            "obs_rate": 0.34011443102352196
+          },
+          {
+            "bin": 4,
+            "p_low": 0.4,
+            "p_high": 0.5,
+            "n": 809,
+            "mean_pred": 0.43992717250951885,
+            "obs_rate": 0.4264524103831891
+          },
+          {
+            "bin": 5,
+            "p_low": 0.5,
+            "p_high": 0.6000000000000001,
+            "n": 0,
+            "mean_pred": null,
+            "obs_rate": null
+          },
+          {
+            "bin": 6,
+            "p_low": 0.6000000000000001,
+            "p_high": 0.7000000000000001,
+            "n": 0,
+            "mean_pred": null,
+            "obs_rate": null
+          },
+          {
+            "bin": 7,
+            "p_low": 0.7000000000000001,
+            "p_high": 0.8,
+            "n": 0,
+            "mean_pred": null,
+            "obs_rate": null
+          },
+          {
+            "bin": 8,
+            "p_low": 0.8,
+            "p_high": 0.9,
+            "n": 0,
+            "mean_pred": null,
+            "obs_rate": null
+          },
+          {
+            "bin": 9,
+            "p_low": 0.9,
+            "p_high": 1.0,
+            "n": 0,
+            "mean_pred": null,
+            "obs_rate": null
+          }
+        ]
+      },
+      "criteria_checks": {
+        "C2_top_decile": {
+          "incumbent": {
+            "threshold": 0.28168979934146926,
+            "n": 2136,
+            "mean_pred": 0.38201309037791925,
+            "obs_rate": 0.37640449438202245,
+            "gap_pred_minus_obs": 0.0056085959958968035
+          },
+          "candidate": {
+            "threshold": 0.3188325991189427,
+            "n": 2382,
+            "mean_pred": 0.37158631610734283,
+            "obs_rate": 0.3694374475230898,
+            "gap_pred_minus_obs": 0.0021488685842530053
+          },
+          "candidate_check": {
+            "n": 2382,
+            "n_games": 107,
+            "mean_pred": 0.37158631610734283,
+            "obs_rate": 0.3694374475230898,
+            "gap_obs_minus_pred": -0.0021488685842530053,
+            "gap_ci_low": -0.023543645287573776,
+            "gap_ci_high": 0.01739935078639747,
+            "relative_gap": 0.005816596554193931,
+            "point_threshold_pass": true,
+            "ci_containment_pass": true,
+            "status": "PASS",
+            "thresholds": {
+              "abs": 0.03,
+              "rel": 0.1,
+              "ci_contain": 0.05
+            },
+            "decile_threshold": 0.3188325991189427
+          }
+        },
+        "C3_alert_regions": {
+          "primary": {
+            "p_cal >= 0.25": {
+              "n": 4064,
+              "n_games": 107,
+              "mean_pred": 0.3331574379541694,
+              "obs_rate": 0.3334153543307087,
+              "gap_obs_minus_pred": 0.0002579163765392689,
+              "gap_ci_low": -0.01520818593027025,
+              "gap_ci_high": 0.015191750509311146,
+              "relative_gap": 0.0007735587854284788,
+              "point_threshold_pass": true,
+              "ci_containment_pass": true,
+              "status": "PASS",
+              "thresholds": {
+                "abs": 0.03,
+                "rel": 0.1,
+                "ci_contain": 0.05
+              }
+            },
+            "p_cal >= 0.30": {
+              "n": 2382,
+              "n_games": 107,
+              "mean_pred": 0.37158631610734283,
+              "obs_rate": 0.3694374475230898,
+              "gap_obs_minus_pred": -0.0021488685842530053,
+              "gap_ci_low": -0.023543645287573776,
+              "gap_ci_high": 0.01739935078639747,
+              "relative_gap": 0.005816596554193931,
+              "point_threshold_pass": true,
+              "ci_containment_pass": true,
+              "status": "PASS",
+              "thresholds": {
+                "abs": 0.03,
+                "rel": 0.1,
+                "ci_contain": 0.05
+              }
+            }
+          },
+          "secondary_reported_only": {
+            "p_cal >= 0.35": {
+              "n": 1101,
+              "n_games": 95,
+              "mean_pred": 0.4208270124964085,
+              "obs_rate": 0.4232515894641235,
+              "gap_obs_minus_pred": 0.0024245769677149753,
+              "gap_ci_low": -0.023790061457501205,
+              "gap_ci_high": 0.03087057946467777,
+              "relative_gap": 0.005728453307841605,
+              "point_threshold_pass": true,
+              "ci_containment_pass": true,
+              "status": "PASS",
+              "thresholds": {
+                "abs": 0.03,
+                "rel": 0.1,
+                "ci_contain": 0.05
+              }
+            },
+            "p_cal >= 0.40": {
+              "n": 809,
+              "n_games": 89,
+              "mean_pred": 0.43992717250951885,
+              "obs_rate": 0.4264524103831891,
+              "gap_obs_minus_pred": -0.013474762126329753,
+              "gap_ci_low": -0.046059840348983354,
+              "gap_ci_high": 0.021135791696498568,
+              "relative_gap": 0.03159734075420514,
+              "point_threshold_pass": true,
+              "ci_containment_pass": true,
+              "status": "PASS",
+              "thresholds": {
+                "abs": 0.03,
+                "rel": 0.1,
+                "ci_contain": 0.05
+              }
+            }
+          },
+          "incumbent_operating_point": {
+            "p_inc >= 0.30 rows, candidate p_cal vs obs": {
+              "n": 1808,
+              "n_games": 105,
+              "mean_pred": 0.38833445413352735,
+              "obs_rate": 0.38495575221238937,
+              "gap_obs_minus_pred": -0.003378701921137983,
+              "gap_ci_low": -0.026512526542447807,
+              "gap_ci_high": 0.019739831004406086,
+              "relative_gap": 0.008776857864105566,
+              "point_threshold_pass": true,
+              "ci_containment_pass": true,
+              "status": "PASS",
+              "thresholds": {
+                "abs": 0.03,
+                "rel": 0.1,
+                "ci_contain": 0.05
+              }
+            },
+            "p_inc >= 0.30 rows, incumbent p vs obs (reference)": {
+              "n": 1808,
+              "n_games": 105,
+              "mean_pred": 0.39867125388666125,
+              "obs_rate": 0.38495575221238937,
+              "gap_obs_minus_pred": -0.01371550167427188,
+              "gap_ci_low": -0.037663892698684115,
+              "gap_ci_high": 0.010245617992405342,
+              "relative_gap": 0.03562877446420051,
+              "point_threshold_pass": true,
+              "ci_containment_pass": true,
+              "status": "PASS",
+              "thresholds": {
+                "abs": 0.03,
+                "rel": 0.1,
+                "ci_contain": 0.05
+              }
+            },
+            "p_inc >= 0.40 rows, candidate p_cal vs obs": {
+              "n": 689,
+              "n_games": 85,
+              "mean_pred": 0.4425750243888218,
+              "obs_rate": 0.42380261248185774,
+              "gap_obs_minus_pred": -0.01877241190696405,
+              "gap_ci_low": -0.05507612360869888,
+              "gap_ci_high": 0.01604030547420851,
+              "relative_gap": 0.04429517741061038,
+              "point_threshold_pass": true,
+              "ci_containment_pass": false,
+              "status": "FAIL",
+              "thresholds": {
+                "abs": 0.03,
+                "rel": 0.1,
+                "ci_contain": 0.05
+              }
+            }
+          }
+        },
+        "C5_global_non_degradation": {
+          "brier_ok": true,
+          "log_loss_ok": true,
+          "auc_ok": true,
+          "ece_ok": true,
+          "status": "PASS"
+        }
+      },
+      "prospective_slices": {
+        "position": {
+          "RB": {
+            "n": 6314,
+            "candidate": {
+              "mean_pred": 0.11268054065480392,
+              "obs_rate": 0.11133987963256256,
+              "gap_obs_minus_pred": -0.0013406610222413545,
+              "gap_ci_low": -0.009020540476321105,
+              "gap_ci_high": 0.007383141709848606
+            },
+            "incumbent": {
+              "mean_pred": 0.11172620908033855,
+              "obs_rate": 0.11133987963256256,
+              "gap_obs_minus_pred": -0.00038632944777598766,
+              "gap_ci_low": -0.008484620733391394,
+              "gap_ci_high": 0.008415934986134205
+            }
+          },
+          "TE": {
+            "n": 5269,
+            "candidate": {
+              "mean_pred": 0.1591173297354968,
+              "obs_rate": 0.15410893907762382,
+              "gap_obs_minus_pred": -0.00500839065787298,
+              "gap_ci_low": -0.014827227103569825,
+              "gap_ci_high": 0.006996970314064037
+            },
+            "incumbent": {
+              "mean_pred": 0.150811804693437,
+              "obs_rate": 0.15410893907762382,
+              "gap_obs_minus_pred": 0.0032971343841868284,
+              "gap_ci_low": -0.007152321084792636,
+              "gap_ci_high": 0.01519727357308282
+            }
+          },
+          "WR": {
+            "n": 9774,
+            "candidate": {
+              "mean_pred": 0.16803793970772912,
+              "obs_rate": 0.17096378146101904,
+              "gap_obs_minus_pred": 0.002925841753289915,
+              "gap_ci_low": -0.005524570303378895,
+              "gap_ci_high": 0.011019771549677673
+            },
+            "incumbent": {
+              "mean_pred": 0.16056312200007392,
+              "obs_rate": 0.17096378146101904,
+              "gap_obs_minus_pred": 0.010400659460945122,
+              "gap_ci_low": 0.0012690428661512772,
+              "gap_ci_high": 0.018823269054055028
+            }
+          }
+        },
+        "game_state": {
+          "leading": {
+            "n": 7598,
+            "candidate": {
+              "mean_pred": 0.12299923814174907,
+              "obs_rate": 0.12345354040536984,
+              "gap_obs_minus_pred": 0.00045430226362076775,
+              "gap_ci_low": -0.00790275058535373,
+              "gap_ci_high": 0.008825866280818065
+            },
+            "incumbent": {
+              "mean_pred": 0.12079557730275294,
+              "obs_rate": 0.12345354040536984,
+              "gap_obs_minus_pred": 0.0026579631026169004,
+              "gap_ci_low": -0.0060694216478518375,
+              "gap_ci_high": 0.011287327921860353
+            }
+          },
+          "tied": {
+            "n": 4251,
+            "candidate": {
+              "mean_pred": 0.16528341731404536,
+              "obs_rate": 0.1540813926135027,
+              "gap_obs_minus_pred": -0.011202024700542657,
+              "gap_ci_low": -0.022590693678833432,
+              "gap_ci_high": 2.0766567130985685e-05
+            },
+            "incumbent": {
+              "mean_pred": 0.15575206270286512,
+              "obs_rate": 0.1540813926135027,
+              "gap_obs_minus_pred": -0.0016706700893624193,
+              "gap_ci_low": -0.013346756054017425,
+              "gap_ci_high": 0.009926111731277547
+            }
+          },
+          "trailing": {
+            "n": 9508,
+            "candidate": {
+              "mean_pred": 0.16355584227714484,
+              "obs_rate": 0.16754312158182583,
+              "gap_obs_minus_pred": 0.003987279304680985,
+              "gap_ci_low": -0.00628023225472812,
+              "gap_ci_high": 0.014306163787278317
+            },
+            "incumbent": {
+              "mean_pred": 0.1566579535754631,
+              "obs_rate": 0.16754312158182583,
+              "gap_obs_minus_pred": 0.010885168006362717,
+              "gap_ci_low": 0.0004703579597681788,
+              "gap_ci_high": 0.021039997640408727
+            }
+          }
+        },
+        "two_minute": {
+          "normal": {
+            "n": 18636,
+            "candidate": {
+              "mean_pred": 0.15689159835099137,
+              "obs_rate": 0.15620304786434858,
+              "gap_obs_minus_pred": -0.0006885504866427916,
+              "gap_ci_low": -0.007832144840309977,
+              "gap_ci_high": 0.007153020486957929
+            },
+            "incumbent": {
+              "mean_pred": 0.15015806773237866,
+              "obs_rate": 0.15620304786434858,
+              "gap_obs_minus_pred": 0.006044980131969913,
+              "gap_ci_low": -0.001578541759164894,
+              "gap_ci_high": 0.013942575576656784
+            }
+          },
+          "two_min": {
+            "n": 2721,
+            "candidate": {
+              "mean_pred": 0.09864944502206316,
+              "obs_rate": 0.10106578463800074,
+              "gap_obs_minus_pred": 0.002416339615937582,
+              "gap_ci_low": -0.007882356875974857,
+              "gap_ci_high": 0.01321519181889464
+            },
+            "incumbent": {
+              "mean_pred": 0.09961958369389606,
+              "obs_rate": 0.10106578463800074,
+              "gap_obs_minus_pred": 0.001446200944104678,
+              "gap_ci_low": -0.008842591244534567,
+              "gap_ci_high": 0.012183911691804342
+            }
+          }
+        },
+        "half": {
+          "first_half": {
+            "n": 10552,
+            "candidate": {
+              "mean_pred": 0.15924565362238513,
+              "obs_rate": 0.1527672479150872,
+              "gap_obs_minus_pred": -0.006478405707297935,
+              "gap_ci_low": -0.014526104607943539,
+              "gap_ci_high": 0.00244982852567497
+            },
+            "incumbent": {
+              "mean_pred": 0.1511326489533666,
+              "obs_rate": 0.1527672479150872,
+              "gap_obs_minus_pred": 0.001634598961720607,
+              "gap_ci_low": -0.006929257917328792,
+              "gap_ci_high": 0.010948806745016942
+            }
+          },
+          "second_half_ot": {
+            "n": 10805,
+            "candidate": {
+              "mean_pred": 0.13992566679784374,
+              "obs_rate": 0.14567329939842666,
+              "gap_obs_minus_pred": 0.005747632600582919,
+              "gap_ci_low": -0.0020992636471503755,
+              "gap_ci_high": 0.013915369456504777
+            },
+            "incumbent": {
+              "mean_pred": 0.13647930825874832,
+              "obs_rate": 0.14567329939842666,
+              "gap_obs_minus_pred": 0.009193991139678337,
+              "gap_ci_low": 0.001037592044295367,
+              "gap_ci_high": 0.017503773992397623
+            }
+          }
+        }
+      }
+    }
+  }
+}
