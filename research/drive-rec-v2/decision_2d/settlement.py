@@ -23,18 +23,28 @@ DISCREPANCY_LOG_THRESHOLD_YARDS = 5.0
 def receiving_yards_by_game(pbp: pd.DataFrame) -> pd.DataFrame:
     """Aggregate per (game_id, receiver_player_id) receiving yards from pbp.
 
-    pbp must contain: game_id, complete_pass, receiver_player_id, yards,
-    two_point_conversion.
+    Accepts either nflverse column convention: `yards`/`two_point_conversion`
+    or `yards_gained`/`two_point_attempt` (the latter is what the shipped
+    nflverse parquet actually uses; discovered while exercising the
+    Decision 2D-V real-mode settlement path on 2026-10-30, before any quote
+    acquisition — schema tolerance added then; no model or frozen artifact
+    was touched).
+
+    Required after normalization: game_id, complete_pass,
+    receiver_player_id, yards, and a two-point flag column.
     """
-    need = {"game_id", "complete_pass", "receiver_player_id", "yards",
-            "two_point_conversion"}
+    if "yards" not in pbp.columns and "yards_gained" in pbp.columns:
+        pbp = pbp.rename(columns={"yards_gained": "yards"})
+    tp = ("two_point_conversion" if "two_point_conversion" in pbp.columns
+          else "two_point_attempt")
+    need = {"game_id", "complete_pass", "receiver_player_id", "yards", tp}
     missing = need - set(pbp.columns)
     if missing:
         raise ValueError(f"pbp missing columns: {sorted(missing)}")
     catches = pbp.loc[
         (pbp.complete_pass == 1.0)
         & pbp.receiver_player_id.notna()
-        & (pbp.two_point_conversion.fillna(0) != 1.0)
+        & (pbp[tp].fillna(0) != 1.0)
     ]
     out = (catches.groupby(["game_id", "receiver_player_id"], as_index=False)
            .agg(receiving_yards=("yards", "sum"),

@@ -1,0 +1,39 @@
+{
+  "trial_id": "DECISION_2DV_TRIAL_v1",
+  "authority": "Decision 2D review (project owner, 2026-10-30): vendors confirmed (The Odds API primary, SportsDataIO secondary); trial verification AUTHORIZED; full purchase PENDING TRIAL; C4 threshold unchanged; no refit; adapters disabled; model RESEARCH_ONLY.",
+  "vendor": {
+    "name": "The Odds API",
+    "base_url": "https://api.the-odds-api.com/v4",
+    "env_key_name": "ODDS_API_KEY",
+    "credit_rule": "10 credits per region per market per event per historical request (vendor-documented; confirmed by the project owner 2026-10-30)",
+    "historical_endpoint": "/historical/sports/{sport_key}/events/{event_id}?date={decision_ts_utc}&regions={regions}&markets={market}&oddsFormat=american",
+    "events_endpoint": "/sports/{sport_key}/events?commence_time_from={from}&commence_time_to={to}",
+    "snapshot_semantics": "closest snapshot at or earlier than the requested date; previous_timestamp/next_timestamp navigation; per-bookmaker last_update"
+  },
+  "sport_key_candidates": ["playerprops_nfl", "americanfootball_nfl"],
+  "market_candidates": ["player_receiving_yards"],
+  "region": "us",
+  "odds_format": "american",
+  "request_delay_seconds": 1.0,
+  "observation_offsets_minutes": {"T-180m": -180, "T-60m": -60, "T-15m": -15},
+  "sample": {
+    "n_games_2025": 4,
+    "n_games_2026_w1_7": 4,
+    "bins_2025": [[1, 6], [7, 12], [13, 18], [19, 22]],
+    "bins_2026_w1_7": [[1, 2], [3, 4], [5, 6], [7, 7]],
+    "seed_source": "DECISION_2DV_TRIAL_SAMPLE_SEED_v1",
+    "source": "../data/games.csv (nflverse schedules, CC BY 4.0)"
+  },
+  "credit_budget_cap": 600,
+  "min_players_per_game": 5,
+  "line_range": [5.0, 250.0],
+  "commence_vs_schedule_tolerance_hours": 12,
+  "american_odds_min_magnitude": 100,
+  "book_last_update_tolerance_seconds": 60,
+  "full_acquisition_projections": {
+    "games": 392,
+    "three_observation_times": 11760,
+    "four_snapshots_incl_closing": 15680,
+    "note": "matches the project owner's 2026-10-30 reconciliation: 11,760 (T-180m/T-60m/T-15m) and 15,680 (four snapshots); single region, single market family; discovery/retries extra"
+  }
+}

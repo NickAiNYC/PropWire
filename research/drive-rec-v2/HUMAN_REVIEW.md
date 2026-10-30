@@ -57,6 +57,7 @@ production betting alert is enabled.
 | Tail recalibration research | Accepted as research evidence, **not promotion** (Decision 2C review) |
 | C4_MAX_GAP_PP | Kept at 3.0 (unchanged; 3.05pp recorded as FAIL) |
 | Historical-quote validation pilot | Authorized, precommitted, **not started** (no licensed quotes) |
+| Vendor trial (Decision 2D-V) | Harness built + self-tested 9/9 on synthetic fixtures; precommitted 8-game sample frozen; **zero vendor requests, zero credits**; awaits owner-side execution with ODDS_API_KEY env var and V8 written permission |
 | Human sign-off | **Deferred** |
 | CALIBRATED label | **Blocked** |
 | Real-book model coverage | NO_COVERAGE |

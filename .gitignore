@@ -22,3 +22,11 @@ data/*.db-*
 artifacts/
 extensions/node_modules/
 extensions/dist/
+
+# Decision 2D-V vendor trial: licensed responses and run evidence stay local.
+research/drive-rec-v2/vendor_trial_2dv/raw/
+research/drive-rec-v2/vendor_trial_2dv/evidence/
+research/drive-rec-v2/vendor_trial_2dv/selftest_out/
+*.apikey
+*.api_key
+ODDS_API_KEY*

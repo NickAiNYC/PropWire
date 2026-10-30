@@ -134,3 +134,34 @@ Fit for the pilot:
 3. After approval: run the trial verification (§3) → purchase → ingest into the
    canonical quote store → execute `decision_2d/run_pilot.py` under the frozen
    contract gates E1–E6.
+
+---
+
+## 6. Decision 2D review outcome (2026-10-30) — §5 requests answered
+
+1. **Both vendors confirmed** (The Odds API primary; SportsDataIO secondary).
+   The owner independently verified the capability table above against the
+   vendors' official documentation, including the distinction that
+   SportsDataIO's historical player props live in a separate data warehouse
+   with sales-enabled access — ordinary trial credentials must NOT be assumed
+   to include historical NFL coverage.
+2. **Credit arithmetic reconciled by the owner**: 392 games x 4 snapshots x
+   10 credits = 15,680 (four-snapshot configuration, one region, one market
+   per snapshot); the three specified observation times T−180m/T−60m/T−15m
+   instead cost ≈ 11,760. Additional markets, regions, or requests increase
+   consumption. Vendor-confirmed rule: historical event-odds cost 10 credits
+   per region, market, and event.
+3. **Trial verification AUTHORIZED; purchase PENDING TRIAL.** The binding
+   trial protocol is Decision 2D-V: checks V1–V10 (availability, timestamp
+   integrity, market identification, sportsbook identity, price integrity,
+   missingness, settlement vs independent statistics, written commercial
+   rights [manual], cost reconciliation, reproducibility), with the
+   acceptance rule that ANY critical failure blocks the full acquisition.
+   Implemented in `vendor_trial_2dv/` (see its README and PRECOMMITMENT.md).
+4. **Experimental safeguard (ordered by the owner)**: trial observations must
+   not revise the frozen model or select a more favorable EV threshold;
+   profitability uses of trial observations are exploratory with an untouched
+   evaluation set reserved.
+5. Next milestone: **Decision 2D-V — Vendor Trial Acceptance** (verified
+   real-quote sample + coverage/missingness report + actual consumption +
+   explicit pass/fail recommendation), then the full 392-game acquisition.
