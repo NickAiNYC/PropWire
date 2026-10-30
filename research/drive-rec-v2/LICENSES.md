@@ -37,3 +37,16 @@ Player-level features are limited to what is observable from public play-by-play
 targets, receptions, rush attempts, and game context. Whether a player was on the field for
 a given play is unknown and is not modeled. The player universe per drive is defined by a
 documented, causally safe proxy rule (see `research/01_build_corpus.py` docstring).
+
+## Vendor trial status (Decision 2D-V, 2026-10-30)
+
+The hard rule above still holds for everything committed to this workspace: no
+licensed sportsbook quotes are included yet. `vendor_trial_2dv/` contains only
+SYNTHETIC harness-test fixtures (clearly labeled; refused by the canonical
+quote store by design) plus the precommitted trial protocol. When real The
+Odds API responses are acquired for the trial, they remain under
+`vendor_trial_2dv/raw/` (git-ignored): storage and analysis are licensed under
+the terms to be attached at `vendor_trial_2dv/ATTACHMENT_V8_COMMERCIAL_RIGHTS.md`;
+committing vendor responses to a repository would be redistribution and is not
+covered by the trial permission. Settlement cross-checks continue to use
+nflverse play-by-play (CC BY 4.0, attribution above).

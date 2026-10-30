@@ -1,0 +1,94 @@
+{
+  "trial_id": "DECISION_2DV_TRIAL_v1",
+  "selection_rule": "seeded stratified sample: 4 games from 2025 (bins w1-6/w7-12/w13-18/w19-22) + 4 games from 2026 weeks 1-7 (bins w1-2/w3-4/w5-6/w7-7); seed = int(sha256('DECISION_2DV_TRIAL_SAMPLE_SEED_v1')[:16], 16); schedule metadata only; fixed BEFORE any quote request",
+  "seed_source": "DECISION_2DV_TRIAL_SAMPLE_SEED_v1",
+  "seed": 237232433528842061,
+  "source": "research/drive-rec-v2/data/games.csv (nflverse, CC BY 4.0)",
+  "counts": {
+    "season_2025_games_available": 285,
+    "season_2026_w1_7_games_available": 107
+  },
+  "games": [
+    {
+      "game_id": "2025_06_ARI_IND",
+      "season": 2025,
+      "week": 6,
+      "game_type": "REG",
+      "gameday": "2025-10-12",
+      "home_team": "IND",
+      "away_team": "ARI",
+      "bin": "w1-6"
+    },
+    {
+      "game_id": "2025_08_NYJ_CIN",
+      "season": 2025,
+      "week": 8,
+      "game_type": "REG",
+      "gameday": "2025-10-26",
+      "home_team": "CIN",
+      "away_team": "NYJ",
+      "bin": "w7-12"
+    },
+    {
+      "game_id": "2025_13_CIN_BAL",
+      "season": 2025,
+      "week": 13,
+      "game_type": "REG",
+      "gameday": "2025-11-27",
+      "home_team": "BAL",
+      "away_team": "CIN",
+      "bin": "w13-18"
+    },
+    {
+      "game_id": "2025_19_HOU_PIT",
+      "season": 2025,
+      "week": 19,
+      "game_type": "WC",
+      "gameday": "2026-01-12",
+      "home_team": "PIT",
+      "away_team": "HOU",
+      "bin": "w19-22"
+    },
+    {
+      "game_id": "2026_01_WAS_PHI",
+      "season": 2026,
+      "week": 1,
+      "game_type": "REG",
+      "gameday": "2026-09-13",
+      "home_team": "PHI",
+      "away_team": "WAS",
+      "bin": "w1-2"
+    },
+    {
+      "game_id": "2026_03_LAC_BUF",
+      "season": 2026,
+      "week": 3,
+      "game_type": "REG",
+      "gameday": "2026-09-27",
+      "home_team": "BUF",
+      "away_team": "LAC",
+      "bin": "w3-4"
+    },
+    {
+      "game_id": "2026_05_PHI_JAX",
+      "season": 2026,
+      "week": 5,
+      "game_type": "REG",
+      "gameday": "2026-10-11",
+      "home_team": "JAX",
+      "away_team": "PHI",
+      "bin": "w5-6"
+    },
+    {
+      "game_id": "2026_07_DEN_ARI",
+      "season": 2026,
+      "week": 7,
+      "game_type": "REG",
+      "gameday": "2026-10-25",
+      "home_team": "ARI",
+      "away_team": "DEN",
+      "bin": "w7-7"
+    }
+  ],
+  "fixed_at_note": "generated 2026-10-30, before any vendor request; no credits consumed at selection time"
+}

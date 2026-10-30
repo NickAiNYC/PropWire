@@ -149,6 +149,112 @@ Binding artifacts produced under this authorization:
 
 ---
 
+## Decision 2D review outcome and Decision 2D-V authorization (recorded 2026-10-30, from the project owner's review)
+
+**Verdict: both vendors confirmed; trial verification AUTHORIZED; paid purchase
+and production promotion NOT authorized.** The review's controlling
+distinction is restated and remains binding: *we have evidence of improved
+probability calibration, but not yet evidence of a profitable, executable
+betting strategy.*
+
+### Decision table (as authorized)
+
+| Decision | Status |
+| --- | --- |
+| Confirm The Odds API (primary, historical NFL player-prop pilot) | YES |
+| Confirm SportsDataIO (secondary, historical data + longer-term commercial) | YES |
+| Begin trial verification | AUTHORIZED |
+| Purchase full historical dataset | PENDING TRIAL |
+| Change C4 threshold | NO |
+| Refit incumbent or calibrator | NO |
+| Enable production adapters | NO |
+| Promote model | NO — RESEARCH_ONLY |
+
+### Review's characterization of the primary problem (recorded verbatim in substance)
+
+The selection-bias diagnostic is the most consequential result of the cycle:
+overall candidate ECE 0.0054 (strong unconditional calibration) coexists with
+a −3.05pp selected-subset gap, ~99.7% of which is attributable to EV
+selection. Selection on estimated EV concentrates optimistic prediction
+errors. This does not necessarily invalidate the probability model; it
+demonstrates that **unconditional calibration cannot establish the reliability
+of probabilities selected for betting**. Selection-conditional calibration is
+incorporated in gate E2 of the Decision 2D contract. Provenance disclosures
+were judged appropriate; the reported checks still require independent
+artifact inspection (unchanged; `verify_provenance.py` remains the mechanical
+audit path).
+
+### Vendor verification (owner-checked against official documentation)
+
+| Requirement | The Odds API | SportsDataIO |
+| --- | --- | --- |
+| Historical NFL player props | from May 3, 2023 | supported; coverage varies |
+| Historical timestamps | 5-minute snapshots | recorded line movements |
+| Individual sportsbook prices | supported | supported |
+| Closing-line analysis | possible with snapshots | supported |
+| Settlement information | use independent results or verify | Props Plus |
+| Historical access | paid plan | sales-enabled (separate warehouse; trial credentials may NOT include historical NFL) |
+| Commercial licensing | confirm terms | confirm terms |
+
+Credit reconciliation (owner-confirmed): historical event-odds cost **10
+credits per region, market, and event**; 392 games x 4 snapshots x 10 =
+**15,680** (four-snapshot configuration); the three specified observation
+times T−180m/T−60m/T−15m cost ≈ **11,760**; additional markets, regions, or
+requests increase consumption. `vendor_trial_2dv/credit_meter.py` reproduces
+this arithmetic exactly.
+
+### Binding trial protocol (Decision 2D-V)
+
+- **Ten checks**: V1 availability (2025 AND 2026), V2 timestamp integrity
+  (snapshot never exceeds decision timestamp), V3 market identification,
+  V4 sportsbook identity, V5 price integrity (both sides, American/decimal),
+  V6 missingness explicitly recorded, V7 settlement vs independent NFL
+  statistics, V8 commercial rights (WRITTEN permission — manual evidence),
+  V9 cost reconciliation, V10 reproducibility (raw responses + SHA-256).
+- **Acceptance rule: any critical failure blocks full acquisition until
+  resolved.**
+- Trial composition: games from both seasons, multiple sportsbooks, examples
+  of missing or changing lines.
+- **Experimental safeguard (ordered):** trial observations must NOT revise the
+  frozen model or select a more favorable EV threshold; the trial validates
+  data quality and infrastructure; any profitability use of trial
+  observations is labeled exploratory with an untouched evaluation set
+  reserved (implemented as PRECOMMITMENT.md P4 and quarantine guards).
+- **Next milestone: Decision 2D-V — Vendor Trial Acceptance.** Required
+  deliverable: a verified sample of real NFL receiving-prop quotes, a
+  coverage and missingness report, actual API consumption, and an explicit
+  pass/fail recommendation. Only after that does the full 392-game
+  acquisition proceed.
+
+### Execution status after this cycle
+
+| Component | Status |
+| --- | --- |
+| Trial harness (`vendor_trial_2dv/`) | BUILT; self-test 9/9 PASS on synthetic fixtures |
+| Precommitted sample | 8 games frozen (manifest sha256 c234b505…; see PRECOMMITMENT.md) |
+| Vendor requests executed | **ZERO** (no credentials in this environment; key supplied via env var only at owner-side execution) |
+| Credits consumed | **ZERO** |
+| V8 written permission | NOT YET OBTAINED (trial cannot reach PASS without it) |
+| Historical-quote pilot (Decision 2D run) | NOT STARTED (awaits 2D-V acceptance + purchase authorization) |
+| Model status | RESEARCH_ONLY (unchanged) |
+
+### Pre-execution infrastructure fix (recorded 2026-10-30, before any vendor request)
+
+While exercising the trial's real-mode settlement path (`--stats auto`) against
+the actual nflverse parquet for the 8 sampled games, `decision_2d/settlement.py`
+was found to expect `yards`/`two_point_conversion`, while the shipped parquet
+uses `yards_gained`/`two_point_attempt` (the module had only ever run on
+synthetic test frames). The fix makes the column convention tolerant; **no
+model, calibrator, threshold, or frozen artifact was touched** (the contract's
+frozen SHA-256 set excludes .py files and was re-verified unchanged;
+`code_baseline.json` was regenerated deliberately to cover the corrected
+module). All 36 decision_2d unit tests pass after the change. The real-mode
+path now resolves 115 receiver-game rows across the 8 trial games from the
+2025/2026 play-by-play. This is exactly the class of defect the trial phase
+exists to catch — before credits are spent on data that cannot be processed.
+
+---
+
 ## Rebuild and provenance control (recorded 2026-10-30)
 
 Per the review's §5: the sandbox loss changes the evidentiary status of the
