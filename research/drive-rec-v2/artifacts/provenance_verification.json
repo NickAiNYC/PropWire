@@ -1,5 +1,5 @@
 {
-  "generated_at_utc": "2026-10-30T05:37:04.102917+00:00",
+  "generated_at_utc": "2026-10-30T06:00:33.748123+00:00",
   "purpose": "Decision 2D \u00a75 provenance verification before incorporation",
   "manifest_section_11": {
     "claims_checked": 25,
@@ -308,6 +308,11 @@
         "commit": "ae48c53f3b70",
         "date": "2026-10-30T04:23:37Z",
         "subject": "feat(research): isotonic tail recalibration on 2024 dev, criteria v3 evaluation, hypothetical EV reliability gate, and fail-closed report"
+      },
+      {
+        "commit": "fdf4ba9223ed",
+        "date": "2026-10-30T05:37:22Z",
+        "subject": "chore(research): restructure rebuild lineage under research/drive-rec-v2/ per Decision 2D \u00a75"
       }
     ],
     "unrecovered_original_commits": "The six original DRIVE-REC-V1 local commits from the pre-recycle sandbox are UNRECOVERED: they were never pushed, their hashes are not available in this environment, and they are deliberately NOT represented as restored. This rebuild lineage (3 commits) is an explicitly independent re-derivation.",

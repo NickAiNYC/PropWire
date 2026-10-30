@@ -1,9 +1,10 @@
-# PropStein Live Sniper — Research Workspace (Decision 2C)
+# PropStein Live Sniper — Research Workspace (Decisions 2C + 2D)
 
 ## Scope of this workspace
 
-This workspace implements **Decision 2C: Tail Calibration & Economic Reliability** for the
-PropStein Live Sniper research track.
+This workspace (the `research/drive-rec-v2/` drive) implements **Decision 2C:
+Tail Calibration & Economic Reliability** and the **Decision 2D historical-quote
+validation pilot preparation** for the PropStein Live Sniper research track.
 
 Authorized work (per Decision 2C):
 
@@ -28,6 +29,38 @@ Additional requirement — **economic validation** (EV reliability gate):
 * The historical corpus contains **no genuine contemporaneous market quotes**, so probability
   calibration is reported separately and **all simulated-price EV analysis is labeled
   HYPOTHETICAL**. It cannot establish executable betting profitability.
+
+## Decision 2D additions (this cycle)
+
+Per the Decision 2C review and Decision 2D authorization (see `DECISION_LOG.md`):
+
+1. **C4 threshold unchanged at 3.0pp**; the 3.05pp failure is recorded with full
+   statistics; the isotonic candidate is preserved as a research artifact.
+2. **`10_selection_amplification.py`** — the ordered investigation of how much of
+   the C4 deviation comes from the EV ≥ 5% selection mechanism (answer: essentially
+   all of it; see DECISION_LOG.md for the decomposition and the regression-to-mean
+   structure of claimed information gain).
+3. **`11_freeze_decision_2d_contract.py`** — froze the precommitted execution
+   contract (`artifacts/decision_2d_contract.json`) BEFORE any quote acquisition,
+   with SHA-256 hashes of every frozen artifact (the refit lock).
+4. **`decision_2d/`** — the pilot harness: canonical quote store, strictly
+   point-in-time selection, settlement with push/void handling, economic metrics
+   with game-clustered CIs, availability/missingness ledger, frozen 2023-only
+   yards transformation, and the fail-closed gate evaluation (E1–E6). Tested
+   against synthetic fixtures only (`tests/test_decision_2d.py`, 36 tests) — no
+   results exist yet.
+5. **`docs/HISTORICAL_QUOTE_VENDOR_EVALUATION.md`** — vendor evaluation
+   (The Odds API / SportsDataIO, identified from redacted descriptions — confirm
+   before purchase), pre-purchase verification checklist, pilot scope and cost
+   estimate. **Critical limitation recorded:** 5-minute historical snapshots
+   cannot validate the ≤60s live quote-age tier; that requires Phase B live
+   capture.
+6. **`verify_provenance.py`** — automated verification of the preservation
+   manifest, corpus, split discipline, criteria ordering, and evaluation-script
+   discipline (all pass; see `PROVENANCE.md`).
+
+The model remains **research-only**. The pilot has **not started**: no licensed
+quotes have been purchased, and the harness refuses to evaluate without them.
 
 ## Rebuild disclosure (important)
 
@@ -71,26 +104,37 @@ See `LICENSES.md`. All inputs are nflverse releases (CC BY 4.0). Big Data Bowl d
 ## Layout
 
 ```
-research/            numbered, order-of-operations pipeline scripts
-  lib/               shared loading / metrics / bootstrap helpers
+00–09_*.py           numbered, order-of-operations pipeline scripts
+lib/                 shared loading / metrics / bootstrap helpers
 artifacts/           every JSON/CSV produced by the pipeline (auditable outputs)
 docs/                human-readable reports and criteria definitions
 data/                downloaded raw data (gitignored; reproducible via 00_download_data.py)
 ```
 
+Additionally (Decision 2D): `DECISION_LOG.md`, `PROVENANCE.md`,
+`10_selection_amplification.py`, `11_freeze_decision_2d_contract.py`,
+`verify_provenance.py`, `decision_2d/` (harness + README), `tests/`.
+
 ## How to run
 
 ```
-python research/00_download_data.py
-python research/01_build_corpus.py
-python research/02_fit_incumbent.py
-python research/03_evaluate_incumbent.py
-python research/04_define_criteria_v3.py      # MUST run before 07
-python research/05_fit_recalibration.py
-python research/06_compare_dev.py
-python research/07_evaluate_candidate.py
-python research/08_ev_reliability_gate.py
-python research/09_make_report.py
+python 00_download_data.py
+python 01_build_corpus.py
+python 02_fit_incumbent.py
+python 03_evaluate_incumbent.py
+python 04_define_criteria_v3.py           # MUST run before 07
+python 05_fit_recalibration.py
+python 06_compare_dev.py
+python 07_evaluate_candidate.py
+python 08_ev_reliability_gate.py
+python 09_make_report.py
+python 10_selection_amplification.py     # Decision 2D diagnostic
+python 11_freeze_decision_2d_contract.py # re-freeze only PRE-purchase
+python verify_provenance.py
+python -m unittest discover -s tests     # decision_2d harness tests (36)
+python decision_2d/run_pilot.py --check  # readiness, no evaluation
 ```
+
+(Run from inside `research/drive-rec-v2/`.)
 
 Requirements: see `requirements-research.txt`.
