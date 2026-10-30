@@ -7,3 +7,28 @@ __pycache__/
 **/artifacts/*.joblib
 **/artifacts/*.parquet
 .env
+
+# Vendor trial: real acquisition output stays local (storage is licensed per
+# V8, but committing vendor responses to a repository is redistribution and
+# is NOT covered by the trial permission).
+research/drive-rec-v2/vendor_trial_2dv/raw/
+
+# Evidence from real runs contains licensed quotes via the canonical preview;
+# keep local unless the V8 written permission explicitly permits redistribution.
+research/drive-rec-v2/vendor_trial_2dv/evidence/
+
+# Credential safety: any stray key files are ignored AND must be reported,
+# never committed.
+*.apikey
+*.api_key
+.env
+ODDS_API_KEY*
+
+# Harness self-test output is regenerable (fixtures are committed instead).
+research/drive-rec-v2/vendor_trial_2dv/selftest_out/
+
+# Committed on purpose (audit trail): artifacts/sample_manifest.json,
+# fixtures/ (regenerable but kept as evidence), code_baseline.json,
+# PRECOMMITMENT.md, ATTACHMENT_V8_COMMERCIAL_RIGHTS.md (permission TEXT only,
+# never credentials).
+
