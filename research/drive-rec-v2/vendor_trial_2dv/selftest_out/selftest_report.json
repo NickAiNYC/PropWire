@@ -1,0 +1,52 @@
+{
+  "harness_selftest": "PASS",
+  "n_tests": 9,
+  "tests": [
+    {
+      "test": "T1_fixture_determinism",
+      "status": "PASS",
+      "detail": "regeneration byte-identical (1de4f7a59f54\u2026)"
+    },
+    {
+      "test": "T2_clean_run",
+      "status": "PASS",
+      "detail": "verdicts match expected: {\"V1\": \"PASS\", \"V2\": \"PASS\", \"V3\": \"PASS\", \"V4\": \"PASS\", \"V5\": \"PASS\", \"V6\": \"PASS\", \"V7\": \"PASS\", \"V8\": \"PENDING_MANUAL\", \"V9\": \"PASS\", \"V10\": \"PASS\", \"overall\": \"BLOCKED_PENDING_MANUAL\"}"
+    },
+    {
+      "test": "T3_fault_sensitivity",
+      "status": "PASS",
+      "detail": "all 7 injected faults caught by their target checks"
+    },
+    {
+      "test": "T3b_fault_details",
+      "status": "PASS",
+      "detail": "V7 reports exactly the 2 injected settlement faults (got 2)"
+    },
+    {
+      "test": "T4_tamper_detection",
+      "status": "PASS",
+      "detail": "flipped byte in SYN25_G01__T-15m.json -> V10 FAIL"
+    },
+    {
+      "test": "T5_verifier_determinism",
+      "status": "PASS",
+      "detail": "11 evidence JSONs byte-identical on re-run"
+    },
+    {
+      "test": "T6_synthetic_refusal",
+      "status": "PASS",
+      "detail": "decision_2d.quotes.validate_quotes: REFUSED (fail-closed intact)"
+    },
+    {
+      "test": "T7_quarantine_guards",
+      "status": "PASS",
+      "detail": "G1 refit lock / G2 sample freeze / G3 confinement hold"
+    },
+    {
+      "test": "T8_credential_safety",
+      "status": "PASS",
+      "detail": "REAL mode without ODDS_API_KEY refuses to run (key never accepted from files/arguments/chat)"
+    }
+  ],
+  "note": "All data is SYNTHETIC-HARNESS-TEST; zero vendor requests, zero credits consumed. This validates the verification CODE, not the vendor."
+}

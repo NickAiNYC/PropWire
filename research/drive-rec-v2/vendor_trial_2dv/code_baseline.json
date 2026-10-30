@@ -1,0 +1,19 @@
+{
+  "decision_2d/__init__.py": "b73394be9a4f5217f670df97b32b21a3b20ef0ae660ab1bd5fa7ca3dc45e7615",
+  "decision_2d/contract.py": "f24439583a0d047a0b4de61df70539ea1916f1af4685660435b8dc62b0f77e05",
+  "decision_2d/ledger.py": "8673986e7cf1e3cb9a20aeabffa6d301bbe7d758cd63069f4da102805bd68e34",
+  "decision_2d/metrics.py": "ef552d8d9f5746133af21462884e73a2dd54aadbec8bc54df3949417e92ebc54",
+  "decision_2d/point_in_time.py": "e8ce6d5b5e845e00ba65285d0100d4e2bbd7f59f981fc2de6f059bf3bd4d1427",
+  "decision_2d/quotes.py": "4edb653f6d76592366f272cf7632ba64fc7e8ef4856e79da647cd10b7116691b",
+  "decision_2d/run_pilot.py": "b9178a32eba470eade146b9d3a7e94ff3f74ddcda229476ed7628e8dd85252f9",
+  "decision_2d/settlement.py": "6cdfe1389a835d2e9dc1681a75c6a935573085b0a88ed8c3cbf6b056a26a72a5",
+  "decision_2d/yards_projection.py": "05e18a150561f11ff99031224c09a26ce8d1b8e3aff4499f2229afeab91031b0",
+  "vendor_trial_2dv/PRECOMMITMENT.md": "964b969d3071bca36558b6b8f1a87f98c68bbf2a7bac8b1b3213b6e9186db2b4",
+  "vendor_trial_2dv/credit_meter.py": "9710ba53356eb80d4de3ed1d0c29a3713420f5cd78fcef86f4d7b59e489e19e2",
+  "vendor_trial_2dv/fetch_trial_quotes.py": "3117ab78baff138658cc839ac2c8fe0f83dc91c3f16541d466ce101db0c5e100",
+  "vendor_trial_2dv/make_fixtures.py": "4a934aa366628dbbcbafee3f4a96cf737bdd70f2ecbc2d0378ed5689541abe1d",
+  "vendor_trial_2dv/select_sample.py": "9d08b98cac201280f2ed4d094a83016af318aab069537ec19fbeef20335c284c",
+  "vendor_trial_2dv/selftest.py": "86e30bff9bdb08a3771c655c29b1c526f6f46daf37bdc706fe91a9769b3f58fd",
+  "vendor_trial_2dv/trial_config.json": "c69aa25f5e7d24df09a6704bb786696eeb759916732cfe28ead9b7e4e471a387",
+  "vendor_trial_2dv/verify_v1_v10.py": "6bb969de2c5677f46fb9bdc09b0cfff8465bd772bae957f549967fc9cc3b4cd3"
+}
