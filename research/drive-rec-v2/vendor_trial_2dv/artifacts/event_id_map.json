@@ -1,0 +1,87 @@
+{
+  "trial_id": "DECISION_2DV_TRIAL_v1",
+  "map_version": 1,
+  "policy": "REQUIRED acquisition input (owner defect-1 fix, 2026-10-30): a verified historical event-ID mapping replaces the current-events discovery endpoint. Every entry must record its discovery source and timestamp. Acquisition refuses quote requests for any game without an entry whose event_id is non-null and status is 'verified'. Entries below are UNVERIFIED placeholders for the 8 precommitted games — fill them via discover_event_ids.py (Stage A: verification or owner attestation), review, and commit BEFORE running fetch_trial_quotes.py.",
+  "entries": [
+    {
+      "game_id": "2025_06_ARI_IND",
+      "event_id": null,
+      "sport_key": "playerprops_nfl",
+      "status": "UNVERIFIED",
+      "discovery_source": null,
+      "discovery_timestamp_utc": null,
+      "commence_time_verified": null,
+      "verification": {}
+    },
+    {
+      "game_id": "2025_08_NYJ_CIN",
+      "event_id": null,
+      "sport_key": "playerprops_nfl",
+      "status": "UNVERIFIED",
+      "discovery_source": null,
+      "discovery_timestamp_utc": null,
+      "commence_time_verified": null,
+      "verification": {}
+    },
+    {
+      "game_id": "2025_13_CIN_BAL",
+      "event_id": null,
+      "sport_key": "playerprops_nfl",
+      "status": "UNVERIFIED",
+      "discovery_source": null,
+      "discovery_timestamp_utc": null,
+      "commence_time_verified": null,
+      "verification": {}
+    },
+    {
+      "game_id": "2025_19_HOU_PIT",
+      "event_id": null,
+      "sport_key": "playerprops_nfl",
+      "status": "UNVERIFIED",
+      "discovery_source": null,
+      "discovery_timestamp_utc": null,
+      "commence_time_verified": null,
+      "verification": {}
+    },
+    {
+      "game_id": "2026_01_WAS_PHI",
+      "event_id": null,
+      "sport_key": "playerprops_nfl",
+      "status": "UNVERIFIED",
+      "discovery_source": null,
+      "discovery_timestamp_utc": null,
+      "commence_time_verified": null,
+      "verification": {}
+    },
+    {
+      "game_id": "2026_03_LAC_BUF",
+      "event_id": null,
+      "sport_key": "playerprops_nfl",
+      "status": "UNVERIFIED",
+      "discovery_source": null,
+      "discovery_timestamp_utc": null,
+      "commence_time_verified": null,
+      "verification": {}
+    },
+    {
+      "game_id": "2026_05_PHI_JAX",
+      "event_id": null,
+      "sport_key": "playerprops_nfl",
+      "status": "UNVERIFIED",
+      "discovery_source": null,
+      "discovery_timestamp_utc": null,
+      "commence_time_verified": null,
+      "verification": {}
+    },
+    {
+      "game_id": "2026_07_DEN_ARI",
+      "event_id": null,
+      "sport_key": "playerprops_nfl",
+      "status": "UNVERIFIED",
+      "discovery_source": null,
+      "discovery_timestamp_utc": null,
+      "commence_time_verified": null,
+      "verification": {}
+    }
+  ]
+}
