@@ -5,7 +5,7 @@
     {
       "test": "T1_fixture_determinism",
       "status": "PASS",
-      "detail": "regeneration byte-identical (1de4f7a59f54\u2026)"
+      "detail": "regeneration byte-identical (fff4494aea63\u2026)"
     },
     {
       "test": "T2_clean_run",

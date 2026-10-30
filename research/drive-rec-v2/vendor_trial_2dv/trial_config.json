@@ -33,7 +33,7 @@
     "retry_after_honored": true,
     "note": "every attempt is authorized against the cap before the request and observed by the Meter after it (owner defect-2 fix, 2026-10-30)"
   },
-  "market_candidates": ["player_receiving_yards"],
+  "market_candidates": ["player_reception_yds"],
   "region": "us",
   "odds_format": "american",
   "request_delay_seconds": 1.0,

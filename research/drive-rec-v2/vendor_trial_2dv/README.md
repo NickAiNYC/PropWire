@@ -136,8 +136,15 @@ verdict is BLOCKED_PENDING_MANUAL — which also blocks acquisition.
    must come from owner records, a vendor export, vendor support, or owner
    attestation — `discover_event_ids.py` records whichever source is used.
    For future acquisitions, capture IDs while games are upcoming.
-1. **Exact market key** for NFL player receiving yards must be confirmed
-   against the vendor's market catalogue (config `market_candidates`).
+1. ~~**Exact market key** for NFL player receiving yards must be confirmed
+   against the vendor's market catalogue (config `market_candidates`).~~
+   **RESOLVED 2026-10-31** (two owner orders; see
+   `PATCH_LOG_2026-10-30.md` §2026-10-31): confirmed against the vendor's
+   betting-markets catalogue as `player_reception_yds` (the previously
+   configured `player_receiving_yards` does not exist in the catalogue);
+   corrected in `trial_config.json`, `make_fixtures.py`, the regenerated
+   fixtures, and the V1/V6 market matcher in `verify_v1_v10.py` — selftest
+   15/15 PASS, guards G1–G4 PASS.
 2. **Team-name mapping** (`fetch_trial_quotes.py TEAM_NAMES`) is written from
    nflverse abbreviations to full team names; if the vendor returns different
    strings, discovery misses are LEDGERED and reported by V1/V3 — they are
