@@ -32,8 +32,6 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from agent import clv_report  # noqa: E402
-
 REAL_BOOKS = [
     "DraftKings", "FanDuel", "BetMGM", "Pinnacle", "Circa",
     "Caesars", "Pointsbet", "Bovada", "ESPN BET",
@@ -63,12 +61,10 @@ def _feed_quote_violations(path: Path):
     if pm_quotes:
         # Mixed live feed: Polymarket quotes are real observations and MUST
         # carry the full receipt chain; the synthetic baseline stays demo.
-        if status != "LIVE_POLYMARKET_RECEIPTS":
+        if status != "LIVE_POLYMARKET_CLOB_UNVERIFIED":
             violations.append(f"{path}: mixed feed must self-identify honestly (got {status!r})")
-        if data.get("verified_books_count") != 1 or data.get("verified_quotes_count") != len(pm_quotes):
-            violations.append(f"{path}: verified counts must match the Polymarket receipts "
-                              f"({data.get('verified_books_count')} books / "
-                              f"{data.get('verified_quotes_count')} vs {len(pm_quotes)} quotes)")
+        if data.get("verified_books_count") != 0 or data.get("verified_quotes_count") != 0:
+            violations.append(f"{path}: local Polymarket hashes must not count as verified prices")
         for q in pm_quotes:
             missing = [k for k in ("receipt_id", "content_hash", "source_url",
                                    "observed_at", "over_odds", "under_odds",
@@ -82,6 +78,8 @@ def _feed_quote_violations(path: Path):
             ev = q.get("evaluation") or {}
             if not {"best_side", "prob_edge", "expected_return"} <= set(ev):
                 violations.append(f"{path}: {q.get('quote_id')}: evaluation block incomplete")
+            if q.get("verified") is True or str(ev.get("status", "")).upper() == "VERIFIED":
+                violations.append(f"{path}: {q.get('quote_id')}: local receipt claims independent verification")
         demo_quotes = [q for q in data["quotes"] if q.get("book") != "Polymarket"]
     else:
         # Pure demo fixture: the original no-real-attribution contract.
@@ -137,6 +135,7 @@ def test_demo_ledger_is_anonymized():
 
 
 def test_clv_report_excludes_demo_rows(tmp_path):
+    from agent import clv_report
     ledger = tmp_path / "picks_log.jsonl"
     demo_rows = [
         {"player": "Player H", "book": "Synthetic Book A", "clv": 0.30,
@@ -154,6 +153,7 @@ def test_clv_report_excludes_demo_rows(tmp_path):
 
 
 def test_clv_report_fail_closed_on_all_demo_ledger(tmp_path):
+    from agent import clv_report
     ledger = tmp_path / "picks_log.jsonl"
     rows = [{"player": "Player H", "book": "Synthetic Book A", "clv": 0.30,
              "is_demo": True, "status": "demo"}]

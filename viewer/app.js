@@ -711,7 +711,9 @@
 
   function feedVerificationLabel(feed = state.odds) {
     const status = String((feed && feed.feed_status) || '').toUpperCase();
-    const verifiedQuotes = Number(feed && feed.verified_quotes_count) || 0;
+    const verifiedQuotes = Array.isArray(feed && feed.quotes)
+      ? feed.quotes.filter((quote) => quoteState(quote) === 'verified').length
+      : 0;
     if (status === 'FIXTURE' || adapter.fixturesOnly === true) return 'FIXTURE';
     if (verifiedQuotes > 0 && !status.includes('UNVERIFIED')) return 'VERIFIED';
     return 'UNVERIFIED';
@@ -3284,6 +3286,10 @@
     if (!metricVal) return;
 
     const totalModeled = state.slate.length;
+    const health = feedHealthStates();
+    const verifiedLiveLines = health.dataKind !== 'fixture' && health.odds === 'ok'
+      && health.oddsFreshness === 'ok'
+      ? state.odds.quotes.filter((quote) => quoteState(quote) === 'verified').length : 0;
     const sportName = (SPORT_ID || 'NFL').toUpperCase();
     const slateName = (state.slateKey || 'SLATE').replace(/_/g, ' ').toUpperCase();
     const showResearchHero = isResearchMode || qualifiedCount === 0;
@@ -3312,7 +3318,7 @@
         if (pod2Val) pod2Val.textContent = 'PAUSED';
         if (pod2Sub) pod2Sub.textContent = 'Standby for verified quotes';
         if (pod3Val) pod3Val.textContent = String(totalModeled);
-        if (pod3Sub) pod3Sub.textContent = '0 Audited Live Lines';
+        if (pod3Sub) pod3Sub.textContent = `${verifiedLiveLines} Audited Live Lines`;
       }
     } else {
       const activePolicy = policy();

@@ -1,9 +1,9 @@
 {
-  "feed_status": "LIVE_POLYMARKET_RECEIPTS",
+  "feed_status": "LIVE_POLYMARKET_CLOB_UNVERIFIED",
   "updated_at": "2026-10-29T12:01:03.271661+00:00",
   "slate": "2026-W08",
-  "verified_books_count": 1,
-  "verified_quotes_count": 312,
+  "verified_books_count": 0,
+  "verified_quotes_count": 0,
   "unverified_books": [
     "BetMGM",
     "DraftKings",
@@ -376,7 +376,7 @@
       "end_date": "2026-11-03T01:15:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.4278,
         "break_even_adv": 0.4276,
@@ -412,7 +412,7 @@
       "end_date": "2026-11-03T01:15:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "UNDER",
         "prob_edge": -0.115,
         "break_even_adv": 0.115,
@@ -448,7 +448,7 @@
       "end_date": "2026-11-03T01:15:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.0494,
         "break_even_adv": 0.0494,
@@ -484,7 +484,7 @@
       "end_date": "2026-11-03T01:15:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "UNDER",
         "prob_edge": -0.1696,
         "break_even_adv": 0.1699,
@@ -520,7 +520,7 @@
       "end_date": "2026-11-03T01:15:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.1151,
         "break_even_adv": 0.1153,
@@ -556,7 +556,7 @@
       "end_date": "2026-11-02T01:20:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "UNDER",
         "prob_edge": -0.1859,
         "break_even_adv": 0.1858,
@@ -592,7 +592,7 @@
       "end_date": "2026-11-02T01:20:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.3415,
         "break_even_adv": 0.341,
@@ -628,7 +628,7 @@
       "end_date": "2026-11-02T01:20:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.2753,
         "break_even_adv": 0.2748,
@@ -664,7 +664,7 @@
       "end_date": "2026-11-02T01:20:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "UNDER",
         "prob_edge": -0.0809,
         "break_even_adv": 0.0809,
@@ -700,7 +700,7 @@
       "end_date": "2026-11-02T01:20:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "UNDER",
         "prob_edge": -0.1331,
         "break_even_adv": 0.1329,
@@ -736,7 +736,7 @@
       "end_date": "2026-11-02T01:20:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.037,
         "break_even_adv": 0.0369,
@@ -772,7 +772,7 @@
       "end_date": "2026-11-02T01:20:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.2884,
         "break_even_adv": 0.2881,
@@ -808,7 +808,7 @@
       "end_date": "2026-11-02T01:20:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.001,
         "break_even_adv": 0.001,
@@ -844,7 +844,7 @@
       "end_date": "2026-11-02T01:20:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.3168,
         "break_even_adv": 0.3171,
@@ -880,7 +880,7 @@
       "end_date": "2026-11-02T01:20:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.4397,
         "break_even_adv": 0.4397,
@@ -916,7 +916,7 @@
       "end_date": "2026-11-02T01:20:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.0302,
         "break_even_adv": 0.0302,
@@ -952,7 +952,7 @@
       "end_date": "2026-11-02T01:20:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "UNDER",
         "prob_edge": -0.0109,
         "break_even_adv": 0.0109,
@@ -988,7 +988,7 @@
       "end_date": "2026-11-01T21:25:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.4205,
         "break_even_adv": 0.421,
@@ -1024,7 +1024,7 @@
       "end_date": "2026-11-01T21:25:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.2656,
         "break_even_adv": 0.2651,
@@ -1060,7 +1060,7 @@
       "end_date": "2026-11-01T21:25:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.4205,
         "break_even_adv": 0.4201,
@@ -1096,7 +1096,7 @@
       "end_date": "2026-11-01T21:25:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.3308,
         "break_even_adv": 0.3311,
@@ -1132,7 +1132,7 @@
       "end_date": "2026-11-01T21:25:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.12,
         "break_even_adv": 0.1201,
@@ -1168,7 +1168,7 @@
       "end_date": "2026-11-01T21:25:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.3359,
         "break_even_adv": 0.3362,
@@ -1204,7 +1204,7 @@
       "end_date": "2026-11-01T21:25:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "UNDER",
         "prob_edge": -0.0993,
         "break_even_adv": 0.1001,
@@ -1240,7 +1240,7 @@
       "end_date": "2026-11-01T21:25:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "UNDER",
         "prob_edge": -0.2047,
         "break_even_adv": 0.2043,
@@ -1276,7 +1276,7 @@
       "end_date": "2026-11-01T21:25:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.2462,
         "break_even_adv": 0.2461,
@@ -1312,7 +1312,7 @@
       "end_date": "2026-11-01T21:25:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.0266,
         "break_even_adv": 0.0261,
@@ -1348,7 +1348,7 @@
       "end_date": "2026-11-01T21:25:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.2008,
         "break_even_adv": 0.2009,
@@ -1384,7 +1384,7 @@
       "end_date": "2026-11-01T21:25:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.2804,
         "break_even_adv": 0.2808,
@@ -1420,7 +1420,7 @@
       "end_date": "2026-11-01T21:25:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.0667,
         "break_even_adv": 0.0659,
@@ -1456,7 +1456,7 @@
       "end_date": "2026-11-01T21:25:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.0369,
         "break_even_adv": 0.0364,
@@ -1492,7 +1492,7 @@
       "end_date": "2026-11-01T21:25:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.3325,
         "break_even_adv": 0.3322,
@@ -1528,7 +1528,7 @@
       "end_date": "2026-11-01T21:25:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.3253,
         "break_even_adv": 0.3255,
@@ -1564,7 +1564,7 @@
       "end_date": "2026-11-01T21:25:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.3765,
         "break_even_adv": 0.3762,
@@ -1600,7 +1600,7 @@
       "end_date": "2026-11-01T21:25:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.2021,
         "break_even_adv": 0.2018,
@@ -1636,7 +1636,7 @@
       "end_date": "2026-11-01T21:25:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "UNDER",
         "prob_edge": -0.1018,
         "break_even_adv": 0.1017,
@@ -1672,7 +1672,7 @@
       "end_date": "2026-11-01T21:25:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.1636,
         "break_even_adv": 0.1638,
@@ -1708,7 +1708,7 @@
       "end_date": "2026-11-01T21:25:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.0408,
         "break_even_adv": 0.0408,
@@ -1744,7 +1744,7 @@
       "end_date": "2026-11-01T21:05:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.5196,
         "break_even_adv": 0.5199,
@@ -1780,7 +1780,7 @@
       "end_date": "2026-11-01T21:05:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.5081,
         "break_even_adv": 0.508,
@@ -1816,7 +1816,7 @@
       "end_date": "2026-11-01T21:05:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.4863,
         "break_even_adv": 0.4865,
@@ -1852,7 +1852,7 @@
       "end_date": "2026-11-01T21:05:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.4312,
         "break_even_adv": 0.4313,
@@ -1888,7 +1888,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.3341,
         "break_even_adv": 0.334,
@@ -1924,7 +1924,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.5084,
         "break_even_adv": 0.5078,
@@ -1960,7 +1960,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.3037,
         "break_even_adv": 0.3036,
@@ -1996,7 +1996,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.1308,
         "break_even_adv": 0.1316,
@@ -2032,7 +2032,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.2205,
         "break_even_adv": 0.2206,
@@ -2068,7 +2068,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "UNDER",
         "prob_edge": -0.0383,
         "break_even_adv": 0.0377,
@@ -2104,7 +2104,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.204,
         "break_even_adv": 0.2042,
@@ -2140,7 +2140,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.1529,
         "break_even_adv": 0.1527,
@@ -2176,7 +2176,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.3713,
         "break_even_adv": 0.3714,
@@ -2212,7 +2212,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.3066,
         "break_even_adv": 0.3064,
@@ -2248,7 +2248,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.2126,
         "break_even_adv": 0.2124,
@@ -2284,7 +2284,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.0294,
         "break_even_adv": 0.0294,
@@ -2320,7 +2320,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.1778,
         "break_even_adv": 0.1777,
@@ -2356,7 +2356,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.0501,
         "break_even_adv": 0.05,
@@ -2392,7 +2392,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.2539,
         "break_even_adv": 0.2543,
@@ -2428,7 +2428,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.4505,
         "break_even_adv": 0.4504,
@@ -2464,7 +2464,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.4528,
         "break_even_adv": 0.4526,
@@ -2500,7 +2500,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.4088,
         "break_even_adv": 0.4084,
@@ -2536,7 +2536,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.2445,
         "break_even_adv": 0.245,
@@ -2572,7 +2572,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.17,
         "break_even_adv": 0.1699,
@@ -2608,7 +2608,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.2977,
         "break_even_adv": 0.2977,
@@ -2644,7 +2644,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.1745,
         "break_even_adv": 0.1742,
@@ -2680,7 +2680,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.2308,
         "break_even_adv": 0.2312,
@@ -2716,7 +2716,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "UNDER",
         "prob_edge": -0.1175,
         "break_even_adv": 0.117,
@@ -2752,7 +2752,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.2319,
         "break_even_adv": 0.2316,
@@ -2788,7 +2788,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.1626,
         "break_even_adv": 0.1624,
@@ -2824,7 +2824,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.1996,
         "break_even_adv": 0.1997,
@@ -2860,7 +2860,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "UNDER",
         "prob_edge": -0.0347,
         "break_even_adv": 0.0347,
@@ -2896,7 +2896,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.5836,
         "break_even_adv": 0.5838,
@@ -2932,7 +2932,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.4449,
         "break_even_adv": 0.4449,
@@ -2968,7 +2968,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.4472,
         "break_even_adv": 0.4474,
@@ -3004,7 +3004,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.0151,
         "break_even_adv": 0.0157,
@@ -3040,7 +3040,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.5777,
         "break_even_adv": 0.578,
@@ -3076,7 +3076,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.4188,
         "break_even_adv": 0.4187,
@@ -3112,7 +3112,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.5724,
         "break_even_adv": 0.5725,
@@ -3148,7 +3148,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.2726,
         "break_even_adv": 0.2729,
@@ -3184,7 +3184,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.2016,
         "break_even_adv": 0.2019,
@@ -3220,7 +3220,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.4553,
         "break_even_adv": 0.455,
@@ -3256,7 +3256,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.3704,
         "break_even_adv": 0.3703,
@@ -3292,7 +3292,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.37,
         "break_even_adv": 0.3702,
@@ -3328,7 +3328,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.0259,
         "break_even_adv": 0.0265,
@@ -3364,7 +3364,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.159,
         "break_even_adv": 0.1588,
@@ -3400,7 +3400,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.2549,
         "break_even_adv": 0.2546,
@@ -3436,7 +3436,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.275,
         "break_even_adv": 0.2753,
@@ -3472,7 +3472,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.1183,
         "break_even_adv": 0.1178,
@@ -3508,7 +3508,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "UNDER",
         "prob_edge": -0.0354,
         "break_even_adv": 0.0355,
@@ -3544,7 +3544,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.2229,
         "break_even_adv": 0.2228,
@@ -3580,7 +3580,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.1409,
         "break_even_adv": 0.141,
@@ -3616,7 +3616,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "UNDER",
         "prob_edge": -0.0121,
         "break_even_adv": 0.0122,
@@ -3652,7 +3652,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.3752,
         "break_even_adv": 0.3746,
@@ -3688,7 +3688,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.2093,
         "break_even_adv": 0.2091,
@@ -3724,7 +3724,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "UNDER",
         "prob_edge": -0.0516,
         "break_even_adv": 0.0512,
@@ -3760,7 +3760,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "UNDER",
         "prob_edge": -0.0536,
         "break_even_adv": 0.0536,
@@ -3796,7 +3796,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.3285,
         "break_even_adv": 0.3286,
@@ -3832,7 +3832,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.2271,
         "break_even_adv": 0.2269,
@@ -3868,7 +3868,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "UNDER",
         "prob_edge": -0.0635,
         "break_even_adv": 0.0633,
@@ -3904,7 +3904,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "UNDER",
         "prob_edge": -0.0264,
         "break_even_adv": 0.0264,
@@ -3940,7 +3940,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.0074,
         "break_even_adv": 0.008,
@@ -3976,7 +3976,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.2545,
         "break_even_adv": 0.2547,
@@ -4012,7 +4012,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "UNDER",
         "prob_edge": -0.0132,
         "break_even_adv": 0.0121,
@@ -4048,7 +4048,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.4423,
         "break_even_adv": 0.4424,
@@ -4084,7 +4084,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.1296,
         "break_even_adv": 0.1293,
@@ -4120,7 +4120,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.1168,
         "break_even_adv": 0.1167,
@@ -4156,7 +4156,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.2443,
         "break_even_adv": 0.2445,
@@ -4192,7 +4192,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.3477,
         "break_even_adv": 0.3473,
@@ -4228,7 +4228,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.3398,
         "break_even_adv": 0.3396,
@@ -4264,7 +4264,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.4323,
         "break_even_adv": 0.4322,
@@ -4300,7 +4300,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.5186,
         "break_even_adv": 0.5182,
@@ -4336,7 +4336,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.2699,
         "break_even_adv": 0.2694,
@@ -4372,7 +4372,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.2748,
         "break_even_adv": 0.2743,
@@ -4408,7 +4408,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.1554,
         "break_even_adv": 0.1553,
@@ -4444,7 +4444,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.2216,
         "break_even_adv": 0.2213,
@@ -4480,7 +4480,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.029,
         "break_even_adv": 0.0292,
@@ -4516,7 +4516,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.0962,
         "break_even_adv": 0.0962,
@@ -4552,7 +4552,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.0588,
         "break_even_adv": 0.0588,
@@ -4588,7 +4588,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.3384,
         "break_even_adv": 0.3386,
@@ -4624,7 +4624,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.2432,
         "break_even_adv": 0.2437,
@@ -4660,7 +4660,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.0958,
         "break_even_adv": 0.0957,
@@ -4696,7 +4696,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.2236,
         "break_even_adv": 0.2238,
@@ -4732,7 +4732,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.0762,
         "break_even_adv": 0.0767,
@@ -4768,7 +4768,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.1338,
         "break_even_adv": 0.1337,
@@ -4804,7 +4804,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.1578,
         "break_even_adv": 0.1581,
@@ -4840,7 +4840,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.0106,
         "break_even_adv": 0.0107,
@@ -4876,7 +4876,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.03,
         "break_even_adv": 0.0305,
@@ -4912,7 +4912,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.0188,
         "break_even_adv": 0.0186,
@@ -4948,7 +4948,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.0634,
         "break_even_adv": 0.0633,
@@ -4984,7 +4984,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.1906,
         "break_even_adv": 0.1904,
@@ -5020,7 +5020,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.1012,
         "break_even_adv": 0.1011,
@@ -5056,7 +5056,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.0886,
         "break_even_adv": 0.0888,
@@ -5092,7 +5092,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.2712,
         "break_even_adv": 0.2716,
@@ -5128,7 +5128,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.1871,
         "break_even_adv": 0.187,
@@ -5164,7 +5164,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "UNDER",
         "prob_edge": -0.2181,
         "break_even_adv": 0.217,
@@ -5200,7 +5200,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "UNDER",
         "prob_edge": -0.135,
         "break_even_adv": 0.1348,
@@ -5236,7 +5236,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.4329,
         "break_even_adv": 0.4334,
@@ -5272,7 +5272,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.2666,
         "break_even_adv": 0.2664,
@@ -5308,7 +5308,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.0618,
         "break_even_adv": 0.0619,
@@ -5344,7 +5344,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.3251,
         "break_even_adv": 0.3247,
@@ -5380,7 +5380,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.0005,
         "break_even_adv": 0.0006,
@@ -5416,7 +5416,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.2225,
         "break_even_adv": 0.2225,
@@ -5452,7 +5452,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.0376,
         "break_even_adv": 0.0378,
@@ -5488,7 +5488,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "UNDER",
         "prob_edge": -0.08,
         "break_even_adv": 0.08,
@@ -5524,7 +5524,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.1883,
         "break_even_adv": 0.1883,
@@ -5560,7 +5560,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.0888,
         "break_even_adv": 0.0892,
@@ -5596,7 +5596,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.3951,
         "break_even_adv": 0.3948,
@@ -5632,7 +5632,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.2575,
         "break_even_adv": 0.2574,
@@ -5668,7 +5668,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.0793,
         "break_even_adv": 0.0792,
@@ -5704,7 +5704,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "UNDER",
         "prob_edge": -0.045,
         "break_even_adv": 0.0456,
@@ -5740,7 +5740,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.0669,
         "break_even_adv": 0.0664,
@@ -5776,7 +5776,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "UNDER",
         "prob_edge": -0.2272,
         "break_even_adv": 0.2267,
@@ -5812,7 +5812,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.2713,
         "break_even_adv": 0.2715,
@@ -5848,7 +5848,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.1957,
         "break_even_adv": 0.1955,
@@ -5884,7 +5884,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "UNDER",
         "prob_edge": -0.1668,
         "break_even_adv": 0.166,
@@ -5920,7 +5920,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.4848,
         "break_even_adv": 0.4853,
@@ -5956,7 +5956,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "UNDER",
         "prob_edge": -0.0551,
         "break_even_adv": 0.0557,
@@ -5992,7 +5992,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.0541,
         "break_even_adv": 0.0533,
@@ -6028,7 +6028,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "UNDER",
         "prob_edge": -0.2084,
         "break_even_adv": 0.2088,
@@ -6064,7 +6064,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.3275,
         "break_even_adv": 0.3278,
@@ -6100,7 +6100,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.1697,
         "break_even_adv": 0.1694,
@@ -6136,7 +6136,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.1015,
         "break_even_adv": 0.1004,
@@ -6172,7 +6172,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.0332,
         "break_even_adv": 0.0333,
@@ -6208,7 +6208,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.1125,
         "break_even_adv": 0.113,
@@ -6244,7 +6244,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.0277,
         "break_even_adv": 0.0272,
@@ -6280,7 +6280,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.121,
         "break_even_adv": 0.1214,
@@ -6316,7 +6316,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "UNDER",
         "prob_edge": -0.0318,
         "break_even_adv": 0.0317,
@@ -6352,7 +6352,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "UNDER",
         "prob_edge": -0.0519,
         "break_even_adv": 0.0521,
@@ -6388,7 +6388,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "UNDER",
         "prob_edge": -0.2838,
         "break_even_adv": 0.2845,
@@ -6424,7 +6424,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.3414,
         "break_even_adv": 0.3419,
@@ -6460,7 +6460,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.2486,
         "break_even_adv": 0.2486,
@@ -6496,7 +6496,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.1563,
         "break_even_adv": 0.1564,
@@ -6532,7 +6532,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "UNDER",
         "prob_edge": -0.0391,
         "break_even_adv": 0.039,
@@ -6568,7 +6568,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "UNDER",
         "prob_edge": -0.055,
         "break_even_adv": 0.055,
@@ -6604,7 +6604,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.5791,
         "break_even_adv": 0.5792,
@@ -6640,7 +6640,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.1314,
         "break_even_adv": 0.1315,
@@ -6676,7 +6676,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "UNDER",
         "prob_edge": -0.1186,
         "break_even_adv": 0.1194,
@@ -6712,7 +6712,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.1442,
         "break_even_adv": 0.1441,
@@ -6748,7 +6748,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.0169,
         "break_even_adv": 0.0164,
@@ -6784,7 +6784,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.1825,
         "break_even_adv": 0.1826,
@@ -6820,7 +6820,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.2118,
         "break_even_adv": 0.2119,
@@ -6856,7 +6856,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.0282,
         "break_even_adv": 0.0289,
@@ -6892,7 +6892,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.3492,
         "break_even_adv": 0.3494,
@@ -6928,7 +6928,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.2051,
         "break_even_adv": 0.2051,
@@ -6964,7 +6964,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.0662,
         "break_even_adv": 0.0657,
@@ -7000,7 +7000,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "UNDER",
         "prob_edge": -0.1598,
         "break_even_adv": 0.1593,
@@ -7036,7 +7036,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.2375,
         "break_even_adv": 0.2373,
@@ -7072,7 +7072,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.0458,
         "break_even_adv": 0.045,
@@ -7108,7 +7108,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.0045,
         "break_even_adv": 0.0056,
@@ -7144,7 +7144,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.2104,
         "break_even_adv": 0.2098,
@@ -7180,7 +7180,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.0318,
         "break_even_adv": 0.032,
@@ -7216,7 +7216,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "UNDER",
         "prob_edge": -0.0313,
         "break_even_adv": 0.0313,
@@ -7252,7 +7252,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.2051,
         "break_even_adv": 0.2048,
@@ -7288,7 +7288,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.1886,
         "break_even_adv": 0.1886,
@@ -7324,7 +7324,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.1068,
         "break_even_adv": 0.1073,
@@ -7360,7 +7360,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.29,
         "break_even_adv": 0.2901,
@@ -7396,7 +7396,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.4185,
         "break_even_adv": 0.4181,
@@ -7432,7 +7432,7 @@
       "end_date": "2026-11-01T18:00:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.2616,
         "break_even_adv": 0.2616,
@@ -7468,7 +7468,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.4364,
         "break_even_adv": 0.437,
@@ -7504,7 +7504,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.3528,
         "break_even_adv": 0.3529,
@@ -7540,7 +7540,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.2305,
         "break_even_adv": 0.2309,
@@ -7576,7 +7576,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.0498,
         "break_even_adv": 0.0499,
@@ -7612,7 +7612,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "UNDER",
         "prob_edge": -0.0484,
         "break_even_adv": 0.0481,
@@ -7648,7 +7648,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "UNDER",
         "prob_edge": -0.1262,
         "break_even_adv": 0.1259,
@@ -7684,7 +7684,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "UNDER",
         "prob_edge": -0.165,
         "break_even_adv": 0.1651,
@@ -7720,7 +7720,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "UNDER",
         "prob_edge": -0.11,
         "break_even_adv": 0.11,
@@ -7756,7 +7756,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "UNDER",
         "prob_edge": -0.39,
         "break_even_adv": 0.3905,
@@ -7792,7 +7792,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.1923,
         "break_even_adv": 0.1918,
@@ -7828,7 +7828,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.1469,
         "break_even_adv": 0.1466,
@@ -7864,7 +7864,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "UNDER",
         "prob_edge": -0.4153,
         "break_even_adv": 0.4142,
@@ -7900,7 +7900,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.4307,
         "break_even_adv": 0.4302,
@@ -7936,7 +7936,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.3687,
         "break_even_adv": 0.3692,
@@ -7972,7 +7972,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.3531,
         "break_even_adv": 0.353,
@@ -8008,7 +8008,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.2323,
         "break_even_adv": 0.2323,
@@ -8044,7 +8044,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.1063,
         "break_even_adv": 0.1064,
@@ -8080,7 +8080,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.0309,
         "break_even_adv": 0.0309,
@@ -8116,7 +8116,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "UNDER",
         "prob_edge": -0.0207,
         "break_even_adv": 0.0208,
@@ -8152,7 +8152,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.0495,
         "break_even_adv": 0.0494,
@@ -8188,7 +8188,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "UNDER",
         "prob_edge": -0.0819,
         "break_even_adv": 0.0816,
@@ -8224,7 +8224,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.4656,
         "break_even_adv": 0.4662,
@@ -8260,7 +8260,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.3389,
         "break_even_adv": 0.339,
@@ -8296,7 +8296,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "UNDER",
         "prob_edge": -0.0661,
         "break_even_adv": 0.0663,
@@ -8332,7 +8332,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "UNDER",
         "prob_edge": -0.1806,
         "break_even_adv": 0.1798,
@@ -8368,7 +8368,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "UNDER",
         "prob_edge": -0.1015,
         "break_even_adv": 0.1016,
@@ -8404,7 +8404,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "UNDER",
         "prob_edge": -0.085,
         "break_even_adv": 0.085,
@@ -8440,7 +8440,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "UNDER",
         "prob_edge": -0.05,
         "break_even_adv": 0.05,
@@ -8476,7 +8476,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.3184,
         "break_even_adv": 0.3182,
@@ -8512,7 +8512,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.2003,
         "break_even_adv": 0.2006,
@@ -8548,7 +8548,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.0849,
         "break_even_adv": 0.0846,
@@ -8584,7 +8584,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "UNDER",
         "prob_edge": -0.0153,
         "break_even_adv": 0.0153,
@@ -8620,7 +8620,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "UNDER",
         "prob_edge": -0.0557,
         "break_even_adv": 0.0556,
@@ -8656,7 +8656,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "UNDER",
         "prob_edge": -0.0041,
         "break_even_adv": 0.0043,
@@ -8692,7 +8692,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.1757,
         "break_even_adv": 0.1758,
@@ -8728,7 +8728,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.0451,
         "break_even_adv": 0.0452,
@@ -8764,7 +8764,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "UNDER",
         "prob_edge": -0.091,
         "break_even_adv": 0.0911,
@@ -8800,7 +8800,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.3089,
         "break_even_adv": 0.3085,
@@ -8836,7 +8836,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.2801,
         "break_even_adv": 0.2804,
@@ -8872,7 +8872,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.1487,
         "break_even_adv": 0.1487,
@@ -8908,7 +8908,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.1925,
         "break_even_adv": 0.1923,
@@ -8944,7 +8944,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.0638,
         "break_even_adv": 0.064,
@@ -8980,7 +8980,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "UNDER",
         "prob_edge": -0.0337,
         "break_even_adv": 0.0338,
@@ -9016,7 +9016,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "UNDER",
         "prob_edge": -0.195,
         "break_even_adv": 0.1951,
@@ -9052,7 +9052,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "UNDER",
         "prob_edge": -0.0689,
         "break_even_adv": 0.0688,
@@ -9088,7 +9088,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "UNDER",
         "prob_edge": -0.0968,
         "break_even_adv": 0.0966,
@@ -9124,7 +9124,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.0862,
         "break_even_adv": 0.0859,
@@ -9160,7 +9160,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.0182,
         "break_even_adv": 0.0183,
@@ -9196,7 +9196,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "UNDER",
         "prob_edge": -0.0191,
         "break_even_adv": 0.0192,
@@ -9232,7 +9232,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.2189,
         "break_even_adv": 0.2185,
@@ -9268,7 +9268,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.2824,
         "break_even_adv": 0.2825,
@@ -9304,7 +9304,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.0392,
         "break_even_adv": 0.039,
@@ -9340,7 +9340,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "UNDER",
         "prob_edge": -0.0937,
         "break_even_adv": 0.0938,
@@ -9376,7 +9376,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "UNDER",
         "prob_edge": -0.19,
         "break_even_adv": 0.1898,
@@ -9412,7 +9412,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.56,
         "break_even_adv": 0.5594,
@@ -9448,7 +9448,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.3472,
         "break_even_adv": 0.3464,
@@ -9484,7 +9484,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.561,
         "break_even_adv": 0.5609,
@@ -9520,7 +9520,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.3443,
         "break_even_adv": 0.3447,
@@ -9556,7 +9556,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.2482,
         "break_even_adv": 0.248,
@@ -9592,7 +9592,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.1302,
         "break_even_adv": 0.1302,
@@ -9628,7 +9628,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.2855,
         "break_even_adv": 0.2852,
@@ -9664,7 +9664,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.1233,
         "break_even_adv": 0.1233,
@@ -9700,7 +9700,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "UNDER",
         "prob_edge": -0.026,
         "break_even_adv": 0.0261,
@@ -9736,7 +9736,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "UNDER",
         "prob_edge": -0.1162,
         "break_even_adv": 0.1161,
@@ -9772,7 +9772,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "UNDER",
         "prob_edge": -0.14,
         "break_even_adv": 0.1401,
@@ -9808,7 +9808,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "UNDER",
         "prob_edge": -0.145,
         "break_even_adv": 0.1449,
@@ -9844,7 +9844,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "UNDER",
         "prob_edge": -0.06,
         "break_even_adv": 0.06,
@@ -9880,7 +9880,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.4567,
         "break_even_adv": 0.4562,
@@ -9916,7 +9916,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.0986,
         "break_even_adv": 0.0982,
@@ -9952,7 +9952,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.3076,
         "break_even_adv": 0.308,
@@ -9988,7 +9988,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.2349,
         "break_even_adv": 0.2348,
@@ -10024,7 +10024,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.1152,
         "break_even_adv": 0.1152,
@@ -10060,7 +10060,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "UNDER",
         "prob_edge": -0.1263,
         "break_even_adv": 0.126,
@@ -10096,7 +10096,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "UNDER",
         "prob_edge": -0.0313,
         "break_even_adv": 0.0313,
@@ -10132,7 +10132,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "UNDER",
         "prob_edge": -0.052,
         "break_even_adv": 0.0521,
@@ -10168,7 +10168,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.0546,
         "break_even_adv": 0.0547,
@@ -10204,7 +10204,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.1372,
         "break_even_adv": 0.1372,
@@ -10240,7 +10240,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "UNDER",
         "prob_edge": -0.1378,
         "break_even_adv": 0.1381,
@@ -10276,7 +10276,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.1347,
         "break_even_adv": 0.1347,
@@ -10312,7 +10312,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.2749,
         "break_even_adv": 0.2751,
@@ -10348,7 +10348,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.1269,
         "break_even_adv": 0.1269,
@@ -10384,7 +10384,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "UNDER",
         "prob_edge": -0.007,
         "break_even_adv": 0.007,
@@ -10420,7 +10420,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.135,
         "break_even_adv": 0.1354,
@@ -10456,7 +10456,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.054,
         "break_even_adv": 0.0541,
@@ -10492,7 +10492,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "UNDER",
         "prob_edge": -0.0263,
         "break_even_adv": 0.0261,
@@ -10528,7 +10528,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "UNDER",
         "prob_edge": -0.0453,
         "break_even_adv": 0.0452,
@@ -10564,7 +10564,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.0569,
         "break_even_adv": 0.0568,
@@ -10600,7 +10600,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.0614,
         "break_even_adv": 0.0611,
@@ -10636,7 +10636,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.3158,
         "break_even_adv": 0.3161,
@@ -10672,7 +10672,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.2799,
         "break_even_adv": 0.2798,
@@ -10708,7 +10708,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.2059,
         "break_even_adv": 0.2058,
@@ -10744,7 +10744,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.1418,
         "break_even_adv": 0.1418,
@@ -10780,7 +10780,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "UNDER",
         "prob_edge": -0.3196,
         "break_even_adv": 0.3191,
@@ -10816,7 +10816,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "UNDER",
         "prob_edge": -0.185,
         "break_even_adv": 0.1847,
@@ -10852,7 +10852,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "UNDER",
         "prob_edge": -0.415,
         "break_even_adv": 0.4151,
@@ -10888,7 +10888,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "UNDER",
         "prob_edge": -0.395,
         "break_even_adv": 0.3944,
@@ -10924,7 +10924,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.6268,
         "break_even_adv": 0.6267,
@@ -10960,7 +10960,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.4996,
         "break_even_adv": 0.4995,
@@ -10996,7 +10996,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.2528,
         "break_even_adv": 0.2523,
@@ -11032,7 +11032,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.0752,
         "break_even_adv": 0.0753,
@@ -11068,7 +11068,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.2553,
         "break_even_adv": 0.2558,
@@ -11104,7 +11104,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.358,
         "break_even_adv": 0.358,
@@ -11140,7 +11140,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.1388,
         "break_even_adv": 0.1388,
@@ -11176,7 +11176,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.0672,
         "break_even_adv": 0.0675,
@@ -11212,7 +11212,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.1219,
         "break_even_adv": 0.1221,
@@ -11248,7 +11248,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "UNDER",
         "prob_edge": -0.0213,
         "break_even_adv": 0.0213,
@@ -11284,7 +11284,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.5664,
         "break_even_adv": 0.5664,
@@ -11320,7 +11320,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.555,
         "break_even_adv": 0.5549,
@@ -11356,7 +11356,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.448,
         "break_even_adv": 0.4481,
@@ -11392,7 +11392,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.1451,
         "break_even_adv": 0.1457,
@@ -11428,7 +11428,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.1271,
         "break_even_adv": 0.1271,
@@ -11464,7 +11464,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.484,
         "break_even_adv": 0.4835,
@@ -11500,7 +11500,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.4287,
         "break_even_adv": 0.4289,
@@ -11536,7 +11536,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": true,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "OVER",
         "prob_edge": 0.0547,
         "break_even_adv": 0.0547,
@@ -11572,7 +11572,7 @@
       "end_date": "2026-10-30T00:15:00Z",
       "evaluation": {
         "is_qualified": false,
-        "status": "VERIFIED",
+        "status": "OBSERVED",
         "best_side": "UNDER",
         "prob_edge": -0.015,
         "break_even_adv": 0.015,

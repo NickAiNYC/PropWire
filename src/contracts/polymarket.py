@@ -53,6 +53,8 @@ class PolymarketMergedFeed(BaseModel):
     quotes: list[dict]
     total_quotes: int = Field(ge=0)
     polymarket_quotes_count: int = Field(gt=0)
+    verified_books_count: int = Field(default=0, ge=0)
+    verified_quotes_count: int = Field(default=0, ge=0)
 
     @model_validator(mode="after")
     def check_quotes(self):
@@ -61,6 +63,15 @@ class PolymarketMergedFeed(BaseModel):
         polymarket = [q for q in self.quotes if q.get("book") == "Polymarket"]
         if len(polymarket) != self.polymarket_quotes_count:
             raise ValueError("polymarket_quotes_count mismatch")
+        # A local content hash records what we saw; it cannot verify an
+        # independently executable provider price. This publisher has no
+        # independent receipt check, so the mixed feed must remain unverified.
+        if self.feed_status != "LIVE_POLYMARKET_CLOB_UNVERIFIED":
+            raise ValueError("Polymarket feed must identify unverified CLOB observations")
+        if self.verified_books_count or self.verified_quotes_count:
+            raise ValueError("unverified Polymarket feed cannot claim verified counts")
         for quote in polymarket:
             PolymarketQuote.model_validate(quote)
+            if quote.get("verified") is True or str((quote.get("evaluation") or {}).get("status", "")).upper() == "VERIFIED":
+                raise ValueError("Polymarket observation cannot claim independent verification")
         return self

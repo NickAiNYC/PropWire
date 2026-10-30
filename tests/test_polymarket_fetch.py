@@ -124,6 +124,15 @@ def test_merge_feed_is_idempotent_and_fails_closed(tmp_path, monkeypatch):
     assert len(pm_n) == 1
     assert any(q["book"] == "Synthetic Book A" for q in data2["quotes"])
 
+    from src.contracts.polymarket import PolymarketMergedFeed
+    with pytest.raises(ValueError, match="verified counts"):
+        PolymarketMergedFeed.model_validate({**data2, "verified_quotes_count": 1})
+    with pytest.raises(ValueError, match="independent verification"):
+        PolymarketMergedFeed.model_validate({**data2, "quotes": [
+            *[q for q in data2["quotes"] if q["book"] != "Polymarket"],
+            {**pm_n[0], "evaluation": {"status": "VERIFIED"}},
+        ]})
+
     # A malformed CLOB observation is quarantined without replacing the feed.
     prior = feed_path.read_bytes()
     assert pm.merge_feed([dict(quote, under_ask_price=1.2)]) is False
@@ -152,3 +161,13 @@ def test_network_failure_leaves_feed_untouched(tmp_path, monkeypatch):
     before = feed_path.read_bytes()
     assert pm.main() == 0
     assert feed_path.read_bytes() == before
+
+
+def test_published_polymarket_snapshot_does_not_claim_verified_prices():
+    feed = json.loads((ROOT / "viewer" / "live_odds_feed.json").read_text())
+    polymarket = [q for q in feed["quotes"] if q.get("book") == "Polymarket"]
+    assert feed["feed_status"] == "LIVE_POLYMARKET_CLOB_UNVERIFIED"
+    assert feed["polymarket_quotes_count"] == len(polymarket)
+    assert feed["verified_quotes_count"] == feed["verified_books_count"] == 0
+    assert all(q.get("verified") is not True for q in polymarket)
+    assert all((q.get("evaluation") or {}).get("status") != "VERIFIED" for q in polymarket)
