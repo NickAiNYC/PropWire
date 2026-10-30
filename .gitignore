@@ -1,7 +1,9 @@
+# Rebuilt research lineage (Decision 2C/2D). Patterns are written so they hold at
+# any depth under research/drive-rec-v2/.
 data/
 __pycache__/
 *.pyc
 .ipynb_checkpoints/
-artifacts/*.joblib
-artifacts/*.parquet
+**/artifacts/*.joblib
+**/artifacts/*.parquet
 .env

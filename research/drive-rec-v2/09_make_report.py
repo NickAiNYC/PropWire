@@ -21,7 +21,7 @@ import sys
 from datetime import datetime, timezone
 
 sys.path.insert(0, str(__import__("pathlib").Path(__file__).resolve().parents[1]))
-from lib.common import ARTIFACTS, REPO  # noqa: E402
+from lib.common import ARTIFACTS, DOCS, HUMAN_REVIEW  # noqa: E402
 
 
 def sha256_of(path) -> str:
@@ -432,8 +432,8 @@ def main() -> int:
       "`artifacts/incumbent_model.json`. Raw data is reproducible via "
       "`research/00_download_data.py` (provenance manifest with per-file hashes).\n")
 
-    (REPO / "docs").mkdir(exist_ok=True)
-    with open(REPO / "docs" / "TAIL_RECALIBRATION_REPORT.md", "w") as f:
+    DOCS.mkdir(exist_ok=True)
+    with open(DOCS / "TAIL_RECALIBRATION_REPORT.md", "w") as f:
         f.write("\n".join(md))
 
     # ---------------- criteria doc ----------------
@@ -446,7 +446,7 @@ def main() -> int:
         cv.append(f"## {k}\n")
         v = criteria[k]
         cv.append("```json\n" + json.dumps(v, indent=2) + "\n```\n")
-    with open(REPO / "docs" / "CRITERIA_V3.md", "w") as f:
+    with open(DOCS / "CRITERIA_V3.md", "w") as f:
         f.write("\n".join(cv))
 
     # ---------------- HUMAN_REVIEW.md (unsigned) ----------------
@@ -489,7 +489,7 @@ def main() -> int:
           "- Decision: ______________________",
           "",
           "*(Left blank intentionally.)*\n"]
-    with open(REPO / "HUMAN_REVIEW.md", "w") as f:
+    with open(HUMAN_REVIEW, "w") as f:
         f.write("\n".join(hr))
 
     master = {

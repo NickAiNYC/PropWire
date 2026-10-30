@@ -10,9 +10,16 @@ from __future__ import annotations
 
 import pathlib
 
-REPO = pathlib.Path(__file__).resolve().parents[2]
-DATA = REPO / "data"
-ARTIFACTS = REPO / "artifacts"
+# DRIVE = the Decision 2C/2D research drive directory (research/drive-rec-v2).
+# Per Decision 2D §5 (rebuild and provenance control), the entire rebuilt lineage
+# lives under this path so it can never clobber the main repository's root files
+# when the three-patch series (or this branch) is incorporated.
+DRIVE = pathlib.Path(__file__).resolve().parents[1]
+REPO = DRIVE.parents[1]
+DATA = DRIVE / "data"
+ARTIFACTS = DRIVE / "artifacts"
+DOCS = DRIVE / "docs"
+HUMAN_REVIEW = DRIVE / "HUMAN_REVIEW.md"
 
 SEASONS_PRIOR_SOURCE = [2022]          # used only to initialize priors for the 2023 training season
 SEASONS_MODELED = [2023, 2024, 2025, 2026]

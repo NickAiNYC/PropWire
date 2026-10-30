@@ -1,0 +1,316 @@
+{
+  "generated_at_utc": "2026-10-30T05:37:04.102917+00:00",
+  "purpose": "Decision 2D \u00a75 provenance verification before incorporation",
+  "manifest_section_11": {
+    "claims_checked": 25,
+    "matches": 24,
+    "mismatches": [
+      {
+        "file": "tail_recalibration_report.json",
+        "claim": "9edf733f51d8435c",
+        "actual": "1e8c5264738e8d6b"
+      }
+    ],
+    "self_hash_erratum_proof": {
+      "file": "tail_recalibration_report.json",
+      "explanation": "Self-referential hash: script 09 computed the \u00a711 table before writing the master report JSON, so its own entry is stale by construction. Not evidence of tampering.",
+      "added_in_commit": "ae48c53f3b70",
+      "sha256_at_add_commit": "1e8c5264738e8d6b",
+      "sha256_now": "1e8c5264738e8d6b",
+      "unchanged_since_add_commit": true
+    },
+    "detail": {
+      "candidate_evaluation.json": {
+        "claim": "66df18ada277ae3f",
+        "actual": "66df18ada277ae3f",
+        "match": true
+      },
+      "candidate_predictions_2023.csv.gz": {
+        "claim": "3cfe497d3382efe1",
+        "actual": "3cfe497d3382efe1",
+        "match": true
+      },
+      "candidate_predictions_2024.csv.gz": {
+        "claim": "814a29250133e644",
+        "actual": "814a29250133e644",
+        "match": true
+      },
+      "candidate_predictions_2025.csv.gz": {
+        "claim": "6b92edf602be8baa",
+        "actual": "6b92edf602be8baa",
+        "match": true
+      },
+      "candidate_predictions_2026.csv.gz": {
+        "claim": "182cb9ff9dbfb377",
+        "actual": "182cb9ff9dbfb377",
+        "match": true
+      },
+      "corpus_stats.json": {
+        "claim": "e01f1f2b35f82da9",
+        "actual": "e01f1f2b35f82da9",
+        "match": true
+      },
+      "criteria_v3.json": {
+        "claim": "27f5513b7bb53f78",
+        "actual": "27f5513b7bb53f78",
+        "match": true
+      },
+      "dev_comparison.json": {
+        "claim": "c06a62800cf537e9",
+        "actual": "c06a62800cf537e9",
+        "match": true
+      },
+      "ev_gate_2025.json": {
+        "claim": "98352936ff2e5e0e",
+        "actual": "98352936ff2e5e0e",
+        "match": true
+      },
+      "ev_gate_2026.json": {
+        "claim": "efe7a8edcb012534",
+        "actual": "efe7a8edcb012534",
+        "match": true
+      },
+      "ev_gate_sensitivity_2025.csv": {
+        "claim": "86cf846058c67fb5",
+        "actual": "86cf846058c67fb5",
+        "match": true
+      },
+      "ev_gate_sensitivity_2026.csv": {
+        "claim": "00ae1ebbca6067eb",
+        "actual": "00ae1ebbca6067eb",
+        "match": true
+      },
+      "incumbent_evaluation.json": {
+        "claim": "d25925f91c093b61",
+        "actual": "d25925f91c093b61",
+        "match": true
+      },
+      "incumbent_model.json": {
+        "claim": "9bf7f7a767d78a5d",
+        "actual": "9bf7f7a767d78a5d",
+        "match": true
+      },
+      "incumbent_predictions_2023.csv.gz": {
+        "claim": "b1577544e89aca3b",
+        "actual": "b1577544e89aca3b",
+        "match": true
+      },
+      "incumbent_predictions_2024.csv.gz": {
+        "claim": "71e8725e1d44843d",
+        "actual": "71e8725e1d44843d",
+        "match": true
+      },
+      "incumbent_predictions_2025.csv.gz": {
+        "claim": "d72d8122c43582ce",
+        "actual": "d72d8122c43582ce",
+        "match": true
+      },
+      "incumbent_predictions_2026.csv.gz": {
+        "claim": "0d5751a96bd20501",
+        "actual": "0d5751a96bd20501",
+        "match": true
+      },
+      "incumbent_reliability_2023.csv": {
+        "claim": "36c5212178ea0d2c",
+        "actual": "36c5212178ea0d2c",
+        "match": true
+      },
+      "incumbent_reliability_2024.csv": {
+        "claim": "eca6998e200fe391",
+        "actual": "eca6998e200fe391",
+        "match": true
+      },
+      "incumbent_reliability_2025.csv": {
+        "claim": "f306f021094db594",
+        "actual": "f306f021094db594",
+        "match": true
+      },
+      "incumbent_reliability_2026.csv": {
+        "claim": "3ea6e92eda3bb8d8",
+        "actual": "3ea6e92eda3bb8d8",
+        "match": true
+      },
+      "isotonic_calibrator.json": {
+        "claim": "6e6174616d3fd11a",
+        "actual": "6e6174616d3fd11a",
+        "match": true
+      },
+      "provenance_manifest.json": {
+        "claim": "72c965e782fa55d1",
+        "actual": "72c965e782fa55d1",
+        "match": true
+      },
+      "tail_recalibration_report.json": {
+        "claim": "9edf733f51d8435c",
+        "actual": "1e8c5264738e8d6b",
+        "match": false
+      }
+    }
+  },
+  "criteria_commit_ordering": {
+    "criteria_added": {
+      "commit": "f8627215c126",
+      "date": "2026-10-30T04:12:44Z"
+    },
+    "candidate_eval_added": {
+      "commit": "ae48c53f3b70",
+      "date": "2026-10-30T04:23:37Z"
+    },
+    "criteria_precedes_candidate": true,
+    "criteria_file_unchanged_since_add": true,
+    "embedded_content_sha256_matches": true
+  },
+  "reconstructed_corpus": {
+    "2023": {
+      "claimed": {
+        "rows": 54680,
+        "games": 272,
+        "drives": 6141,
+        "positive_rate": 0.15466349670811996
+      },
+      "actual": {
+        "rows": 54680,
+        "games": 272,
+        "drives": 6141,
+        "positive_rate": 0.15466349670811996
+      },
+      "match": true
+    },
+    "2024": {
+      "claimed": {
+        "rows": 51814,
+        "games": 272,
+        "drives": 5944,
+        "positive_rate": 0.160149766472382
+      },
+      "actual": {
+        "rows": 51814,
+        "games": 272,
+        "drives": 5944,
+        "positive_rate": 0.160149766472382
+      },
+      "match": true
+    },
+    "2025": {
+      "claimed": {
+        "rows": 51114,
+        "games": 272,
+        "drives": 5829,
+        "positive_rate": 0.15833235512775365
+      },
+      "actual": {
+        "rows": 51114,
+        "games": 272,
+        "drives": 5829,
+        "positive_rate": 0.15833235512775365
+      },
+      "match": true
+    },
+    "2026": {
+      "claimed": {
+        "rows": 21357,
+        "games": 107,
+        "drives": 2336,
+        "positive_rate": 0.14917825537294563
+      },
+      "actual": {
+        "rows": 21357,
+        "games": 107,
+        "drives": 2336,
+        "positive_rate": 0.14917825537294563
+      },
+      "match": true
+    },
+    "all_assertions_passed_in_build": true
+  },
+  "training_split_discipline": {
+    "incumbent": {
+      "train_season": 2023,
+      "train_rows": 54680,
+      "C": 0.01,
+      "train_is_2023_only": true
+    },
+    "isotonic": {
+      "fitted_on": "2024 development season only (all weeks)",
+      "n_fit_rows": 51814,
+      "fitted_on_2024_dev_only": false
+    },
+    "scripts": {
+      "02_fit_incumbent.py": {
+        "fit_call_count": 2,
+        "fit_lines": [
+          "pipe.fit(",
+          "incumbent.fit("
+        ]
+      },
+      "05_fit_recalibration.py": {
+        "fit_call_count": 1,
+        "fit_lines": [
+          "iso.fit("
+        ]
+      },
+      "07_evaluate_candidate.py": {
+        "fit_call_count": 0,
+        "fit_lines": []
+      },
+      "08_ev_reliability_gate.py": {
+        "fit_call_count": 0,
+        "fit_lines": []
+      }
+    },
+    "evaluation_scripts_are_load_only": true,
+    "static_check_caveat": "Static source checks complement, not replace, the artifact-level checks above; both agree in this run."
+  },
+  "raw_data_integrity": {
+    "2022_play_by_play": {
+      "match": true,
+      "bytes_match": true
+    },
+    "2023_play_by_play": {
+      "match": true,
+      "bytes_match": true
+    },
+    "2024_play_by_play": {
+      "match": true,
+      "bytes_match": true
+    },
+    "2025_play_by_play": {
+      "match": true,
+      "bytes_match": true
+    },
+    "2026_play_by_play": {
+      "match": true,
+      "bytes_match": true
+    },
+    "None_player_registry": {
+      "match": true,
+      "bytes_match": true
+    },
+    "None_game_schedule": {
+      "match": true,
+      "bytes_match": true
+    }
+  },
+  "git_lineage": {
+    "lineage": "independent rebuild (post sandbox-recycle)",
+    "commits_oldest_first": [
+      {
+        "commit": "0d1e0512865b",
+        "date": "2026-10-30T03:54:36Z",
+        "subject": "chore(research): scaffold Decision 2C tail-calibration workspace with licensing rules and rebuild disclosure"
+      },
+      {
+        "commit": "f8627215c126",
+        "date": "2026-10-30T04:12:44Z",
+        "subject": "feat(research): rebuild corpus, frozen logistic incumbent, incumbent evaluation, and criteria v3 defined before candidate evaluation"
+      },
+      {
+        "commit": "ae48c53f3b70",
+        "date": "2026-10-30T04:23:37Z",
+        "subject": "feat(research): isotonic tail recalibration on 2024 dev, criteria v3 evaluation, hypothetical EV reliability gate, and fail-closed report"
+      }
+    ],
+    "unrecovered_original_commits": "The six original DRIVE-REC-V1 local commits from the pre-recycle sandbox are UNRECOVERED: they were never pushed, their hashes are not available in this environment, and they are deliberately NOT represented as restored. This rebuild lineage (3 commits) is an explicitly independent re-derivation.",
+    "remote": "(none configured)"
+  }
+}

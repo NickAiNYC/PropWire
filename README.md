@@ -1,96 +1,48 @@
-# PropStein Live Sniper — Research Workspace (Decision 2C)
+# propstein-live-sniper — research lineage (rebuild)
 
-## Scope of this workspace
+This repository/branch is the **independent rebuild lineage** of the PropStein Live
+Sniper research track (Decisions 2C and 2D). It contains **research code and
+artifacts only**: no live sportsbook adapters, no order-placement code, and no
+production credentials. The model is **RESEARCH_ONLY**.
 
-This workspace implements **Decision 2C: Tail Calibration & Economic Reliability** for the
-PropStein Live Sniper research track.
+## Where everything lives
 
-Authorized work (per Decision 2C):
-
-1. Fit **isotonic recalibration** using **2024 development data only**, with the underlying
-   logistic model **frozen**.
-2. Compare the recalibrated model against the incumbent **on development data** before any
-   further holdout evaluation.
-3. Define **criteria v3** (top-decile calibration threshold, minimum sample requirements,
-   uncertainty bounds) **before** evaluating the candidate.
-4. Evaluate calibration specifically in the regions where the alert engine would operate,
-   including **p >= 0.30** and each **positive simulated-EV band**.
-5. Test whether recalibration improves tail reliability **without materially degrading**
-   global Brier score, log loss, or other prospective slices.
-6. **Preserve original predictions and calibration artifacts** for comparison.
-
-Additional requirement — **economic validation** (EV reliability gate):
-
-* Per alert threshold: number of qualifying observations, mean predicted probability vs.
-  realized frequency, predicted vs. realized return at the evaluated prices, game-clustered
-  confidence intervals, and sensitivity to quote latency, stale prices, and execution
-  assumptions.
-* The historical corpus contains **no genuine contemporaneous market quotes**, so probability
-  calibration is reported separately and **all simulated-price EV analysis is labeled
-  HYPOTHETICAL**. It cannot establish executable betting profitability.
-
-## Rebuild disclosure (important)
-
-The engineering sandbox that produced the original DRIVE-REC-V1 artifacts was recycled
-before this session. The original working tree (including the six local commits referenced
-in Decision 2C) is **not present in this environment**, and the private GitHub repository is
-not accessible from here (credentials are intentionally excluded from this session per the
-agreed security rule).
-
-This workspace therefore **rebuilds the corpus, the frozen logistic incumbent, and the full
-calibration harness from public nflverse data**. Consequences:
-
-* Every number in `artifacts/` and `docs/` is **freshly measured in this run** and is fully
-  reproducible from the scripts in `research/`.
-* The figures quoted in Decision 2C (40.0% predicted / 31.5% observed in the p >= 0.30 tail)
-  were produced by the prior environment and are treated as **reported findings, not as
-  ground truth**. Where this rebuild's measurements differ, the difference is disclosed in
-  `docs/TAIL_RECALIBRATION_REPORT.md` rather than reconciled by tuning.
-* No result from the prior environment is used as an input anywhere in this pipeline.
-
-## Promotion status (unchanged by this workspace)
-
-| Component | Decision |
-| --- | --- |
-| Offline logistic baseline | Retain |
-| Mixture models M2/M3 | Do not promote |
-| Criteria v2 research results | Accept as reported |
-| Tail recalibration research | Approved (this workspace) |
-| Human sign-off | Deferred |
-| CALIBRATED label | Blocked |
-| Real-book model coverage | NO_COVERAGE |
-| Live sportsbook adapters | Disabled |
-
-The model remains **research-only**. `HUMAN_REVIEW.md` is present but **unsigned**.
-
-## Data licensing
-
-See `LICENSES.md`. All inputs are nflverse releases (CC BY 4.0). Big Data Bowl data
-(non-commercial license) is **excluded** and must never enter this pipeline.
-
-## Layout
+All research work — the rebuilt Decision 2C tail-calibration pipeline **and** the
+Decision 2D historical-quote validation pilot — lives under:
 
 ```
-research/            numbered, order-of-operations pipeline scripts
-  lib/               shared loading / metrics / bootstrap helpers
-artifacts/           every JSON/CSV produced by the pipeline (auditable outputs)
-docs/                human-readable reports and criteria definitions
-data/                downloaded raw data (gitignored; reproducible via 00_download_data.py)
+research/drive-rec-v2/
+  README.md               workspace readme (Decision 2C scope, rebuild disclosure, how to run)
+  PROVENANCE.md           rebuild lineage, verification results, incorporation recipe
+  DECISION_LOG.md         Decision 2C review outcome and Decision 2D authorization record
+  HUMAN_REVIEW.md         present, UNSIGNED, status DEFERRED
+  00–09_*.py              rebuilt pipeline (corpus → incumbent → criteria v3 → candidate → report)
+  10_selection_amplification.py   EV-threshold selection-amplification diagnostic (Decision 2C review)
+  verify_provenance.py    artifact-hash / corpus / ordering / split verification
+  decision_2d/            precommitted execution contract + pilot harness (quotes pending)
+  lib/                    shared loaders, metrics, clustered bootstrap
+  docs/                   CRITERIA_V3.md, TAIL_RECALIBRATION_REPORT.md, Decision 2D docs
+  artifacts/              every auditable output (models, predictions, gates, reports)
+  data/                   gitignored raw nflverse downloads (reproducible via 00_download_data.py)
 ```
 
-## How to run
+## Why this layout (Decision 2D §5)
 
-```
-python research/00_download_data.py
-python research/01_build_corpus.py
-python research/02_fit_incumbent.py
-python research/03_evaluate_incumbent.py
-python research/04_define_criteria_v3.py      # MUST run before 07
-python research/05_fit_recalibration.py
-python research/06_compare_dev.py
-python research/07_evaluate_candidate.py
-python research/08_ev_reliability_gate.py
-python research/09_make_report.py
-```
+The original engineering sandbox (including six local DRIVE-REC-V1 commits) was
+lost before this rebuild. Those six commits are **documented as unrecovered**,
+not restored. This lineage is explicitly independent; every number was re-measured
+from public nflverse data (CC BY 4.0). See `research/drive-rec-v2/PROVENANCE.md`.
 
-Requirements: see `requirements-research.txt`.
+Nesting everything under `research/drive-rec-v2/` guarantees that incorporating
+this work into the main repository **cannot replace the main repo's root README,
+.gitignore, or any other root file**. The same applies to the delivered three-patch
+series: apply it with `git apply --directory=research/drive-rec-v2` (tested; see
+PROVENANCE.md §Incorporation) so all paths land inside the drive directory.
+
+## Licensing
+
+nflverse data only (CC BY 4.0, attribution in
+`research/drive-rec-v2/LICENSES.md`). Big Data Bowl / NGS tracking data
+(non-commercial) is excluded. No licensed sportsbook quote feed has been
+purchased yet; all prior price-based analysis used **simulated (hypothetical)**
+quotes.
