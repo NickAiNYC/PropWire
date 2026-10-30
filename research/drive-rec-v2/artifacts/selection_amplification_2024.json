@@ -1,0 +1,236 @@
+{
+  "season": 2024,
+  "label": "development (cross-fitted candidate)",
+  "candidate": {
+    "model": "candidate (isotonic)",
+    "hypothetical": true,
+    "quote_scenario": "criteria v3 C8 baseline (vig 0.06, latency 1 drive, slippage 0.02), references from script 08",
+    "unconditional_alert_region": {
+      "n": 11351,
+      "n_games": 272,
+      "mean_pred": 0.3326579156021495,
+      "observed": 0.3326579156021496,
+      "gap_pp": 5.551115123125783e-15,
+      "gap_ci_pp": [
+        -0.8970147909000483,
+        0.9039781176042878
+      ],
+      "mean_p_minus_ref_pp": 1.0241230583277288,
+      "mean_y_minus_ref_pp": 1.0241230583277312
+    },
+    "conditional_on_ev_band": {
+      "EV >= 0%": {
+        "n": 3452,
+        "n_games": 272,
+        "mean_pred": 0.3288234093002713,
+        "observed": 0.32329084588644263,
+        "gap_pp": -0.5532563413828684,
+        "gap_ci_pp": [
+          -2.1214376927430663,
+          0.9178901937428809
+        ],
+        "mean_p_minus_ref_pp": 7.080330134465458,
+        "mean_y_minus_ref_pp": 6.527073793082591
+      },
+      "EV >= 3%": {
+        "n": 2307,
+        "n_games": 271,
+        "mean_pred": 0.3401922027476704,
+        "observed": 0.33116601647160815,
+        "gap_pp": -0.9026186276062276,
+        "gap_ci_pp": [
+          -2.8907868958308534,
+          1.0610127225427726
+        ],
+        "mean_p_minus_ref_pp": 9.309503087964284,
+        "mean_y_minus_ref_pp": 8.406884460358059
+      },
+      "EV >= 5%": {
+        "n": 2229,
+        "n_games": 271,
+        "mean_pred": 0.3399720897150069,
+        "observed": 0.33288470165993717,
+        "gap_pp": -0.7087388055069754,
+        "gap_ci_pp": [
+          -2.7545793919820882,
+          1.2357641026937773
+        ],
+        "mean_p_minus_ref_pp": 9.497596488676491,
+        "mean_y_minus_ref_pp": 8.78885768316951
+      },
+      "EV >= 8%": {
+        "n": 2017,
+        "n_games": 270,
+        "mean_pred": 0.3347290602566399,
+        "observed": 0.32374814080317305,
+        "gap_pp": -1.0980919453466853,
+        "gap_ci_pp": [
+          -3.216476439078885,
+          1.1725227399904625
+        ],
+        "mean_p_minus_ref_pp": 9.947015764272182,
+        "mean_y_minus_ref_pp": 8.848923818925494
+      }
+    },
+    "amplification_ev5": {
+      "gap_unconditional_pp": 5.551115123125783e-15,
+      "gap_selected_pp": -0.7087388055069754,
+      "total_amplification_pp": -0.708738805506981,
+      "composition_part_pp": 0.0017711524123893683,
+      "selection_mechanism_part_pp": -0.7105099579193703,
+      "matched_control": {
+        "bins": [
+          0.25,
+          0.3,
+          0.35,
+          0.4,
+          0.45,
+          0.5,
+          0.7
+        ],
+        "bins_used": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "weights": [
+          0.34589502018842533,
+          0.33288470165993717,
+          0.06370569762225213,
+          0.2543741588156124,
+          0.0026917900403768506,
+          0.00044863167339614175
+        ],
+        "control_gap": 0.0017711524123949194,
+        "control_gap_ci": [
+          -0.009060518270954644,
+          0.01325652719602643
+        ],
+        "share_selected_rows_in_skipped_bins": 1.1102230246251565e-16
+      }
+    },
+    "mechanism_probes": {
+      "corr_p_minus_ref_vs_y_minus_p_alert_region": 0.013850752776465884,
+      "note": "corr > 0 means rows where the model most exceeds its own stale reference are also rows where it overpredicts reality: the EV filter then selects calibration error."
+    }
+  },
+  "incumbent": {
+    "model": "incumbent (logistic)",
+    "hypothetical": true,
+    "quote_scenario": "criteria v3 C8 baseline (vig 0.06, latency 1 drive, slippage 0.02), references from script 08",
+    "unconditional_alert_region": {
+      "n": 8266,
+      "n_games": 272,
+      "mean_pred": 0.34446588268862494,
+      "observed": 0.35446406968303895,
+      "gap_pp": 0.9998186994414016,
+      "gap_ci_pp": [
+        -0.10753932128434562,
+        2.121633795988801
+      ],
+      "mean_p_minus_ref_pp": 0.14831672953729463,
+      "mean_y_minus_ref_pp": 1.1481354289786991
+    },
+    "conditional_on_ev_band": {
+      "EV >= 0%": {
+        "n": 2119,
+        "n_games": 267,
+        "mean_pred": 0.40880854966531555,
+        "observed": 0.37328928739971684,
+        "gap_pp": -3.5519262265598703,
+        "gap_ci_pp": [
+          -5.642008739063188,
+          -1.4498450947875825
+        ],
+        "mean_p_minus_ref_pp": 8.873252936483366,
+        "mean_y_minus_ref_pp": 5.321326709923493
+      },
+      "EV >= 3%": {
+        "n": 1748,
+        "n_games": 265,
+        "mean_pred": 0.4146086403438241,
+        "observed": 0.37757437070938216,
+        "gap_pp": -3.703426963444195,
+        "gap_ci_pp": [
+          -5.970704042376722,
+          -1.5580429384409784
+        ],
+        "mean_p_minus_ref_pp": 10.038254714338422,
+        "mean_y_minus_ref_pp": 6.334827750894223
+      },
+      "EV >= 5%": {
+        "n": 1543,
+        "n_games": 264,
+        "mean_pred": 0.4167055616161781,
+        "observed": 0.3765392093324692,
+        "gap_pp": -4.016635228370891,
+        "gap_ci_pp": [
+          -6.390648146659247,
+          -1.5791418821247065
+        ],
+        "mean_p_minus_ref_pp": 10.786975897595017,
+        "mean_y_minus_ref_pp": 6.770340669224134
+      },
+      "EV >= 8%": {
+        "n": 1296,
+        "n_games": 261,
+        "mean_pred": 0.4188820907775939,
+        "observed": 0.36574074074074076,
+        "gap_pp": -5.314135003685316,
+        "gap_ci_pp": [
+          -7.80904843933377,
+          -2.8208942716013983
+        ],
+        "mean_p_minus_ref_pp": 11.831345815889842,
+        "mean_y_minus_ref_pp": 6.51721081220452
+      }
+    },
+    "amplification_ev5": {
+      "gap_unconditional_pp": 0.9998186994414016,
+      "gap_selected_pp": -4.016635228370891,
+      "total_amplification_pp": -5.016453927812293,
+      "composition_part_pp": -1.0027402523704958,
+      "selection_mechanism_part_pp": -4.013713675441797,
+      "matched_control": {
+        "bins": [
+          0.25,
+          0.3,
+          0.35,
+          0.4,
+          0.45,
+          0.5,
+          0.7
+        ],
+        "bins_used": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "weights": [
+          0.17757615035644847,
+          0.15878159429682437,
+          0.152300712896954,
+          0.13998703823720027,
+          0.08036292935839275,
+          0.29034348671419313
+        ],
+        "control_gap": -0.002921552929094192,
+        "control_gap_ci": [
+          -0.05317578665490965,
+          0.05254458430217059
+        ],
+        "share_selected_rows_in_skipped_bins": 0.0006480881399870686
+      }
+    },
+    "mechanism_probes": {
+      "corr_p_minus_ref_vs_y_minus_p_alert_region": -0.03790871851080844,
+      "note": "corr > 0 means rows where the model most exceeds its own stale reference are also rows where it overpredicts reality: the EV filter then selects calibration error."
+    }
+  }
+}
