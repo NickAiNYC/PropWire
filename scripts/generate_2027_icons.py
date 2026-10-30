@@ -41,12 +41,14 @@ def master_icon(mark: Image.Image, footprint: float, bloom_radius: int, rim: boo
     y, x = np.mgrid[:size, :size]
     vertical = y / (size - 1)
     background = np.empty((size, size, 4), dtype=np.uint8)
-    for channel, top, bottom in ((0, 14, 5), (1, 21, 8), (2, 36, 15)):
+    # The app shell is graphite, so the icon tile uses neutral charcoal rather
+    # than the old navy. The official ice-blue P remains the sole color accent.
+    for channel, top, bottom in ((0, 38, 10), (1, 38, 10), (2, 42, 12)):
         background[:, :, channel] = (top * (1 - vertical) + bottom * vertical).astype(np.uint8)
     background[:, :, 3] = 255
 
-    aura = np.exp(-((x - 512) ** 2 + (y - 512) ** 2) / (2 * (size * 0.34) ** 2))
-    for channel, amount in enumerate((18, 68, 90)):
+    aura = np.exp(-((x - 512) ** 2 + (y - 390) ** 2) / (2 * (size * 0.38) ** 2))
+    for channel, amount in enumerate((24, 24, 27)):
         background[:, :, channel] = np.clip(background[:, :, channel].astype(float) + aura * amount, 0, 255)
     canvas = Image.fromarray(background)
 
@@ -61,7 +63,7 @@ def master_icon(mark: Image.Image, footprint: float, bloom_radius: int, rim: boo
     alpha_layer.paste(glyph_alpha, position)
 
     glow = Image.new("RGBA", (size, size), (56, 189, 248, 0))
-    glow.putalpha(alpha_layer.filter(ImageFilter.GaussianBlur(bloom_radius)).point(lambda v: round(v * 0.42)))
+    glow.putalpha(alpha_layer.filter(ImageFilter.GaussianBlur(bloom_radius)).point(lambda v: round(v * 0.32)))
     shadow = Image.new("RGBA", (size, size), (0, 0, 0, 0))
     shadow_alpha = Image.new("L", (size, size))
     shadow_alpha.paste(glyph_alpha, (position[0], position[1] + 12))
@@ -73,8 +75,8 @@ def master_icon(mark: Image.Image, footprint: float, bloom_radius: int, rim: boo
     if rim:
         rim_layer = Image.new("RGBA", (size, size))
         draw = ImageDraw.Draw(rim_layer)
-        draw.rounded_rectangle((15, 15, 1008, 1008), radius=228, outline=(125, 211, 252, 65), width=4)
-        draw.rounded_rectangle((21, 21, 1002, 1002), radius=222, outline=(56, 189, 248, 38), width=2)
+        draw.rounded_rectangle((15, 15, 1008, 1008), radius=228, outline=(210, 218, 225, 48), width=4)
+        draw.rounded_rectangle((21, 21, 1002, 1002), radius=222, outline=(125, 211, 252, 34), width=2)
         canvas = Image.alpha_composite(canvas, rim_layer)
     return canvas
 
@@ -105,8 +107,8 @@ def save_svg(icon: Image.Image) -> None:
 
 def main() -> None:
     mark = extract_p_mark()
-    app = master_icon(mark, footprint=0.66, bloom_radius=28, rim=True)
-    favicon = master_icon(mark, footprint=0.78, bloom_radius=15, rim=False)
+    app = master_icon(mark, footprint=0.70, bloom_radius=24, rim=True)
+    favicon = master_icon(mark, footprint=0.84, bloom_radius=12, rim=False)
     save_png(app, 512, ["icon-512.png"], (VIEWER, PUBLIC, ROOT))
     save_png(app, 192, ["icon-192.png"], (VIEWER, PUBLIC, ROOT))
     save_png(app, 180, [
