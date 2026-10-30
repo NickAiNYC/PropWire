@@ -15271,3 +15271,93 @@ body {
   .today-line-source, .today-no-line { margin-left: 0; }
   .today-line-box b { font-size: 9px; }
 }
+
+/* Player board: graphite surfaces, ice-blue focus, and a quiet secondary filter. */
+.pw-filterbar { height: auto !important; min-height: 42px; align-items: flex-start !important; overflow: visible !important; }
+.pw-chip-scroll-row { align-items: center; flex-wrap: wrap; overflow: visible !important; gap: 8px; }
+.pw-chip-scroll-row .chip-divider { opacity: .25; }
+.pw-chip-scroll-row .view-switch { margin-left: auto; }
+.position-filter-menu { position: relative; flex: 0 0 auto; }
+.position-filter-menu > summary {
+  display: flex; align-items: center; gap: 8px; min-height: 34px;
+  padding: 0 12px; border: 1px solid rgba(205,205,215,.15); border-radius: 8px;
+  background: #222225; color: #b8c8d3; font: 650 11px/1 var(--pw-font-sans,sans-serif);
+  cursor: pointer; list-style: none;
+}
+.position-filter-menu > summary::-webkit-details-marker { display: none; }
+.position-filter-menu > summary::after { content: '⌄'; color: #80c6f6; font-size: 15px; }
+.position-filter-menu[open] > summary { border-color: rgba(128,198,246,.5); color: #e4f5ff; }
+.position-filter-menu #positionChipGroup {
+  position: absolute; z-index: 50; top: calc(100% + 6px); left: 0;
+  display: flex; flex-wrap: wrap; width: max-content; max-width: min(330px, 90vw);
+  padding: 7px !important; border: 1px solid rgba(128,198,246,.3) !important;
+  border-radius: 10px; background: #1d1d20 !important;
+  box-shadow: 0 16px 32px rgba(0,0,0,.45);
+}
+.position-filter-menu #positionChipGroup::before { display: none !important; }
+.position-filter-menu .chip-pill { min-height: 34px; }
+.pw-chip-scroll-row .view-switch .pw-seg-btn.active,
+.pw-chip-scroll-row .chip-segment-group .chip-pill.active {
+  background: #34343a !important; color: #d9f1ff !important;
+  border-color: rgba(128,198,246,.32) !important;
+}
+
+@media (min-width: 769px) {
+  #cardView.card-grid { grid-template-columns: 1fr !important; max-width: 1220px !important; gap: 10px !important; }
+  #cardView:not(.compact-grid) .mobile-quant-row.quoted-card {
+    display: grid !important; grid-template-columns: minmax(215px,.85fr) minmax(205px,1fr) minmax(250px,1.15fr);
+    gap: 10px 14px; align-items: stretch; padding: 13px 15px !important;
+  }
+  #cardView:not(.compact-grid) .quoted-card .card-header-row { grid-column: 1; grid-row: 1 / span 2; margin: 0 !important; flex-direction: column !important; align-items: stretch !important; }
+  #cardView:not(.compact-grid) .quoted-card .card-id-block { align-items: flex-start !important; width: 100%; }
+  #cardView:not(.compact-grid) .quoted-card .card-name-group { min-width: 0; }
+  #cardView:not(.compact-grid) .quoted-card .card-id-block .pw-avatar { width: 52px !important; height: 52px !important; min-width: 52px !important; min-height: 52px !important; border-radius: 10px !important; }
+  #cardView:not(.compact-grid) .quoted-card .card-hero-edge-block { align-self: flex-start; align-items: flex-start !important; margin-left: 34px; }
+  #cardView:not(.compact-grid) .quoted-card .card-hairline-sep { display: none !important; }
+  #cardView:not(.compact-grid) .quoted-card .card-grid-row { display: contents !important; }
+  #cardView:not(.compact-grid) .quoted-card .col-book { grid-column: 2; grid-row: 1; }
+  #cardView:not(.compact-grid) .quoted-card .col-model { grid-column: 3; grid-row: 1; }
+  #cardView:not(.compact-grid) .quoted-card .col-steam { grid-column: 2; grid-row: 2; }
+  #cardView:not(.compact-grid) .quoted-card .col-action { grid-column: 3; grid-row: 2; flex-direction: row !important; justify-content: flex-end !important; }
+  #cardView:not(.compact-grid) .quoted-card .inline-sim-panel { grid-column: 1 / -1; }
+}
+#cardView:not(.compact-grid) .mobile-quant-row {
+  border-color: rgba(210,220,230,.12) !important;
+  box-shadow: inset 0 1px rgba(255,255,255,.05), 0 8px 22px rgba(0,0,0,.23) !important;
+}
+#cardView:not(.compact-grid) .mobile-quant-row:hover,
+#cardView:not(.compact-grid) .mobile-quant-row:focus-visible {
+  background: linear-gradient(145deg,#2d2d31,#1b1b1e 58%,#121214) !important;
+  border-color: rgba(128,198,246,.55) !important;
+  outline: none;
+}
+.mobile-quant-row .card-player-name { font-size: 15px !important; font-weight: 700 !important; color: #f6f8fa !important; }
+.mobile-quant-row .card-team-matchup { color: #96a7b3 !important; font-size: 10px !important; }
+.mobile-quant-row .card-grid-col:not(.col-action) {
+  background: rgba(7,7,9,.45) !important; border-color: rgba(215,225,235,.09) !important;
+  padding: 9px 11px !important;
+}
+.mobile-quant-row .card-grid-col:not(.col-action):hover { background: rgba(29,34,38,.85) !important; border-color: rgba(128,198,246,.22) !important; }
+.mobile-quant-row .grid-col-lbl { color: #8b9aa5 !important; }
+.mobile-quant-row :is(.grid-col-val,.card-proj-fair-row,.card-odds-pill,.card-ci-chip,.ou-mini-box) { font-variant-numeric: tabular-nums; }
+.mobile-quant-row .col-model .dens-proj-val { color: #b9e7ff !important; font-weight: 800 !important; }
+.mobile-quant-row .col-model .dens-fair-sub { color: #b9c4cd !important; }
+.mobile-quant-row .card-hero-edge.closed,
+.mobile-quant-row .card-hero-edge.none { background: rgba(255,255,255,.035) !important; border: 1px dashed rgba(210,220,230,.2) !important; color: #9aa6af !important; }
+.mobile-quant-row .card-hero-edge.text-caution,
+.mobile-quant-row .card-hero-edge.text-shift { background: rgba(255,255,255,.035) !important; border: 1px dashed rgba(210,220,230,.2) !important; color: #a9b8c2 !important; }
+.mobile-quant-row .card-edge-sub.status-verify { color: #a9b8c2 !important; }
+.mobile-quant-row .card-edge-sub.status-no-line { color: #8e9ba4 !important; }
+.mobile-quant-row .ou-mini-pair { flex-direction: row; flex-wrap: wrap; }
+.mobile-quant-row .ou-mini-box { background: #202125; border-color: rgba(128,198,246,.18); }
+.mobile-quant-row .ou-over .ou-mini-arrow { color: #ACE4AA !important; }
+.mobile-quant-row .ou-under .ou-mini-arrow { color: #FF8383 !important; }
+@media (max-width: 768px) {
+  .pw-chip-scroll-row { overflow: visible !important; }
+  .position-filter-menu #positionChipGroup { max-width: min(300px, 82vw); }
+  .mobile-quant-row .card-grid-row:not(.v176-research) { grid-template-columns: minmax(0,1fr) minmax(0,1fr) !important; }
+  .mobile-quant-row .card-grid-row:not(.v176-research) .col-steam { grid-column: 1; }
+  .mobile-quant-row .card-grid-row:not(.v176-research) .col-action { grid-column: 2; flex-direction: row !important; justify-content: flex-end !important; }
+  .mobile-quant-row .card-grid-row:not(.v176-research) .inline-sim-panel { grid-column: 1 / -1; }
+  .mobile-quant-row .col-book .ou-mini-pair { flex-direction: column; }
+}

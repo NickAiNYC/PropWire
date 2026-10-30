@@ -191,7 +191,7 @@
     odds: { quotes: [] },
     filters: { search: '', market: adapter.defaultMarket, position: 'ALL', team: '', gameId: '', playMode: 'actionable', intent: 'all' },
     proView: 'all',
-    view: matchMedia('(max-width: 768px)').matches ? 'cards' : 'table',
+    view: 'cards',
     deferredInstall: null,
     selectedPlayerId: null,
     selectedExecutionPlayerId: null,
@@ -1403,6 +1403,8 @@
           state.filters.position = pos;
           if ($('#positionFilter')) $('#positionFilter').value = pos;
           syncFilterChipsUI();
+          const positionMenu = posBtn.closest('.position-filter-menu');
+          if (positionMenu) positionMenu.open = false;
           renderBoard();
           return;
         }
@@ -1504,8 +1506,6 @@
       mql.addEventListener('change', (e) => {
         if (e.matches && state.view === 'table') {
           setView('cards');
-        } else if (!e.matches && state.view === 'cards') {
-          setView('table');
         }
       });
     } catch (_) {}
@@ -3362,6 +3362,8 @@
       const val = b.dataset.pos === 'all' ? 'ALL' : b.dataset.pos;
       b.classList.toggle('active', val === state.filters.position);
     });
+    const positionSummary = $('#positionFilterSummary');
+    if (positionSummary) positionSummary.textContent = `Position: ${state.filters.position === 'ALL' ? 'All' : state.filters.position}`;
     updatePositionChipCounts();
   }
 
@@ -6234,7 +6236,7 @@
     }
 
     return `
-      <article class="mobile-quant-row ${isTopEdge ? 'top-edge-play' : ''} ${flashClass}" data-testid="slate-card" data-player-id="${esc(row.player_id)}" style="--row-index:${Math.min(index, 12)};" tabindex="0" role="button" aria-label="Inspect ${esc(row.player_display_name)}">
+      <article class="mobile-quant-row ${isResearchCard ? 'research-card' : 'quoted-card'} ${isTopEdge ? 'top-edge-play' : ''} ${flashClass}" data-testid="slate-card" data-player-id="${esc(row.player_id)}" style="--row-index:${Math.min(index, 12)};" tabindex="0" role="button" aria-label="Inspect ${esc(row.player_display_name)}">
         <!-- Row 1: Player ID (Star, Crest, Name, Matchup) | Right: Hero Edge & Subtag -->
         <div class="card-header-row">
           <div class="card-id-block">

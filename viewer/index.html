@@ -48,11 +48,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/style.css?v=2026_v191">
+  <link rel="stylesheet" href="/style.css?v=2026_v194">
   <script src="/js/sports/registry.js?v=2026_v179" defer></script>
   <script src="/js/sports/nfl.js?v=2026_v179" defer></script>
   <script src="/js/sports/nba.js?v=2026_v179" defer></script>
-  <script src="/app.js?v=2026_v191" defer></script>
+  <script src="/app.js?v=2026_v194" defer></script>
   <script src="/js/today-schedule.js?v=2026_v189" defer></script>
   <script src="/js/front-page.js?v=2026_v190" defer></script>
 </head>
@@ -230,13 +230,16 @@
 
         <div class="chip-divider"></div>
 
-        <!-- Position Chips (population is adapter-driven; see renderSportChrome) -->
-        <div class="chip-segment-group" id="positionChipGroup" data-eyebrow="POS" role="radiogroup" aria-label="Position">
+        <!-- Secondary position filter stays available without crowding the primary markets. -->
+        <details class="position-filter-menu">
+          <summary id="positionFilterSummary">Position: All</summary>
+          <div class="chip-segment-group" id="positionChipGroup" data-eyebrow="POS" role="radiogroup" aria-label="Position">
           <button type="button" class="chip-pill active" data-pos="ALL" role="radio" aria-checked="true">All</button>
           <button type="button" class="chip-pill" data-pos="WR" role="radio" aria-checked="false">WR</button>
           <button type="button" class="chip-pill" data-pos="TE" role="radio" aria-checked="false">TE</button>
           <button type="button" class="chip-pill" data-pos="RB" role="radio" aria-checked="false">RB</button>
-        </div>
+          </div>
+        </details>
 
         <div class="chip-divider"></div>
 
@@ -252,6 +255,11 @@
           <span id="moreFiltersLabel">FILTERS</span>
           <span class="chip-chevron">▾</span>
         </button>
+        <div class="pw-segmented pw-view-toggle view-switch pw-desktop-only" role="group" aria-label="View layout switcher">
+          <button type="button" data-view="table" class="pw-seg-btn" title="Detailed financial table">Table</button>
+          <button type="button" data-view="cards" class="pw-seg-btn active" title="Player cards">Grid</button>
+          <button type="button" data-view="compact-grid" class="pw-seg-btn" title="High-density compact grid">Compact</button>
+        </div>
       </div>
 
       <button type="button" class="mobile-usage-ticker" id="mobileUsageTicker" aria-expanded="false" aria-controls="availabilityDetails">
@@ -262,12 +270,6 @@
         <span class="mobile-usage-chevron" aria-hidden="true">⌄</span>
       </button>
 
-      <!-- Desktop View Switcher -->
-      <div class="pw-segmented pw-view-toggle view-switch pw-desktop-only" role="group" aria-label="View layout switcher">
-        <button type="button" data-view="table" class="pw-seg-btn active" title="Detailed financial table">Table</button>
-        <button type="button" data-view="cards" class="pw-seg-btn" title="Comfortable card grid">Grid</button>
-        <button type="button" data-view="compact-grid" class="pw-seg-btn" title="High-density 4-5 column compact grid">Compact</button>
-      </div>
     </div>
   </header>
 
