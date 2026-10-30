@@ -1,0 +1,123 @@
+{
+  "seasons": {
+    "2023": {
+      "games": 272,
+      "team_games": 544,
+      "drives": 6141,
+      "rows": 54680,
+      "players": 550,
+      "mean_universe_size": 8.882352941176471,
+      "openers_using_prior_season_rule": 32,
+      "positive_rate": 0.15466349670811996,
+      "receptions_skill_players": 11795,
+      "receptions_covered_by_universe": 8457,
+      "reception_coverage_rate": 0.7169987282746927,
+      "drives_with_completion_rate": 0.7449926722032242,
+      "kneel_drive_rate": 0.03138258961228969,
+      "positive_rate_by_pos": {
+        "RB": 0.11487971487971488,
+        "TE": 0.15161264377061048,
+        "WR": 0.18251219896112073
+      },
+      "nan_score_ctx_drives": 0
+    },
+    "2024": {
+      "games": 272,
+      "team_games": 544,
+      "drives": 5944,
+      "rows": 51814,
+      "players": 543,
+      "mean_universe_size": 8.707720588235293,
+      "openers_using_prior_season_rule": 32,
+      "positive_rate": 0.160149766472382,
+      "receptions_skill_players": 11614,
+      "receptions_covered_by_universe": 8298,
+      "reception_coverage_rate": 0.7144825210952299,
+      "drives_with_completion_rate": 0.7570659488559892,
+      "kneel_drive_rate": 0.032751765931987496,
+      "positive_rate_by_pos": {
+        "RB": 0.11478525275560623,
+        "TE": 0.15629879201249075,
+        "WR": 0.19212875644410915
+      },
+      "nan_score_ctx_drives": 0
+    },
+    "2025": {
+      "games": 272,
+      "team_games": 544,
+      "drives": 5829,
+      "rows": 51114,
+      "players": 554,
+      "mean_universe_size": 8.792279411764707,
+      "openers_using_prior_season_rule": 32,
+      "positive_rate": 0.15833235512775365,
+      "receptions_skill_players": 11174,
+      "receptions_covered_by_universe": 8093,
+      "reception_coverage_rate": 0.7242706282441381,
+      "drives_with_completion_rate": 0.749699776977183,
+      "kneel_drive_rate": 0.03053957819775404,
+      "positive_rate_by_pos": {
+        "RB": 0.11896127444631524,
+        "TE": 0.16307442049613663,
+        "WR": 0.18184540360183085
+      },
+      "nan_score_ctx_drives": 0
+    },
+    "2026": {
+      "games": 107,
+      "team_games": 214,
+      "drives": 2336,
+      "rows": 21357,
+      "players": 498,
+      "mean_universe_size": 9.14018691588785,
+      "openers_using_prior_season_rule": 32,
+      "positive_rate": 0.14917825537294563,
+      "receptions_skill_players": 4570,
+      "receptions_covered_by_universe": 3186,
+      "reception_coverage_rate": 0.6971553610503283,
+      "drives_with_completion_rate": 0.7722602739726028,
+      "kneel_drive_rate": 0.02565903450859203,
+      "positive_rate_by_pos": {
+        "RB": 0.11133987963256256,
+        "TE": 0.15410893907762382,
+        "WR": 0.17096378146101904
+      },
+      "nan_score_ctx_drives": 0
+    }
+  },
+  "assertions": {
+    "2023": {
+      "ingame_counters_zero_on_first_drive": true,
+      "feature_outcome_disjoint": true,
+      "y_binary_no_missing": true,
+      "no_missing_features": true,
+      "baseline_bounds_ok": true,
+      "lag1_rows_valid": true
+    },
+    "2024": {
+      "ingame_counters_zero_on_first_drive": true,
+      "feature_outcome_disjoint": true,
+      "y_binary_no_missing": true,
+      "no_missing_features": true,
+      "baseline_bounds_ok": true,
+      "lag1_rows_valid": true
+    },
+    "2025": {
+      "ingame_counters_zero_on_first_drive": true,
+      "feature_outcome_disjoint": true,
+      "y_binary_no_missing": true,
+      "no_missing_features": true,
+      "baseline_bounds_ok": true,
+      "lag1_rows_valid": true
+    },
+    "2026": {
+      "ingame_counters_zero_on_first_drive": true,
+      "feature_outcome_disjoint": true,
+      "y_binary_no_missing": true,
+      "no_missing_features": true,
+      "baseline_bounds_ok": true,
+      "lag1_rows_valid": true
+    }
+  },
+  "all_assertions_passed": true
+}
