@@ -4509,11 +4509,11 @@
           if (ctx) {
             ctx.fillStyle = '#090d16';
             ctx.fillRect(0, 0, 720, 420);
-            ctx.strokeStyle = '#d4fb11';
+            ctx.strokeStyle = '#80c6f6';
             ctx.lineWidth = 4;
             ctx.strokeRect(12, 12, 696, 396);
 
-            ctx.fillStyle = '#d4fb11';
+            ctx.fillStyle = '#80c6f6';
             ctx.font = 'bold 16px monospace';
             ctx.fillText('⚡ PROPSTEIN QUANT TERMINAL — VERIFIED RECEIPT', 32, 48);
 
@@ -4525,7 +4525,7 @@
             ctx.font = 'bold 26px sans-serif';
             ctx.fillText(`${playerName} (${team})`, 32, 126);
 
-            ctx.fillStyle = '#d4fb11';
+            ctx.fillStyle = '#80c6f6';
             ctx.font = 'bold 20px monospace';
             ctx.fillText(`${propLabel} | +${edgePct}% EDGE`, 32, 160);
 
