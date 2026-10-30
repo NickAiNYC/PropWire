@@ -3,7 +3,7 @@
 These fixtures are NOT vendor evidence. They exist to prove, before any
 credits are spent, that the Decision 2D-V verifier is CORRECT and SENSITIVE:
 the "clean" set must pass every automatable check, and the "faulted" set has
-seven deliberately injected defects that MUST be caught by the corresponding
+deliberately injected defects that MUST be caught by the corresponding
 checks. Both variants model the documented The Odds API historical event-odds
 response shape so the verifier runs byte-for-byte on dry-run output.
 
@@ -11,6 +11,19 @@ Every fixture directory carries SYNTHETIC.md, the fetcher records
 data_label=SYNTHETIC-HARNESS-TEST in the raw manifest, and the canonical
 preview carries synthetic=True — which decision_2d.quotes.validate_quotes
 REFUSES (fail-closed: trial dry-run output can never feed the pilot).
+
+Fixture layout per variant (2026-10-30 patch):
+  responses/<game>__<offset>.json   quote responses (dict docs; `_sim`
+                                    controls simulated credit cost and can
+                                    omit usage headers — fault F9)
+  responses/sports_list.json        baseline GET /v4/sports fixture (object
+                                    wrapper carrying `_sim`; the REAL endpoint
+                                    returns an array, but the body is never
+                                    parsed — only its usage headers matter)
+  event_id_map.json                 SYNTHETIC verified event-ID map (the
+                                    defect-1 fix input; discovery source and
+                                    timestamp recorded per entry)
+  sample_manifest.json / independent_stats.csv / SYNTHETIC.md
 
 Injected faults (faulted set only):
   F1 -> V2: SYN26_G07 @ T-60m snapshot timestamp 90s AFTER the decision ts
@@ -22,9 +35,15 @@ Injected faults (faulted set only):
             "over" where stats settle under); SYN26_G05 prices player
             "SYN WR Z99" who is absent from the independent stats
   F7 -> V9: SYN25_G04 @ T-15m _sim.credit_cost=25 vs modeled 10
+  F8 -> V3: SYN25_G02 event_id_map entry has discovery_timestamp_utc=null
+            (provenance incomplete — owner requirement: record the discovery
+            source AND timestamp)
+  F9 -> V9: SYN26_G08 @ T-15m _sim.omit_usage_headers=true — the metered
+            fetcher must ABORT PARTIAL (consumption cannot be established)
+            and V9 must fail on the unestablished row
 
 Determinism: no RNG; all values are arithmetic functions of (game, player,
-offset). Regeneration is byte-identical.
+offset). Regeneration is byte-identical (fixed constant timestamps).
 """
 
 from __future__ import annotations
@@ -54,6 +73,7 @@ BOOKS = [("synbook_a", "Synthetic Book A", 30),
 N_PLAYERS = 8
 MARKET_KEY = "player_receiving_yards"
 UNMATCHED_PLAYER = "SYN WR Z99"     # priced in the faulted set, absent from stats
+MAP_TS = "2026-10-30T00:00:00Z"     # fixed constant: fixtures regenerate byte-identically
 
 SYNTHETIC_MD = """# SYNTHETIC HARNESS-TEST FIXTURES — NOT VENDOR DATA
 
@@ -64,6 +84,16 @@ any sportsbook. The fetcher labels dry-run output data_label=
 SYNTHETIC-HARNESS-TEST and the canonical preview carries synthetic=True,
 which the pilot quote store refuses by design.
 """
+
+SPORTS_LIST = {
+    "_sim": {"credit_cost": 0},
+    "sports": [
+        {"key": "playerprops_nfl", "title": "NFL Player Props",
+         "description": "Synthetic fixture sport key", "active": True},
+        {"key": "americanfootball_nfl", "title": "NFL Football",
+         "description": "Synthetic fixture sport key", "active": True},
+    ],
+}
 
 
 def players_for(gi: int) -> list[str]:
@@ -158,6 +188,9 @@ def build_response(gi: int, offset_idx: int, faulted: bool) -> dict:
     }
     if faulted and gid == "SYN25_G04" and label == "T-15m":
         doc["_sim"] = {"credit_cost": 25}                  # F7: header mismatch
+    if faulted and gid == "SYN26_G08" and label == "T-15m":
+        doc["_sim"] = {"credit_cost": 10,
+                       "omit_usage_headers": True}         # F9: meter fail-closed
     return doc
 
 
@@ -189,6 +222,43 @@ def build_sample_manifest() -> dict:
     }
 
 
+def build_event_id_map(faulted: bool) -> dict:
+    """SYNTHETIC event-ID map — the defect-1 fix input. Every entry records
+    its discovery source and timestamp (owner requirement, 2026-10-30). F8:
+    the faulted variant ships one entry with a null discovery timestamp."""
+    entries = []
+    for g in GAMES:
+        gid, _season, _week, home, away, ko_iso, _bin, evid = g
+        e = {
+            "game_id": gid,
+            "event_id": evid,
+            "sport_key": "playerprops_nfl",
+            "status": "verified",
+            "discovery_source": "synthetic-harness-fixture",
+            "discovery_timestamp_utc": MAP_TS,
+            "commence_time_verified": ko_iso,
+            "home_team_verified": home,
+            "away_team_verified": away,
+            "verification": {
+                "fields_matched": ["home_team", "away_team", "commence_time"],
+                "method": "synthetic",
+            },
+        }
+        if faulted and gid == "SYN25_G02":
+            e["discovery_timestamp_utc"] = None          # F8: provenance incomplete
+        entries.append(e)
+    return {
+        "trial_id": "DECISION_2DV_TRIAL_v1",
+        "map_version": 1,
+        "policy": ("SYNTHETIC HARNESS-TEST event-ID map (NOT vendor evidence): "
+                   "models the verified historical event-ID mapping that "
+                   "replaces the current-events discovery endpoint (owner "
+                   "defect-1 fix, 2026-10-30). Every entry records its "
+                   "discovery source and timestamp."),
+        "entries": entries,
+    }
+
+
 def write_variant(variant: str) -> None:
     faulted = variant == "faulted"
     out = HERE / "fixtures" / variant
@@ -196,6 +266,10 @@ def write_variant(variant: str) -> None:
     (out / "SYNTHETIC.md").write_text(SYNTHETIC_MD)
     (out / "sample_manifest.json").write_text(
         json.dumps(build_sample_manifest(), indent=2, sort_keys=True) + "\n")
+    (out / "event_id_map.json").write_text(
+        json.dumps(build_event_id_map(faulted), indent=2, sort_keys=True) + "\n")
+    (out / "responses" / "sports_list.json").write_text(
+        json.dumps(SPORTS_LIST, indent=2, sort_keys=True) + "\n")
     for gi in range(len(GAMES)):
         for offset_idx in range(len(OFFSETS)):
             doc = build_response(gi, offset_idx, faulted)
@@ -211,8 +285,8 @@ def write_variant(variant: str) -> None:
         for r in build_stats():
             w.writerow(r)
     n = len(list((out / "responses").glob("*.json")))
-    print(f"wrote fixtures/{variant}: {n} responses + manifest + stats "
-          f"(faulted={faulted})")
+    print(f"wrote fixtures/{variant}: {n} responses + manifest + event_id_map "
+          f"+ stats (faulted={faulted})")
 
 
 if __name__ == "__main__":

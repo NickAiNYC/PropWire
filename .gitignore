@@ -30,3 +30,7 @@ research/drive-rec-v2/vendor_trial_2dv/selftest_out/
 *.apikey
 *.api_key
 ODDS_API_KEY*
+
+# Stage-A discovery output contains licensed vendor responses (same rationale
+# as raw/); stays local unless V8 permission permits otherwise.
+research/drive-rec-v2/vendor_trial_2dv/raw_discovery/

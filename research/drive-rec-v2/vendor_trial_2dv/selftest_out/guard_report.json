@@ -19,7 +19,7 @@
     {
       "guard": "G4_code_baseline",
       "status": "PASS",
-      "detail": "17 governing files match the committed baseline"
+      "detail": "18 governing files match the committed baseline"
     }
   ]
 }
