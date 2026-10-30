@@ -1,0 +1,90 @@
+{
+  "manifest_version": 1,
+  "generated_at_utc": "2026-10-30T03:54:41.879905+00:00",
+  "policy": {
+    "commercial_use": "nflverse CC BY 4.0 data only; attribution required",
+    "excluded": [
+      "Big Data Bowl 2023 and all NGS tracking data (non-commercial license)",
+      "Any sportsbook quote feed (no license held); simulated quotes only"
+    ]
+  },
+  "files": [
+    {
+      "role": "play_by_play",
+      "season": 2022,
+      "note": "regular-season and postseason plays",
+      "source_url": "https://github.com/nflverse/nflverse-data/releases/download/pbp/play_by_play_2022.parquet",
+      "downloaded_at_utc": "2026-10-30T03:54:37.704916+00:00",
+      "bytes": 20426548,
+      "sha256": "931121d8897779d7944e2a293e92ed8799c8e5cceef84096ac42339003fedc09",
+      "license": "CC BY 4.0",
+      "attribution": "Data provided by nflverse (https://github.com/nflverse), play-by-play data from nflfastR, player and schedule data from the nflverse data repositories. Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/)."
+    },
+    {
+      "role": "play_by_play",
+      "season": 2023,
+      "note": "regular-season and postseason plays",
+      "source_url": "https://github.com/nflverse/nflverse-data/releases/download/pbp/play_by_play_2023.parquet",
+      "downloaded_at_utc": "2026-10-30T03:54:38.575695+00:00",
+      "bytes": 20534088,
+      "sha256": "bd3484731408def6b0ec93225bba2bd7b2c65769ca707a2b9444d891abdc6776",
+      "license": "CC BY 4.0",
+      "attribution": "Data provided by nflverse (https://github.com/nflverse), play-by-play data from nflfastR, player and schedule data from the nflverse data repositories. Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/)."
+    },
+    {
+      "role": "play_by_play",
+      "season": 2024,
+      "note": "regular-season and postseason plays",
+      "source_url": "https://github.com/nflverse/nflverse-data/releases/download/pbp/play_by_play_2024.parquet",
+      "downloaded_at_utc": "2026-10-30T03:54:39.889932+00:00",
+      "bytes": 20597560,
+      "sha256": "3fd2896bc0b911b615142d2f1fabae54a4bbba5ab7b73b28187b118ef8af6a3b",
+      "license": "CC BY 4.0",
+      "attribution": "Data provided by nflverse (https://github.com/nflverse), play-by-play data from nflfastR, player and schedule data from the nflverse data repositories. Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/)."
+    },
+    {
+      "role": "play_by_play",
+      "season": 2025,
+      "note": "regular-season and postseason plays",
+      "source_url": "https://github.com/nflverse/nflverse-data/releases/download/pbp/play_by_play_2025.parquet",
+      "downloaded_at_utc": "2026-10-30T03:54:40.741762+00:00",
+      "bytes": 20337029,
+      "sha256": "c6ecedd6d678cc37ed316b23ef84ee1ec6abb69c514bb11868a7ebd5a367df29",
+      "license": "CC BY 4.0",
+      "attribution": "Data provided by nflverse (https://github.com/nflverse), play-by-play data from nflfastR, player and schedule data from the nflverse data repositories. Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/)."
+    },
+    {
+      "role": "play_by_play",
+      "season": 2026,
+      "note": "2026 = season-to-date as of download; used only as a genuinely-unseen prospective evaluation slice",
+      "source_url": "https://github.com/nflverse/nflverse-data/releases/download/pbp/play_by_play_2026.parquet",
+      "downloaded_at_utc": "2026-10-30T03:54:41.271817+00:00",
+      "bytes": 7976271,
+      "sha256": "7be4cfcca6ae765044372ddada6cae17500d43195d6500e4c677b792d721f652",
+      "license": "CC BY 4.0",
+      "attribution": "Data provided by nflverse (https://github.com/nflverse), play-by-play data from nflfastR, player and schedule data from the nflverse data repositories. Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/)."
+    },
+    {
+      "role": "player_registry",
+      "season": null,
+      "note": "cross-season registry",
+      "source_url": "https://github.com/nflverse/nflverse-data/releases/download/players/players.csv",
+      "downloaded_at_utc": "2026-10-30T03:54:41.819992+00:00",
+      "bytes": 7306220,
+      "sha256": "b0a90135bb4f9ee6ff425207f67d4207f77c406562494abf74c866ddc31fcc81",
+      "license": "CC BY 4.0",
+      "attribution": "Data provided by nflverse (https://github.com/nflverse), play-by-play data from nflfastR, player and schedule data from the nflverse data repositories. Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/)."
+    },
+    {
+      "role": "game_schedule",
+      "season": null,
+      "note": "cross-season registry",
+      "source_url": "https://raw.githubusercontent.com/nflverse/nfldata/master/data/games.csv",
+      "downloaded_at_utc": "2026-10-30T03:54:41.877673+00:00",
+      "bytes": 2187008,
+      "sha256": "ec564a1b545ebe08a343f3d6a11dc04a7a357fd1ae942cdb1ff2dc9a6142d161",
+      "license": "CC BY 4.0",
+      "attribution": "Data provided by nflverse (https://github.com/nflverse), play-by-play data from nflfastR, player and schedule data from the nflverse data repositories. Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/)."
+    }
+  ]
+}
