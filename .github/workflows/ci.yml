@@ -21,6 +21,8 @@ jobs:
         run: node --version
       - name: Install locked dependencies
         run: npm ci
+      - name: Install extension workspace dependencies
+        run: npm ci --prefix extensions --ignore-scripts
       - name: Run production readiness gate
         run: npm run check:production
 
