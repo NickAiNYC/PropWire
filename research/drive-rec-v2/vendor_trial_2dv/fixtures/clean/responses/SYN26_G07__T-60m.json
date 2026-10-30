@@ -7,7 +7,7 @@
       "last_update": 1791734325,
       "markets": [
         {
-          "key": "player_receiving_yards",
+          "key": "player_reception_yds",
           "outcomes": [
             {
               "description": "SYN WR G01",
@@ -131,7 +131,7 @@
       "last_update": 1791734340,
       "markets": [
         {
-          "key": "player_receiving_yards",
+          "key": "player_reception_yds",
           "outcomes": [
             {
               "description": "SYN WR G01",
@@ -255,7 +255,7 @@
       "last_update": 1791734350,
       "markets": [
         {
-          "key": "player_receiving_yards",
+          "key": "player_reception_yds",
           "outcomes": [
             {
               "description": "SYN WR G01",

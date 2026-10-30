@@ -12,9 +12,9 @@
   "vendor_trial_2dv/credit_meter.py": "517fcd0ca1f89187c66adc6ac7f38a65c006c37cee62b58a23ad6b23f8f1394c",
   "vendor_trial_2dv/discover_event_ids.py": "294f73765301d6cb9a01c0db931b9ebb5768d09439e676a885472838563f5f77",
   "vendor_trial_2dv/fetch_trial_quotes.py": "2359e60637dd8dc7f88d6302b9becd446500ac052ec43d1a55851429299aab79",
-  "vendor_trial_2dv/make_fixtures.py": "79ec7dc42c0b7f122b7582010d9b5868a097a5df7c2d79e77d23e45ac842a515",
+  "vendor_trial_2dv/make_fixtures.py": "b24b16327c97fa48eea37cb4ed9914b58f904d4a4c6743c2ddd775d97747f6a8",
   "vendor_trial_2dv/select_sample.py": "9d08b98cac201280f2ed4d094a83016af318aab069537ec19fbeef20335c284c",
   "vendor_trial_2dv/selftest.py": "b91b1400dc2026d1571625c0ac171e4ec4eac8d5e895d237548fafeb571c6912",
-  "vendor_trial_2dv/trial_config.json": "b354ebbffdea0c3cb80d89aa729519c27590839c601d2043a31de31c397fb41b",
-  "vendor_trial_2dv/verify_v1_v10.py": "444ce040a9c9752e978bda3302ddeffd56c1030b46cbcbfcf9f86c3ce78ab441"
+  "vendor_trial_2dv/trial_config.json": "53e230c2d7053a26e6d273ce1fb43e6e47d62c141e99da9b3830a0fb788db46f",
+  "vendor_trial_2dv/verify_v1_v10.py": "4ced551a41bc18b5bdd3f68b1ee04244ed6fffcda21fc60a0a5522e186c07cf1"
 }

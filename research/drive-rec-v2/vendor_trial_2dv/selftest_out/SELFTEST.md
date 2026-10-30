@@ -4,7 +4,7 @@
 
 | test | status | detail |
 | --- | --- | --- |
-| T1_fixture_determinism | **PASS** | regeneration byte-identical (1de4f7a59f54…) |
+| T1_fixture_determinism | **PASS** | regeneration byte-identical (fff4494aea63…) |
 | T2_clean_run | **PASS** | verdicts match expected: {"V1": "PASS", "V2": "PASS", "V3": "PASS", "V4": "PASS", "V5": "PASS", "V6": "PASS", "V7": "PASS", "V8": "PENDING_MANUAL", "V9": "PASS", "V10": "PASS", "overall": "BLOCKED_PENDING_MANUAL"} |
 | T3_fault_sensitivity | **PASS** | all 9 injected faults caught by their target checks |
 | T3b_fault_details | **PASS** | V7 reports exactly the 2 injected settlement faults (got 2) |

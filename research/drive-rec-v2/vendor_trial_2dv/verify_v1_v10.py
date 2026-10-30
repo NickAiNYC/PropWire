@@ -182,7 +182,8 @@ def v1_availability(t: Trial) -> dict:
             players, n_books = set(), 0
             for b in doc.get("bookmakers", []) or []:
                 for m in b.get("markets", []) or []:
-                    if "receiving" in (m.get("key") or ""):
+                    mkey = m.get("key") or ""
+                    if "receiving" in mkey or "reception_yds" in mkey:
                         n_books += 1
                         players.update((o.get("description") or "").strip()
                                        for o in m.get("outcomes", []))
@@ -469,7 +470,8 @@ def v6_missingness(t: Trial, out_dir: Path) -> dict:
                 continue
             for b in doc.get("bookmakers", []) or []:
                 for m in b.get("markets", []) or []:
-                    if "receiving" in (m.get("key") or ""):
+                    mkey = m.get("key") or ""
+                    if "receiving" in mkey or "reception_yds" in mkey:
                         by_time[off][b.get("key")] = {
                             (o.get("description") or "").strip()
                             for o in m.get("outcomes", [])}

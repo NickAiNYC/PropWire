@@ -71,7 +71,7 @@ BOOKS = [("synbook_a", "Synthetic Book A", 30),
          ("synbook_b", "Synthetic Book B", 15),
          ("synbook_c", "Synthetic Book C", 5)]
 N_PLAYERS = 8
-MARKET_KEY = "player_receiving_yards"
+MARKET_KEY = "player_reception_yds"
 UNMATCHED_PLAYER = "SYN WR Z99"     # priced in the faulted set, absent from stats
 MAP_TS = "2026-10-30T00:00:00Z"     # fixed constant: fixtures regenerate byte-identically
 
