@@ -19,7 +19,7 @@
     {
       "guard": "G4_code_baseline",
       "status": "PASS",
-      "detail": "baseline CREATED with 17 files; commit it to git \u2014 subsequent runs verify against it"
+      "detail": "17 governing files match the committed baseline"
     }
   ]
 }
