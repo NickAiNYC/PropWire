@@ -250,11 +250,15 @@ def write_injuries(season: int, week: int, games: list[dict]) -> Path:
         frame = pd.read_parquet(parquet)
         rows = frame[(frame.season == season) & (frame.week == week)]
         source = f"nflverse injuries_{season}.parquet"
+        def _s(v) -> str:
+            # parquet nulls arrive as float NaN; treat any non-str as empty
+            return v.strip() if isinstance(v, str) else ""
+
         for r in rows.itertuples(index=False):
             gid = getattr(r, "gsis_id", None)
             team = getattr(r, "team", None)
             game = kickoff_by_team.get(team, {})
-            report = (getattr(r, "report_status", "") or "").strip()
+            report = _s(getattr(r, "report_status", ""))
             injuries.append({
                 "player_id": gid,
                 "player_name": getattr(r, "full_name", None),
@@ -263,9 +267,9 @@ def write_injuries(season: int, week: int, games: list[dict]) -> Path:
                              else game.get("away_team")) or None,
                 "game_id": game.get("game_id"),
                 "position": getattr(r, "position", None),
-                "injury_type": (getattr(r, "report_primary_injury", "") or "").strip() or "Injury",
+                "injury_type": _s(getattr(r, "report_primary_injury", "")) or "Injury",
                 "report_status": report.upper() or "QUESTIONABLE",
-                "practice_status": (getattr(r, "practice_status", "") or "").strip() or "Practice pending",
+                "practice_status": _s(getattr(r, "practice_status", "")) or "Practice pending",
             })
     except Exception as exc:
         print(f"  [warn] injuries parquet unavailable ({exc}) - writing empty report", file=sys.stderr)
