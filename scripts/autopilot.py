@@ -268,8 +268,8 @@ def write_injuries(season: int, week: int, games: list[dict]) -> Path:
                 "game_id": game.get("game_id"),
                 "position": getattr(r, "position", None),
                 "injury_type": _s(getattr(r, "report_primary_injury", "")) or "Injury",
-                "report_status": report.upper() or "QUESTIONABLE",
-                "practice_status": _s(getattr(r, "practice_status", "")) or "Practice pending",
+                "report_status": report.upper() or "PRACTICE ONLY",
+                "practice_status": _s(getattr(r, "practice_status", "")) or "Practice status unavailable",
             })
     except Exception as exc:
         print(f"  [warn] injuries parquet unavailable ({exc}) - writing empty report", file=sys.stderr)
@@ -279,7 +279,8 @@ def write_injuries(season: int, week: int, games: list[dict]) -> Path:
         "as_of": now.strftime("%Y-%m-%dT%H:%M:%SZ"),
         "slate_week": week,
         "season": season,
-        "total_active_injuries": len(injuries),
+        "total_active_injuries": sum(i["report_status"] != "PRACTICE ONLY" for i in injuries),
+        "total_practice_entries": sum(i["report_status"] == "PRACTICE ONLY" for i in injuries),
         "source": source,
         "impacted_beneficiaries": {},
         "injuries": injuries,
@@ -426,6 +427,9 @@ def scan_nfl_slates(now: datetime) -> dict:
             "slate": f"slate_{season}_w{week}.json",
             "games": f"games_{season}_w{week}.json",
             "picks": f"current_picks_{season}_w{week}.json",
+            "livePicks": (f"live_picks_{season}_w{week}.json"
+                          if not is_past and (VIEWER / f"live_picks_{season}_w{week}.json").exists()
+                          else None),
             "injuries": None if is_past else f"injuries_{season}_w{week}.json",
             "odds": None if is_past else "live_odds_feed.json",
             "snapshots": f"snapshots_{season}_w{week}.json",
@@ -668,7 +672,7 @@ def main() -> int:
     try:
         _pm = subprocess.run(
             [sys.executable, str(ROOT / "scripts" / "fetch_polymarket_props.py")],
-            capture_output=True, text=True, timeout=180, cwd=str(ROOT))
+            capture_output=True, text=True, timeout=45, cwd=str(ROOT))
         for line in (_pm.stdout or "").strip().splitlines():
             print(f"  [polymarket] {line}")
         if _pm.returncode != 0:

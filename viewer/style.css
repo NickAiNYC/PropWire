@@ -15177,7 +15177,11 @@ body:not(.front-board-open) .injury-drawer-wrap, body:not(.front-board-open) .tr
 .home-edge-metrics span { display: grid; gap: 4px; }
 .home-edge-metrics small { color: #889aa9; font: 700 9px/1.2 var(--pw-font-mono,monospace); }
 .home-edge-metrics strong { color: #b7e5ff; font: 700 13px/1.2 var(--pw-font-mono,monospace); font-variant-numeric: tabular-nums; }
+.home-research-card { grid-template-columns: minmax(140px,1.2fr) minmax(125px,1fr) minmax(180px,1fr); }
+.home-research-label { color: #b7e5ff !important; font: 700 10px/1.2 var(--pw-font-mono,monospace) !important; }
+.home-research-note { margin: 0; color: #a9b4bf; font: 500 11px/1.4 var(--pw-font-sans,sans-serif); }
 @media (max-width: 650px) { .home-edge-preview { padding: 13px; } .home-edge-heading button { max-width: 116px; } .home-edge-card { grid-template-columns: 1fr 1fr; gap: 10px; } .home-edge-metrics { grid-column: 1/-1; padding-top: 10px; border-top: 1px solid rgba(255,255,255,.09); text-align: left; } }
+@media (max-width: 650px) { .home-research-note { grid-column: 1/-1; } }
 :root {
   --bg-app: #0b0b0d;
   --bg-app-raised: #18181b;

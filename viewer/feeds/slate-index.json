@@ -1,6 +1,6 @@
 {
   "schema_version": "slate-index.v1",
-  "generated_at": "2026-10-31T07:42:58Z",
+  "generated_at": "2026-10-31T07:52:47Z",
   "source": "scripts/autopilot.py",
   "sports": {
     "nfl": {
@@ -14,6 +14,7 @@
           "slate": "slate_2026_w1.json",
           "games": "games_2026_w1.json",
           "picks": "current_picks_2026_w1.json",
+          "livePicks": null,
           "injuries": null,
           "odds": null,
           "snapshots": "snapshots_2026_w1.json",
@@ -27,6 +28,7 @@
           "slate": "slate_2026_w7.json",
           "games": "games_2026_w7.json",
           "picks": "current_picks_2026_w7.json",
+          "livePicks": null,
           "injuries": null,
           "odds": null,
           "snapshots": "snapshots_2026_w7.json",
@@ -40,6 +42,7 @@
           "slate": "slate_2026_w8.json",
           "games": "games_2026_w8.json",
           "picks": "current_picks_2026_w8.json",
+          "livePicks": "live_picks_2026_w8.json",
           "injuries": "injuries_2026_w8.json",
           "odds": "live_odds_feed.json",
           "snapshots": "snapshots_2026_w8.json",
