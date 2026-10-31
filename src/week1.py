@@ -313,6 +313,19 @@ def main():
               f"{p.market:<16} {p.odds:>+5.0f} @{p.book:<12} "
               f"model {p.model_prob:.1%} vs mkt {p.market_prob:.1%}  "
               f"EV {p.ev_per_unit:+.1%}  stake {p.kelly_stake:.2%}")
+    # Persist scored live picks for the viewer / pre-kickoff board (the
+    # snapshot shelf stays empty until the freeze workflow fills it).
+    from dataclasses import asdict
+    live_name = f"live_picks_{a.season}_w{a.week}.json"
+    live_payload = {
+        "season": a.season, "week": a.week,
+        "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "source": "The Odds API",
+        "picks": [asdict(p) for p in picks],
+    }
+    viewer_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "viewer")
+    with open(os.path.join(viewer_dir, live_name), "w") as f:
+        json.dump(live_payload, f, indent=2)
     if picks:
         log_picks(picks, "picks_log.jsonl")
         print("\n  logged to picks_log.jsonl - record closing lines after kickoff")

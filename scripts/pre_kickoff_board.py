@@ -35,6 +35,24 @@ def generate_board(slate_key: str = "2026_w7") -> Dict[str, Any]:
 
     # Sort by projected volume or name
     items: List[Dict[str, Any]] = []
+    if not quoted:
+        # Snapshot shelf not frozen yet: fall back to scored live picks.
+        live_file = VIEWER_DIR / f"live_picks_{slate_key}.json"
+        if live_file.exists():
+            live = json.loads(live_file.read_text(encoding="utf-8"))
+            for p in (live.get("picks") or [])[:25]:
+                items.append({
+                    "player": p.get("player"),
+                    "team": p.get("team", ""),
+                    "opponent": p.get("opponent", ""),
+                    "market": "Yards" if p.get("market") == "receiving_yards" else "Receptions",
+                    "book": p.get("book") or "Consensus",
+                    "line": p.get("line"),
+                    "odds": p.get("odds"),
+                    "fair_line": p.get("projection"),
+                    "proj_volume": p.get("projection"),
+                    "role": f"{(p.get('side') or '').upper()} EV {p.get('ev_per_unit', 0):+.1%}",
+                })
     for s in quoted[:25]:
         q = s["quote"]
         proj = s.get("projection") or {}
