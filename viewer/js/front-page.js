@@ -22,15 +22,25 @@
   });
   exploreButton.addEventListener('click', () => setBoardOpen(!document.body.classList.contains('front-board-open'), true));
   document.getElementById('homeEdgeOpenBoard')?.addEventListener('click', () => setBoardOpen(true, true));
+  function openSearch() {
+    setBoardOpen(true);
+    document.querySelector('.pw-command-row')?.classList.add('active');
+    document.getElementById('searchInput')?.focus();
+  }
+  document.getElementById('frontSearchBtn')?.addEventListener('click', openSearch);
+  document.addEventListener('keydown', (event) => {
+    if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+      event.preventDefault();
+      openSearch();
+    }
+  });
   menu.querySelector('.front-menu-actions').addEventListener('click', (event) => {
     const action = event.target.closest('[data-front-action]')?.dataset.frontAction;
     if (!action) return;
     menu.close();
     if (action === 'props') setBoardOpen(true, true);
     if (action === 'search') {
-      setBoardOpen(true);
-      document.querySelector('.pw-command-row')?.classList.add('active');
-      document.getElementById('searchInput')?.focus();
+      openSearch();
     }
     if (action === 'saved') document.getElementById('portfolioBtn')?.click();
     if (action === 'alerts') {
