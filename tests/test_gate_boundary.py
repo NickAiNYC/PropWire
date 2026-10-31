@@ -26,6 +26,8 @@ What it locks in (the integrity invariant from OddsIngestionAdapter.run_ingestio
   expected_return / status / stake for candidate lines and odds).
 """
 import sys
+import json
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -90,6 +92,22 @@ def make_adapter(quote: PropQuote) -> OddsIngestionAdapter:
 
 
 class TestExtremeEdgeGateBoundary(unittest.TestCase):
+
+    def test_unverified_quote_is_preserved_with_unverified_status(self):
+        """A rejected quote remains in the research record without promotion."""
+        quote = make_quote(verified=False)
+        a = make_adapter(quote)
+        ev = a.evaluate_quote(quote)
+        with tempfile.TemporaryDirectory() as folder:
+            a.snapshots_dir = Path(folder) / "snapshots"
+            a.viewer_dir = Path(folder) / "viewer"
+            a.viewer_dir.mkdir()
+            emitted = OddsIngestionAdapter.emit_snapshots(a, [ev])
+            self.assertEqual(len(emitted), 1)
+            self.assertEqual(emitted[0]["quote"]["status"], "unverified")
+            self.assertFalse(emitted[0]["quote"]["evaluation"]["is_qualified"])
+            stored = json.loads((a.snapshots_dir / "snapshots_2026_w7.jsonl").read_text().strip())
+            self.assertEqual(stored["content_hash"], emitted[0]["content_hash"])
 
     def test_evaluator_represents_extreme_edge(self):
         ev = make_adapter(make_quote(verified=False)).evaluate_quote(
