@@ -60,7 +60,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install "pandas>=2.2" "numpy>=1.26" "scipy>=1.13" \
-            "scikit-learn>=1.5" "statsmodels>=0.14" "pyarrow>=16"
+            "scikit-learn>=1.5" "statsmodels>=0.14" "pyarrow>=16" "requests>=2.32"
 
       - name: Run autopilot
         env:
