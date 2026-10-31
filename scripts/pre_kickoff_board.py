@@ -1,12 +1,13 @@
 """
-Pre-Kickoff Board Funnel Generator (Phase 4)
-Generates the daily pre-kickoff qualified board with zero marketing fluff.
+Pre-Kickoff Research Board Generator
+Shows model-scored observations without claiming receipt-verified live edge.
 Outputs markdown, plaintext, and HTML email formats.
 """
 
 from __future__ import annotations
 
 import argparse
+import html as html_lib
 import json
 import os
 import sys
@@ -35,21 +36,27 @@ def generate_board(slate_key: str = "2026_w7") -> Dict[str, Any]:
 
     # Sort by projected volume or name
     items: List[Dict[str, Any]] = []
+    observation_source = "Book observations"
     if not quoted:
         # Snapshot shelf not frozen yet: fall back to scored live picks.
         live_file = VIEWER_DIR / f"live_picks_{slate_key}.json"
         if live_file.exists():
             live = json.loads(live_file.read_text(encoding="utf-8"))
+            observation_source = str(live.get("source") or observation_source)
+            slate_file = VIEWER_DIR / f"slate_{slate_key}.json"
+            slate = json.loads(slate_file.read_text(encoding="utf-8")) if slate_file.exists() else []
+            players = {str(row.get("player_display_name", "")).casefold(): row for row in slate}
             for p in (live.get("picks") or [])[:25]:
+                player = players.get(str(p.get("player", "")).casefold(), {})
                 items.append({
                     "player": p.get("player"),
-                    "team": p.get("team", ""),
-                    "opponent": p.get("opponent", ""),
+                    "team": p.get("team") or player.get("team") or "—",
+                    "opponent": p.get("opponent") or player.get("opponent_team") or "—",
                     "market": "Yards" if p.get("market") == "receiving_yards" else "Receptions",
                     "book": p.get("book") or "Consensus",
                     "line": p.get("line"),
                     "odds": p.get("odds"),
-                    "fair_line": p.get("projection"),
+                    "fair_line": "—",
                     "proj_volume": p.get("projection"),
                     "role": f"{(p.get('side') or '').upper()} EV {p.get('ev_per_unit', 0):+.1%}",
                 })
@@ -69,15 +76,20 @@ def generate_board(slate_key: str = "2026_w7") -> Dict[str, Any]:
             "role": (s.get("role") or {}).get("label", "none")
         })
 
+    source_note = (f"{observation_source} model-scored observations; entry prices are not independently receipt-audited. "
+                   "Confirm price and availability at the book.") if not quoted else (
+                   "Snapshot quotes require independent receipt checks before they can be called audited.")
+
     # Build text format
     text_lines = [
-        "PROPWIRE PRE-KICKOFF BOARD",
+        "PROPSTEIN PRE-KICKOFF RESEARCH BOARD",
         f"Slate: {slate_key} | Generated: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')}",
         "Zero Tout Fluff · Pure Distribution Math · Transparent Limitations",
         "=" * 60,
         "STATUS NOTE:",
+        source_note,
         "Model has no statistically verified edge over market closing lines at this time.",
-        "Trigger decisions (N=37) 95% CI: [-0.10, +1.45], spans zero. For informational research only.",
+        "Historical Week 07 trigger decisions (N=37) 95% CI: [-0.10, +1.45], spans zero.",
         "-" * 60,
         f"{'PLAYER':<20} {'MKT':<6} {'LINE':<6} {'ODDS':<6} {'FAIR':<6} {'PROJ':<6} {'BOOK'}",
         "-" * 60,
@@ -88,18 +100,18 @@ def generate_board(slate_key: str = "2026_w7") -> Dict[str, Any]:
             f"{it['fair_line']:<6} {it['proj_volume']:<6} {it['book']}"
         )
     text_lines.append("=" * 60)
-    text_lines.append("Full auditable terminal: https://propwire.vercel.app")
-    text_lines.append("To inspect model distributions: https://propwire.vercel.app/methodology/")
+    text_lines.append("Research terminal: https://propstein.vercel.app")
+    text_lines.append("To inspect model distributions: https://propstein.vercel.app/methodology/")
 
     # Build HTML format
     rows_html = "".join([
         f"<tr>"
-        f"<td><strong>{it['player']}</strong> ({it['team']} vs {it['opponent']})</td>"
-        f"<td>{it['market']}</td>"
-        f"<td>{it['line']} ({it['odds']})</td>"
-        f"<td>{it['fair_line']}</td>"
-        f"<td>{it['proj_volume']}</td>"
-        f"<td>{it['book']}</td>"
+        f"<td><strong>{html_lib.escape(str(it['player']))}</strong> ({html_lib.escape(str(it['team']))} vs {html_lib.escape(str(it['opponent']))})</td>"
+        f"<td>{html_lib.escape(str(it['market']))}</td>"
+        f"<td>{html_lib.escape(str(it['line']))} ({html_lib.escape(str(it['odds']))})</td>"
+        f"<td>{html_lib.escape(str(it['fair_line']))}</td>"
+        f"<td>{html_lib.escape(str(it['proj_volume']))}</td>"
+        f"<td>{html_lib.escape(str(it['book']))}</td>"
         f"</tr>"
         for it in items
     ])
@@ -108,7 +120,7 @@ def generate_board(slate_key: str = "2026_w7") -> Dict[str, Any]:
 <html>
 <head>
   <meta charset="utf-8">
-  <title>PropWire Pre-Kickoff Board</title>
+  <title>PropStein Pre-Kickoff Research Board</title>
   <style>
     body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #070708; color: #f8fafc; padding: 24px; }}
     .container {{ max-width: 680px; margin: 0 auto; background: #0e1117; border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 20px; }}
@@ -124,10 +136,10 @@ def generate_board(slate_key: str = "2026_w7") -> Dict[str, Any]:
 </head>
 <body>
   <div class="container">
-    <h1>PROPWIRE PRE-KICKOFF BOARD</h1>
+    <h1>PROPSTEIN PRE-KICKOFF RESEARCH BOARD</h1>
     <div class="meta">Slate {slate_key} &middot; Generated {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')}</div>
     <div class="warning">
-      <strong>Research Disclaimer:</strong> Model edge is unvalidated across closing lines (95% CI includes zero). All metrics published for auditability and quantitative research.
+      <strong>Research only:</strong> {html_lib.escape(source_note)} Model edge is unvalidated across closing lines (95% CI includes zero).
     </div>
     <table>
       <thead>
@@ -138,7 +150,7 @@ def generate_board(slate_key: str = "2026_w7") -> Dict[str, Any]:
       </tbody>
     </table>
     <div class="footer">
-      Live terminal: <a href="https://propwire.vercel.app">propwire.vercel.app</a> &middot; Methodology: <a href="https://propwire.vercel.app/methodology/">propwire.vercel.app/methodology/</a>
+      Live terminal: <a href="https://propstein.vercel.app">propstein.vercel.app</a> &middot; Methodology: <a href="https://propstein.vercel.app/methodology/">propstein.vercel.app/methodology/</a>
     </div>
   </div>
 </body>

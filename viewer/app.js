@@ -186,6 +186,7 @@
     slate: [],
     games: [],
     picks: {},
+    livePicks: { picks: [] },
     playerPhotos: { photos: {}, byName: {} },
     injuries: { injuries: [], impacted_beneficiaries: {} },
     odds: { quotes: [] },
@@ -878,6 +879,7 @@
           slate: cfg.slate,
           games: cfg.games,
           picks: typeof cfg.picks === 'string' ? cfg.picks : null,
+          livePicks: typeof cfg.livePicks === 'string' ? cfg.livePicks : null,
           injuries: typeof cfg.injuries === 'string' ? cfg.injuries : null,
           odds: typeof cfg.odds === 'string' ? cfg.odds : null,
           snapshots: typeof cfg.snapshots === 'string' ? cfg.snapshots : null,
@@ -2242,10 +2244,11 @@
     if ($('#slateSelector')) $('#slateSelector').value = slateKey;
     renderSkeletons();
 
-    const [slateRes, gamesRes, picks, injuries, oddsRes, clvReport, snapshots, newsRes, breakerCfg] = await Promise.all([
+    const [slateRes, gamesRes, picks, livePicksRes, injuries, oddsRes, clvReport, snapshots, newsRes, breakerCfg] = await Promise.all([
       fetchJsonStatus(config.slate, []),
       fetchJsonStatus(config.games, []),
       fetchJson(config.picks, {}),
+      config.livePicks ? fetchJsonStatus(config.livePicks, { picks: [] }) : Promise.resolve({ data: { picks: [] }, ok: false }),
       config.injuries ? fetchJson(config.injuries, { injuries: [], impacted_beneficiaries: {} }) : Promise.resolve({ injuries: [], impacted_beneficiaries: {} }),
       config.odds ? fetchJsonStatus(config.odds, { quotes: [] }) : Promise.resolve({ data: { quotes: [] }, ok: true, status: 0 }),
       fetchClvAuditReport(),
@@ -2261,6 +2264,8 @@
     state.slate = Array.isArray(slate) ? slate : [];
     state.games = Array.isArray(games) ? games : [];
     state.picks = picks && typeof picks === 'object' ? picks : {};
+    state.livePicks = livePicksRes.ok && Array.isArray(livePicksRes.data?.picks)
+      ? livePicksRes.data : { picks: [] };
     state.injuries = injuries && typeof injuries === 'object' ? injuries : { injuries: [], impacted_beneficiaries: {} };
     // Slate switches invalidate the drawer body (it is built at toggle time
     // from the previous slate's state) — collapse it so nothing stale shows.
@@ -2644,6 +2649,7 @@
 
   function renderInjuries() {
     const injuries = Array.isArray(state.injuries.injuries) ? state.injuries.injuries : [];
+    const alerts = injuries.filter((item) => String(item.report_status).toUpperCase() !== 'PRACTICE ONLY');
     const countEl = $('#injuryAlertCount');
     const previewEl = $('#injuryAlertPreview');
     const chevronEl = $('#injuryAlertChevron');
@@ -2664,13 +2670,13 @@
       return;
     }
 
-    if (countEl) countEl.textContent = `${injuries.length} Injury Alerts`;
-    if (slimText) slimText.textContent = `${injuries.length} Alerts`;
-    if (slimBanner && !slimBanner.dataset.dismissed) slimBanner.hidden = false;
-    if (mobileUsageTicker) mobileUsageTicker.hidden = false;
-    if (mobileUsageCount) mobileUsageCount.textContent = String(injuries.length);
+    if (countEl) countEl.textContent = `${alerts.length} Injury Alerts`;
+    if (slimText) slimText.textContent = `${alerts.length} Alerts`;
+    if (slimBanner && !slimBanner.dataset.dismissed) slimBanner.hidden = alerts.length === 0;
+    if (mobileUsageTicker) mobileUsageTicker.hidden = alerts.length === 0;
+    if (mobileUsageCount) mobileUsageCount.textContent = String(alerts.length);
     if (mobileUsageSummary) {
-      mobileUsageSummary.textContent = injuries.slice(0, 2).map((item) => {
+      mobileUsageSummary.textContent = alerts.slice(0, 2).map((item) => {
         const last = String(item.player_name || '').split(' ').pop();
         const status = item.report_status === 'QUESTIONABLE' ? 'Q' : item.report_status === 'LIMITED' ? 'LIM' : item.report_status;
         return `${item.team} ${last} ${status}`;
@@ -2678,7 +2684,7 @@
     }
 
     if (previewEl) {
-      const topItems = injuries.slice(0, 3).map(i => {
+      const topItems = alerts.slice(0, 3).map(i => {
         const lastName = (i.player_name || '').split(' ').pop();
         const stat = i.report_status === 'LIMITED' ? 'LIM' : i.report_status === 'QUESTIONABLE' ? 'Q' : i.report_status;
         return `${lastName} ${stat}`;
@@ -3135,8 +3141,9 @@
       // zero qualified rows earns the anti-tout efficiency message.
       const health = feedHealthStates();
       const feedsDegraded = health.dataKind !== 'fixture' && (
-        health.odds === 'error' || health.oddsFreshness === 'stale' ||
-        health.news === 'error' || health.newsFreshness === 'stale');
+        health.odds !== 'ok' || health.oddsFreshness !== 'ok' ||
+        health.news !== 'ok' || health.newsFreshness !== 'ok' ||
+        !state.odds.quotes.some((quote) => quoteState(quote) === 'verified'));
       const lastTrusted = health.oddsUpdatedAt
         ? new Date(health.oddsUpdatedAt).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
         : null;
@@ -3245,12 +3252,34 @@
       ? new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZoneName: 'short' }).format(new Date(health.oddsUpdatedAt))
       : null;
     const fresh = !SLATES[state.slateKey]?.historical && health.dataKind !== 'fixture' && health.odds === 'ok' && health.oddsFreshness === 'ok'
-      && health.news === 'ok' && health.newsFreshness === 'ok';
+      && health.news === 'ok' && health.newsFreshness === 'ok'
+      && state.odds.quotes.some((quote) => quoteState(quote) === 'verified');
     if (!fresh) {
-      status.textContent = `Live edges paused · ${asOf ? `last odds update ${asOf}` : 'no verified update available'}`;
-      list.innerHTML = '<p class="home-edge-empty">Prices or news are unavailable or stale. Browse model projections below; no picks are being recommended.</p>';
+      const research = Array.isArray(state.livePicks?.picks) ? state.livePicks.picks : [];
+      const scanAt = state.livePicks?.generated_at;
+      const scanTime = scanAt && !Number.isNaN(Date.parse(scanAt))
+        ? new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZoneName: 'short' }).format(new Date(scanAt))
+        : null;
+      const title = $('#homeEdgeTitle');
+      if (title) title.textContent = research.length ? 'Observed player lines' : 'Player prop research';
+      status.textContent = research.length
+        ? `Live qualification paused · ${research.length} model-scored observations · last scan ${scanTime || 'unknown'} · no independent quote audit`
+        : `Live edges paused · ${asOf ? `last odds update ${asOf}` : 'no verified update available'}`;
+      list.innerHTML = research.length
+        ? research.slice(0, 3).map((pick) => {
+          const line = Number(pick.line);
+          const odds = Number(pick.odds);
+          return `<article class="home-edge-card home-research-card">
+            <div class="home-edge-player"><strong>${esc(pick.player || 'Unknown player')}</strong><span>${esc(String(pick.market || 'player prop').replaceAll('_', ' '))}</span></div>
+            <div class="home-edge-line"><span class="home-research-label">OBSERVED · UNVERIFIED</span><strong>${Number.isFinite(line) ? line.toFixed(1) : '—'} <small>${Number.isFinite(odds) ? (odds > 0 ? '+' : '') + odds : '—'}</small></strong><span>${esc(pick.book || 'Book unavailable')}</span></div>
+            <p class="home-research-note">Research only · price and availability must be checked at the book.</p>
+          </article>`;
+        }).join('')
+        : '<p class="home-edge-empty">Prices or news are unavailable or stale. Browse model projections below; no picks are being recommended.</p>';
       return;
     }
+    const title = $('#homeEdgeTitle');
+    if (title) title.textContent = 'Verified player props';
     const market = state.filters.market;
     const plays = state.slate.map((row) => ({ row, evaluation: evaluateRow(row) }))
       .filter(({ evaluation }) => evaluation.actionable && evaluation.state === 'verified')
@@ -3318,7 +3347,7 @@
         if (pod2Val) pod2Val.textContent = 'PAUSED';
         if (pod2Sub) pod2Sub.textContent = 'Standby for verified quotes';
         if (pod3Val) pod3Val.textContent = String(totalModeled);
-        if (pod3Sub) pod3Sub.textContent = `${verifiedLiveLines} Audited Live Lines`;
+        if (pod3Sub) pod3Sub.textContent = `${state.livePicks.picks.length} observed · ${verifiedLiveLines} feed-verified`;
       }
     } else {
       const activePolicy = policy();
@@ -3333,7 +3362,7 @@
         metricBadge.className = 'hero-metric-badge';
         metricBadge.innerHTML = `<span class="badge-arrow">↗</span> +14.8% AVG EDGE`;
       }
-      if (metricSub) metricSub.textContent = `Verified player lines clearing Poisson-Gamma hurdle · ${state.odds.quotes.length} quotes audited`;
+      if (metricSub) metricSub.textContent = `Feed-verified player lines clearing Poisson-Gamma hurdle · ${state.odds.quotes.length} quotes ingested`;
       if (pods.length >= 3) {
         const pod1Val = pods[0].querySelector('.hero-pod-val');
         const pod1Sub = pods[0].querySelector('.hero-pod-sub');
@@ -3346,7 +3375,7 @@
         if (pod2Val) pod2Val.textContent = gatePct;
         if (pod2Sub) pod2Sub.textContent = activePolicy ? `Kelly Cap ${(activePolicy.cap * 100).toFixed(1)}% Max` : 'Kelly Cap 3.0% Max';
         if (pod3Val) pod3Val.textContent = String(totalModeled);
-        if (pod3Sub) pod3Sub.textContent = `${state.odds.quotes.length} Audited Lines`;
+        if (pod3Sub) pod3Sub.textContent = `${state.odds.quotes.length} ingested lines`;
       }
     }
   }
@@ -6710,7 +6739,10 @@
 
   function injuryFor(row) {
     const injuries = Array.isArray(state.injuries.injuries) ? state.injuries.injuries : [];
-    return injuries.find((item) => item.player_id === row.player_id || String(item.player_name).toLowerCase() === String(row.player_display_name).toLowerCase()) || (row.questionable ? { report_status: 'QUESTIONABLE', notes: 'Questionable designation in slate JSON.', source: 'Slate export' } : null);
+    const report = injuries.find((item) => item.player_id === row.player_id ||
+      String(item.player_name).toLowerCase() === String(row.player_display_name).toLowerCase());
+    if (report) return String(report.report_status).toUpperCase() === 'PRACTICE ONLY' ? null : report;
+    return row.questionable ? { report_status: 'QUESTIONABLE', notes: 'Questionable designation in slate JSON.', source: 'Slate export' } : null;
   }
 
   function isClosed(row) {

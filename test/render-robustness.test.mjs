@@ -2,6 +2,16 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { buildSandbox, loadApp } from './helpers/sandbox.mjs';
 
+function nonQualifyingVerifiedQuote(P) {
+  return {
+    player_id: P.state.slate[0].player_id, market: 'receiving_yards',
+    line: 1.5, over_odds: -110, under_odds: -110,
+    book: 'SyntheticBook', observed_at: new Date().toISOString(),
+    receipt_id: 'synthetic-test-receipt', verified: true,
+    evaluation: { best_side: 'OVER', prob_edge: 0, expected_return: 0 },
+  };
+}
+
 /**
  * RENDER ROBUSTNESS — Phase 2, commit 3.
  *
@@ -29,8 +39,9 @@ test('anti-tout empty state renders with the active gate (no riskPolicy crash)',
     newsLastPolledAt: new Date().toISOString(),
   };
 
-  // Simulate a total odds-feed outage: zero quotes → zero actionable rows.
-  P.state.odds.quotes = [];
+  // A verified but non-qualifying quote reaches the anti-tout branch.
+  P.state.odds.quotes = [nonQualifyingVerifiedQuote(P)];
+  P.state.slate = []; // Isolate the zero-row anti-tout branch.
   P.state.filters.playMode = 'actionable';
   P.state.filters.market = 'receiving_yards';
   P.setView('table');
@@ -61,7 +72,8 @@ test('anti-tout gate falls back to 10% when no picks policy exists', async () =>
     newsLastPolledAt: new Date().toISOString(),
   };
   P.state.picks = {};           // e.g. picks feed unavailable
-  P.state.odds.quotes = [];
+  P.state.odds.quotes = [nonQualifyingVerifiedQuote(P)];
+  P.state.slate = [];
   P.state.filters.playMode = 'actionable';
   P.renderBoard();
   const empty = registry.get('#emptyState');

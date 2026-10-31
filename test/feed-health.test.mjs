@@ -216,8 +216,9 @@ const FRESH_LIVE_HEALTH = () => ({
   newsLastPolledAt: new Date(FROZEN_MS).toISOString(),
 });
 
-function renderActionableEmpty(P) {
-  P.state.odds.quotes = [];
+function renderActionableEmpty(P, verifiedQuote = null) {
+  P.state.odds.quotes = verifiedQuote ? [verifiedQuote] : [];
+  if (verifiedQuote) P.state.slate = []; // Isolate the zero-row rendering branch.
   P.state.filters.playMode = 'actionable';
   P.state.filters.market = 'receiving_yards';
   P.renderBoard();
@@ -242,9 +243,26 @@ test('fresh verified feed with zero qualified rows keeps the anti-tout efficienc
   const P = loadApp(sandbox);
   await P.loadSlate('2026_w7');
   P.state.feedHealth = FRESH_LIVE_HEALTH();
-  renderActionableEmpty(P);
+  renderActionableEmpty(P, {
+    player_id: P.state.slate[0].player_id, market: 'receiving_yards',
+    line: 1.5, over_odds: -110, under_odds: -110,
+    book: 'SyntheticBook', observed_at: new Date().toISOString(),
+    receipt_id: 'synthetic-test-receipt', verified: true,
+    evaluation: { best_side: 'OVER', prob_edge: 0, expected_return: 0 },
+  });
   const empty = registry.get('#emptyState');
   assert.ok(empty.innerHTML.includes('0 Qualified Plays Today'), 'anti-tout state intact when feeds verified');
   assert.ok(/market is efficient/i.test(empty.innerHTML), 'efficiency claim only when prices are verifiable');
   assert.ok(!empty.innerHTML.includes('Live qualification paused'), 'paused copy not shown on a fresh feed');
+});
+
+test('fresh transport with zero verified quotes remains paused', async () => {
+  const { sandbox, registry } = buildSandbox();
+  const P = loadApp(sandbox);
+  await P.loadSlate('2026_w7');
+  P.state.feedHealth = FRESH_LIVE_HEALTH();
+  renderActionableEmpty(P);
+  const empty = registry.get('#emptyState');
+  assert.ok(empty.innerHTML.includes('Live qualification paused'));
+  assert.ok(!/market is efficient/i.test(empty.innerHTML));
 });

@@ -66,6 +66,12 @@ def main() -> None:
                     c for c in candidates
                     if c["season"] == nearest["season"] and c["week"] == nearest["week"]
                 ]
+        if not slate and not manual:
+            # The UTC cron fires a second time after midnight to cover EST.
+            # During EDT that invocation is after Thursday kickoff and has no
+            # game on its Eastern calendar date; it is a planned no-op.
+            print("should_run=false")
+            return
         if not slate:
             fail(f"no complete slate contains a game on {now.date().isoformat()}")
         season, week = int(slate[0]["season"]), int(slate[0]["week"])
