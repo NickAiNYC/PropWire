@@ -1,5 +1,5 @@
 // PropStein Service Worker (offline shell only; market data always fails closed)
-const CACHE_NAME = 'propstein-v195-graphite-icon';
+const CACHE_NAME = 'propstein-v196-odds-api-label';
 const STATIC_ASSETS = [
   '/index.html',
   '/style.css',

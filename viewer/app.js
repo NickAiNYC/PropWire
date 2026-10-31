@@ -680,7 +680,7 @@
     if (widget) {
       widget.onclick = (e) => {
         if (e.target.closest('#manualPollBtn')) return;
-        toast('Bovada API: Active (64 verified quotes) · DraftKings/Pinnacle: Pre-game feed (Scheduled 12:00 PM)');
+        toast('Live odds: The Odds API (multi-book player props) · refreshed by Daily Data Autopilot');
       };
     }
   }
@@ -7757,7 +7757,7 @@
     const modelWinP = Math.max(0.01, Math.min(0.99, marketProbability + num(evaluation.edge)));
     const receiptHash = quote?.receipt_id || quote?.provider_quote_id || 'a054819c1cfb8fb0';
     const cleanHash = receiptHash.startsWith('http') ? receiptHash.split('/').pop().slice(0, 16) : receiptHash.slice(0, 16);
-    const bookName = quote?.book || 'Bovada';
+    const bookName = quote?.book || 'Consensus';
 
     const mktPct = (marketProbability * 100).toFixed(1);
     const bePct = (breakEven * 100).toFixed(1);
@@ -8049,7 +8049,7 @@
           team: row.team,
           opponent: row.opponent_team,
           market: state.filters.market,
-          book: evaluation.book || 'Bovada',
+          book: evaluation.book || 'Consensus',
           line: customLine,
           odds: customOdds,
           side: chosenSide,
