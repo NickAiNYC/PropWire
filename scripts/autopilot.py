@@ -614,6 +614,10 @@ def main() -> int:
     now = datetime.fromisoformat(now_env).astimezone(ET) if now_env else datetime.now(ET)
     print(f"[autopilot] now (ET): {now.isoformat(timespec='seconds')}")
 
+    if args.run and not (DATA / "games.csv").exists():
+        DATA.mkdir(parents=True, exist_ok=True)
+        print("[autopilot] data/games.csv missing - fetching schedule from nflverse")
+        urllib.request.urlretrieve(NFLVERSE_BASE, DATA / "games.csv")
     season, games = load_schedule(now)
     week = games[0]["week_i"]
     span = week_span_label(games)
