@@ -1,7 +1,7 @@
 {
   "schema_version": "ufc-card.v1",
   "sport": "ufc",
-  "generated_at": "2026-10-31T08:06:59Z",
+  "generated_at": "2026-10-31T08:09:52Z",
   "event_id": "600061420",
   "event_name": "UFC Fight Night: Moicano vs. Nolan",
   "date": "2026-10-31",
@@ -1568,13 +1568,13 @@
   "odds_meter": {
     "cost_measured": 2,
     "cost_estimated": 2,
-    "remaining": "446",
-    "used": "54",
+    "remaining": "418",
+    "used": "82",
     "events_returned": 18,
     "ufc_matched": 12,
     "non_ufc_dropped": 6
   },
-  "market_as_of": "2026-10-31T08:06:59Z",
+  "market_as_of": "2026-10-31T08:09:52Z",
   "backtest": {
     "n": 3500,
     "brier": 0.2431,

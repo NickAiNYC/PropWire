@@ -1,7 +1,7 @@
 {
   "season": 2026,
   "week": 8,
-  "generated_at": "2026-10-31T07:43:32Z",
+  "generated_at": "2026-10-31T08:09:51Z",
   "source": "The Odds API",
   "picks": [
     {
@@ -50,6 +50,21 @@
       "reasoning": ""
     },
     {
+      "player": "Makai Lemon",
+      "market": "receptions",
+      "side": "under",
+      "line": 4.5,
+      "book": "draftkings",
+      "odds": 107.0,
+      "model_prob": 0.737,
+      "market_prob": 0.4719,
+      "edge": 0.2651,
+      "ev_per_unit": 0.5256,
+      "kelly_stake": 0.015,
+      "projection": 3.4,
+      "reasoning": ""
+    },
+    {
       "player": "Cade Otton",
       "market": "receptions",
       "side": "under",
@@ -80,21 +95,6 @@
       "reasoning": ""
     },
     {
-      "player": "Makai Lemon",
-      "market": "receptions",
-      "side": "under",
-      "line": 4.5,
-      "book": "draftkings",
-      "odds": 101.0,
-      "model_prob": 0.737,
-      "market_prob": 0.4752,
-      "edge": 0.2618,
-      "ev_per_unit": 0.4814,
-      "kelly_stake": 0.015,
-      "projection": 3.4,
-      "reasoning": ""
-    },
-    {
       "player": "Dawson Knox",
       "market": "receptions",
       "side": "over",
@@ -122,6 +122,21 @@
       "ev_per_unit": 0.4545,
       "kelly_stake": 0.015,
       "projection": 2.6,
+      "reasoning": ""
+    },
+    {
+      "player": "Dallas Goedert",
+      "market": "receptions",
+      "side": "under",
+      "line": 4.5,
+      "book": "draftkings",
+      "odds": 123.0,
+      "model_prob": 0.6415,
+      "market_prob": 0.4438,
+      "edge": 0.1977,
+      "ev_per_unit": 0.4306,
+      "kelly_stake": 0.015,
+      "projection": 3.9,
       "reasoning": ""
     },
     {
@@ -167,21 +182,6 @@
       "ev_per_unit": 0.3906,
       "kelly_stake": 0.015,
       "projection": 1.7,
-      "reasoning": ""
-    },
-    {
-      "player": "Dallas Goedert",
-      "market": "receptions",
-      "side": "under",
-      "line": 4.5,
-      "book": "draftkings",
-      "odds": 116.0,
-      "model_prob": 0.6415,
-      "market_prob": 0.4475,
-      "edge": 0.1941,
-      "ev_per_unit": 0.3857,
-      "kelly_stake": 0.015,
-      "projection": 3.9,
       "reasoning": ""
     },
     {
@@ -320,6 +320,21 @@
       "reasoning": ""
     },
     {
+      "player": "Darius Cooper",
+      "market": "receptions",
+      "side": "under",
+      "line": 2.5,
+      "book": "draftkings",
+      "odds": -116.0,
+      "model_prob": 0.7165,
+      "market_prob": 0.5166,
+      "edge": 0.1999,
+      "ev_per_unit": 0.3342,
+      "kelly_stake": 0.015,
+      "projection": 1.8,
+      "reasoning": ""
+    },
+    {
       "player": "Sam LaPorta",
       "market": "receptions",
       "side": "under",
@@ -425,21 +440,6 @@
       "reasoning": ""
     },
     {
-      "player": "Darius Cooper",
-      "market": "receptions",
-      "side": "under",
-      "line": 2.5,
-      "book": "draftkings",
-      "odds": -123.0,
-      "model_prob": 0.7165,
-      "market_prob": 0.5218,
-      "edge": 0.1947,
-      "ev_per_unit": 0.299,
-      "kelly_stake": 0.015,
-      "projection": 1.8,
-      "reasoning": ""
-    },
-    {
       "player": "Parker Washington",
       "market": "receiving_yards",
       "side": "under",
@@ -467,6 +467,21 @@
       "ev_per_unit": 0.2878,
       "kelly_stake": 0.015,
       "projection": 4.5,
+      "reasoning": ""
+    },
+    {
+      "player": "Dallas Goedert",
+      "market": "receiving_yards",
+      "side": "under",
+      "line": 45.5,
+      "book": "draftkings",
+      "odds": -111.0,
+      "model_prob": 0.6774,
+      "market_prob": 0.4996,
+      "edge": 0.1777,
+      "ev_per_unit": 0.2876,
+      "kelly_stake": 0.015,
+      "projection": 37.2,
       "reasoning": ""
     },
     {
@@ -515,21 +530,6 @@
       "reasoning": ""
     },
     {
-      "player": "Dallas Goedert",
-      "market": "receiving_yards",
-      "side": "under",
-      "line": 45.5,
-      "book": "draftkings",
-      "odds": -115.0,
-      "model_prob": 0.6774,
-      "market_prob": 0.5043,
-      "edge": 0.1731,
-      "ev_per_unit": 0.2664,
-      "kelly_stake": 0.015,
-      "projection": 37.2,
-      "reasoning": ""
-    },
-    {
       "player": "Kyle Williams",
       "market": "receiving_yards",
       "side": "under",
@@ -575,6 +575,21 @@
       "reasoning": ""
     },
     {
+      "player": "Darius Cooper",
+      "market": "receiving_yards",
+      "side": "under",
+      "line": 25.5,
+      "book": "draftkings",
+      "odds": -108.0,
+      "model_prob": 0.6509,
+      "market_prob": 0.4943,
+      "edge": 0.1566,
+      "ev_per_unit": 0.2536,
+      "kelly_stake": 0.015,
+      "projection": 22.0,
+      "reasoning": ""
+    },
+    {
       "player": "Malik Washington",
       "market": "receptions",
       "side": "under",
@@ -602,21 +617,6 @@
       "ev_per_unit": 0.2509,
       "kelly_stake": 0.015,
       "projection": 1.6,
-      "reasoning": ""
-    },
-    {
-      "player": "Darius Cooper",
-      "market": "receiving_yards",
-      "side": "under",
-      "line": 25.5,
-      "book": "draftkings",
-      "odds": -109.0,
-      "model_prob": 0.6509,
-      "market_prob": 0.4947,
-      "edge": 0.1562,
-      "ev_per_unit": 0.2481,
-      "kelly_stake": 0.015,
-      "projection": 22.0,
       "reasoning": ""
     },
     {
@@ -800,6 +800,21 @@
       "reasoning": ""
     },
     {
+      "player": "Kendrick Bourne",
+      "market": "receiving_yards",
+      "side": "under",
+      "line": 36.5,
+      "book": "draftkings",
+      "odds": -109.0,
+      "model_prob": 0.6368,
+      "market_prob": 0.4974,
+      "edge": 0.1394,
+      "ev_per_unit": 0.2209,
+      "kelly_stake": 0.015,
+      "projection": 32.3,
+      "reasoning": ""
+    },
+    {
       "player": "Josh Cameron",
       "market": "receptions",
       "side": "under",
@@ -842,21 +857,6 @@
       "ev_per_unit": 0.2118,
       "kelly_stake": 0.015,
       "projection": 1.9,
-      "reasoning": ""
-    },
-    {
-      "player": "Kendrick Bourne",
-      "market": "receiving_yards",
-      "side": "under",
-      "line": 36.5,
-      "book": "draftkings",
-      "odds": -111.0,
-      "model_prob": 0.6368,
-      "market_prob": 0.4996,
-      "edge": 0.1371,
-      "ev_per_unit": 0.2104,
-      "kelly_stake": 0.015,
-      "projection": 32.3,
       "reasoning": ""
     },
     {
@@ -962,6 +962,21 @@
       "ev_per_unit": 0.1923,
       "kelly_stake": 0.015,
       "projection": 7.3,
+      "reasoning": ""
+    },
+    {
+      "player": "Saquon Barkley",
+      "market": "receptions",
+      "side": "under",
+      "line": 2.5,
+      "book": "draftkings",
+      "odds": -165.0,
+      "model_prob": 0.7416,
+      "market_prob": 0.6089,
+      "edge": 0.1326,
+      "ev_per_unit": 0.191,
+      "kelly_stake": 0.015,
+      "projection": 1.7,
       "reasoning": ""
     },
     {
@@ -1160,21 +1175,6 @@
       "reasoning": ""
     },
     {
-      "player": "Saquon Barkley",
-      "market": "receptions",
-      "side": "under",
-      "line": 2.5,
-      "book": "bovada",
-      "odds": -170.0,
-      "model_prob": 0.7416,
-      "market_prob": 0.6104,
-      "edge": 0.1312,
-      "ev_per_unit": 0.1778,
-      "kelly_stake": 0.015,
-      "projection": 1.7,
-      "reasoning": ""
-    },
-    {
       "player": "Dohnte Meyers",
       "market": "receiving_yards",
       "side": "over",
@@ -1302,8 +1302,8 @@
       "book": "betonlineag",
       "odds": -114.0,
       "model_prob": 0.6211,
-      "market_prob": 0.5179,
-      "edge": 0.1032,
+      "market_prob": 0.5181,
+      "edge": 0.1031,
       "ev_per_unit": 0.166,
       "kelly_stake": 0.015,
       "projection": 2.2,
@@ -1752,8 +1752,8 @@
       "book": "fanduel",
       "odds": -114.0,
       "model_prob": 0.602,
-      "market_prob": 0.4994,
-      "edge": 0.1026,
+      "market_prob": 0.505,
+      "edge": 0.0969,
       "ev_per_unit": 0.13,
       "kelly_stake": 0.015,
       "projection": 12.4,
