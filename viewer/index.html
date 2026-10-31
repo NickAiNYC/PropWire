@@ -50,14 +50,14 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/ufc.css?v=2026_v196">
-  <link rel="stylesheet" href="/style.css?v=2026_v194">
+  <link rel="stylesheet" href="/style.css?v=2026_v198">
   <script src="/js/sports/registry.js?v=2026_v179" defer></script>
   <script src="/js/sports/nfl.js?v=2026_v179" defer></script>
   <script src="/js/sports/nba.js?v=2026_v179" defer></script>
-  <script src="/app.js?v=2026_v194" defer></script>
+  <script src="/app.js?v=2026_v198" defer></script>
   <script src="/js/sports/ufc.js?v=2026_v196" defer></script>
-  <script src="/js/today-schedule.js?v=2026_v196" defer></script>
-  <script src="/js/front-page.js?v=2026_v190" defer></script>
+  <script src="/js/today-schedule.js?v=2026_v198" defer></script>
+  <script src="/js/front-page.js?v=2026_v198" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#slateBoard">Skip to slate</a>
@@ -176,6 +176,7 @@
 
         <!-- Hidden compatibility mobile elements -->
         <button type="button" id="mobileMenuBtn" class="pw-mobile-menu-btn" aria-label="Open Settings" style="display:none;" hidden></button>
+        <button type="button" id="frontSearchBtn" class="front-search-btn" aria-label="Search players and teams" title="Search players and teams (⌘/Ctrl K)">⌕</button>
         <button type="button" id="frontMenuBtn" class="front-menu-btn" aria-haspopup="dialog" aria-controls="frontMenuDialog">Menu <span aria-hidden="true">☰</span></button>
       </div>
     </div>
@@ -300,7 +301,7 @@
     <section class="today-schedule" id="todaySchedule" aria-live="polite">
       <div class="today-schedule-heading">
         <div><p class="today-schedule-eyebrow">TODAY'S SCHEDULE</p><h2 id="todayScheduleTitle">Today's games</h2><p id="todayScheduleDate"></p></div>
-        <button type="button" id="todayScheduleRefresh" class="today-schedule-refresh" aria-label="Refresh today's schedule">Refresh</button>
+        <div class="today-schedule-controls"><label class="sr-only" for="todayScheduleTimezone">Game time zone</label><select id="todayScheduleTimezone" aria-label="Game time zone"><option value="local">Local time</option><option value="et">Eastern time</option></select><button type="button" id="todayScheduleRefresh" class="today-schedule-refresh" aria-label="Refresh today's schedule">Refresh</button></div>
       </div>
       <div id="todayScheduleGames" class="today-schedule-games"><p class="today-schedule-message">Loading today's games…</p></div>
       <p class="today-schedule-source" id="todayScheduleSource"></p>
@@ -501,10 +502,12 @@
     <form method="dialog" class="dialog-shell">
       <div class="dialog-sheet-handle" aria-hidden="true"></div>
       <div class="dialog-header">
-        <div>
+        <div class="detail-header-copy">
           <div class="eyebrow" id="detailMeta">Player detail</div>
           <h2 id="detailTitle">Player</h2>
+          <p class="detail-header-summary" id="detailSummary"></p>
         </div>
+        <button class="star-modal-btn detail-header-watch" type="button" id="modalWatchlistBtn" aria-label="Add to watchlist" title="Add to watchlist">☆</button>
         <button class="icon-button" value="cancel" aria-label="Close player detail">×</button>
       </div>
       <div class="dialog-body" id="detailContent"></div>

@@ -3,7 +3,26 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
-import { buildSandbox, VIEWER } from './helpers/sandbox.mjs';
+import { buildSandbox, loadApp, VIEWER } from './helpers/sandbox.mjs';
+
+test('NBA player drawer uses NBA units and only available telemetry', async () => {
+  const { sandbox, registry } = buildSandbox({ seedLocalStorage: { propwire_active_sport: 'nba' } });
+  const app = loadApp(sandbox);
+  await app.loadSlate('2026-10-29');
+  const luka = app.state.slate.find((row) => row.player_display_name === 'Luka Doncic');
+  app.renderDetailModal(luka);
+  const drawer = registry.get('#detailContent').innerHTML;
+  assert.match(drawer, /Usage rate/);
+  assert.match(drawer, /Projected minutes/);
+  assert.match(drawer, /True shooting/);
+  assert.match(drawer, /Not available/);
+  assert.match(drawer, /pts vs offer/);
+  assert.doesNotMatch(drawer, /Target share|Air-yards share|Yards \/ reception|yds vs offer|kickoff|Snap risk/i);
+  assert.doesNotMatch(drawer, /detail-verdict-card|Fair-Line Specification/);
+  assert.doesNotMatch(drawer, /a054819c1cfb8fb0|Receipt-Verified|API \(Fresh\)/);
+  assert.match(drawer, /No verified receipt/);
+  assert.match(registry.get('#detailSummary').textContent, /31\.1 pts/);
+});
 
 /**
  * NBA INTEGRATION TESTS — Phase 2, commit 1 (adapter + fixture feeds).

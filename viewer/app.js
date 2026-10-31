@@ -480,8 +480,8 @@
     }
 
     const isRec = Boolean(dist.isRec);
-    const maxScale = isRec ? 14 : 190;
-    const unit = isRec ? 'rec' : 'y';
+    const maxScale = SPORT_ID === 'nba' ? Math.max(1, dist.high * 1.25) : isRec ? 14 : 190;
+    const unit = marketDef().bulletUnit || (isRec ? 'rec' : 'yds');
     const toPct = (val) => Math.min(100, Math.max(0, (val / maxScale) * 100));
 
     const lowPct = toPct(dist.low);
@@ -550,7 +550,7 @@
       return `Model baseline sits at ${fair.toFixed(1)} ${unit} (Waiting for sportsbook quotes).`;
     }
     if (evaluation.closed) {
-      return `Market closed for kickoff (Model fair ${fair.toFixed(1)} ${unit}).`;
+      return `Market closed (game started). Model fair ${fair.toFixed(1)} ${unit}.`;
     }
     if (evaluation.dataCheck) {
       return `Model fair sits at ${fair.toFixed(1)} ${unit} (${signedPct(evaluation.ev)} EV on ${evaluation.side} ${evaluation.line.toFixed(1)} line · Verify before acting).`;
@@ -2101,8 +2101,8 @@
     switchers.forEach((switcher) => {
       switcher.innerHTML = items.map((item) => `
         <button type="button" class="sport-switch-btn${item.active ? ' active' : ''}" role="radio"
-          aria-checked="${item.active}" data-sport="${esc(item.id)}" title="${item.id === 'ufc' || item.id === 'nhl' ? `${esc(item.label)} coming soon` : `Switch to ${esc(item.label)}`}">
-          <img class="league-badge league-badge-${esc(item.id)}" src="/league-logos/${esc(item.id)}.${item.id === 'ufc' ? 'svg' : 'png'}" alt="" aria-hidden="true"><span class="sport-switch-label">${esc(item.label)}</span></button>`).join('');
+          aria-checked="${item.active}" aria-label="${esc(item.label)}${item.id === 'ufc' || item.id === 'nhl' ? ' coming soon' : ''}" data-sport="${esc(item.id)}" title="${item.id === 'ufc' || item.id === 'nhl' ? `${esc(item.label)} coming soon` : `Switch to ${esc(item.label)}`}">
+          <img class="league-badge league-badge-${esc(item.id)}" src="/league-logos/${esc(item.id)}.${item.id === 'ufc' ? 'svg' : 'png'}" alt="" aria-hidden="true">${item.id === 'ufc' ? '' : `<span class="sport-switch-label">${esc(item.label)}</span>`}</button>`).join('');
       switcher.addEventListener('click', (e) => {
         const btn = e.target && e.target.closest ? e.target.closest('[data-sport]') : null;
         if (btn) switchToSport(btn.dataset.sport);
@@ -3506,7 +3506,9 @@
     if (!btn) return;
     const isWatched = (state.watchlist || []).includes(playerId);
     btn.className = `star-modal-btn ${isWatched ? 'starred' : ''}`;
-    btn.innerHTML = isWatched ? 'On Watchlist' : '+ Add to Watchlist';
+    btn.innerHTML = isWatched ? '★' : '☆';
+    btn.setAttribute('aria-label', isWatched ? 'Remove from watchlist' : 'Add to watchlist');
+    btn.title = isWatched ? 'Remove from watchlist' : 'Add to watchlist';
   }
 
   // ── §14. Watchlist & portfolio risk — sparklines, correlations, sniper ─
@@ -7653,92 +7655,64 @@
   // ── §20. Detail analytics markups — hurdle ruler, bridge, ticket ──────
 
   function quantHurdleRuler(row, evaluation, fair, projection) {
-    if (evaluation.state === 'none' || !evaluation.line) return '';
+    if (evaluation.state === 'none' || !Number.isFinite(Number(evaluation.line))) return '';
     const side = evaluation.side || 'OVER';
-    const offerLine = evaluation.line;
-    const fairLine = fair;
-
-    // Realistic market steam drift estimation
-    const openDrift = Math.abs(Math.sin(row.player_id.charCodeAt(row.player_id.length - 1))) * 3.2 + 1.2;
-    const openLine = evaluation.quote?.open_line || (side === 'UNDER' ? offerLine - openDrift : offerLine - openDrift);
-
-    // Target 10% Gate Hurdle line (the line where edge clears the 10% gate)
-    const targetLineVal = Number.isFinite(evaluation.target) && evaluation.target > 0
-      ? evaluation.target
-      : (side === 'UNDER' ? offerLine - Math.max(1.0, (offerLine - fairLine) * 0.25) : offerLine + Math.max(1.0, (fairLine - offerLine) * 0.70));
-
-    const minAxis = Math.floor(Math.min(openLine, offerLine, fairLine, targetLineVal) * 0.88);
-    const maxAxis = Math.ceil(Math.max(openLine, offerLine, fairLine, targetLineVal) * 1.10);
-    const toPct = (v) => Math.max(5, Math.min(95, ((v - minAxis) / Math.max(1, maxAxis - minAxis)) * 100));
-
-    const openPct = toPct(openLine);
-    const offerPct = toPct(offerLine);
-    const targetPct = toPct(targetLineVal);
-    const fairPct = toPct(fairLine);
-
-    const deltaYards = (fairLine - offerLine).toFixed(1);
-    const deltaSigned = num(deltaYards) > 0 ? `+${deltaYards}` : deltaYards;
-
-    const isOfferHurdleCrowded = Math.abs(targetPct - offerPct) < 9 || Math.abs(targetLineVal - offerLine) < 2.5;
-
-    return `
-      <div class="quant-ruler-card">
-        <div class="quant-ruler-header">
-          <span class="quant-ruler-title">Price Discovery &amp; 10% Gate Hurdle</span>
-          <span class="quant-ruler-delta ${side === 'UNDER' ? 'text-sky' : 'text-accent'}">${deltaSigned} yds vs Offer (${side})</span>
-        </div>
-
-        <div class="quant-ruler-track-wrap">
-          <svg class="quant-ruler-svg" viewBox="0 0 100 44" preserveAspectRatio="none" aria-hidden="true">
-            <!-- Base Axis Track -->
-            <rect x="0" y="20" width="100" height="4" rx="1.5" fill="rgba(255,255,255,0.07)" />
-            <!-- Market Steam Vector (Open -> Offer) -->
-            <rect x="${Math.min(openPct, offerPct).toFixed(1)}" y="20" width="${Math.abs(offerPct - openPct).toFixed(1)}" height="4" fill="rgba(148, 163, 184, 0.35)" />
-            <!-- Actionable Alpha Zone (Offer -> Hurdle) -->
-            <rect x="${Math.min(offerPct, targetPct).toFixed(1)}" y="19" width="${Math.abs(targetPct - offerPct).toFixed(1)}" height="6" rx="1" fill="${side === 'UNDER' ? 'rgba(56, 189, 248, 0.30)' : 'rgba(132, 204, 22, 0.32)'}" />
-            <!-- Sub-Gate Buffer Zone (Hurdle -> Fair) -->
-            <rect x="${Math.min(targetPct, fairPct).toFixed(1)}" y="20" width="${Math.abs(fairPct - targetPct).toFixed(1)}" height="4" fill="rgba(245, 158, 11, 0.22)" />
-          </svg>
-
-          <!-- Marker 1: Open Line -->
-          <div class="ruler-marker marker-open" style="left:${openPct.toFixed(1)}%">
-            <span class="marker-lbl">OPEN</span>
-            <div class="marker-tick tick-open"></div>
-            <span class="marker-val val-open">${openLine.toFixed(1)}</span>
-          </div>
-
-          <!-- Marker 2: Live Book Offer (Staggered top when crowded) -->
-          <div class="ruler-marker marker-offer ${isOfferHurdleCrowded ? 'marker-stagger-top' : ''}" style="left:${offerPct.toFixed(1)}%">
-            <span class="marker-lbl lbl-offer">OFFER</span>
-            <div class="marker-dot dot-offer"></div>
-            <span class="marker-val val-offer">${offerLine.toFixed(1)}</span>
-          </div>
-
-          <!-- Marker 3: Gate Hurdle Target (Staggered bottom when crowded) -->
-          <div class="ruler-marker marker-hurdle ${isOfferHurdleCrowded ? 'marker-stagger-bottom' : ''}" style="left:${targetPct.toFixed(1)}%">
-            <span class="marker-lbl lbl-hurdle">HURDLE</span>
-            <div class="marker-dot dot-hurdle"></div>
-            <span class="marker-val val-hurdle">${targetLineVal.toFixed(1)}</span>
-          </div>
-
-          <!-- Marker 4: Model Fair Median -->
-          <div class="ruler-marker marker-fair" style="left:${fairPct.toFixed(1)}%">
-            <span class="marker-lbl lbl-fair">FAIR (P50)</span>
-            <div class="marker-dot dot-fair"></div>
-            <span class="marker-val val-fair">${fairLine.toFixed(1)}</span>
-          </div>
-        </div>
-
-        <p class="quant-ruler-copy">
-          ${side === 'UNDER'
-            ? `Playable down to <span class="text-amber">${targetLineVal.toFixed(1)} yds</span> before UNDER edge drops below your <span class="text-white">10%</span> execution gate.`
-            : `Playable up to <span class="text-amber">${targetLineVal.toFixed(1)} yds</span> before OVER edge drops below your <span class="text-white">10%</span> execution gate.`}
-        </p>
-      </div>
-    `;
+    const unit = marketDef().unit || 'units';
+    const offer = Number(evaluation.line);
+    const rawOpen = evaluation.quote?.open_line;
+    const open = rawOpen != null && Number.isFinite(Number(rawOpen)) ? Number(rawOpen) : null;
+    const hurdle = evaluation.state === 'verified' && Number.isFinite(evaluation.target) && evaluation.target > 0 ? evaluation.target : null;
+    const values = [offer, fair, open, hurdle].filter((value) => Number.isFinite(value));
+    const low = Math.min(...values) - 1;
+    const high = Math.max(...values) + 1;
+    const toPct = (value) => Math.max(5, Math.min(95, ((value - low) / (high - low)) * 100));
+    const offerPct = toPct(offer);
+    const fairPct = toPct(fair);
+    const openPct = open === null ? null : toPct(open);
+    const hurdlePct = hurdle === null ? null : toPct(hurdle);
+    const label = (name, value, pct, lane) => `<span class="ruler-value-label ${lane}" style="left:${pct.toFixed(1)}%">${name} ${value.toFixed(1)}</span>`;
+    const topLabels = openPct !== null && Math.abs(openPct - offerPct) < 24
+      ? label('OPEN ' + open.toFixed(1) + ' · OFFER', offer, (openPct + offerPct) / 2, 'top')
+      : `${openPct === null ? '' : label('OPEN', open, openPct, 'top')}${label('OFFER', offer, offerPct, 'top')}`;
+    const bottomLabels = hurdlePct !== null && Math.abs(hurdlePct - fairPct) < 24
+      ? label('HURDLE ' + hurdle.toFixed(1) + ' · FAIR', fair, (hurdlePct + fairPct) / 2, 'bottom')
+      : `${hurdlePct === null ? '' : label('HURDLE', hurdle, hurdlePct, 'bottom')}${label('FAIR', fair, fairPct, 'bottom')}`;
+    const delta = fair - offer;
+    const gateText = hurdle === null ? 'Gate hurdle unavailable for this market.'
+      : evaluation.state !== 'verified' ? 'Quote unverified; confirm price and availability at the book.'
+        : `Model gate threshold: ${side === 'UNDER' ? 'down to' : 'up to'} ${hurdle.toFixed(1)} ${unit}. Check execution status before logging.`;
+    return `<div class="quant-ruler-card">
+      <div class="quant-ruler-header"><span class="quant-ruler-title">Price discovery</span><span class="quant-ruler-delta">${delta > 0 ? '+' : ''}${delta.toFixed(1)} ${unit} vs offer (${side})</span></div>
+      <div class="quant-ruler-track-wrap" role="img" aria-label="Offer ${offer.toFixed(1)}, fair ${fair.toFixed(1)}${open === null ? '' : `, open ${open.toFixed(1)}`}${hurdle === null ? '' : `, hurdle ${hurdle.toFixed(1)}`} ${unit}">
+        <div class="quant-ruler-lane top">${topLabels}</div>
+        <svg class="quant-ruler-svg" viewBox="0 0 100 12" preserveAspectRatio="none" aria-hidden="true">
+          <rect x="0" y="4" width="100" height="4" rx="2" fill="rgba(255,255,255,0.09)" />
+          ${hurdlePct !== null ? `<rect x="${Math.min(offerPct, hurdlePct).toFixed(1)}" y="4" width="${Math.abs(hurdlePct - offerPct).toFixed(1)}" height="4" rx="2" fill="rgba(128,198,246,0.55)" />` : ''}
+          ${openPct !== null ? `<line x1="${openPct.toFixed(1)}" x2="${openPct.toFixed(1)}" y1="2" y2="10" stroke="#94a3b8" stroke-width=".5" />` : ''}
+          <line x1="${offerPct.toFixed(1)}" x2="${offerPct.toFixed(1)}" y1="1" y2="11" stroke="#fff" stroke-width=".7" />
+          ${hurdlePct !== null ? `<line x1="${hurdlePct.toFixed(1)}" x2="${hurdlePct.toFixed(1)}" y1="1" y2="11" stroke="#80c6f6" stroke-width=".7" />` : ''}
+          <line x1="${fairPct.toFixed(1)}" x2="${fairPct.toFixed(1)}" y1="1" y2="11" stroke="#b7e5ff" stroke-width=".7" />
+        </svg>
+        <div class="quant-ruler-lane bottom">${bottomLabels}</div>
+      </div><p class="quant-ruler-copy">${gateText}</p></div>`;
   }
 
   function opportunityTelemetryMarkup(row) {
+    if (SPORT_ID === 'nba') {
+      const available = (value, suffix = '') => value !== null && value !== undefined && value !== '' && Number.isFinite(Number(value))
+        ? `${Number(value).toFixed(1)}${suffix}` : 'Not available';
+      const ts = row.true_shooting_pct ?? row.ts_pct;
+      const metrics = [
+        { label: 'Usage rate', value: available(Number.isFinite(Number(row.usage_rate)) ? Number(row.usage_rate) * 100 : null, '%'), benchmark: 'Share of team plays' },
+        { label: 'Projected minutes', value: available(row.minutes, ' min'), benchmark: 'Fixture estimate' },
+        { label: 'True shooting', value: available(ts == null ? null : Number(ts) <= 1 ? Number(ts) * 100 : ts, '%'), benchmark: 'Not in current feed when blank' },
+        { label: 'Pace factor', value: available(row.pace_factor ?? row.pace), benchmark: 'Not in current feed when blank' },
+        { label: 'Points per touch', value: available(row.points_per_touch, ' pts'), benchmark: 'Not in current feed when blank' },
+        { label: 'Sample size', value: row.games_prior != null ? `${row.games_prior} games` : 'Not available', benchmark: 'Fixture baseline' }
+      ];
+      return `<div class="quant-card"><div class="quant-card-header"><span class="quant-card-title">Player Telemetry</span><span class="quant-card-sub">NBA · ${esc(state.filters.market.toUpperCase())}</span></div>
+        <div class="telemetry-grid">${metrics.map((metric) => `<div class="telemetry-cell"><div class="telemetry-cell-header"><span class="telemetry-label">${esc(metric.label)}</span><div class="telemetry-vals"><span class="telemetry-benchmark">${esc(metric.benchmark)}</span><strong class="telemetry-value">${esc(metric.value)}</strong></div></div></div>`).join('')}</div></div>`;
+    }
     const share = num(row.f_tgt_share || row.target_share);
     const ayShare = num(row.f_ay_share || row.air_yards_share);
     const adot = num(row.f_adot || row.adot);
@@ -7783,11 +7757,12 @@
 
   function probabilityBridgeMarkup(row, evaluation) {
     const quote = evaluation.quote;
+    if (!quote) return '<div class="quant-card"><div class="quant-card-header"><span class="quant-card-title">Probability comparison</span></div><p class="quant-ruler-copy">No book quote is available for this player. Market probability and edge are unavailable.</p></div>';
     const probabilities = quote ? devig(quote.over_odds, quote.under_odds) : null;
     const marketProbability = probabilities ? (evaluation.side === 'UNDER' ? probabilities.under : probabilities.over) : 0.50;
     const breakEven = evaluation.state !== 'none' ? 1 / americanToDecimal(evaluation.odds) : 0.5238;
     const modelWinP = Math.max(0.01, Math.min(0.99, marketProbability + num(evaluation.edge)));
-    const receiptHash = quote?.receipt_id || quote?.provider_quote_id || 'a054819c1cfb8fb0';
+    const receiptHash = evaluation.state === 'verified' ? quote?.receipt_id || quote?.provider_quote_id || '' : '';
     const cleanHash = receiptHash.startsWith('http') ? receiptHash.split('/').pop().slice(0, 16) : receiptHash.slice(0, 16);
     const bookName = quote?.book || 'Consensus';
 
@@ -7801,12 +7776,12 @@
     return `
       <div class="quant-card">
         <div class="quant-card-header">
-          <span class="quant-card-title">Probability Edge Bridge</span>
-          <button type="button" class="receipt-copy-pill" id="copyReceiptBtn" data-receipt="${esc(receiptHash)}" title="Click to copy cryptographic receipt hash">
+          <span class="quant-card-title">Probability comparison</span>
+          ${receiptHash ? `<button type="button" class="receipt-copy-pill" id="copyReceiptBtn" data-receipt="${esc(receiptHash)}" title="Copy quote receipt identifier">
             <span class="receipt-dot"></span>
             <span class="receipt-hash">#${esc(cleanHash)}</span>
             <span class="receipt-copy-icon">⧉</span>
-          </button>
+          </button>` : '<span class="quant-card-sub">No verified receipt</span>'}
         </div>
 
         <div class="bridge-body">
@@ -7822,17 +7797,17 @@
             <!-- Vig Tax -->
             <div class="bridge-seg-vig" style="left:${mktPct}%; width:${vigDrag}%"></div>
             <!-- Net Positive Alpha -->
-            <div class="bridge-seg-alpha" style="left:${bePct}%; width:${Math.max(2, (modelWinP - breakEven) * 100)}%"></div>
+            <div class="bridge-seg-alpha" style="left:${bePct}%; width:${Math.max(0, (modelWinP - breakEven) * 100)}%"></div>
           </div>
 
           <div class="bridge-footer">
             <span class="text-muted">Vig drag: -${vigDrag}%</span>
-            <span class="text-accent font-bold">True Edge: +${edgePct}% (+${netAlpha}% over vig)</span>
+            <span class="text-accent font-bold">Model difference: ${edgePct}% (${netAlpha}% over vig) · ${evaluation.state === 'verified' ? 'Feed verified' : 'Unverified'}</span>
           </div>
 
           <div class="specs-grid">
-            <div><span>State:</span> <b>${evaluation.state === 'verified' ? 'Receipt-Verified' : evaluation.state}</b></div>
-            <div><span>Source:</span> <b>${esc(bookName)} API (Fresh)</b></div>
+            <div><span>State:</span> <b>${evaluation.state === 'verified' ? 'Feed verified' : 'Unverified'}</b></div>
+            <div><span>Source:</span> <b>${esc(bookName)} quote</b></div>
             <div><span>Gate Hurdle:</span> <b>${policy() ? pct(policy().gate, 0) : '10%'}</b></div>
             <div><span>Kelly Cap:</span> <b>${policy() ? pct(policy().cap, 1) : '3.0%'}</b></div>
           </div>
@@ -7905,7 +7880,7 @@
       <div class="execution-ticket-box">
         <div class="ticket-header">
           <span class="ticket-title"><svg class="prop-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" style="width:13px;height:13px;"><path d="M2.5 3.5h11a1 1 0 011 1v8a1 1 0 01-1 1h-11a1 1 0 01-1-1v-8a1 1 0 011-1z"/><path d="M5.5 3.5v-1a1 1 0 011-1h4a1 1 0 011 1v1M8 7v4M6 9h4"/></svg> Execution Ticket · CLV Ledger</span>
-          <span class="ticket-status ${isLogged ? 'text-accent' : 'text-muted'}">${isLogged ? 'Logged in Portfolio' : 'Ready to Fill'}</span>
+          <span class="ticket-status ${isLogged ? 'text-accent' : 'text-muted'}">${isLogged ? 'Logged in Portfolio' : 'Research draft · confirm at book'}</span>
         </div>
         <div class="ticket-fields-row">
           <div class="ticket-field ticket-side-field">
@@ -7963,13 +7938,15 @@
       : '';
 
     $('#detailTitle').innerHTML = `
-      <div class="detail-title-row">
+      <div class="detail-title-row" data-team="${esc(row.team)}">
         ${avatarFor(row.player_id, row.player_display_name, row.team)}
         <span>${esc(row.player_display_name)}</span>
         ${sideBadge}
         ${beneficiary ? ` <span class="surge-tag">${SVG_ICONS.surge} ROLE SURGE</span>` : ''}
       </div>`;
     $('#detailMeta').textContent = `${row.position} · ${row.team} ${row.is_home ? 'vs' : '@'} ${row.opponent_team} · ${detailMarketLabel(state.filters.market)}`;
+    $('#detailSummary').textContent = `Model fair ${fair.toFixed(1)} ${marketDef().unit || 'units'} · ${evaluation.closed ? 'Game started' : evaluation.state === 'verified' ? 'Feed-verified quote' : 'Quote unverified'}`;
+    updateModalWatchlistBtn(row.player_id);
     $('#detailContent').innerHTML = detailMarkup(row, evaluation, injury, beneficiary, fair, projection);
 
     // 1. What-If Scenario Slider
@@ -8010,11 +7987,12 @@
         const stakePct = $('#kellyWagerPct');
         const ticketStake = $('#ticketStakeInput');
 
-        const isGated = evaluation.state !== 'none' && evaluation.edge > 0 && evaluation.edge < (policy()?.gate || 0.10);
+        const isGated = evaluation.state === 'verified' && evaluation.edge > 0 && evaluation.edge < (policy()?.gate || 0.10);
         const isOverridden = Boolean(state.gateOverride?.[row.player_id]);
         const fullKelly = kellyFromEvaluation(evaluation.quote, evaluation, evaluation.side);
         const cappedFraction = Math.min(fullKelly, policy()?.cap || 0.03);
-        const effectiveFraction = (isGated && !isOverridden) ? 0.0 : (evaluation.stake || cappedFraction);
+        const effectiveFraction = evaluation.state !== 'verified' ? 0
+          : isGated && isOverridden ? cappedFraction : evaluation.stake || 0;
 
         const wDollars = (val * effectiveFraction).toFixed(2);
         if (stakeAmt) stakeAmt.textContent = `$${wDollars}`;
@@ -8037,7 +8015,8 @@
     const copyBtn = $('#copyReceiptBtn');
     if (copyBtn) {
       copyBtn.addEventListener('click', () => {
-        const hash = copyBtn.dataset.receipt || 'a054819c1cfb8fb0';
+        const hash = copyBtn.dataset.receipt;
+        if (!hash) return;
         if (navigator.clipboard) {
           navigator.clipboard.writeText(hash).catch(() => {});
         }
@@ -8111,15 +8090,9 @@
     const modalStickyLogBtn = $('#modalStickyLogBtn');
     if (modalStickyLogBtn) {
       modalStickyLogBtn.addEventListener('click', () => {
-        triggerHaptic('medium');
-        if (ticketConfirmBtn) {
-          ticketConfirmBtn.click();
-        } else {
-          logBet(row.player_id);
-        }
-        const isNowLogged = (state.portfolio || []).some((b) => b.player_id === row.player_id && b.market === state.filters.market);
-        modalStickyLogBtn.classList.toggle('logged', isNowLogged);
-        modalStickyLogBtn.textContent = isNowLogged ? 'In Ledger' : '+ Add to Ledger';
+        const ticket = $('#ticketStakeInput');
+        ticket?.scrollIntoView?.({ behavior: 'smooth', block: 'center' });
+        ticket?.focus?.();
       });
     }
   }
@@ -8176,9 +8149,7 @@
   }
 
   function detailMarkup(row, evaluation, injury, beneficiary, fair, projection) {
-    const isWatched = (state.watchlist || []).includes(row.player_id);
     const isLogged = (state.portfolio || []).some((b) => b.sport === SPORT_ID && b.player_id === row.player_id && b.market === state.filters.market);
-    const watchButton = `<button class="star-modal-btn ${isWatched ? 'starred' : ''}" type="button" id="modalWatchlistBtn" data-watch-player="${esc(row.player_id)}">${isWatched ? 'On Watchlist' : '+ Add to Watchlist'}</button>`;
 
     const baseShare = num(row.f_tgt_share || row.target_share, 0.20);
     const currentShare = state.scenarioTargetShare ?? baseShare;
@@ -8199,7 +8170,7 @@
     }
 
     const bankroll = Number(state.bankroll) || 5000;
-    const isGated = evaluation.state !== 'none' && evaluation.edge > 0 && evaluation.edge < (policy()?.gate || 0.10);
+    const isGated = evaluation.state === 'verified' && evaluation.edge > 0 && evaluation.edge < (policy()?.gate || 0.10);
     const isOverridden = Boolean(state.gateOverride?.[row.player_id]);
 
     const fullKellyFraction = kellyFromEvaluation(evaluation.quote, evaluation, evaluation.side);
@@ -8301,38 +8272,7 @@
     const envTag = env.tag;
     const weatherDesc = env.desc;
 
-    const isReceptions = state.filters.market === 'receptions';
-    // Detail-model copy: every adapter owns its wording via detail hooks
-    // (NFL hooks live in nfl.js, NBA hooks in nba.js). The fallbacks below
-    // are sport-neutral placeholders for hypothetical adapters that ship
-    // without a detail block — they must never re-introduce sport branches.
-    const hasDetailHooks = Boolean(adapter.detail);
-    const modelSpecTag = hasDetailHooks ? adapter.detail.modelSpec(state.filters.market) : 'MODEL SPEC: NOT SPECIFIED';
-    const distributionDesc = hasDetailHooks ? adapter.detail.distributionDesc(state.filters.market) : 'Distribution: not specified';
-    const fairPVal = isReceptions ? pct(row.p_rec_at_fair_line) : '50.0%';
-    const sampleDesc = hasDetailHooks ? adapter.detail.sampleNote(row, state.filters.market) : 'Sample basis: not specified';
-    const scopeNote = hasDetailHooks ? adapter.detail.scopeNote(row, state.filters.market) : 'Scope notes are not specified for this sport.';
-
     return `
-      <!-- Prominent Verdict Strip at Top: Line, Edge, Kelly Stake -->
-      <div class="detail-verdict-card">
-        <div class="verdict-col">
-          <span class="verdict-label">Book Line</span>
-          <strong class="verdict-val font-mono">${evaluation.side === 'UNDER' ? 'UNDER' : 'OVER'} ${evaluation.line ? evaluation.line.toFixed(1) : fair.toFixed(1)} <small class="text-dim">(${oddsText(evaluation.odds)})</small></strong>
-          <span class="verdict-sub">Fair ${fair.toFixed(1)}</span>
-        </div>
-        <div class="verdict-col">
-          <span class="verdict-label">Edge</span>
-          <strong class="verdict-val font-mono ${evaluation.edge > 0 ? 'text-accent' : 'text-danger'}">${signedPct(evaluation.edge)}</strong>
-          <span class="verdict-sub">${signedPct(evaluation.ev)} EV</span>
-        </div>
-        <div class="verdict-col">
-          <span class="verdict-label">Kelly Stake</span>
-          <strong class="verdict-val font-mono">$${wagerDollars}</strong>
-          <span class="verdict-sub">${wagerPct}% cap</span>
-        </div>
-      </div>
-
       <div class="detail-hero">
         ${priceStat}
         <div class="detail-stat detail-stat-fair">
@@ -8341,18 +8281,10 @@
             <span class="detail-stat-badge">${fairProbabilityText(row)}</span>
           </div>
           <strong class="text-white">${fair.toFixed(1)} <small class="text-dim" style="font-size:11px;">(μ ${projection.toFixed(1)})</small></strong>
-          <small class="cell-sub">Continuous median · ${num(row.games_prior, 16)}G baseline</small>
+          <small class="cell-sub">${SPORT_ID === 'nba' ? 'Uncalibrated fixture · normal approximation' : `Continuous median · ${num(row.games_prior, 16)}G baseline`}</small>
+          <div class="detail-fair-plot">${distSparklineSvg(marketDef().dist(row), evaluation.line)}</div>
         </div>
         ${actionStat}
-      </div>
-
-      <div class="detail-sub-bar">
-        <div class="detail-insight-banner">
-          <strong>Quant Summary:</strong> ${esc(naturalInsight(row, evaluation))}
-        </div>
-        <div class="detail-action-buttons">
-          ${watchButton}
-        </div>
       </div>
 
       ${surgeSection}
@@ -8390,27 +8322,13 @@
             <div class="spec-meta-list">
               <div class="spec-meta-item"><span class="spec-k">Game Script:</span> <span class="spec-v">${row.team} spread ${num(row.team_spread) > 0 ? '+' : ''}${num(row.team_spread).toFixed(1)}</span></div>
               <div class="spec-meta-item"><span class="spec-k">Venue / Env:</span> <span class="spec-v">${weatherDesc}</span></div>
-              <div class="spec-meta-item"><span class="spec-k">Tail Risk:</span> <span class="spec-v">${injury ? `${injury.report_status} (${injury.notes || 'Snap risk unpriced'})` : 'Late inactive / unmodeled rotation'}</span></div>
+              <div class="spec-meta-item"><span class="spec-k">Tail Risk:</span> <span class="spec-v">${injury ? `${injury.report_status} (${injury.notes || (SPORT_ID === 'nba' ? 'Minutes risk unpriced' : 'Snap risk unpriced')})` : 'Late inactive / unmodeled rotation'}</span></div>
             </div>
-            ${injury ? '<div class="spec-alert alert-amber"><strong>Snap risk unpriced:</strong> Inactive designation tracked without false precision.</div>' : ''}
+            ${injury ? `<div class="spec-alert alert-amber"><strong>${SPORT_ID === 'nba' ? 'Minutes' : 'Snap'} risk unpriced:</strong> Availability designation tracked without false precision.</div>` : ''}
             ${evaluation.dataCheck ? '<div class="spec-alert alert-amber"><strong>Audit Flag:</strong> Edge &gt;12% warrants active receipt check.</div>' : ''}
           </div>
         </div>
 
-        <div class="spec-col spec-col-scope">
-          <div class="spec-header">
-            <span class="spec-title">Fair-Line Specification</span>
-            <span class="spec-tag tag-model">${modelSpecTag}</span>
-          </div>
-          <div class="spec-body">
-            <div class="spec-meta-list">
-              <div class="spec-meta-item"><span class="spec-k">Distribution:</span> <span class="spec-v">${distributionDesc}</span></div>
-              <div class="spec-meta-item"><span class="spec-k">P(Over Fair):</span> <span class="spec-v font-bold ${isReceptions ? 'text-amber' : 'text-accent'}">${fairPVal}</span></div>
-              <div class="spec-meta-item"><span class="spec-k">Sample Base:</span> <span class="spec-v">${sampleDesc}</span></div>
-            </div>
-            <div class="spec-note">${scopeNote}</div>
-          </div>
-        </div>
       </div>
 
       <!-- Sticky Add To Ledger Bar pinned to bottom of bottom sheet -->
@@ -8420,7 +8338,7 @@
           <span class="sticky-edge ${evaluation.edge > 0 ? 'text-accent' : 'text-dim'}">${signedPct(evaluation.edge)} edge · $${wagerDollars} (${wagerPct}%)</span>
         </div>
         <button type="button" class="detail-sticky-log-btn ${isLogged ? 'logged' : ''}" id="modalStickyLogBtn">
-          ${isLogged ? 'In Ledger' : '+ Add to Ledger'}
+          Review ticket
         </button>
       </div>
     `;
