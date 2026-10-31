@@ -230,6 +230,8 @@
     }
   }
 
+  let ufcActive = false;
+
   function showComingSoon(sport) {
     const label = sport.toUpperCase();
     document.getElementById('comingSoonLogo').src = `/league-logos/${sport === 'ufc' ? 'ufc.svg' : 'nhl.png'}`;
@@ -245,7 +247,27 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
+  function showUfc() {
+    document.getElementById('comingSoonPage').hidden = true;
+    document.body.classList.remove('coming-soon-active');
+    document.querySelectorAll('#sportSwitcher [data-sport], #mobileSportSwitcher [data-sport]').forEach((button) => {
+      const selected = button.dataset.sport === 'ufc';
+      button.classList.toggle('active', selected);
+      button.setAttribute('aria-checked', String(selected));
+    });
+    ufcActive = true;
+    requestNumber += 1; // cancel any in-flight league schedule render
+    document.getElementById('todayScheduleDate').textContent = 'Next UFC card · fight winner and total rounds';
+    if (window.PropSteinUFC) {
+      window.PropSteinUFC.render(gamesEl, document.getElementById('todayScheduleTitle'), document.getElementById('todayScheduleSource'));
+    } else {
+      gamesEl.innerHTML = '<p class="today-schedule-message">The UFC card is unavailable right now.</p>';
+    }
+    document.getElementById('todaySchedule')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
   function showSchedule() {
+    ufcActive = false;
     document.getElementById('comingSoonPage').hidden = true;
     document.body.classList.remove('coming-soon-active');
     document.querySelectorAll('#sportSwitcher [data-sport], #mobileSportSwitcher [data-sport]').forEach((button) => {
@@ -259,11 +281,12 @@
   leagueNavs.forEach((leagueNav) => leagueNav.addEventListener('click', (event) => {
     const button = event.target.closest('[data-sport]');
     if (!button) return;
-    if (button.dataset.sport === 'ufc' || button.dataset.sport === 'nhl') showComingSoon(button.dataset.sport);
+    if (button.dataset.sport === 'ufc') showUfc();
+    else if (button.dataset.sport === 'nhl') showComingSoon(button.dataset.sport);
     else if (button.dataset.sport === activeSport()) showSchedule();
   }));
   document.getElementById('comingSoonBack').addEventListener('click', showSchedule);
-  document.getElementById('todayScheduleRefresh').addEventListener('click', loadTodayGames);
+  document.getElementById('todayScheduleRefresh').addEventListener('click', () => (ufcActive ? showUfc() : loadTodayGames()));
   gamesEl.addEventListener('click', (event) => {
     const button = event.target.closest('.today-game-trigger');
     if (button) showGameProps(button);

@@ -1,6 +1,6 @@
 {
   "schema_version": "slate-index.v1",
-  "generated_at": "2026-10-31T07:52:47Z",
+  "generated_at": "2026-10-31T08:08:14Z",
   "source": "scripts/autopilot.py",
   "sports": {
     "nfl": {
@@ -94,6 +94,20 @@
           "snapshots": null,
           "historical": true,
           "timezone": "America/New_York"
+        }
+      }
+    },
+    "ufc": {
+      "default_card": "2026-10-31",
+      "cards": {
+        "2026-10-31": {
+          "date": "2026-10-31",
+          "event_name": "UFC Fight Night: Moicano vs. Nolan",
+          "fights": 12,
+          "card": "ufc_card_2026-10-31.json",
+          "status": "ufc_status_2026-10-31.json",
+          "snapshots": "ufc_snapshots_2026-10-31.json",
+          "historical": false
         }
       }
     }

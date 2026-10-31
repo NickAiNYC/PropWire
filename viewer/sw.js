@@ -1,12 +1,14 @@
 // PropStein Service Worker (offline shell only; market data always fails closed)
-const CACHE_NAME = 'propstein-v196-odds-api-label';
+const CACHE_NAME = 'propstein-v197-ufc-card';
 const STATIC_ASSETS = [
   '/index.html',
   '/style.css',
   '/app.js',
   '/style.css?v=2026_v194',
   '/app.js?v=2026_v194',
-  '/js/today-schedule.js?v=2026_v189',
+  '/js/today-schedule.js?v=2026_v196',
+  '/js/sports/ufc.js?v=2026_v196',
+  '/ufc.css?v=2026_v196',
   '/js/front-page.js?v=2026_v190',
   '/league-logos/nba.png',
   '/league-logos/nfl.png',
