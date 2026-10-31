@@ -136,6 +136,24 @@ export function evaluateSignal(input: SignalEvaluationInput): SignalSnapshot {
     return snapshot("UNVERIFIED", true, "LOW_DETECTION_CONFIDENCE", freshness);
   }
 
+  // A closed or suspended market stays identified as such even if the book
+  // no longer supplies a source timestamp with its withdrawn price.
+  if (observed.marketStatus === "SUSPENDED" || observed.marketStatus === "CLOSED") {
+    const withdrawalReason = observed.marketStatus;
+    reasons.push(`market is ${withdrawalReason.toLowerCase()} at the sportsbook`);
+    return snapshot("SUSPENDED", true, withdrawalReason, freshness);
+  }
+  // A DOM observation is not a source receipt. Missing, malformed, or future
+  // source timestamps must never reach model matching or value evaluation.
+  if (freshness.sourceDataStale && freshness.sourceAgeMs === undefined) {
+    reasons.push(...freshness.reasons);
+    return snapshot("STALE", true, "SOURCE_TIMESTAMP_UNVERIFIED", freshness);
+  }
+  if (observed.marketStatus !== "OPEN") {
+    reasons.push("sportsbook market status is unverified — open price cannot be confirmed");
+    return snapshot("UNVERIFIED", true, "MARKET_STATUS_UNVERIFIED", freshness);
+  }
+
   // ---- Stage 3: MODEL_MATCHED -------------------------------------------
   if (!match) {
     return snapshot("NORMALIZED", false, undefined, freshness);
@@ -145,15 +163,6 @@ export function evaluateSignal(input: SignalEvaluationInput): SignalSnapshot {
     reasons.push(...match.reasons, ...normalized.ambiguityReasons);
     reasons.push("unverified matches never produce value alerts");
     return snapshot("UNVERIFIED", false, undefined, freshness);
-  }
-
-  if (observed.marketStatus === "SUSPENDED") {
-    reasons.push("market is suspended at the sportsbook");
-    return snapshot("SUSPENDED", true, "SUSPENDED", freshness);
-  }
-  if (observed.marketStatus === "CLOSED") {
-    reasons.push("market is closed at the sportsbook");
-    return snapshot("SUSPENDED", true, "CLOSED", freshness);
   }
 
   if (match.status === "NO_COVERAGE" || !model) {
@@ -262,6 +271,7 @@ export function signalStatusLabel(s: SignalSnapshot): string {
   if (s.withdrawn && s.withdrawalReason === "SUSPENDED") return "SUSPENDED";
   if (s.withdrawn && s.withdrawalReason === "CLOSED") return "CLOSED";
   if (s.withdrawn && s.withdrawalReason === "QUOTE_EXPIRED") return "QUOTE EXPIRED";
+  if (s.withdrawn && s.withdrawalReason === "SOURCE_TIMESTAMP_UNVERIFIED") return "STALE · SOURCE UNVERIFIED";
   if (s.withdrawn && s.withdrawalReason === "NOT_VISIBLE") return "NOT VISIBLE";
   switch (s.state) {
     case "ALERTABLE": return "ALERTABLE";

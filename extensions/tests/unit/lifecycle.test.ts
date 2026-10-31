@@ -35,6 +35,7 @@ function observed(overrides: Partial<ObservedMarket> = {}): ObservedMarket {
     driveId: "d4",
     marketStatus: "OPEN",
     observedAt: new Date(clock).toISOString(),
+    sourceTimestamp: new Date(clock).toISOString(), // synthetic source receipt for lifecycle tests
     adapterVersion: "demobook-selectors-v1",
     detectionConfidence: 0.98,
     provenance: "synthetic-fixture",
