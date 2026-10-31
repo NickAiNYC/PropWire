@@ -71,6 +71,30 @@ jobs:
             python src/freeze_slate.py --season "$SEASON" --week "$WEEK" --all-games --snapshot-type "$TYPE"
           fi
 
+      - name: Capture prospective full board
+        if: steps.target.outputs.should_run == 'true' && (github.event_name == 'schedule' || github.event.inputs.snapshot_type == 'pre_kickoff')
+        env:
+          SEASON: ${{ steps.target.outputs.season }}
+          WEEK: ${{ steps.target.outputs.week }}
+          GAME_ID: ${{ steps.target.outputs.game_id }}
+          KICKOFF: ${{ steps.target.outputs.kickoff }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          Path('/tmp/propstein-kickoffs.json').write_text(json.dumps({os.environ['GAME_ID']: os.environ['KICKOFF']}))
+          PY
+          JOURNAL="snapshots/full_board_${SEASON}_w${WEEK}_${GAME_ID}.jsonl"
+          if [ -e "$JOURNAL" ]; then
+            python -m src.prospective_board verify-journal --journal "$JOURNAL"
+          else
+            python -m src.prospective_board capture \
+              --snapshots "snapshots/snapshots_${SEASON}_w${WEEK}.jsonl" \
+              --kickoffs /tmp/propstein-kickoffs.json \
+              --journal "$JOURNAL" --game-id "$GAME_ID"
+          fi
+
       - name: Commit and push immutable snapshot
         if: steps.target.outputs.should_run == 'true'
         run: |

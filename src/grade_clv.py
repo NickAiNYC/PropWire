@@ -1,13 +1,14 @@
 """
-CLV Validation Engine (The Trust Moat)
-Grading script for Closing Line Value analysis on historical & active weekly snapshots.
+Legacy CLV Research Estimator
+Historical trigger-only estimate, not a prospective full-board track record.
 
 Logic:
 1. Isolate the Trigger: Finds the first timestamp where a prop was flagged as VERIFIED_ACTIVE with edge >= 10%.
-2. Isolate the Close: Identifies the final recorded snapshot prior to kickoff / game time.
+2. Select the last recorded snapshot; this script cannot prove it is a pre-kickoff close.
 3. Calculate the Delta: Computes the line movement delta and mathematical EV of holding the trigger ticket
    against the closing market consensus distribution.
-4. Publish the Ledger: Emits an immutable, transparent CLV validation report to viewer/clv_report_{season}_w{week}.json.
+4. Publish a legacy research report. This script is not the prospective,
+   receipt-verified full-board audit; use prospective_board.py for that.
 """
 
 from __future__ import annotations
@@ -95,7 +96,7 @@ def grade_clv_snapshots(
     edge_hurdle: float = 0.10
 ) -> Dict[str, Any]:
     """
-    Scans a snapshot JSONL file, extracts triggers, pairs with closes, and compiles CLV ledger.
+    Scans a snapshot JSONL file and computes an unverified legacy estimate.
     """
     if not snapshot_path.exists():
         raise FileNotFoundError(f"Snapshot file not found: {snapshot_path}")
@@ -148,17 +149,25 @@ def grade_clv_snapshots(
 
         # 2. Isolate the Close
         close_record = records[-1]
+        # A single trigger snapshot is not a closing observation. Never grade
+        # it against itself or invent a close when the later quote is absent.
+        if close_record.get("created_at", "") <= trigger_record.get("created_at", ""):
+            continue
 
         t_quote = trigger_record.get("quote", {})
         c_quote = close_record.get("quote", {})
 
-        t_line = float(t_quote.get("line", 0.0))
-        t_odds = int(t_quote.get("over_odds" if side == "OVER" else "under_odds", -110))
+        entry_odds = t_quote.get("over_odds" if side == "OVER" else "under_odds")
+        closing_odds = c_quote.get("over_odds" if side == "OVER" else "under_odds")
+        if entry_odds is None or closing_odds is None or c_quote.get("line") is None:
+            continue
+        t_line = float(t_quote["line"])
+        t_odds = int(entry_odds)
         t_eval = t_quote.get("evaluation") or {}
         t_edge = float(t_eval.get("prob_edge", 0.0))
 
-        c_line = float(c_quote.get("line", t_line))
-        c_odds = int(c_quote.get("over_odds" if side == "OVER" else "under_odds", -110))
+        c_line = float(c_quote["line"])
+        c_odds = int(closing_odds)
 
         # 3. Calculate Deltas
         if side == "OVER":
@@ -227,8 +236,9 @@ def grade_clv_snapshots(
             "positive_clv_pct": round(positive_clv_pct, 4),
             "avg_line_delta": round(avg_line_delta, 2),
             "avg_clv_ev": round(avg_clv_ev, 4),
-            "verification_rate": 1.0,
-            "immutable_ledger": True
+            "verification_rate": None,
+            "immutable_ledger": False,
+            "audit_status": "LEGACY_RESEARCH_ONLY_NO_INDEPENDENT_RECEIPT_VERIFICATION"
         },
         "ledger": ledger_entries
     }

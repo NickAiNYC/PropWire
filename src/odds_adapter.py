@@ -1289,8 +1289,10 @@ class OddsIngestionAdapter:
 
         print(f"[odds_adapter] Successfully matched and evaluated {len(evaluations)} quotes.")
 
-        # Emit immutable snapshots (verified quotes only)
-        new_snapshots = self.emit_snapshots([e for e in evaluations if e.quote.verified])
+        # Preserve the entire matched observation set, including rejected and
+        # unverified quotes. The quote status below remains explicitly gated;
+        # omission would hide passes from a prospective board audit.
+        new_snapshots = self.emit_snapshots(evaluations)
         print(f"[odds_adapter] Emitted {len(new_snapshots)} immutable snapshots.")
 
         # Export live odds feed for viewer
@@ -1329,7 +1331,7 @@ class OddsIngestionAdapter:
         thread.start()
 
     def emit_snapshots(self, evaluations: List[MatchedEvaluation]) -> List[Dict[str, Any]]:
-        """Appends verified quote snapshots to snapshots log."""
+        """Appends all matched quote observations to the snapshot log."""
         self.snapshots_dir.mkdir(parents=True, exist_ok=True)
         jsonl_path = self.snapshots_dir / f"snapshots_{self.season}_w{self.week}.jsonl"
         json_bundle_path = self.viewer_dir / f"snapshots_{self.season}_w{self.week}.json"
@@ -1400,7 +1402,7 @@ class OddsIngestionAdapter:
                         "require_positive_ev": True
                     },
                     "quote": {
-                        "status": "verified",
+                        "status": "verified" if ev.quote.verified else "unverified",
                         "quote_id": ev.quote.quote_id,
                         "source": ev.quote.source,
                         "book": ev.quote.book,
@@ -1409,13 +1411,13 @@ class OddsIngestionAdapter:
                         "under_odds": ev.under_odds,
                         "observed_at": ev.quote.observed_at,
                         "evaluation": {
-                            "is_qualified": ev.is_qualified,
-                            "status": ev.status,
+                            "is_qualified": bool(ev.is_qualified and ev.quote.verified),
+                            "status": ev.status if ev.quote.verified else "UNVERIFIED",
                             "best_side": ev.best_side,
                             "prob_edge": ev.prob_edge,
                             "break_even_adv": ev.break_even_adv,
                             "expected_return": ev.expected_return,
-                            "actionable_stake": ev.actionable_stake,
+                            "actionable_stake": ev.actionable_stake if ev.quote.verified else 0.0,
                             "catalyst": ev.catalyst,
                             "injury_context": ev.injury_context
                         }
