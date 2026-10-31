@@ -481,9 +481,50 @@ def default_for(slates: dict) -> str | None:
     return live[-1] if live else None
 
 
+def scan_ufc_cards(now: datetime) -> dict:
+    """viewer/ufc_card_<date>.json -> manifest entries (written by fetch_ufc_odds.py)."""
+    today = now.astimezone(ET).strftime("%Y-%m-%d")
+    cards: dict = {}
+    for path in sorted(VIEWER.glob("ufc_card_*.json")):
+        date = path.stem.replace("ufc_card_", "")
+        try:
+            card = json.loads(path.read_text(encoding="utf-8"))
+        except ValueError:
+            continue
+        cards[date] = {
+            "date": date,
+            "event_name": card.get("event_name"),
+            "fights": len(card.get("fights") or []),
+            "card": path.name,
+            "status": f"ufc_status_{date}.json",
+            "snapshots": f"ufc_snapshots_{date}.json",
+            "historical": date < today,
+        }
+    return cards
+
+
+def ufc_default(cards: dict):
+    live = [k for k, v in cards.items() if not v["historical"]]
+    return live[0] if live else (list(cards)[-1] if cards else None)
+
+
+def fetch_ufc(now: datetime) -> None:
+    """UFC card + model refresh (odds only inside 48h of the card; 2 credits/pull)."""
+    try:
+        r = subprocess.run([sys.executable, str(ROOT / "scripts" / "fetch_ufc_odds.py")],
+                           capture_output=True, text=True, timeout=600)
+        for line in (r.stdout or "").strip().splitlines():
+            print(f"  {line}")
+        if r.returncode != 0:
+            print(f"  [warn] UFC pipeline exited {r.returncode}: {(r.stderr or '')[-500:]}", file=sys.stderr)
+    except Exception as exc:
+        print(f"  [warn] UFC pipeline skipped: {exc}", file=sys.stderr)
+
+
 def write_manifest(now: datetime) -> Path:
     nfl = scan_nfl_slates(now)
     nba = scan_nba_slates(now)
+    ufc = scan_ufc_cards(now)
     manifest = {
         "schema_version": "slate-index.v1",
         "generated_at": now.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
@@ -491,6 +532,7 @@ def write_manifest(now: datetime) -> Path:
         "sports": {
             "nfl": {"default_slate": default_for(nfl), "slates": nfl},
             "nba": {"default_slate": default_for(nba), "slates": nba},
+            "ufc": {"default_card": ufc_default(ufc), "cards": ufc},
         },
     }
     FEEDS.mkdir(parents=True, exist_ok=True)
@@ -666,6 +708,7 @@ def main() -> int:
     write_snapshots_stub(season, week)
     fetch_nba_days(now)
     fetch_nba_odds_days(now)
+    fetch_ufc(now)
     # v176: refresh real Polymarket player-prop quotes (public API, no key,
     # fail-closed — network failure leaves the feed untouched). DraftKings /
     # FanDuel still flow through the ODDS_API_KEY gate above.

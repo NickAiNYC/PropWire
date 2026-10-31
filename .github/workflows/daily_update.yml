@@ -87,6 +87,7 @@ jobs:
             'viewer/slate_projections.csv' \
             'viewer/todays_board.html' 'viewer/todays_board.txt' \
             'viewer/nba_*.json' \
+            'viewer/ufc_*.json' \
             'viewer/index.html' viewer/audit.html viewer/verify.html \
             viewer/ledger.html viewer/ledger/index.html \
             current_picks.json top_picks.json slate_projections.json slate_projections.csv \

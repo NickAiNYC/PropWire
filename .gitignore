@@ -34,3 +34,5 @@ ODDS_API_KEY*
 # Stage-A discovery output contains licensed vendor responses (same rationale
 # as raw/); stays local unless V8 permission permits otherwise.
 research/drive-rec-v2/vendor_trial_2dv/raw_discovery/
+data/ufc_history.json
+data/ufc_athletes.json
