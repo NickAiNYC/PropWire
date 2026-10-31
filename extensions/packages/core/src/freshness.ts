@@ -6,6 +6,8 @@
  * Invariants (spec §8):
  *  - The time a quote was SEEN on screen (observedAt) is never equated with
  *    the time the sportsbook GENERATED it (sourceTimestamp).
+ *  - Missing or invalid source timestamps fail closed. A recent DOM read
+ *    cannot establish when the book published the price.
  *  - Freshness limits are market-type-specific and configurable.
  *  - The defaults below are ENGINEERING DEFAULTS aligned with the repo's
  *    StaleKillSwitch (odds: 20s live / 60s pregame). They are NOT empirical
@@ -80,7 +82,13 @@ export function assessFreshness(
   let sourceAgeMs: number | undefined;
   let sourceDataStale = false;
   const sourceTs = parseIsoMs(market.sourceTimestamp);
-  if (sourceTs !== undefined) {
+  if (sourceTs === undefined) {
+    sourceDataStale = true;
+    reasons.push("source timestamp missing or unparseable — sportsbook quote freshness cannot be verified");
+  } else if (sourceTs > nowMs) {
+    sourceDataStale = true;
+    reasons.push("source timestamp is in the future — sportsbook quote freshness cannot be verified");
+  } else {
     sourceAgeMs = Math.max(0, nowMs - sourceTs);
     if (effective.maxSourceAgeMs !== undefined && sourceAgeMs > effective.maxSourceAgeMs) {
       sourceDataStale = true;

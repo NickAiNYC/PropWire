@@ -145,7 +145,7 @@ export function deriveViewKind(
   const live = snapshots.filter((s) => !s.withdrawn);
   if (live.length === 0) {
     const anySuspended = snapshots.some((s) => s.withdrawalReason === "SUSPENDED");
-    const anyExpired = snapshots.some((s) => s.withdrawalReason === "QUOTE_EXPIRED" || s.withdrawalReason === "DRIVE_ENDED");
+    const anyExpired = snapshots.some((s) => s.withdrawalReason === "QUOTE_EXPIRED" || s.withdrawalReason === "DRIVE_ENDED" || s.withdrawalReason === "SOURCE_TIMESTAMP_UNVERIFIED");
     if (anySuspended) return "suspended-market";
     if (anyExpired) return "quote-expired";
     return "no-markets-visible";

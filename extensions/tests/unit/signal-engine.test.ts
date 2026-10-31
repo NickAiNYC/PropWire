@@ -37,6 +37,7 @@ function observed(overrides: Partial<ObservedMarket> = {}): ObservedMarket {
     driveId: "d4",
     marketStatus: "OPEN",
     observedAt: "2026-10-30T18:44:00.000Z", // exactly 1000ms before NOW
+    sourceTimestamp: "2026-10-30T18:44:00.000Z", // synthetic source receipt, distinct from observation
     adapterVersion: "demobook-selectors-v1",
     detectionConfidence: 0.98,
     provenance: "synthetic-fixture",
@@ -102,6 +103,29 @@ test("sourceTimestamp is evaluated separately from observedAt", () => {
   assert.ok(a.reasons.some((r) => r.includes("source data age")));
 });
 
+test("missing, invalid, or future source timestamps fail closed", () => {
+  for (const sourceTimestamp of [undefined, "not-a-date", "2026-10-30T18:45:00.000Z"]) {
+    const m = observed({ sourceTimestamp });
+    const freshness = assessFreshness(m, "drive_reception_1plus", DEFAULT_SIGNAL_ENGINE_CONFIG, NOW);
+    assert.equal(freshness.sourceDataStale, true);
+    const signal = evaluateSignal({
+      signalKey: "k", observed: m, normalized: norm(m), match: MATCHED, model: MODEL,
+      driveContext: DRIVE, visible: true, nowMs: NOW,
+    });
+    assert.equal(signal.state, "STALE");
+    assert.equal(signal.withdrawn, true);
+    assert.equal(signal.withdrawalReason, "SOURCE_TIMESTAMP_UNVERIFIED");
+    assert.ok(signal.reasons.some((reason) => reason.includes("source timestamp")));
+  }
+});
+
+test("missing source timestamp is STALE even before model matching", () => {
+  const m = observed({ sourceTimestamp: undefined });
+  const signal = evaluateSignal({ signalKey: "k", observed: m, normalized: norm(m), nowMs: NOW });
+  assert.equal(signal.state, "STALE");
+  assert.equal(signal.withdrawalReason, "SOURCE_TIMESTAMP_UNVERIFIED");
+});
+
 test("formatQuoteAge renders human units", () => {
   assert.equal(formatQuoteAge(350), "350ms");
   assert.equal(formatQuoteAge(1250), "1.3s");
@@ -159,6 +183,16 @@ test("closed market → withdrawn", () => {
   const s = evaluateSignal({ signalKey: "k", observed: m, normalized: norm(m), match: MATCHED, model: MODEL, driveContext: DRIVE, visible: true, nowMs: NOW });
   assert.equal(s.state, "SUSPENDED");
   assert.equal(s.withdrawalReason, "CLOSED");
+});
+
+test("unknown market status cannot produce a value alert", () => {
+  const m = observed({ marketStatus: "UNKNOWN" });
+  const s = evaluateSignal({
+    signalKey: "k", observed: m, normalized: norm(m), match: MATCHED, model: MODEL,
+    driveContext: DRIVE, visible: true, nowMs: NOW,
+  });
+  assert.equal(s.state, "UNVERIFIED");
+  assert.equal(s.withdrawalReason, "MARKET_STATUS_UNVERIFIED");
 });
 
 test("UNVERIFIED match → never alertable", () => {

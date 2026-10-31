@@ -217,12 +217,21 @@
       function card(playerId) {
         return board.querySelector('[data-ps-player-id="' + playerId + '"]');
       }
+      function publishSyntheticQuotes() {
+        // DemoBook's simulated source publishes a new receipt. Production
+        // adapters must obtain this timestamp from the book's own feed.
+        var sourceTimestamp = new Date().toISOString();
+        board.querySelectorAll("[data-ps-market-card]").forEach(function (el) {
+          el.setAttribute("data-ps-source-timestamp", sourceTimestamp);
+        });
+      }
       function setOdds(el, odds) {
         var price = el.querySelector(".price");
         var old = parseInt(el.getAttribute("data-ps-american-odds"), 10);
         el.setAttribute("data-ps-american-odds", String(odds));
         price.textContent = (odds > 0 ? "+" : "") + odds;
         price.className = "price " + (odds > old ? "up" : "down");
+        publishSyntheticQuotes();
       }
       function setStatus(el, status) {
         el.setAttribute("data-ps-market-status", status);
@@ -262,11 +271,13 @@
         location.reload();
       });
 
-      // Live feed heartbeat: touches an attribute every 2s so the mutation
-      // pipeline observes continuous activity (and feed-age is real).
+      publishSyntheticQuotes();
+      // The synthetic feed republishes its quotes every 2s. This is a demo
+      // receipt, not an assertion that a real sportsbook refreshes this fast.
       setInterval(function () {
         var age = Math.round((Date.now() - FEED_START) / 1000);
         document.getElementById("feed-age").textContent = "FEED AGE " + age + "s";
+        publishSyntheticQuotes();
         board.setAttribute("data-ps-feed-tick", String(Date.now()));
       }, 2000);
     })();
