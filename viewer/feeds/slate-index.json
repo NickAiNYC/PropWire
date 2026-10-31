@@ -1,6 +1,6 @@
 {
   "schema_version": "slate-index.v1",
-  "generated_at": "2026-10-28T02:26:29Z",
+  "generated_at": "2026-10-31T07:35:44Z",
   "source": "scripts/autopilot.py",
   "sports": {
     "nfl": {
@@ -74,6 +74,20 @@
           "picks": null,
           "injuries": "nba_injuries_2026-10-23.json",
           "odds": "nba_odds_2026-10-23.json",
+          "snapshots": null,
+          "historical": true,
+          "timezone": "America/New_York"
+        },
+        "2026-10-29": {
+          "season": 2026,
+          "date": "2026-10-29",
+          "shortLabel": "Oct 29 Audit",
+          "state": "Historical audit \u00b7 2026-10-29",
+          "slate": "nba_slate_2026-10-29.json",
+          "games": "nba_games_2026-10-29.json",
+          "picks": null,
+          "injuries": "nba_injuries_2026-10-29.json",
+          "odds": "nba_odds_2026-10-29.json",
           "snapshots": null,
           "historical": true,
           "timezone": "America/New_York"
